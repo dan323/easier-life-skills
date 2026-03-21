@@ -3,6 +3,6 @@
   "version": "3.0.0",
   "description": "Find breaking changes in REST APIs by analyzing git history",
   "author": { "name": "dan323" },
-  "repository": "https://github.com/dan323/agent-skills",
+  "repository": "https://github.com/dan323/skill-easy-life",
   "keywords": ["api", "rest", "breaking-changes", "git", "compatibility"]
 }

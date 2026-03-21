@@ -1,4 +1,4 @@
-# agent-skills
+# skill-easy-life
 
 A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](https://claude.ai/code) and GitHub Copilot. Each skill gives an AI agent detailed, phase-by-phase instructions for performing a specialized development task — generating changelogs, auditing logging, finding dead code, and more.
 
@@ -7,8 +7,8 @@ A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](h
 ### Claude Code (recommended)
 
 ```
-/plugin marketplace add dan323/agent-skills
-/plugin install changelog@agent-skills
+/plugin marketplace add dan323/skill-easy-life
+/plugin install changelog@skill-easy-life
 ```
 
 ## Plugins

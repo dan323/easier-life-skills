@@ -4,10 +4,10 @@
 
 ## Overview
 
-agent-skills is a content repository — there is no compiled code, no runtime, and no server. Each skill is a self-contained directory that an AI agent reads and executes directly.
+skill-easy-life is a content repository — there is no compiled code, no runtime, and no server. Each skill is a self-contained directory that an AI agent reads and executes directly.
 
 ```
-agent-skills/
+skill-easy-life/
 ├── .claude-plugin/
 │   └── marketplace.json     Marketplace catalog (lists all plugins)
 ├── plugins/

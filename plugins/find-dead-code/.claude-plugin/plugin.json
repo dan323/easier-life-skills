@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "description": "Find unused functions, classes, variables, and imports across languages",
   "author": { "name": "dan323" },
-  "repository": "https://github.com/dan323/agent-skills",
+  "repository": "https://github.com/dan323/skill-easy-life",
   "keywords": ["dead-code", "unused", "refactoring", "cleanup"]
 }

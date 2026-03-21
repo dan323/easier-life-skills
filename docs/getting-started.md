@@ -13,14 +13,14 @@
 ### Claude Code (recommended)
 
 ```
-/plugin marketplace add dan323/agent-skills
+/plugin marketplace add dan323/skill-easy-life
 ```
 
 Then install individual plugins:
 
 ```
-/plugin install changelog@agent-skills
-/plugin install brainstorm@agent-skills
+/plugin install changelog@skill-easy-life
+/plugin install brainstorm@skill-easy-life
 ```
 
 
@@ -34,12 +34,12 @@ Then install individual plugins:
 
 Skills trigger automatically when Claude recognises a matching request — you do not need to name the skill explicitly. For example:
 
-| You say | Skill triggered |
-|---|---|
-| "Generate a changelog" | `changelog` |
-| "Document this project" | `document-project` |
-| "Find dead code" | `find-dead-code` |
-| "Review our logging" | `improve-logging` |
+| You say                     | Skill triggered          |
+|-----------------------------|--------------------------|
+| "Generate a changelog"      | `changelog`              |
+| "Document this project"     | `document-project`       |
+| "Find dead code"            | `find-dead-code`         |
+| "Review our logging"        | `improve-logging`        |
 | "Find breaking API changes" | `find-breaking-rest-api` |
 
 Each skill produces output in your current working directory (report files, updated `CHANGELOG.md`, new `README.md`, etc.).
@@ -47,7 +47,7 @@ Each skill produces output in your current working directory (report files, upda
 ## Updating
 
 ```
-/plugin update <name>@agent-skills
+/plugin update <name>@skill-easy-life
 ```
 
 ---

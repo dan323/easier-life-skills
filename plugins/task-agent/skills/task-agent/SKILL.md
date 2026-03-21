@@ -198,7 +198,31 @@ Capture the `html_url` field from the response as the PR URL.
 
 ## Phase 4 — Update state and report
 
-### 4.1 Append to state file
+### 4.1 Remove task from agent-tasks.yml
+
+Remove the completed task entry from `agent-tasks.yml` using python3 so the file stays
+valid YAML. If a project's task list becomes empty after removal, remove that project
+entry too.
+
+```bash
+python3 - <<'EOF'
+import yaml
+
+with open('agent-tasks.yml') as f:
+    config = yaml.safe_load(f)
+
+for project in config['projects']:
+    if project['repo'] == 'OWNER/REPO_NAME':
+        project['tasks'] = [t for t in project['tasks'] if t != 'TASK_DESCRIPTION']
+
+config['projects'] = [p for p in config['projects'] if p.get('tasks')]
+
+with open('agent-tasks.yml', 'w') as f:
+    yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+EOF
+```
+
+### 4.2 Append to state file
 
 Add the completed task to `agent-tasks-state.yml`. Use `Edit` if the file exists, `Write`
 if creating it fresh. Never overwrite existing entries — only append.
@@ -212,7 +236,7 @@ if creating it fresh. Never overwrite existing entries — only append.
   date: "TODAY_ISO_DATE"
 ```
 
-### 4.2 Print the summary
+### 4.3 Print the summary
 
 ```
 ## Task — Done

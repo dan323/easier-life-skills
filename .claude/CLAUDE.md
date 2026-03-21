@@ -11,14 +11,14 @@ A Claude Code plugin marketplace containing reusable skill plugins for Claude Co
 ### Claude Code (recommended)
 
 ```
-/plugin marketplace add dan323/agent-skills
+/plugin marketplace add dan323/skill-easy-life
 ```
 
 Then install individual plugins:
 
 ```
-/plugin install changelog@agent-skills
-/plugin install brainstorm@agent-skills
+/plugin install changelog@skill-easy-life
+/plugin install brainstorm@skill-easy-life
 ```
 
 ## Repository Structure

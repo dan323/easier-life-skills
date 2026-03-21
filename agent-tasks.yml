@@ -2,13 +2,7 @@
 # Run: bash skills/multi-repo-tasks/run.sh .
 # Each invocation processes exactly one task in order and opens a PR.
 
-github_user: "your-github-username"   # or remove this line — inferred from gh auth
-
 projects:
-  - repo: "dan323/fintracker"
-    tasks:
-      - "Update dependencies"
-
   - repo: "dan323/natural-deduction"
     tasks:
       - "Investigate why the ci workflows are failing"

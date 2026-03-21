@@ -4,7 +4,7 @@
 
 ### Changed
 - Repo restructured as a Claude Code plugin marketplace. Each skill is now a plugin under `plugins/<name>/` with a `.claude-plugin/plugin.json` manifest and `skills/<name>/SKILL.md`.
-- Added `.claude-plugin/marketplace.json` — marketplace catalog; install all plugins with `/plugin marketplace add dan323/agent-skills`.
+- Added `.claude-plugin/marketplace.json` — marketplace catalog; install all plugins with `/plugin marketplace add dan323/skill-easy-life`.
 - Removed `scripts/` — installation is now handled entirely by the Claude Code plugin system.
 
 ### Added
