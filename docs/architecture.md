@@ -17,6 +17,10 @@ skill-easy-life/
 │   │   ├── skills/
 │   │   │   └── changelog/
 │   │   │       └── SKILL.md Required — instructions the agent follows
+│   │   ├── agents/          Optional — sub-agents spawned by the skill
+│   │   │   └── <name>.md    Sub-agent definition (frontmatter + system prompt)
+│   │   ├── references/      Optional — concise reference docs read at runtime
+│   │   │   └── <topic>.md   Non-obvious, trap-prone facts (not LLM basics)
 │   │   └── evals/
 │   │       └── evals.json   Optional — test cases for the skill
 │   └── <other-plugins>/     (same layout)
@@ -87,6 +91,40 @@ The body is structured as numbered phases. Each phase has:
 **Read-only by default** — skills that analyse code (find-dead-code, improve-logging) produce reports only. Skills that write files (changelog, document-project) still preserve all existing content.
 
 **Framework-aware** — skills account for runtime patterns that make code appear unused (DI annotations, reflection, decorators) to avoid false positives.
+
+## Sub-Agents
+
+Skills can spawn sub-agents for complex or parallelisable work. Sub-agent definitions live in `plugins/<skill-name>/agents/` and follow the Claude Code sub-agent spec:
+
+```markdown
+---
+name: copilot-review-fixer
+description: What this agent does and when it should be used.
+tools: Bash, Read, Edit, mcp__github__pull_request_read
+background: true
+---
+
+System prompt body — the instructions the agent follows.
+PLACEHOLDER variables are substituted by the caller before spawning.
+```
+
+The skill spawns them via the Agent tool:
+
+```
+subagent_type: "copilot-review-fixer"
+prompt: "OWNER=dan323\nREPO_NAME=my-repo\n..."
+run_in_background: true   # if the agent can run in parallel
+```
+
+**When to extract to a sub-agent:** only when the logic is substantial enough to maintain independently (complex wait/poll/fix loops, multi-step background workflows). Simple two-command phases are fine inline in `SKILL.md`.
+
+## References
+
+Skills can include reference docs in `plugins/<skill-name>/references/`. These are read by the agent at runtime when the task involves that topic.
+
+**What belongs here:** only non-obvious, trap-prone facts the agent would otherwise get wrong — e.g., "always use `./mvnw`, never `mvn`", or "Jest breaks with `module: ESNext`; use a split `tsconfig.jest.json`".
+
+**What does not belong here:** anything a capable LLM already knows (basic syntax, standard API signatures, common patterns).
 
 ## Evals
 

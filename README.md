@@ -21,7 +21,7 @@ A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](h
 | [`improve-logging`](plugins/improve-logging/skills/improve-logging/SKILL.md) | Audit log quality and produce prioritised fix recommendations       |
 | [`find-breaking-rest-api`](plugins/find-breaking-rest-api/skills/find-breaking-rest-api/SKILL.md) | Detect breaking changes in REST APIs by comparing git history |
 | [`brainstorm`](plugins/brainstorm/skills/brainstorm/SKILL.md)              | Suggest the 5 most valuable features or improvements to build next    |
-| [`task-agent`](plugins/task-agent/skills/task-agent/SKILL.md)              | Read tasks from `agent-tasks.yml`, implement each via an agent, open PRs |
+| [`task-agent`](plugins/task-agent/skills/task-agent/SKILL.md)              | Read tasks from `agent-tasks.yml`, implement each via an agent, open PRs, and fix Copilot review comments automatically |
 
 ## Documentation
 

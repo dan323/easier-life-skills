@@ -33,6 +33,10 @@ plugins/
     skills/
       <skill-name>/
         SKILL.md          ← The skill itself
+    agents/               ← Optional: sub-agents spawned by the skill
+      <agent-name>.md     ← Sub-agent definition (frontmatter + system prompt)
+    references/           ← Optional: reference docs the skill agent reads at runtime
+      <topic>.md          ← Concise, non-obvious facts for the agent (not LLM basics)
     evals/
       evals.json          ← Test cases for the skill-creator tooling
 ```
@@ -52,15 +56,15 @@ plugins/
 
 ## Current Plugins
 
-| Plugin                   | Purpose                                                                        |
-|--------------------------|--------------------------------------------------------------------------------|
-| `brainstorm`             | Read the project and suggest the 5 most valuable next features or improvements |
-| `changelog`              | Generate/update CHANGELOG.md from git history                                  |
-| `document-project`       | Create README + `/docs` structure                                              |
-| `find-breaking-rest-api` | Find breaking REST API changes — multi-file routers, shared schemas, auth      |
-| `find-dead-code`         | Find unused functions, classes, imports across languages                       |
-| `improve-logging`        | Audit logging quality and produce prioritised fix recommendations              |
-| `task-agent`       | Read tasks from agent-tasks.yml, spawn agents per task, open PRs               |
+| Plugin                   | Purpose                                                                                                         |
+|--------------------------|-----------------------------------------------------------------------------------------------------------------|
+| `brainstorm`             | Read the project and suggest the 5 most valuable next features or improvements                                  |
+| `changelog`              | Generate/update CHANGELOG.md from git history                                                                   |
+| `document-project`       | Create README + `/docs` structure                                                                               |
+| `find-breaking-rest-api` | Find breaking REST API changes — multi-file routers, shared schemas, auth                                       |
+| `find-dead-code`         | Find unused functions, classes, imports across languages                                                        |
+| `improve-logging`        | Audit logging quality and produce prioritised fix recommendations                                               |
+| `task-agent`             | Read tasks from agent-tasks.yml, spawn agents per task, open PRs, and automatically fix Copilot review comments |
 
 ## Adding a New Plugin
 
@@ -69,6 +73,8 @@ plugins/
 3. Add `plugins/<skill-name>/.claude-plugin/plugin.json` with name, version, description, and keywords.
 4. Add `plugins/<skill-name>/evals/evals.json` with at least 3–5 test scenarios.
 5. Register it in `.claude-plugin/marketplace.json` under `plugins`.
+6. Optionally add sub-agents to `plugins/<skill-name>/agents/<agent-name>.md` — each must have valid YAML frontmatter (`name`, `description`, `tools`). Skills spawn them via the Agent tool using `subagent_type`.
+7. Optionally add reference docs to `plugins/<skill-name>/references/<topic>.md` — keep these minimal: only non-obvious, trap-prone facts the agent would otherwise get wrong. Do not document things any LLM already knows.
 
 ## Doc rules
 
