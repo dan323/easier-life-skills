@@ -1,6 +1,6 @@
 {
   "name": "task-agent",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Read tasks from agent-tasks.yml, implement each via an agent, and open PRs",
   "author": { "name": "dan323" },
   "repository": "https://github.com/dan323/skill-easy-life",

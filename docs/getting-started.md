@@ -27,13 +27,14 @@ Then install individual plugins:
 
 Skills trigger automatically when Claude recognises a matching request — you do not need to name the skill explicitly. For example:
 
-| You say                     | Skill triggered          |
-|-----------------------------|--------------------------|
-| "Generate a changelog"      | `changelog`              |
-| "Document this project"     | `document-project`       |
-| "Find dead code"            | `find-dead-code`         |
-| "Review our logging"        | `improve-logging`        |
-| "Find breaking API changes" | `find-breaking-rest-api` |
+| You say                          | Skill triggered          |
+|----------------------------------|--------------------------|
+| "Generate a changelog"           | `changelog`              |
+| "Document this project"          | `document-project`       |
+| "Find dead code"                 | `find-dead-code`         |
+| "Review our logging"             | `improve-logging`        |
+| "Find breaking API changes"      | `find-breaking-rest-api` |
+| "What should I build next?"      | `brainstorm`             |
 
 Each skill produces output in your current working directory (report files, updated `CHANGELOG.md`, new `README.md`, etc.).
 
