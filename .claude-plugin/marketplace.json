@@ -1,9 +1,10 @@
 {
-  "name": "skill-easy-life",
+  "name": "easier-life-skills",
   "owner": {
     "name": "dan323"
   },
   "metadata": {
+    "version": "1.1.0",
     "description": "A collection of reusable Claude Code skill plugins for common development workflows",
     "pluginRoot": "./plugins"
   },
@@ -56,6 +57,13 @@
       "description": "Read tasks from agent-tasks.yml, implement each via an agent, and open PRs",
       "category": "automation",
       "keywords": ["automation", "multi-repo", "ci"]
+    },
+    {
+      "name": "find-skills",
+      "source": "./plugins/find-skills",
+      "description": "Analyze the active repository and recommend relevant Claude Code skills from known marketplaces",
+      "category": "productivity",
+      "keywords": ["skills", "plugins", "marketplace", "recommendations", "discovery"]
     }
   ]
 }

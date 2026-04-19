@@ -1,0 +1,109 @@
+{
+  "skill_name": "find-skills",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Find skills for this project",
+      "description": "A Java Spring Boot REST API project with no CHANGELOG and minimal docs. Skill should recommend changelog, document-project, and find-breaking-rest-api as high-relevance skills.",
+      "setup": "mkdir -p /tmp/eval-fs-0/src/main/java/com/example/api && cd /tmp/eval-fs-0 && git init && printf '<project><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>myapi</artifactId><version>1.0.0</version><dependencies><dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency></dependencies></project>' > pom.xml && printf '@RestController\\n@RequestMapping(\"/users\")\\npublic class UserController {\\n  @GetMapping public List<User> list() { return List.of(); }\\n  @PostMapping public User create(@RequestBody User u) { return u; }\\n  @DeleteMapping(\"/{id}\") public void delete(@PathVariable Long id) {}\\n}' > src/main/java/com/example/api/UserController.java && printf '# My API\\nA REST API.' > README.md && git add . && git commit -m 'init'",
+      "assertions": [
+        {
+          "id": "changelog-recommended",
+          "text": "The report recommends the 'changelog' skill"
+        },
+        {
+          "id": "rest-api-skill-recommended",
+          "text": "The report recommends the 'find-breaking-rest-api' skill"
+        },
+        {
+          "id": "reason-is-specific",
+          "text": "At least one recommendation includes a specific reason referencing something observed in the repo (e.g. REST endpoints, missing CHANGELOG)"
+        },
+        {
+          "id": "install-commands-present",
+          "text": "The report includes /plugin install commands for recommended skills"
+        },
+        {
+          "id": "no-online-search",
+          "text": "The report does not mention performing a web or online search (online mode was not requested)"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Find skills for this project, search online too",
+      "description": "A Python FastAPI project. Skill should perform an online search in addition to checking local marketplaces.",
+      "setup": "mkdir -p /tmp/eval-fs-1 && cd /tmp/eval-fs-1 && git init && printf '[project]\\nname = \"myservice\"\\nversion = \"0.1.0\"\\ndependencies = [\"fastapi\", \"uvicorn\"]\\n' > pyproject.toml && printf 'from fastapi import FastAPI\\napp = FastAPI()\\n@app.get(\"/items\")\\ndef list_items(): return []\\n' > main.py && git add . && git commit -m 'init'",
+      "assertions": [
+        {
+          "id": "online-search-performed",
+          "text": "The report mentions that an online or web search was performed"
+        },
+        {
+          "id": "marketplaces-listed",
+          "text": "The report includes a 'Marketplaces Searched' section listing at least one marketplace"
+        },
+        {
+          "id": "recommendations-present",
+          "text": "The report includes at least one skill recommendation"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "What skills should I install?",
+      "description": "A well-maintained project that already has CHANGELOG.md, docs/, and no REST API. Fewer skills should be recommended, and the report should honestly reflect this.",
+      "setup": "mkdir -p /tmp/eval-fs-2/docs && cd /tmp/eval-fs-2 && git init && printf '{\"name\":\"mytool\",\"version\":\"2.0.0\",\"description\":\"A CLI utility\"}' > package.json && printf '# mytool\\n\\nA CLI utility.\\n\\n## Quick Start\\n\\n```bash\\nnpm install -g mytool\\n```\\n\\n## Docs\\n\\n- [Getting Started](docs/getting-started.md)\\n' > README.md && printf '# Getting Started\\n\\n1. Install: `npm i -g mytool`\\n2. Run: `mytool --help`\\n' > docs/getting-started.md && printf '# Changelog\\n\\n## 2.0.0\\n- Initial release\\n' > CHANGELOG.md && git add . && git commit -m 'init'",
+      "assertions": [
+        {
+          "id": "changelog-not-top-recommendation",
+          "text": "The 'changelog' skill is NOT recommended as High relevance (CHANGELOG.md already exists)"
+        },
+        {
+          "id": "document-project-not-top-recommendation",
+          "text": "The 'document-project' skill is NOT recommended as High relevance (docs already exist)"
+        },
+        {
+          "id": "skipped-section-present",
+          "text": "The report includes a 'Skills Checked but Not Recommended' section explaining why some skills were skipped"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Find relevant skills for my repo",
+      "description": "A Go project with significant logging spread across many files and no dead-code tooling run. Skill should recommend improve-logging and potentially find-dead-code.",
+      "setup": "mkdir -p /tmp/eval-fs-3/internal/service && cd /tmp/eval-fs-3 && git init && printf 'module example.com/myapp\\ngo 1.21\\n' > go.mod && printf 'package main\\nimport \"log\"\\nfunc main() { log.Println(\"starting\") }\\n' > main.go && for i in $(seq 1 6); do printf 'package service\\nimport \"log\"\\nfunc Do%d() { log.Printf(\"doing %d\") }\\n' $i $i > internal/service/svc${i}.go; done && git add . && git commit -m 'init'",
+      "assertions": [
+        {
+          "id": "improve-logging-recommended",
+          "text": "The report recommends the 'improve-logging' skill"
+        },
+        {
+          "id": "install-command-present",
+          "text": "The report includes a /plugin install command for at least one recommended skill"
+        },
+        {
+          "id": "marketplace-listed",
+          "text": "The report lists 'easier-life-skills' in the Marketplaces Searched section"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Recommend skills",
+      "description": "A brand-new empty project with only a git init. Skill should handle gracefully and not crash, returning a report with whatever it can determine.",
+      "setup": "mkdir -p /tmp/eval-fs-4 && cd /tmp/eval-fs-4 && git init",
+      "assertions": [
+        {
+          "id": "report-produced",
+          "text": "A recommendation report is produced (does not crash or produce an empty response)"
+        },
+        {
+          "id": "no-false-positives",
+          "text": "The report does not recommend REST-specific or language-specific skills as High relevance when no language or framework was detected"
+        }
+      ]
+    }
+  ]
+}

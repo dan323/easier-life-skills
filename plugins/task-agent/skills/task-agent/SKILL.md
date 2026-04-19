@@ -268,7 +268,7 @@ This phase runs **in the background**, in parallel with Phase 4.
 Spawn it as a background agent immediately after the PR is opened.
 
 Spawn a background agent using the Agent tool with:
-- `subagent_type`: `copilot-review-fixer`
+- `subagent_type`: `task-agent:copilot-review-fixer`
 - `run_in_background`: `true`
 - `prompt`: the real values for the placeholders, e.g.:
   ```

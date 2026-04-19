@@ -11,14 +11,14 @@ A Claude Code plugin marketplace containing reusable skill plugins for Claude Co
 ### Claude Code (recommended)
 
 ```
-/plugin marketplace add dan323/skill-easy-life
+/plugin marketplace add dan323/easier-life-skills
 ```
 
 Then install individual plugins:
 
 ```
-/plugin install changelog@skill-easy-life
-/plugin install brainstorm@skill-easy-life
+/plugin install easier-life-skills/changelog
+/plugin install easier-life-skills/brainstorm
 ```
 
 ## Repository Structure
@@ -65,6 +65,7 @@ plugins/
 | `find-dead-code`         | Find unused functions, classes, imports across languages                                                        |
 | `improve-logging`        | Audit logging quality and produce prioritised fix recommendations                                               |
 | `task-agent`             | Read tasks from agent-tasks.yml, spawn agents per task, open PRs, and automatically fix Copilot review comments |
+| `find-skills`            | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces                 |
 
 ## Adding a New Plugin
 

@@ -45,16 +45,17 @@ qed
 ```
 
 Key proof commands:
-| Command | Purpose |
-|---|---|
-| `fix x` | Introduce a universally quantified variable |
-| `assume h: "P"` | Assume a hypothesis, binding it to name `h` |
-| `have "P" by tac` | Prove an intermediate fact |
-| `from h have "P" using lemma by tac` | Prove using named facts and lemmas |
-| `obtain x where "P x" using ...` | Existential elimination |
-| `show ?thesis by tac` | Close the current goal |
-| `thus ?thesis` | Shorthand for `then show ?thesis` |
-| `moreover` / `ultimately` | Chain multiple `have` steps into a combined conclusion |
+
+| Command                              | Purpose                                                |
+|--------------------------------------|--------------------------------------------------------|
+| `fix x`                              | Introduce a universally quantified variable            |
+| `assume h: "P"`                      | Assume a hypothesis, binding it to name `h`            |
+| `have "P" by tac`                    | Prove an intermediate fact                             |
+| `from h have "P" using lemma by tac` | Prove using named facts and lemmas                     |
+| `obtain x where "P x" using ...`     | Existential elimination                                |
+| `show ?thesis by tac`                | Close the current goal                                 |
+| `thus ?thesis`                       | Shorthand for `then show ?thesis`                      |
+| `moreover` / `ultimately`            | Chain multiple `have` steps into a combined conclusion |
 
 ## Proof tactics (closing steps)
 
@@ -128,3 +129,5 @@ session MySession in "src" = HOL +
 | Typical imports | `Main`, `Complex_Main`        | `ZF`, `ZF1`                     |
 
 In Isabelle/ZF there is no `nat` type — natural numbers are ZF sets (von Neumann ordinals). HOL lemmas and tactics (`linarith`, `ring`, `norm_num`) do not work in ZF sessions.
+
+ZF context: https://isabelle.in.tum.de/dist/library/FOL/ZF/
