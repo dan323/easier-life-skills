@@ -6,7 +6,7 @@ description: >
   for this project?", "find skills for my repo", "what plugins should I install?",
   "are there any skills for this?", or "recommend skills". Optionally searches online
   if the user explicitly includes "online" or "search the web" in their request.
-tools: Bash, Read, Glob, Grep, WebSearch
+tools: Bash, Read, Glob, Grep, WebSearch, WebFetch
 ---
 
 # Find Skills
