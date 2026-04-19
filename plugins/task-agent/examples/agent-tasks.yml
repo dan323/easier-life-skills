@@ -1,9 +1,9 @@
 projects:
-- repo: SKolodynski/IsarMathLib
-  tasks:
-  - Show that a regular topological space to which we double a point is locally-regular,
-    but not regular.
-- repo: dan323/functional-by-annotation
-  tasks:
-  - Update dependencies in java
-  - Update docs if needed
+  - repo: SKolodynski/IsarMathLib
+    tasks:
+      - Show that a regular topological space to which we double a point is locally-regular,
+        but not regular.
+  - repo: dan323/functional-by-annotation
+    tasks:
+      - Update dependencies in java
+      - Update docs if needed
