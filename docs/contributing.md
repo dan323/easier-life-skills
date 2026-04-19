@@ -96,7 +96,7 @@ Good assertions are:
 
 ### 4. Install and test manually
 
-In Claude Code: `/plugin marketplace add ./` (from the repo root), then `/plugin install <your-skill-name>@easier-life-skills`.
+In Claude Code: `/plugin marketplace add ./` (from the repo root), then `/plugin install easier-life-skills/<your-skill-name>`.
 
 Open a Claude Code session in a suitable test directory and run your trigger phrase. Iterate on the `SKILL.md` until the output matches your expectations, then run the evals with the `skill-creator` skill for a more rigorous check.
 
@@ -109,7 +109,7 @@ Open a Claude Code session in a suitable test directory and run your trigger phr
 ## Improving an Existing Skill
 
 1. Edit the relevant `plugins/<name>/skills/<name>/SKILL.md` and/or `evals/evals.json`
-2. `/plugin update <name>@easier-life-skills` in Claude Code
+2. `/plugin update easier-life-skills/<name>` in Claude Code
 3. Test the change manually, then run evals
 4. Add a `### Changed` entry to `CHANGELOG.md`
 

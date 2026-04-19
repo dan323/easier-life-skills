@@ -17,8 +17,8 @@ A Claude Code plugin marketplace containing reusable skill plugins for Claude Co
 Then install individual plugins:
 
 ```
-/plugin install changelog@easier-life-skills
-/plugin install brainstorm@easier-life-skills
+/plugin install easier-life-skills/changelog
+/plugin install easier-life-skills/brainstorm
 ```
 
 ## Repository Structure

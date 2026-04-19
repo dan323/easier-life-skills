@@ -8,7 +8,7 @@ A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](h
 
 ```
 /plugin marketplace add dan323/easier-life-skills
-/plugin install changelog@easier-life-skills
+/plugin install easier-life-skills/changelog
 ```
 
 ## Plugins

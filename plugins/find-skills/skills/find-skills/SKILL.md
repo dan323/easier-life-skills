@@ -227,7 +227,7 @@ than padding with low-relevance suggestions.
 **Install**:
 \`\`\`
 /plugin marketplace add {marketplace-owner}/{marketplace-name}
-/plugin install {skill-name}@{marketplace-name}
+/plugin install {marketplace-name}/{skill-name}
 \`\`\`
 
 ---

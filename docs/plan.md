@@ -53,17 +53,17 @@ Four bundles for the current 8 skills:
 
 ## Phase 4 — `npx` Installer CLI
 
-**Package:** `@dan323/skill-easy-life` published on npm  
+**Package:** `@dan323/easier-life-skills` published on npm  
 **Location:** `installer/` directory in the repo
 
 ```bash
-npx @dan323/skill-easy-life --list
-npx @dan323/skill-easy-life --skill changelog
-npx @dan323/skill-easy-life --bundle backend-developer
-npx @dan323/skill-easy-life --bundle backend-developer --dry-run
+npx @dan323/easier-life-skills --list
+npx @dan323/easier-life-skills --skill changelog
+npx @dan323/easier-life-skills --bundle backend-developer
+npx @dan323/easier-life-skills --bundle backend-developer --dry-run
 ```
 
-Fetches `skills_index.json` from raw GitHub, copies SKILL.md files into `~/.claude/plugins/skill-easy-life/`.
+Fetches `skills_index.json` from raw GitHub, copies SKILL.md files into `~/.claude/plugins/easier-life-skills/`.
 
 **Flags:**
 

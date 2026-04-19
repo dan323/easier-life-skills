@@ -19,8 +19,8 @@
 Then install individual plugins:
 
 ```
-/plugin install changelog@easier-life-skills
-/plugin install brainstorm@easier-life-skills
+/plugin install easier-life-skills/changelog
+/plugin install easier-life-skills/brainstorm
 ```
 
 ## First Use
@@ -42,7 +42,7 @@ Each skill produces output in your current working directory (report files, upda
 ## Updating
 
 ```
-/plugin update <name>@easier-life-skills
+/plugin update easier-life-skills/<name>
 ```
 
 ---
