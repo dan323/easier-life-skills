@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "description": "Audit logging quality and produce prioritized fix recommendations",
   "author": { "name": "dan323" },
-  "repository": "https://github.com/dan323/skill-easy-life",
+  "repository": "https://github.com/dan323/easier-life-skills",
   "keywords": ["logging", "observability", "code-quality", "audit"]
 }

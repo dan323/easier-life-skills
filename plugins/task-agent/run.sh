@@ -12,4 +12,4 @@ cd "$CONFIG_DIR"
 exec claude \
   --skill "$SKILL_DIR/SKILL.md" \
   --print \
-  "Run the task-agent skill: read agent-tasks.yml in the current directory, pick the next pending task, and complete it."
+  "Run the task-agent skill: read agent-tasks.yml in the current directory or subdirectories, pick the next pending task, and complete it."

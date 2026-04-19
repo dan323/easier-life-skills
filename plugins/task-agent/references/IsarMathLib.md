@@ -108,3 +108,6 @@ Custom notation uses a priority number (e.g. `"_{is locally-regular}" 70`). Pick
 - Do not add a definition without a preceding `text` comment.
 - Do not use abbreviations as names (`loc_reg` is acceptable for a helper lemma, but `IsLocReg` is not a good definition name — prefer `IsLocallyRegular`).
 - Do not introduce `sorry` in submitted proofs.
+- Do not use `ML` blocks or custom proof methods.
+- Do not use `a` as a variable name ever
+- as a variable name in proofs — pick a name that reflects its meaning (e.g., `x`, `U`, `A`).

@@ -1,8 +1,0 @@
-# agent-tasks.yml — daily task queue for multi-repo-tasks
-# Run: bash skills/multi-repo-tasks/run.sh .
-# Each invocation processes exactly one task in order and opens a PR.
-
-projects:
-  - repo: "dan323/natural-deduction"
-    tasks:
-      - "Investigate why the ci workflows are failing"

@@ -13,14 +13,14 @@
 ### Claude Code (recommended)
 
 ```
-/plugin marketplace add dan323/skill-easy-life
+/plugin marketplace add dan323/easier-life-skills
 ```
 
 Then install individual plugins:
 
 ```
-/plugin install changelog@skill-easy-life
-/plugin install brainstorm@skill-easy-life
+/plugin install changelog@easier-life-skills
+/plugin install brainstorm@easier-life-skills
 ```
 
 ## First Use
@@ -35,13 +35,14 @@ Skills trigger automatically when Claude recognises a matching request — you d
 | "Review our logging"             | `improve-logging`        |
 | "Find breaking API changes"      | `find-breaking-rest-api` |
 | "What should I build next?"      | `brainstorm`             |
+| "What skills should I use?"      | `find-skills`            |
 
 Each skill produces output in your current working directory (report files, updated `CHANGELOG.md`, new `README.md`, etc.).
 
 ## Updating
 
 ```
-/plugin update <name>@skill-easy-life
+/plugin update <name>@easier-life-skills
 ```
 
 ---
