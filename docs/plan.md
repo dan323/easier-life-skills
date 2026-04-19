@@ -1,6 +1,6 @@
 [← Back to README](../README.md)
 
-# Plan: Transform skill-easy-life into an Interactive Marketplace
+# Plan: Transform easier-life-skills into an Interactive Marketplace
 
 ## What We're Building
 
