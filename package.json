@@ -1,0 +1,11 @@
+{
+  "name": "easier-life-skills",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

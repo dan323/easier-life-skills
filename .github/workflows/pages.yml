@@ -34,7 +34,7 @@ jobs:
         run: npm ci
 
       - name: Generate skills_index.json and CATALOG.md
-        run: node scripts/build-index.js
+        run: npm run build
         env:
           # MODELS_TOKEN: a GitHub PAT with GitHub Models access (classic or fine-grained).
           # If absent, falls back to GITHUB_TOKEN which may lack Models permission.
