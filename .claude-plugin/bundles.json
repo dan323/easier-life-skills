@@ -1,0 +1,27 @@
+[
+  {
+    "id": "backend-developer",
+    "name": "Backend Developer",
+    "description": "API compatibility, code hygiene, observability, and release docs",
+    "skills": ["find-breaking-rest-api", "find-dead-code", "improve-logging", "changelog"]
+  },
+  {
+    "id": "open-source-maintainer",
+    "name": "Open Source Maintainer",
+    "description": "Docs, release notes, roadmap decisions, and skill discovery",
+    "skills": ["changelog", "document-project", "brainstorm", "find-skills"]
+  },
+  {
+    "id": "code-quality",
+    "name": "Code Quality Reviewer",
+    "description": "Read-only analysis skills for code review and CI gating",
+    "skills": ["find-dead-code", "improve-logging", "find-breaking-rest-api"]
+  },
+  {
+    "id": "full-stack",
+    "name": "Full Stack",
+    "description": "All skills — for solo developers and small teams",
+    "skills": ["brainstorm", "changelog", "document-project", "find-breaking-rest-api",
+               "find-dead-code", "find-skills", "improve-logging", "task-agent"]
+  }
+]

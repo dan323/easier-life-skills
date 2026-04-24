@@ -1,195 +1,80 @@
-/* app.js — easier-life-skills catalog */
-(async () => {
-  // ── Load data ──
-  let index;
-  try {
-    const res = await fetch('./skills_index.json');
-    index = await res.json();
-  } catch {
-    document.getElementById('skills-grid').innerHTML =
-      '<p class="empty"><span>⚠️</span><br>Could not load skills_index.json</p>';
+/* app.js — boot and event wiring */
+
+import { state }                           from './state.js';
+import { loadMarketplace, getSavedRepos, saveRepo } from './marketplace.js';
+import { render }                          from './render.js';
+import { copyText }                        from './components.js';
+
+const BUILTIN_REPO = 'dan323/easier-life-skills';
+
+// ── Quick-start copy buttons ──
+
+document.querySelectorAll('.copy-btn[data-copy]').forEach(btn => {
+  btn.addEventListener('click', () => copyText(btn.dataset.copy, btn));
+});
+
+// ── Search ──
+
+document.getElementById('search').addEventListener('input', e => {
+  state.query = e.target.value.toLowerCase();
+  render();
+});
+
+// ── View toggle ──
+
+document.getElementById('view-skills').addEventListener('click',  () => switchView('skills'));
+document.getElementById('view-bundles').addEventListener('click', () => switchView('bundles'));
+
+function switchView(view) {
+  state.view = view;
+  document.getElementById('view-skills').classList.toggle('active',  view === 'skills');
+  document.getElementById('view-bundles').classList.toggle('active', view === 'bundles');
+  document.getElementById('skills-grid').style.display   = view === 'skills'  ? 'grid' : 'none';
+  document.getElementById('bundles-grid').style.display  = view === 'bundles' ? 'grid' : 'none';
+  document.getElementById('filters').style.display       = view === 'skills'  ? 'flex' : 'none';
+  render();
+}
+
+// ── Add marketplace ──
+
+document.getElementById('repo-add-btn').addEventListener('click', addRepo);
+document.getElementById('repo-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addRepo();
+});
+
+async function addRepo() {
+  const input = document.getElementById('repo-input');
+  const raw   = input.value.trim();
+  if (!raw) return;
+
+  // Accept "owner/repo" or full GitHub URLs
+  const match = raw.match(/(?:github\.com\/)?([^/\s]+\/[^/\s]+)/);
+  if (!match) {
+    input.setCustomValidity('Enter owner/repo');
+    input.reportValidity();
     return;
   }
+  input.setCustomValidity('');
 
-  const { skills, bundles, meta } = index;
+  const ownerRepo = match[1].replace(/\.git$/, '');
+  input.value = '';
 
-  // ── State ──
-  let query = '';
-  let activeCategories = new Set();
-  let view = 'skills'; // 'skills' | 'bundles'
+  // Skip if already loaded
+  const alreadyLoaded = document.querySelector(`[data-repo="${CSS.escape(ownerRepo)}"]`);
+  if (alreadyLoaded) return;
 
-  // ── DOM refs ──
-  const searchEl     = document.getElementById('search');
-  const filtersEl    = document.getElementById('filters');
-  const skillsGrid   = document.getElementById('skills-grid');
-  const bundlesGrid  = document.getElementById('bundles-grid');
-  const countEl      = document.getElementById('count');
-  const viewSkillBtn = document.getElementById('view-skills');
-  const viewBundBtn  = document.getElementById('view-bundles');
+  const ok = await loadMarketplace(ownerRepo, false);
+  if (ok) saveRepo(ownerRepo);
+}
 
-  // ── Populate meta ──
-  document.getElementById('skill-count').textContent = skills.length;
-  document.getElementById('generated').textContent =
-    new Date(meta.generated).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+// ── Boot ──
 
-  // ── Category filter buttons ──
-  const categories = [...new Set(skills.map(s => s.category))].sort();
-  categories.forEach(cat => {
-    const btn = document.createElement('button');
-    btn.className = 'filter-btn';
-    btn.dataset.cat = cat;
-    btn.textContent = titleCase(cat);
-    btn.addEventListener('click', () => {
-      if (activeCategories.has(cat)) activeCategories.delete(cat);
-      else activeCategories.add(cat);
-      btn.classList.toggle('active', activeCategories.has(cat));
-      render();
-    });
-    filtersEl.appendChild(btn);
-  });
+(async () => {
+  await loadMarketplace(BUILTIN_REPO, true);
 
-  // ── Search ──
-  searchEl.addEventListener('input', e => { query = e.target.value.toLowerCase(); render(); });
-
-  // ── View toggle ──
-  viewSkillBtn.addEventListener('click', () => switchView('skills'));
-  viewBundBtn.addEventListener('click', () => switchView('bundles'));
-
-  function switchView(v) {
-    view = v;
-    viewSkillBtn.classList.toggle('active', v === 'skills');
-    viewBundBtn.classList.toggle('active', v === 'bundles');
-    skillsGrid.style.display = v === 'skills' ? 'grid' : 'none';
-    bundlesGrid.style.display = v === 'bundles' ? 'grid' : 'none';
-    filtersEl.style.display = v === 'skills' ? 'flex' : 'none';
-    render();
+  for (const repo of getSavedRepos()) {
+    await loadMarketplace(repo, false);
   }
 
-  // ── Render ──
-  function render() {
-    if (view === 'skills') renderSkills();
-    else renderBundles();
-  }
-
-  function renderSkills() {
-    const filtered = skills.filter(s => {
-      if (activeCategories.size && !activeCategories.has(s.category)) return false;
-      if (!query) return true;
-      return (
-        s.name.includes(query) ||
-        s.description.toLowerCase().includes(query) ||
-        s.keywords.some(k => k.includes(query))
-      );
-    });
-
-    countEl.textContent = `${filtered.length} of ${skills.length} skills`;
-
-    if (!filtered.length) {
-      skillsGrid.innerHTML = '<div class="empty"><p>🔍</p><p>No skills match your search</p></div>';
-      return;
-    }
-
-    skillsGrid.innerHTML = '';
-    filtered.forEach(skill => skillsGrid.appendChild(skillCard(skill)));
-  }
-
-  function renderBundles() {
-    countEl.textContent = `${bundles.length} bundles`;
-    bundlesGrid.innerHTML = '';
-    bundles.forEach(bundle => bundlesGrid.appendChild(bundleCard(bundle)));
-  }
-
-  // ── Skill card ──
-  function skillCard(skill) {
-    const card = document.createElement('div');
-    card.className = 'skill-card';
-
-    const installCmd = skill.installCommand;
-    const catClass = 'badge-' + skill.category;
-
-    const marketplaceLabel = skill.marketplace && skill.marketplace.owner !== 'dan323'
-      ? `<span class="badge badge-marketplace">${skill.marketplace.owner}/${skill.marketplace.repo}</span>`
-      : '';
-
-    card.innerHTML = `
-      <div class="card-header">
-        <a class="card-name" href="${skill.rawSkillUrl}" target="_blank" rel="noopener">${skill.name}</a>
-        <div class="card-badges">
-          ${skill.readOnly ? '<span class="badge badge-readonly">read-only</span>' : ''}
-          <span class="badge badge-cat ${catClass}">${titleCase(skill.category)}</span>
-          ${marketplaceLabel}
-        </div>
-      </div>
-      <p class="card-desc">${skill.description}</p>
-      <div class="card-install">
-        <code>${installCmd}</code>
-        <button class="copy-btn" title="Copy install command">Copy</button>
-      </div>
-    `;
-
-    card.querySelector('.copy-btn').addEventListener('click', function () {
-      copyText(installCmd, this);
-    });
-
-    card.querySelector('.card-desc').addEventListener('click', function () {
-      this.classList.toggle('expanded');
-    });
-
-    return card;
-  }
-
-  // ── Bundle card ──
-  function bundleCard(bundle) {
-    const card = document.createElement('div');
-    card.className = 'bundle-card';
-
-    const isExternal = !!bundle.marketplace;
-    const skillNames = bundle.skills;
-
-    const installBlock = isExternal
-      ? bundle.installCommand
-      : skillNames.map(name => `/plugin install ${name}@${meta.repo}`).join('\n');
-
-    const marketplaceLabel = isExternal
-      ? `<span class="badge badge-marketplace">${bundle.marketplace.owner}/${bundle.marketplace.repo}</span>`
-      : '';
-
-    card.innerHTML = `
-      <div>
-        <div class="bundle-name">${bundle.name} ${marketplaceLabel}</div>
-        <div class="bundle-desc">${bundle.description}</div>
-      </div>
-      <div class="bundle-skills">
-        ${skillNames.map(name => `<div class="bundle-skill-item">${name}</div>`).join('')}
-      </div>
-      <div class="bundle-install">
-        <pre>${installBlock}</pre>
-        <button class="bundle-copy-btn">Copy</button>
-      </div>
-    `;
-
-    card.querySelector('.bundle-copy-btn').addEventListener('click', function () {
-      copyText(installBlock, this);
-    });
-
-    return card;
-  }
-
-  // ── Copy helper ──
-  function copyText(text, btn) {
-    navigator.clipboard.writeText(text).then(() => {
-      const original = btn.textContent;
-      btn.textContent = 'Copied!';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1800);
-    });
-  }
-
-  // ── Util ──
-  function titleCase(str) {
-    return str.replace(/-/g, ' ').replace(/(^|\s)\w/g, c => c.toUpperCase());
-  }
-
-  // ── Init ──
   switchView('skills');
 })();

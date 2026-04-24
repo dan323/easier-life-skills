@@ -9,18 +9,47 @@
 </head>
 <body>
 
+  <!-- ── Header ── -->
   <header>
     <div class="header-left">
       <h1>easier-life-<span>skills</span></h1>
-      <p><span id="skill-count">…</span> Claude Code skills · Updated <span id="generated">…</span></p>
+      <p>A Claude Code skill marketplace · <span id="skill-count">…</span> skills loaded</p>
     </div>
     <div class="header-right">
-      <a class="btn-gh" href="https://github.com/dan323/easier-life-skills" target="_blank" rel="noopener">
-        ★ GitHub
-      </a>
+      <a class="btn-gh" href="https://github.com/dan323/easier-life-skills" target="_blank" rel="noopener">★ GitHub</a>
     </div>
   </header>
 
+  <!-- ── Quick Start ── -->
+  <section class="quickstart">
+    <div class="quickstart-inner">
+      <h2>Get started in 2 steps</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-label">Add this marketplace to Claude Code</div>
+            <div class="step-cmd">
+              <code>/plugin marketplace add dan323/easier-life-skills</code>
+              <button class="copy-btn" data-copy="/plugin marketplace add dan323/easier-life-skills">Copy</button>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-label">Install any skill — browse below, then run</div>
+            <div class="step-cmd">
+              <code>/plugin install &lt;skill-name&gt;@easier-life-skills</code>
+              <button class="copy-btn" data-copy="/plugin install changelog@easier-life-skills">Copy example</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Controls ── -->
   <div class="controls">
     <input id="search" type="search" placeholder="Search skills…" autocomplete="off" />
     <div class="filter-group" id="filters"></div>
@@ -30,17 +59,29 @@
     </div>
   </div>
 
+  <!-- ── Marketplaces bar ── -->
+  <div class="marketplace-bar">
+    <div class="marketplace-sources" id="marketplace-sources"></div>
+    <div class="marketplace-add">
+      <input id="repo-input" type="text" placeholder="Add marketplace: owner/repo" autocomplete="off" />
+      <button id="repo-add-btn">Add</button>
+    </div>
+  </div>
+
+  <!-- ── Main ── -->
   <main>
     <div class="count" id="count"></div>
     <div id="skills-grid"></div>
     <div id="bundles-grid" style="display:none"></div>
   </main>
 
+  <!-- ── Footer ── -->
   <footer>
-    <span>Install: <code>/plugin marketplace add dan323/easier-life-skills</code></span>
+    <span>Updated <span id="generated">…</span></span>
     <span>
       <a href="https://github.com/dan323/easier-life-skills/blob/master/CATALOG.md">Full catalog</a> ·
-      <a href="https://github.com/dan323/easier-life-skills/blob/master/docs/contributing.md">Contribute</a>
+      <a href="https://github.com/dan323/easier-life-skills/blob/master/docs/contributing.md">Contribute</a> ·
+      <a href="https://github.com/dan323/easier-life-skills">GitHub</a>
     </span>
   </footer>
 

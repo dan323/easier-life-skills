@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -30,7 +30,10 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Build index
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate skills_index.json and CATALOG.md
         run: node scripts/build-index.js
         env:
           # MODELS_TOKEN: a GitHub PAT with GitHub Models access (classic or fine-grained).
