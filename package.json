@@ -2,8 +2,12 @@
   "name": "easier-life-skills",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "installer"
+  ],
   "scripts": {
-    "build": "node scripts/build-index.js"
+    "build": "node scripts/build-index.js",
+    "publish:installer": "npm publish --workspace installer --access public"
   },
   "engines": {
     "node": ">=18"
