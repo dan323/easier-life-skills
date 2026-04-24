@@ -8,7 +8,7 @@ A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](h
 
 ```
 /plugin marketplace add dan323/easier-life-skills
-/plugin install easier-life-skills/changelog
+/plugin install changelog@easier-life-skills
 ```
 
 ## Plugins
@@ -30,3 +30,4 @@ A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](h
 - [Architecture](docs/architecture.md)
 - [Contributing a Skill](docs/contributing.md)
 - [Roadmap](docs/plan.md)
+- [Target Architecture](docs/final-plan-architecture.md)

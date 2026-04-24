@@ -1,0 +1,19 @@
+{
+  "name": "@dan323/easier-life-skills",
+  "version": "1.0.0",
+  "description": "Install Claude Code skills from the easier-life-skills marketplace",
+  "type": "module",
+  "bin": {
+    "easier-life-skills": "./bin/install.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["claude", "claude-code", "skills", "plugins", "ai"],
+  "author": "dan323",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dan323/easier-life-skills.git"
+  }
+}

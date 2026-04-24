@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>easier-life-skills — Claude Code Skill Marketplace</title>
+  <meta name="description" content="A curated marketplace of Claude Code skills for common development workflows." />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <h1>easier-life-<span>skills</span></h1>
+      <p><span id="skill-count">…</span> Claude Code skills · Updated <span id="generated">…</span></p>
+    </div>
+    <div class="header-right">
+      <a class="btn-gh" href="https://github.com/dan323/easier-life-skills" target="_blank" rel="noopener">
+        ★ GitHub
+      </a>
+    </div>
+  </header>
+
+  <div class="controls">
+    <input id="search" type="search" placeholder="Search skills…" autocomplete="off" />
+    <div class="filter-group" id="filters"></div>
+    <div class="view-toggle">
+      <button class="view-btn active" id="view-skills">Skills</button>
+      <button class="view-btn" id="view-bundles">Bundles</button>
+    </div>
+  </div>
+
+  <main>
+    <div class="count" id="count"></div>
+    <div id="skills-grid"></div>
+    <div id="bundles-grid" style="display:none"></div>
+  </main>
+
+  <footer>
+    <span>Install: <code>/plugin marketplace add dan323/easier-life-skills</code></span>
+    <span>
+      <a href="https://github.com/dan323/easier-life-skills/blob/master/CATALOG.md">Full catalog</a> ·
+      <a href="https://github.com/dan323/easier-life-skills/blob/master/docs/contributing.md">Contribute</a>
+    </span>
+  </footer>
+
+  <script type="module" src="assets/app.js"></script>
+</body>
+</html>
