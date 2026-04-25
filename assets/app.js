@@ -139,25 +139,28 @@
     const card = document.createElement('div');
     card.className = 'bundle-card';
 
-    const bundleSkills = bundle.skills
-      .map(name => skills.find(s => s.name === name))
-      .filter(Boolean);
+    const isExternal = !!bundle.marketplace;
+    const skillNames = bundle.skills;
 
-    const installBlock = bundle.skills
-      .map(name => `/plugin install ${name}@${meta.repo}`)
-      .join('\n');
+    const installBlock = isExternal
+      ? bundle.installCommand
+      : skillNames.map(name => `/plugin install ${name}@${meta.repo}`).join('\n');
+
+    const marketplaceLabel = isExternal
+      ? `<span class="badge badge-marketplace">${bundle.marketplace.owner}/${bundle.marketplace.repo}</span>`
+      : '';
 
     card.innerHTML = `
       <div>
-        <div class="bundle-name">${bundle.name}</div>
+        <div class="bundle-name">${bundle.name} ${marketplaceLabel}</div>
         <div class="bundle-desc">${bundle.description}</div>
       </div>
       <div class="bundle-skills">
-        ${bundleSkills.map(s => `<div class="bundle-skill-item">${s.name}</div>`).join('')}
+        ${skillNames.map(name => `<div class="bundle-skill-item">${name}</div>`).join('')}
       </div>
       <div class="bundle-install">
         <pre>${installBlock}</pre>
-        <button class="bundle-copy-btn">Copy all</button>
+        <button class="bundle-copy-btn">Copy</button>
       </div>
     `;
 

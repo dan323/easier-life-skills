@@ -164,6 +164,7 @@ for (const plugin of marketplace.plugins) {
 }
 
 // Fetch external marketplace catalogs
+const externalBundles = [];
 for (const ext of EXTERNAL_MARKETPLACES) {
   console.log(`  Fetching ${ext.owner}/${ext.repo}…`);
   try {
@@ -176,47 +177,20 @@ for (const ext of EXTERNAL_MARKETPLACES) {
     const overrides = externalOverrides[marketplaceKey] || {};
 
     for (const plugin of (extMarketplace.plugins || [])) {
-      const subPaths = plugin.skills && plugin.skills.length > 0
-        ? plugin.skills
-        : null;
-
-      if (subPaths) {
-        // Expand each sub-skill in parallel
-        const subEntries = await Promise.all(subPaths.map(async (subPath) => {
-          const normalizedPath = subPath.replace(/^\.\//, '');
-          const skillMdUrl = `${extBase}/${normalizedPath}/SKILL.md`;
-
-          let frontmatter = {};
-          try {
-            const r = await fetch(skillMdUrl);
-            if (r.ok) frontmatter = parseFrontmatter(await r.text());
-          } catch { /* skip */ }
-
-          const skillName = frontmatter.name || normalizedPath.split('/').pop();
-          const override = overrides[skillName] || {};
-
-          return {
-            name: skillName,
-            version: '1.0',
-            description: frontmatter.description || plugin.description,
-            category: override.category || plugin.category || 'uncategorized',
-            keywords: override.keywords || plugin.keywords || [],
-            tools: frontmatter.tools || [],
-            readOnly: override.readOnly ?? frontmatter.readOnly ?? false,
-            skillPath: `${normalizedPath}/SKILL.md`,
-            rawSkillUrl: skillMdUrl,
-            installCommand: `/plugin install ${skillName}@${ext.repo}`,
-            marketplace: { owner: ext.owner, repo: ext.repo },
-            bundles: [],
-            ...override,
-            name: skillName,
-            marketplace: { owner: ext.owner, repo: ext.repo },
-            bundles: [],
-          };
-        }));
-        skills.push(...subEntries);
+      if (plugin.skills && plugin.skills.length > 0) {
+        // Treat as a bundle
+        const skillNames = plugin.skills.map(p => p.replace(/^\.\/skills\//, '').split('/')[0]);
+        const override = overrides[plugin.name] || {};
+        externalBundles.push({
+          id: plugin.name,
+          name: plugin.name.replace(/-/g, ' ').replace(/(^|\s)\w/g, c => c.toUpperCase()),
+          description: override.description || plugin.description,
+          skills: skillNames,
+          installCommand: `/plugin install ${plugin.name}@${ext.repo}`,
+          marketplace: { owner: ext.owner, repo: ext.repo },
+        });
       } else {
-        // Single-skill plugin (no sub-skills array)
+        // Single-skill plugin — add to skills list
         const override = overrides[plugin.name] || {};
         const skillPath = `plugins/${plugin.name}/skills/${plugin.name}/SKILL.md`;
         skills.push({
@@ -258,7 +232,7 @@ const index = {
     baseUrl: BASE_URL,
   },
   skills,
-  bundles: BUNDLES,
+  bundles: [...BUNDLES, ...externalBundles],
 };
 
 writeFileSync(join(ROOT, 'skills_index.json'), JSON.stringify(index, null, 2) + '\n');
