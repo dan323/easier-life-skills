@@ -1,5 +1,21 @@
 {
   "anthropics/skills": {
-    "claude-api": { "category": "automation" }
+    "xlsx":                  { "category": "productivity" },
+    "docx":                  { "category": "productivity" },
+    "pptx":                  { "category": "productivity" },
+    "pdf":                   { "category": "productivity" },
+    "algorithmic-art":       { "category": "productivity" },
+    "brand-guidelines":      { "category": "productivity" },
+    "canvas-design":         { "category": "productivity" },
+    "doc-coauthoring":       { "category": "productivity" },
+    "frontend-design":       { "category": "productivity" },
+    "internal-comms":        { "category": "productivity" },
+    "mcp-builder":           { "category": "automation" },
+    "skill-creator":         { "category": "automation" },
+    "slack-gif-creator":     { "category": "productivity" },
+    "theme-factory":         { "category": "productivity" },
+    "web-artifacts-builder": { "category": "productivity" },
+    "webapp-testing":        { "category": "code-quality" },
+    "claude-api":            { "category": "automation" }
   }
 }
