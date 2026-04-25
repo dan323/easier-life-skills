@@ -125,6 +125,18 @@ If not found locally, use the WebFetch tool to fetch the raw catalog from:
 The catalog lists every available plugin with its name, description, category, and keywords.
 Use it to build the candidate pool.
 
+### Marketplace 2 — skills (anthropic)
+
+The official Anthropic skill marketplace. Read its catalog:
+
+```bash
+# Check if it is installed locally
+cat ~/.claude/plugins/skills/.claude-plugin/marketplace.json 2>/dev/null || true
+```
+
+If not found locally, use the WebFetch tool to fetch the raw catalog from:
+`https://raw.githubusercontent.com/anthropic/skills/master/.claude-plugin/marketplace.json`
+
 ### Local marketplace index
 
 ```bash
@@ -249,6 +261,7 @@ than padding with low-relevance suggestions.
 ### Marketplaces Searched
 
 - easier-life-skills (dan323) — {N} skills checked
+- skills (anthropic) — {N} skills checked
 {- any additional marketplaces found}
 {- Online search: {N} results checked}  ← only if online mode was used
 
@@ -265,7 +278,7 @@ unless their description says otherwise._
 
 No skills from the checked marketplaces are a strong fit for this project right now.
 
-**Checked marketplaces**: easier-life-skills (dan323) — {N} skills reviewed
+**Checked marketplaces**: easier-life-skills (dan323) — {N} skills reviewed, skills (anthropic) — {N} skills reviewed
 
 **Reason**: {Brief explanation — e.g. "All available skills target domains not present in
 this repo (REST APIs, logging, documentation), and your project is already well-covered
