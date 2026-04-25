@@ -116,6 +116,11 @@ function parseFrontmatter(content) {
 // --- Main ---
 const marketplace = JSON.parse(readFileSync(join(ROOT, '.claude-plugin', 'marketplace.json'), 'utf8'));
 
+const overridesPath = join(ROOT, '.claude-plugin', 'external-overrides.json');
+const externalOverrides = existsSync(overridesPath)
+  ? JSON.parse(readFileSync(overridesPath, 'utf8'))
+  : {};
+
 // Build a map of which bundles each skill belongs to
 const skillBundleMap = {};
 for (const bundle of BUNDLES) {
@@ -167,19 +172,28 @@ for (const ext of EXTERNAL_MARKETPLACES) {
     const extMarketplace = await res.json();
     const extBase = `https://raw.githubusercontent.com/${ext.owner}/${ext.repo}/master`;
 
+    const marketplaceKey = `${ext.owner}/${ext.repo}`;
+    const overrides = externalOverrides[marketplaceKey] || {};
+
     for (const plugin of (extMarketplace.plugins || [])) {
+      const override = overrides[plugin.name] || {};
       const skillPath = `plugins/${plugin.name}/skills/${plugin.name}/SKILL.md`;
       skills.push({
         name: plugin.name,
-        version: plugin.version || '1.0',
+        version: plugin.version || plugin.metadata?.version || '1.0',
         description: plugin.description,
-        category: plugin.category || 'uncategorized',
-        keywords: plugin.keywords || [],
-        tools: [],
-        readOnly: false,
+        category: override.category || plugin.category || 'uncategorized',
+        keywords: override.keywords || plugin.keywords || [],
+        tools: override.tools || [],
+        readOnly: override.readOnly ?? false,
         skillPath,
         rawSkillUrl: `${extBase}/${skillPath}`,
         installCommand: `/plugin install ${plugin.name}@${ext.repo}`,
+        marketplace: { owner: ext.owner, repo: ext.repo },
+        bundles: [],
+        ...override,
+        // ensure structural fields are never clobbered by override
+        name: plugin.name,
         marketplace: { owner: ext.owner, repo: ext.repo },
         bundles: [],
       });

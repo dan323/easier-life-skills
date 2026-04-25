@@ -1,0 +1,7 @@
+{
+  "anthropics/skills": {
+    "document-skills": { "category": "productivity" },
+    "example-skills":  { "category": "productivity" },
+    "claude-api":      { "category": "automation" }
+  }
+}
