@@ -216,6 +216,16 @@ main { padding: 24px 32px; }
   color: var(--text-muted);
   line-height: 1.5;
   flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+}
+.card-desc.expanded {
+  display: block;
+  overflow: visible;
 }
 
 .card-install {

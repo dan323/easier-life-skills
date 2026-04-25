@@ -131,6 +131,10 @@
       copyText(installCmd, this);
     });
 
+    card.querySelector('.card-desc').addEventListener('click', function () {
+      this.classList.toggle('expanded');
+    });
+
     return card;
   }
 
