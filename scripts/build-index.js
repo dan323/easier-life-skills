@@ -112,7 +112,7 @@ function parseFrontmatter(content) {
 
 // --- Copilot categorisation via GitHub Models API ---
 async function inferCategories(uncategorisedSkills) {
-  const token = process.env.GITHUB_TOKEN;
+  const token = process.env.MODELS_TOKEN || process.env.GITHUB_TOKEN;
   if (!token || uncategorisedSkills.length === 0) return {};
 
   const list = uncategorisedSkills
@@ -138,7 +138,10 @@ async function inferCategories(uncategorisedSkills) {
         max_tokens: 300,
       }),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`HTTP ${res.status} — ${body.slice(0, 300)}`);
+    }
     const data = await res.json();
     const result = JSON.parse(data.choices[0].message.content);
     for (const [name, cat] of Object.entries(result)) {

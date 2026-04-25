@@ -33,6 +33,9 @@ jobs:
       - name: Build index
         run: node scripts/build-index.js
         env:
+          # MODELS_TOKEN: a GitHub PAT with GitHub Models access (classic or fine-grained).
+          # If absent, falls back to GITHUB_TOKEN which may lack Models permission.
+          MODELS_TOKEN: ${{ secrets.MODELS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Pages
