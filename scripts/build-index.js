@@ -15,6 +15,14 @@ const REPO = 'easier-life-skills';
 const BASE_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/master`;
 const REPO_URL = `https://github.com/${OWNER}/${REPO}`;
 
+const EXTERNAL_MARKETPLACES = [
+  {
+    owner: 'anthropic',
+    repo: 'skills',
+    catalogUrl: 'https://raw.githubusercontent.com/anthropic/skills/master/.claude-plugin/marketplace.json',
+  },
+];
+
 // --- Bundles definition ---
 const BUNDLES = [
   {
@@ -145,8 +153,41 @@ for (const plugin of marketplace.plugins) {
     skillPath,
     rawSkillUrl: `${BASE_URL}/${skillPath}`,
     installCommand: `/plugin install ${plugin.name}@${REPO}`,
+    marketplace: { owner: OWNER, repo: REPO },
     bundles: skillBundleMap[plugin.name] || [],
   });
+}
+
+// Fetch external marketplace catalogs
+for (const ext of EXTERNAL_MARKETPLACES) {
+  console.log(`  Fetching ${ext.owner}/${ext.repo}…`);
+  try {
+    const res = await fetch(ext.catalogUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const extMarketplace = await res.json();
+    const extBase = `https://raw.githubusercontent.com/${ext.owner}/${ext.repo}/master`;
+
+    for (const plugin of (extMarketplace.plugins || [])) {
+      const skillPath = `plugins/${plugin.name}/skills/${plugin.name}/SKILL.md`;
+      skills.push({
+        name: plugin.name,
+        version: plugin.version || '1.0',
+        description: plugin.description,
+        category: plugin.category || 'uncategorized',
+        keywords: plugin.keywords || [],
+        tools: [],
+        readOnly: false,
+        skillPath,
+        rawSkillUrl: `${extBase}/${skillPath}`,
+        installCommand: `/plugin install ${plugin.name}@${ext.repo}`,
+        marketplace: { owner: ext.owner, repo: ext.repo },
+        bundles: [],
+      });
+    }
+    console.log(`✓ ${ext.owner}/${ext.repo} — ${extMarketplace.plugins?.length ?? 0} skills`);
+  } catch (err) {
+    console.warn(`  [warn] Could not fetch ${ext.owner}/${ext.repo}: ${err.message}`);
+  }
 }
 
 // Sort skills by category then name

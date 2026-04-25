@@ -205,6 +205,7 @@ main { padding: 24px 32px; }
 }
 
 .badge-cat { border: none; }
+.badge-marketplace { background: #1a2332; color: #58a6ff; border: 1px solid #1f6feb; font-family: monospace; }
 .badge-documentation { background: var(--cat-documentation-bg); color: var(--cat-documentation); }
 .badge-code-quality   { background: var(--cat-code-quality-bg);   color: var(--cat-code-quality); }
 .badge-productivity   { background: var(--cat-productivity-bg);   color: var(--cat-productivity); }

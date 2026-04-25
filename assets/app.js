@@ -107,12 +107,17 @@
     const installCmd = skill.installCommand;
     const catClass = 'badge-' + skill.category;
 
+    const marketplaceLabel = skill.marketplace && skill.marketplace.owner !== 'dan323'
+      ? `<span class="badge badge-marketplace">${skill.marketplace.owner}/${skill.marketplace.repo}</span>`
+      : '';
+
     card.innerHTML = `
       <div class="card-header">
         <a class="card-name" href="${skill.rawSkillUrl}" target="_blank" rel="noopener">${skill.name}</a>
         <div class="card-badges">
           ${skill.readOnly ? '<span class="badge badge-readonly">read-only</span>' : ''}
           <span class="badge badge-cat ${catClass}">${titleCase(skill.category)}</span>
+          ${marketplaceLabel}
         </div>
       </div>
       <p class="card-desc">${skill.description}</p>
