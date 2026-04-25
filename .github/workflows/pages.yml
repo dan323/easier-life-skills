@@ -31,6 +31,8 @@ jobs:
 
       - name: Build index
         run: node scripts/build-index.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

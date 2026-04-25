@@ -15,6 +15,8 @@ const REPO = 'easier-life-skills';
 const BASE_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/master`;
 const REPO_URL = `https://github.com/${OWNER}/${REPO}`;
 
+const CATEGORIES = ['automation', 'code-quality', 'documentation', 'productivity'];
+
 const EXTERNAL_MARKETPLACES = [
   {
     owner: 'anthropics',
@@ -54,21 +56,16 @@ const BUNDLES = [
 
 // --- YAML frontmatter parser (handles the subset used in SKILL.md files) ---
 function parseFrontmatter(content) {
-  // Normalize line endings
   const normalized = content.replace(/\r\n/g, '\n');
   const match = normalized.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return {};
 
   const raw = match[1];
   const result = {};
-
-  // Split into lines for key-by-key parsing
   const lines = raw.split('\n');
   let i = 0;
   while (i < lines.length) {
     const line = lines[i];
-
-    // Top-level key: value
     const keyMatch = line.match(/^(\w[\w-]*):\s*(.*)/);
     if (!keyMatch) { i++; continue; }
 
@@ -76,7 +73,6 @@ function parseFrontmatter(content) {
     const val = keyMatch[2].trim();
 
     if (val === '>') {
-      // Folded block — collect indented continuation lines
       i++;
       const parts = [];
       while (i < lines.length && (lines[i].startsWith(' ') || lines[i].startsWith('\t'))) {
@@ -85,7 +81,6 @@ function parseFrontmatter(content) {
       }
       result[key] = parts.join(' ');
     } else if (val === '') {
-      // Mapping block (e.g. metadata:) — collect indented children
       i++;
       const children = {};
       while (i < lines.length && (lines[i].startsWith(' ') || lines[i].startsWith('\t'))) {
@@ -100,17 +95,56 @@ function parseFrontmatter(content) {
     }
   }
 
-  // Normalise tools to array
   if (typeof result.tools === 'string') {
     result.tools = result.tools.split(',').map(t => t.trim()).filter(Boolean);
   }
-
-  // Flatten metadata.version
   if (result.metadata && result.metadata.version) {
     result.version = String(result.metadata.version);
   }
 
   return result;
+}
+
+// --- Copilot categorisation via GitHub Models API ---
+async function inferCategories(uncategorisedSkills) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token || uncategorisedSkills.length === 0) return {};
+
+  const list = uncategorisedSkills
+    .map(s => `- ${s.name}: ${String(s.description || '').slice(0, 300)}`)
+    .join('\n');
+
+  const prompt =
+    `Categorize each Claude Code skill into exactly one of: ${CATEGORIES.join(', ')}.\n` +
+    `Reply with a JSON object mapping each skill name to its category. No other text.\n\n` +
+    list;
+
+  try {
+    const res = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        response_format: { type: 'json_object' },
+        max_tokens: 300,
+      }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const result = JSON.parse(data.choices[0].message.content);
+    for (const [name, cat] of Object.entries(result)) {
+      if (!CATEGORIES.includes(cat)) result[name] = 'uncategorized';
+    }
+    console.log(`  Copilot categorised ${Object.keys(result).length} skills`);
+    return result;
+  } catch (err) {
+    console.warn(`  [warn] Copilot categorisation failed: ${err.message}`);
+    return {};
+  }
 }
 
 // --- Main ---
@@ -180,7 +214,6 @@ for (const ext of EXTERNAL_MARKETPLACES) {
       const subPaths = plugin.skills && plugin.skills.length > 0 ? plugin.skills : [];
 
       if (subPaths.length > 0) {
-        // Fetch each sub-skill individually and add to the skills list
         const skillNames = await Promise.all(subPaths.map(async (subPath) => {
           const normalizedPath = subPath.replace(/^\.\//, '');
           const skillMdUrl = `${extBase}/${normalizedPath}/SKILL.md`;
@@ -198,7 +231,7 @@ for (const ext of EXTERNAL_MARKETPLACES) {
             name: skillName,
             version: '1.0',
             description: frontmatter.description || plugin.description,
-            category: override.category || 'uncategorized',
+            category: override.category || null,
             keywords: override.keywords || [],
             tools: frontmatter.tools || [],
             readOnly: override.readOnly ?? false,
@@ -209,6 +242,7 @@ for (const ext of EXTERNAL_MARKETPLACES) {
             bundles: [plugin.name],
             ...override,
             name: skillName,
+            category: override.category || null,
             marketplace: { owner: ext.owner, repo: ext.repo },
             bundles: [plugin.name],
           });
@@ -216,7 +250,6 @@ for (const ext of EXTERNAL_MARKETPLACES) {
           return skillName;
         }));
 
-        // Add the parent plugin as a bundle
         const bundleOverride = overrides[plugin.name] || {};
         externalBundles.push({
           id: plugin.name,
@@ -227,14 +260,13 @@ for (const ext of EXTERNAL_MARKETPLACES) {
           marketplace: { owner: ext.owner, repo: ext.repo },
         });
       } else {
-        // Single element with no sub-skills — add directly to skills
         const override = overrides[plugin.name] || {};
         const skillPath = `plugins/${plugin.name}/skills/${plugin.name}/SKILL.md`;
         skills.push({
           name: plugin.name,
           version: plugin.version || plugin.metadata?.version || '1.0',
           description: plugin.description,
-          category: override.category || plugin.category || 'uncategorized',
+          category: override.category || null,
           keywords: override.keywords || plugin.keywords || [],
           tools: [],
           readOnly: override.readOnly ?? false,
@@ -245,14 +277,25 @@ for (const ext of EXTERNAL_MARKETPLACES) {
           bundles: [],
           ...override,
           name: plugin.name,
+          category: override.category || null,
           marketplace: { owner: ext.owner, repo: ext.repo },
           bundles: [],
         });
       }
     }
-    console.log(`✓ ${ext.owner}/${ext.repo} — ${extMarketplace.plugins?.length ?? 0} skills`);
+    console.log(`✓ ${ext.owner}/${ext.repo} — ${extMarketplace.plugins?.length ?? 0} plugins`);
   } catch (err) {
     console.warn(`  [warn] Could not fetch ${ext.owner}/${ext.repo}: ${err.message}`);
+  }
+}
+
+// Infer categories for external skills that have no manual override
+const uncategorised = skills.filter(s => s.category === null);
+if (uncategorised.length > 0) {
+  console.log(`  Inferring categories for ${uncategorised.length} uncategorised skill(s) via Copilot…`);
+  const inferred = await inferCategories(uncategorised);
+  for (const skill of uncategorised) {
+    skill.category = inferred[skill.name] || 'uncategorized';
   }
 }
 
