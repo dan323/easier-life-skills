@@ -24,6 +24,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build index
+        run: node scripts/build-index.js
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
