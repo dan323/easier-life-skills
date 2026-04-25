@@ -23,6 +23,11 @@ const EXTERNAL_MARKETPLACES = [
     repo: 'skills',
     catalogUrl: 'https://raw.githubusercontent.com/anthropics/skills/master/.claude-plugin/marketplace.json',
   },
+  {
+    owner: 'scottmatthewman',
+    repo: 'skills',
+    catalogUrl: 'https://raw.githubusercontent.com/scottmatthewman/skills/master/.claude-plugin/marketplace.json',
+  },
 ];
 
 // --- Bundles definition ---
@@ -261,17 +266,26 @@ for (const ext of EXTERNAL_MARKETPLACES) {
         });
       } else {
         const override = overrides[plugin.name] || {};
-        const skillPath = `plugins/${plugin.name}/skills/${plugin.name}/SKILL.md`;
+        const sourcePath = plugin.source
+          ? plugin.source.replace(/^\.\//, '') + '/SKILL.md'
+          : `plugins/${plugin.name}/skills/${plugin.name}/SKILL.md`;
+
+        let frontmatter = {};
+        try {
+          const r = await fetch(`${extBase}/${sourcePath}`);
+          if (r.ok) frontmatter = parseFrontmatter(await r.text());
+        } catch { /* skip */ }
+
         skills.push({
           name: plugin.name,
           version: plugin.version || plugin.metadata?.version || '1.0',
-          description: plugin.description,
+          description: frontmatter.description || plugin.description,
           category: override.category || null,
           keywords: override.keywords || plugin.keywords || [],
-          tools: [],
+          tools: frontmatter.tools || [],
           readOnly: override.readOnly ?? false,
-          skillPath,
-          rawSkillUrl: `${extBase}/${skillPath}`,
+          skillPath: sourcePath,
+          rawSkillUrl: `${extBase}/${sourcePath}`,
           installCommand: `/plugin install ${plugin.name}@${ext.repo}`,
           marketplace: { owner: ext.owner, repo: ext.repo },
           bundles: [],
