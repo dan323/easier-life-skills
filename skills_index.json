@@ -1,10 +1,10 @@
 {
   "meta": {
-    "generated": "2026-04-24T20:47:26.686Z",
+    "generated": "2026-04-25T09:10:47.475Z",
     "owner": "dan323",
     "repo": "easier-life-skills",
     "repoUrl": "https://github.com/dan323/easier-life-skills",
-    "skillCount": 7,
+    "skillCount": 8,
     "baseUrl": "https://raw.githubusercontent.com/dan323/easier-life-skills/master"
   },
   "skills": [
@@ -197,6 +197,35 @@
       "skillPath": "plugins/brainstorm/skills/brainstorm/SKILL.md",
       "rawSkillUrl": "https://raw.githubusercontent.com/dan323/easier-life-skills/master/plugins/brainstorm/skills/brainstorm/SKILL.md",
       "installCommand": "/plugin install brainstorm@easier-life-skills",
+      "bundles": [
+        "open-source-maintainer",
+        "full-stack"
+      ]
+    },
+    {
+      "name": "find-skills",
+      "version": "1.0",
+      "description": "Analyze the active repository and recommend relevant Claude Code skills from known marketplaces",
+      "category": "productivity",
+      "keywords": [
+        "skills",
+        "plugins",
+        "marketplace",
+        "recommendations",
+        "discovery"
+      ],
+      "tools": [
+        "Bash",
+        "Read",
+        "Glob",
+        "Grep",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "readOnly": true,
+      "skillPath": "plugins/find-skills/skills/find-skills/SKILL.md",
+      "rawSkillUrl": "https://raw.githubusercontent.com/dan323/easier-life-skills/master/plugins/find-skills/skills/find-skills/SKILL.md",
+      "installCommand": "/plugin install find-skills@easier-life-skills",
       "bundles": [
         "open-source-maintainer",
         "full-stack"
