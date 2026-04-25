@@ -17,9 +17,9 @@ const REPO_URL = `https://github.com/${OWNER}/${REPO}`;
 
 const EXTERNAL_MARKETPLACES = [
   {
-    owner: 'anthropic',
+    owner: 'anthropics',
     repo: 'skills',
-    catalogUrl: 'https://raw.githubusercontent.com/anthropic/skills/master/.claude-plugin/marketplace.json',
+    catalogUrl: 'https://raw.githubusercontent.com/anthropics/skills/master/.claude-plugin/marketplace.json',
   },
 ];
 
