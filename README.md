@@ -24,6 +24,12 @@ A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](h
 | [`task-agent`](plugins/task-agent/skills/task-agent/SKILL.md)                                     | Read tasks from `agent-tasks.yml`, implement each via an agent, open PRs, and fix Copilot review comments automatically |
 | [`find-skills`](plugins/find-skills/skills/find-skills/SKILL.md)                                  | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces                         |
 
+## Marketplace Browser
+
+Browse and search all available skills at the interactive marketplace:
+
+**https://dan323.github.io/easier-life-skills/**
+
 ## Documentation
 
 - [Getting Started](docs/getting-started.md)
