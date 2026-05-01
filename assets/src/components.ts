@@ -1,14 +1,13 @@
-/* components.js — DOM builders for skill cards, bundle cards, and source tags */
-
-import { state } from './state.js';
+import { state }                          from './state.ts';
+import type { Plugin, Skill, Agent, McpServer, Bundle } from './types.ts';
 
 // ── Utility ──
 
-export function titleCase(str) {
+export function titleCase(str: string): string {
   return str.replace(/-/g, ' ').replace(/(^|\s)\w/g, c => c.toUpperCase());
 }
 
-export function copyText(text, btn) {
+export function copyText(text: string, btn: HTMLElement): void {
   navigator.clipboard.writeText(text).then(() => {
     const original = btn.textContent;
     btn.textContent = 'Copied!';
@@ -17,12 +16,40 @@ export function copyText(text, btn) {
   });
 }
 
+// ── Expandable helper ──
+
+const CHIP_LIMIT  = 5;
+const SKILL_LIMIT = 4;
+
+interface Chip { cls: string; text: string; }
+
+function makeExpandable<T>(
+  container: HTMLElement,
+  items: T[],
+  limit: number,
+  renderItem: (item: T) => HTMLElement,
+): void {
+  let expanded = false;
+  function draw(): void {
+    container.innerHTML = '';
+    (expanded ? items : items.slice(0, limit)).forEach(item => container.appendChild(renderItem(item)));
+    if (items.length > limit) {
+      const btn = document.createElement('button');
+      btn.className = 'expand-btn';
+      btn.textContent = expanded ? 'Show less' : `+${items.length - limit} more`;
+      btn.addEventListener('click', e => { e.stopPropagation(); expanded = !expanded; draw(); });
+      container.appendChild(btn);
+    }
+  }
+  draw();
+}
+
 // ── Plugin card ──
 
-let _openPluginPanel = null;
-export function setPluginPanelOpener(fn) { _openPluginPanel = fn; }
+let _openPluginPanel: ((plugin: Plugin) => void) | null = null;
+export function setPluginPanelOpener(fn: (plugin: Plugin) => void): void { _openPluginPanel = fn; }
 
-export function pluginCard(plugin, showSource) {
+export function pluginCard(plugin: Plugin, showSource: boolean): HTMLElement {
   const card = document.createElement('div');
   card.className = 'skill-card';
 
@@ -32,11 +59,11 @@ export function pluginCard(plugin, showSource) {
     ? `<a class="card-name" href="${plugin.homepage}" target="_blank" rel="noopener">${plugin.name}</a>`
     : `<span class="card-name">${plugin.name}</span>`;
 
-  const chips = [
-    ...plugin.skills.map(n     => `<span class="chip chip-skill">skill: ${n}</span>`),
-    ...plugin.agents.map(n     => `<span class="chip chip-agent">agent: ${n}</span>`),
-    ...plugin.mcpServers.map(n => `<span class="chip chip-mcp">mcp: ${n}</span>`),
-  ].join('');
+  const allChips: Chip[] = [
+    ...plugin.skills.map(n     => ({ cls: 'chip-skill', text: `skill: ${n}` })),
+    ...plugin.agents.map(n     => ({ cls: 'chip-agent', text: `agent: ${n}` })),
+    ...plugin.mcpServers.map(n => ({ cls: 'chip-mcp',   text: `mcp: ${n}`   })),
+  ];
 
   card.innerHTML = `
     <div class="card-header">
@@ -47,14 +74,24 @@ export function pluginCard(plugin, showSource) {
       </div>
     </div>
     <p class="card-desc">${plugin.description}</p>
-    ${chips ? `<div class="plugin-chips">${chips}</div>` : ''}
+    ${allChips.length ? `<div class="plugin-chips"></div>` : ''}
     <div class="card-install">
       <code>${plugin.installCommand}</code>
       <button class="copy-btn" title="Copy install command">Copy</button>
     </div>
   `;
 
-  card.querySelector('.copy-btn').addEventListener('click', function (e) {
+  if (allChips.length) {
+    const chipsEl = card.querySelector('.plugin-chips') as HTMLElement;
+    makeExpandable(chipsEl, allChips, CHIP_LIMIT, ({ cls, text }) => {
+      const span = document.createElement('span');
+      span.className = `chip ${cls}`;
+      span.textContent = text;
+      return span;
+    });
+  }
+
+  (card.querySelector('.copy-btn') as HTMLButtonElement).addEventListener('click', function (e) {
     e.stopPropagation();
     copyText(plugin.installCommand, this);
   });
@@ -67,18 +104,19 @@ export function pluginCard(plugin, showSource) {
 
 // ── Skill card ──
 
-export function skillCard(skill, showSource) {
+export function skillCard(skill: Skill, showSource: boolean): HTMLElement {
   const card = document.createElement('div');
   card.className = 'skill-card';
 
-  const catClass = 'badge-' + skill.category;
+  const catClass = skill.category ? 'badge-' + skill.category : 'badge-uncategorized';
+  const catLabel = skill.category ? titleCase(skill.category) : 'Uncategorized';
 
   card.innerHTML = `
     <div class="card-header">
       <a class="card-name" href="${skill.rawSkillUrl}" target="_blank" rel="noopener">${skill.name}</a>
       <div class="card-badges">
         ${skill.readOnly ? '<span class="badge badge-readonly">read-only</span>' : ''}
-        <span class="badge badge-cat ${catClass}">${titleCase(skill.category)}</span>
+        <span class="badge badge-cat ${catClass}">${catLabel}</span>
         ${showSource ? `<span class="badge badge-source">${skill._repo}</span>` : ''}
       </div>
     </div>
@@ -89,7 +127,7 @@ export function skillCard(skill, showSource) {
     </div>
   `;
 
-  card.querySelector('.copy-btn').addEventListener('click', function () {
+  (card.querySelector('.copy-btn') as HTMLButtonElement).addEventListener('click', function () {
     copyText(skill.installCommand, this);
   });
 
@@ -98,11 +136,11 @@ export function skillCard(skill, showSource) {
 
 // ── Agent card ──
 
-export function agentCard(agent, showSource) {
+export function agentCard(agent: Agent, showSource: boolean): HTMLElement {
   const card = document.createElement('div');
   card.className = 'skill-card';
 
-  const toolList = (agent.tools || []).join(', ') || '—';
+  const toolList = agent.tools.join(', ') || '—';
   const bgBadge  = agent.background ? '<span class="badge badge-readonly">background</span>' : '';
 
   card.innerHTML = `
@@ -122,7 +160,7 @@ export function agentCard(agent, showSource) {
     </div>
   `;
 
-  card.querySelector('.copy-btn').addEventListener('click', function () {
+  (card.querySelector('.copy-btn') as HTMLButtonElement).addEventListener('click', function () {
     copyText(agent.installCommand, this);
   });
 
@@ -131,7 +169,7 @@ export function agentCard(agent, showSource) {
 
 // ── MCP Server card ──
 
-export function mcpCard(mcp, showSource) {
+export function mcpCard(mcp: McpServer, showSource: boolean): HTMLElement {
   const card = document.createElement('div');
   card.className = 'skill-card';
 
@@ -151,7 +189,7 @@ export function mcpCard(mcp, showSource) {
     </div>
   `;
 
-  card.querySelector('.copy-btn').addEventListener('click', function () {
+  (card.querySelector('.copy-btn') as HTMLButtonElement).addEventListener('click', function () {
     copyText(mcp.installCommand, this);
   });
 
@@ -160,14 +198,14 @@ export function mcpCard(mcp, showSource) {
 
 // ── Bundle card ──
 
-export function bundleCard(bundle) {
+export function bundleCard(bundle: Bundle): HTMLElement {
   const card = document.createElement('div');
   card.className = 'bundle-card';
 
-  const repoName     = bundle._repo.split('/')[1] || bundle._repo;
+  const repoName     = bundle._repo?.split('/')[1] ?? bundle._repo ?? '';
   const bundleSkills = bundle.skills
     .map(name => state.skills.find(s => s.name === name && s._repo === bundle._repo))
-    .filter(Boolean);
+    .filter((s): s is Skill => s !== undefined);
 
   const installBlock = bundle.skills
     .map(name => `/plugin install ${name}@${repoName}`)
@@ -178,28 +216,33 @@ export function bundleCard(bundle) {
       <div class="bundle-name">${bundle.name}</div>
       <div class="bundle-desc">${bundle.description}</div>
     </div>
-    <div class="bundle-skills">
-      ${bundleSkills.map(s => `<div class="bundle-skill-item">${s.name}</div>`).join('')}
-    </div>
+    <div class="bundle-skills"></div>
     <div class="bundle-install">
       <pre>${installBlock}</pre>
       <button class="bundle-copy-btn">Copy all</button>
     </div>
   `;
 
-  card.querySelector('.bundle-copy-btn').addEventListener('click', function () {
+  makeExpandable(card.querySelector('.bundle-skills') as HTMLElement, bundleSkills, SKILL_LIMIT, skill => {
+    const div = document.createElement('div');
+    div.className = 'bundle-skill-item';
+    div.textContent = skill.name;
+    return div;
+  });
+
+  (card.querySelector('.bundle-copy-btn') as HTMLButtonElement).addEventListener('click', function () {
     copyText(installBlock, this);
   });
 
   return card;
 }
 
-// ── Source tag (marketplace pill in the bar) ──
+// ── Source tag ──
 
-export function sourceTag(ownerRepo, builtin) {
+export function sourceTag(ownerRepo: string, builtin: boolean): HTMLElement {
   const tag = document.createElement('div');
   tag.className = 'source-tag' + (builtin ? ' builtin' : '');
-  tag.dataset.repo = ownerRepo;
+  tag.dataset['repo'] = ownerRepo;
 
   const label = document.createElement('span');
   label.className = 'label';

@@ -1,28 +1,30 @@
-/* lib/catalog.js — generates the CATALOG.md content from aggregated skills, agents, and MCP servers */
+/* lib/catalog.ts — generates the CATALOG.md content from aggregated skills, agents, and MCP servers */
 
-function titleCase(str) {
+import type { Skill, Agent, McpServer, Bundle, MarketplaceEntry } from './types.js';
+
+function titleCase(str: string): string {
   return str.replace(/-/g, ' ').replace(/(^|\s)(\w)/g, (_, sep, c) => sep + c.toUpperCase());
 }
 
-function skillRow(skill) {
+function skillRow(skill: Skill): string {
   const src = `${skill.source.owner}/${skill.source.repo}`;
   const ro  = skill.readOnly ? '✓' : '';
   return `| [\`${skill.name}\`](${skill.rawSkillUrl}) | \`${src}\` | ${skill.description} | ${ro} | \`${skill.installCommand}\` |`;
 }
 
-function agentRow(agent) {
+function agentRow(agent: Agent): string {
   const src   = `${agent.source.owner}/${agent.source.repo}`;
   const tools = agent.tools.slice(0, 3).join(', ') + (agent.tools.length > 3 ? '…' : '');
   const bg    = agent.background ? '✓' : '';
   return `| [\`${agent.name}\`](${agent.rawAgentUrl}) | \`${src}\` | ${agent.description} | ${tools} | ${bg} | \`${agent.installCommand}\` |`;
 }
 
-function mcpRow(mcp) {
+function mcpRow(mcp: McpServer): string {
   const src = `${mcp.source.owner}/${mcp.source.repo}`;
   return `| \`${mcp.name}\` | \`${src}\` | ${mcp.description} | \`${mcp.command || ''}\` | \`${mcp.installCommand}\` |`;
 }
 
-function bundleSection(bundle) {
+function bundleSection(bundle: Bundle): string[] {
   const repo  = bundle.source?.repo || 'easier-life-skills';
   const lines = bundle.skills.map(name => `/plugin install ${name}@${repo}`);
   return [
@@ -37,11 +39,17 @@ function bundleSection(bundle) {
   ];
 }
 
-export function generateCatalog(skills, agents, mcpServers, bundles, marketplaces) {
+export function generateCatalog(
+  skills: Skill[],
+  agents: Agent[],
+  mcpServers: McpServer[],
+  bundles: Bundle[],
+  marketplaces: MarketplaceEntry[],
+): string {
   const date       = new Date().toISOString().slice(0, 10);
-  const categories = [...new Set(skills.map(s => s.category).filter(Boolean))].sort();
+  const categories = [...new Set(skills.map(s => s.category).filter(Boolean))].sort() as string[];
 
-  const lines = [
+  const lines: string[] = [
     `# Skill Catalog`,
     ``,
     `> ${skills.length} skills · ${agents.length} agents · ${mcpServers.length} MCP servers from ${marketplaces.length} marketplace(s) · Last updated: ${date}`,

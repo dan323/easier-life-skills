@@ -18,6 +18,14 @@
   --cat-productivity-bg: #0d2a14;
   --cat-automation: #bc8cff;
   --cat-automation-bg: #1e1040;
+  --cat-finance: #bd9caa;
+  --cat-finance-bg: #1e2035;
+  --cat-design: #ad8caa;
+  --cat-design-bg: #0e1035;
+  --cat-database: #2dd4bf;
+  --cat-database-bg: #0d2f2a;
+  --cat-development: #9f99aa;
+  --cat-development-bg: #0f3335;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -288,7 +296,7 @@ header {
 #repo-add-btn:hover { background: #264d7a; }
 
 /* ── Main ── */
-main { padding: 20px 32px; }
+main { padding: 20px 32px 80px; }
 
 .count {
   font-size: 0.8rem;
@@ -356,6 +364,10 @@ main { padding: 20px 32px; }
 .badge-code-quality   { background: var(--cat-code-quality-bg);   color: var(--cat-code-quality); }
 .badge-productivity   { background: var(--cat-productivity-bg);   color: var(--cat-productivity); }
 .badge-automation     { background: var(--cat-automation-bg);     color: var(--cat-automation); }
+.badge-finance     { background: var(--cat-finance-bg);     color: var(--cat-finance); }
+.badge-design     { background: var(--cat-design-bg);     color: var(--cat-design); }
+.badge-database     { background: var(--cat-database-bg);     color: var(--cat-database); }
+.badge-development     { background: var(--cat-development-bg);     color: var(--cat-development); }
 
 .badge-source {
   background: #1a2030;
@@ -454,6 +466,18 @@ main { padding: 20px 32px; }
 .chip-agent  { background: color-mix(in srgb, #a78bfa 12%, transparent); color: #a78bfa; border: 1px solid color-mix(in srgb, #a78bfa 30%, transparent); }
 .chip-mcp    { background: color-mix(in srgb, #34d399 12%, transparent); color: #34d399; border: 1px solid color-mix(in srgb, #34d399 30%, transparent); }
 
+.expand-btn {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.expand-btn:hover { border-color: var(--accent); color: var(--accent); }
+
 .bundle-install {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -498,8 +522,12 @@ main { padding: 20px 32px; }
 
 /* ── Footer ── */
 footer {
-  margin-top: 48px;
-  padding: 18px 32px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 32px;
+  background: var(--bg);
   border-top: 1px solid var(--border);
   font-size: 0.78rem;
   color: var(--text-muted);
@@ -507,6 +535,7 @@ footer {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px;
+  z-index: 90;
 }
 footer a { color: var(--accent); text-decoration: none; }
 footer a:hover { text-decoration: underline; }

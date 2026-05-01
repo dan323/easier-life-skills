@@ -1,24 +1,29 @@
 #!/usr/bin/env node
-// scripts/build-index.js
+// scripts/build-index.ts
 // 1. Scans plugins/ to generate .claude-plugin/marketplace.json
 // 2. Reads marketplaces.json, aggregates skills, agents, and MCP servers from each repo
 // 3. Writes skills_index.json + CATALOG.md
-//
-// Run: node scripts/build-index.js
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { join, dirname }               from 'path';
 import { fileURLToPath }               from 'url';
-import { fetchMarketplaceSkills } from './lib/fetch-marketplace.js';
+import { fetchMarketplaceSkills }      from './lib/fetch-marketplace.js';
 import { generateCatalog }             from './lib/catalog.js';
+import type { MarketplaceEntry, Plugin, Skill, Bundle } from './lib/types.js';
 
 const ROOT         = join(dirname(fileURLToPath(import.meta.url)), '..');
-const marketplaces = JSON.parse(readFileSync(join(ROOT, 'marketplaces.json'), 'utf8'));
+const marketplaces = JSON.parse(readFileSync(join(ROOT, 'marketplaces.json'), 'utf8')) as MarketplaceEntry[];
 
 // --- Step 1: Generate .claude-plugin/marketplace.json from plugins/ ---
-const LOCAL_OWNER = marketplaces[0].owner;
-const LOCAL_REPO  = marketplaces[0].repo;
-const LOCAL_DESC  = marketplaces[0].description || '';
+const LOCAL_OWNER = marketplaces[0]!.owner;
+const LOCAL_REPO  = marketplaces[0]!.repo;
+const LOCAL_DESC  = marketplaces[0]!.description ?? '';
+
+interface LocalPluginJson {
+  name?: string;
+  description?: string;
+  category?: string | null;
+}
 
 const pluginsDir  = join(ROOT, 'plugins');
 const pluginNames = readdirSync(pluginsDir, { withFileTypes: true })
@@ -26,16 +31,16 @@ const pluginNames = readdirSync(pluginsDir, { withFileTypes: true })
   .map(d => d.name)
   .sort();
 
-const generatedPlugins = [];
+const generatedPlugins: Array<{ name: string; source: string; description: string; category: string | null; homepage: string }> = [];
 for (const pluginName of pluginNames) {
   const pluginJsonPath = join(pluginsDir, pluginName, '.claude-plugin', 'plugin.json');
   if (!existsSync(pluginJsonPath)) continue;
-  const pluginJson = JSON.parse(readFileSync(pluginJsonPath, 'utf8'));
+  const pluginJson = JSON.parse(readFileSync(pluginJsonPath, 'utf8')) as LocalPluginJson;
   generatedPlugins.push({
-    name:        pluginJson.name || pluginName,
+    name:        pluginJson.name ?? pluginName,
     source:      `./plugins/${pluginName}`,
-    description: pluginJson.description || '',
-    category:    pluginJson.category || null,
+    description: pluginJson.description ?? '',
+    category:    pluginJson.category ?? null,
     homepage:    `https://github.com/${LOCAL_OWNER}/${LOCAL_REPO}/tree/master/plugins/${pluginName}`,
   });
 }
@@ -52,20 +57,21 @@ writeFileSync(
 console.log(`✓ .claude-plugin/marketplace.json — ${generatedPlugins.length} plugins`);
 
 // --- Step 2: Aggregate from all marketplaces ---
-const bundlesPath   = join(ROOT, '.claude-plugin', 'bundles.json');
-const BUNDLES = existsSync(bundlesPath)
-  ? JSON.parse(readFileSync(bundlesPath, 'utf8'))
+const bundlesPath = join(ROOT, '.claude-plugin', 'bundles.json');
+const BUNDLES: Bundle[] = existsSync(bundlesPath)
+  ? JSON.parse(readFileSync(bundlesPath, 'utf8')) as Bundle[]
   : [];
 
 const overridesPath = join(ROOT, '.claude-plugin', 'external-overrides.json');
-const OVERRIDES = existsSync(overridesPath)
-  ? JSON.parse(readFileSync(overridesPath, 'utf8'))
-  : {};
+const OVERRIDES: Record<string, { plugins?: Record<string, { category?: string }>; skills?: Record<string, { category?: string }> }> =
+  existsSync(overridesPath)
+    ? JSON.parse(readFileSync(overridesPath, 'utf8'))
+    : {};
 
-const allPlugins    = [];
-const allSkills     = [];
-const allAgents     = [];
-const allMcpServers = [];
+const allPlugins:    Plugin[]  = [];
+const allSkills:     Skill[]   = [];
+const allAgents:     import('./lib/types.js').Agent[]     = [];
+const allMcpServers: import('./lib/types.js').McpServer[] = [];
 
 for (const { owner, repo } of marketplaces) {
   const { plugins, skills, agents, mcpServers } = await fetchMarketplaceSkills(owner, repo, ROOT);
@@ -75,7 +81,7 @@ for (const { owner, repo } of marketplaces) {
   allMcpServers.push(...mcpServers);
 }
 
-// Apply external overrides for categories (local plugins carry their own via plugin.json)
+// Apply external overrides for categories
 for (const plugin of allPlugins) {
   const repoKey = `${plugin.source.owner}/${plugin.source.repo}`;
   const cat = OVERRIDES[repoKey]?.plugins?.[plugin.name]?.category;
@@ -88,14 +94,14 @@ for (const skill of allSkills) {
 }
 
 // Attach bundle membership to skills
-const skillBundleMap = {};
+const skillBundleMap: Record<string, string[]> = {};
 for (const bundle of BUNDLES) {
   for (const skillName of bundle.skills) {
-    (skillBundleMap[skillName] ??= []).push(bundle.id);
+    (skillBundleMap[skillName] ??= []).push(bundle.id ?? bundle.name);
   }
 }
 for (const skill of allSkills) {
-  skill.bundles = skillBundleMap[skill.name] || skill.bundles || [];
+  skill.bundles = skillBundleMap[skill.name] ?? skill.bundles ?? [];
 }
 
 const index = {
