@@ -6,10 +6,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
-  models: read
 
 concurrency:
   group: pages
@@ -33,13 +32,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate skills_index.json and CATALOG.md
+      - name: Generate skills_index.json, CATALOG.md, and marketplace.json
         run: npm run build
-        env:
-          # MODELS_TOKEN: a GitHub PAT with GitHub Models access (classic or fine-grained).
-          # If absent, falls back to GITHUB_TOKEN which may lack Models permission.
-          MODELS_TOKEN: ${{ secrets.MODELS_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit marketplace.json if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .claude-plugin/marketplace.json
+          if git diff --cached --quiet; then
+            echo "marketplace.json unchanged, skipping commit"
+          else
+            git commit -m "chore: regenerate marketplace.json [skip ci]"
+            git push
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

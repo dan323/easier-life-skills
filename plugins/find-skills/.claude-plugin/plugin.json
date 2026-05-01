@@ -1,8 +1,7 @@
 {
   "name": "find-skills",
-  "version": "1.0.0",
   "description": "Analyze the active repository and recommend relevant Claude Code skills from known marketplaces",
   "author": { "name": "dan323" },
-  "repository": "https://github.com/dan323/easier-life-skills",
-  "keywords": ["skills", "plugins", "marketplace", "recommendations", "discovery"]
+  "category": "productivity",
+  "skills": ["./skills/find-skills"]
 }

@@ -1,8 +1,7 @@
 {
   "name": "changelog",
-  "version": "1.0.0",
   "description": "Generate or update CHANGELOG.md from git history",
   "author": { "name": "dan323" },
-  "repository": "https://github.com/dan323/easier-life-skills",
-  "keywords": ["changelog", "git", "documentation", "release-notes"]
+  "category": "documentation",
+  "skills": ["./skills/changelog"]
 }

@@ -1,36 +1,46 @@
-/* marketplace.js — loads/removes repos, persists extras in localStorage */
+/* marketplace.js — loads marketplace repos into state */
 
 import { fetchIndex }              from './api.js';
 import { state }                   from './state.js';
 import { sourceTag }               from './components.js';
 import { rebuildFilters, render }  from './render.js';
 
-const STORAGE_KEY = 'els-extra-repos';
-const sourcesEl   = document.getElementById('marketplace-sources');
-
-// ── Load a marketplace and merge its skills + bundles into state ──
+const sourcesEl = document.getElementById('marketplace-sources');
 
 export async function loadMarketplace(ownerRepo, builtin = false) {
-  const tag = getOrCreateTag(ownerRepo, builtin);
+  // Show a loading tag while fetching
+  const loadingTag = getOrCreateTag(ownerRepo, builtin);
+  loadingTag.querySelector('.label').textContent = 'loading…';
 
   let index;
   try {
-    index = await fetchIndex(ownerRepo);
+    index = await fetchIndex(ownerRepo, builtin);
   } catch (err) {
-    tag.querySelector('.label').textContent = `${ownerRepo} ✕`;
-    tag.classList.add('source-error');
-    tag.title = err.message;
+    loadingTag.querySelector('.label').textContent = `${ownerRepo} ✕`;
+    loadingTag.classList.add('source-error');
+    loadingTag.title = err.message;
     return false;
   }
 
-  // Merge — replace any previously loaded entries from this repo
-  state.skills  = state.skills.filter(s => s._repo !== ownerRepo);
-  state.bundles = state.bundles.filter(b => b._repo !== ownerRepo);
+  // Remove the temporary loading tag — we'll show per-source tags instead
+  loadingTag.remove();
 
-  state.skills.push(...index.skills.map(s => ({ ...s, _repo: ownerRepo })));
+  state.plugins.push(...(index.plugins || []).map(p => ({ ...p, _repo: ownerRepo })));
+  state.skills.push(...(index.skills || []).map(s => ({ ...s, _repo: ownerRepo })));
+  state.agents.push(...(index.agents || []).map(a => ({ ...a, _repo: ownerRepo })));
+  state.mcpServers.push(...(index.mcpServers || []).map(m => ({ ...m, _repo: ownerRepo })));
   state.bundles.push(...(index.bundles || []).map(b => ({ ...b, _repo: ownerRepo })));
 
-  tag.querySelector('.label').textContent = `${ownerRepo} (${index.skills.length})`;
+  // Show one tag per source marketplace, with plugin count
+  const countBySource = {};
+  for (const plugin of index.plugins || []) {
+    const key = `${plugin.source.owner}/${plugin.source.repo}`;
+    countBySource[key] = (countBySource[key] || 0) + 1;
+  }
+  for (const [repo, count] of Object.entries(countBySource)) {
+    const tag = getOrCreateTag(repo, repo === ownerRepo);
+    tag.querySelector('.label').textContent = `${repo} (${count})`;
+  }
 
   updateMeta(index.meta, ownerRepo);
   rebuildFilters();
@@ -38,48 +48,18 @@ export async function loadMarketplace(ownerRepo, builtin = false) {
   return true;
 }
 
-// ── Remove a marketplace from state ──
-
-export function removeMarketplace(ownerRepo) {
-  state.skills  = state.skills.filter(s => s._repo !== ownerRepo);
-  state.bundles = state.bundles.filter(b => b._repo !== ownerRepo);
-
-  const saved = getSavedRepos().filter(r => r !== ownerRepo);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-
-  document.getElementById('skill-count').textContent = state.skills.length;
-  rebuildFilters();
-  render();
-}
-
-// ── localStorage ──
-
-export function getSavedRepos() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
-}
-
-export function saveRepo(ownerRepo) {
-  const saved = getSavedRepos().filter(r => r !== ownerRepo);
-  saved.push(ownerRepo);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-}
-
-// ── Helpers ──
-
 function getOrCreateTag(ownerRepo, builtin) {
   const existing = sourcesEl.querySelector(`[data-repo="${CSS.escape(ownerRepo)}"]`);
   if (existing) return existing;
-
   const tag = sourceTag(ownerRepo, builtin);
   sourcesEl.appendChild(tag);
   return tag;
 }
 
 function updateMeta(meta, ownerRepo) {
-  document.getElementById('skill-count').textContent = state.skills.length;
+  document.getElementById('skill-count').textContent = state.plugins.length;
 
-  // Only update the "generated" date from the built-in repo
-  if (ownerRepo === 'dan323/easier-life-skills') {
+  if (meta?.generated) {
     document.getElementById('generated').textContent =
       new Date(meta.generated).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
   }

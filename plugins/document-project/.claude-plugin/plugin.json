@@ -1,8 +1,7 @@
 {
   "name": "document-project",
-  "version": "1.0.0",
   "description": "Create or improve project documentation with README and /docs structure",
   "author": { "name": "dan323" },
-  "repository": "https://github.com/dan323/easier-life-skills",
-  "keywords": ["documentation", "readme", "docs"]
+  "category": "documentation",
+  "skills": ["./skills/document-project"]
 }

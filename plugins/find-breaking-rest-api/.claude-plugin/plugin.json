@@ -1,8 +1,7 @@
 {
   "name": "find-breaking-rest-api",
-  "version": "3.0.0",
   "description": "Find breaking changes in REST APIs by analyzing git history",
   "author": { "name": "dan323" },
-  "repository": "https://github.com/dan323/easier-life-skills",
-  "keywords": ["api", "rest", "breaking-changes", "git", "compatibility"]
+  "category": "code-quality",
+  "skills": ["./skills/find-breaking-rest-api"]
 }

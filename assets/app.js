@@ -1,11 +1,28 @@
 /* app.js — boot and event wiring */
 
-import { state }                           from './state.js';
-import { loadMarketplace, getSavedRepos, saveRepo } from './marketplace.js';
-import { render }                          from './render.js';
-import { copyText }                        from './components.js';
+import { state }             from './state.js';
+import { loadMarketplace }   from './marketplace.js';
+import { render }            from './render.js';
+import { copyText }          from './components.js';
+import './panel.js';
 
 const BUILTIN_REPO = 'dan323/easier-life-skills';
+
+const VIEW_IDS = ['plugins', 'skills', 'agents', 'mcpServers', 'bundles'];
+const GRID_IDS = {
+  plugins:    'plugins-grid',
+  skills:     'skills-grid',
+  agents:     'agents-grid',
+  mcpServers: 'mcp-grid',
+  bundles:    'bundles-grid',
+};
+const BTN_IDS = {
+  plugins:    'view-plugins',
+  skills:     'view-skills',
+  agents:     'view-agents',
+  mcpServers: 'view-mcp',
+  bundles:    'view-bundles',
+};
 
 // ── Quick-start copy buttons ──
 
@@ -22,59 +39,23 @@ document.getElementById('search').addEventListener('input', e => {
 
 // ── View toggle ──
 
-document.getElementById('view-skills').addEventListener('click',  () => switchView('skills'));
-document.getElementById('view-bundles').addEventListener('click', () => switchView('bundles'));
+VIEW_IDS.forEach(view => {
+  document.getElementById(BTN_IDS[view]).addEventListener('click', () => switchView(view));
+});
 
 function switchView(view) {
   state.view = view;
-  document.getElementById('view-skills').classList.toggle('active',  view === 'skills');
-  document.getElementById('view-bundles').classList.toggle('active', view === 'bundles');
-  document.getElementById('skills-grid').style.display   = view === 'skills'  ? 'grid' : 'none';
-  document.getElementById('bundles-grid').style.display  = view === 'bundles' ? 'grid' : 'none';
-  document.getElementById('filters').style.display       = view === 'skills'  ? 'flex' : 'none';
+  VIEW_IDS.forEach(v => {
+    document.getElementById(BTN_IDS[v]).classList.toggle('active', v === view);
+    document.getElementById(GRID_IDS[v]).style.display = v === view ? 'grid' : 'none';
+  });
+  document.getElementById('filters').style.display = (view === 'plugins' || view === 'skills') ? 'flex' : 'none';
   render();
-}
-
-// ── Add marketplace ──
-
-document.getElementById('repo-add-btn').addEventListener('click', addRepo);
-document.getElementById('repo-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addRepo();
-});
-
-async function addRepo() {
-  const input = document.getElementById('repo-input');
-  const raw   = input.value.trim();
-  if (!raw) return;
-
-  // Accept "owner/repo" or full GitHub URLs
-  const match = raw.match(/(?:github\.com\/)?([^/\s]+\/[^/\s]+)/);
-  if (!match) {
-    input.setCustomValidity('Enter owner/repo');
-    input.reportValidity();
-    return;
-  }
-  input.setCustomValidity('');
-
-  const ownerRepo = match[1].replace(/\.git$/, '');
-  input.value = '';
-
-  // Skip if already loaded
-  const alreadyLoaded = document.querySelector(`[data-repo="${CSS.escape(ownerRepo)}"]`);
-  if (alreadyLoaded) return;
-
-  const ok = await loadMarketplace(ownerRepo, false);
-  if (ok) saveRepo(ownerRepo);
 }
 
 // ── Boot ──
 
 (async () => {
   await loadMarketplace(BUILTIN_REPO, true);
-
-  for (const repo of getSavedRepos()) {
-    await loadMarketplace(repo, false);
-  }
-
-  switchView('skills');
+  switchView('plugins');
 })();

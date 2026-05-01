@@ -1,12 +1,8 @@
 {
   "name": "easier-life-skills",
+  "description": "Reusable skill plugins for Claude Code — changelog generation, dead code detection, documentation, brainstorming, and more",
   "owner": {
     "name": "dan323"
-  },
-  "metadata": {
-    "version": "1.1.0",
-    "description": "A collection of reusable Claude Code skill plugins for common development workflows",
-    "pluginRoot": "./plugins"
   },
   "plugins": [
     {
@@ -14,56 +10,56 @@
       "source": "./plugins/brainstorm",
       "description": "Suggest the 5 most valuable next features or improvements for a project",
       "category": "productivity",
-      "keywords": ["brainstorm", "ideas", "features", "productivity"]
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/brainstorm"
     },
     {
       "name": "changelog",
       "source": "./plugins/changelog",
       "description": "Generate or update CHANGELOG.md from git history",
       "category": "documentation",
-      "keywords": ["changelog", "git", "documentation", "release-notes"]
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/changelog"
     },
     {
       "name": "document-project",
       "source": "./plugins/document-project",
       "description": "Create or improve project documentation with README and /docs structure",
       "category": "documentation",
-      "keywords": ["documentation", "readme", "docs"]
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/document-project"
     },
     {
       "name": "find-breaking-rest-api",
       "source": "./plugins/find-breaking-rest-api",
       "description": "Find breaking changes in REST APIs by analyzing git history",
       "category": "code-quality",
-      "keywords": ["api", "rest", "breaking-changes", "git", "compatibility"]
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/find-breaking-rest-api"
     },
     {
       "name": "find-dead-code",
       "source": "./plugins/find-dead-code",
       "description": "Find unused functions, classes, variables, and imports across languages",
       "category": "code-quality",
-      "keywords": ["dead-code", "unused", "refactoring", "cleanup"]
-    },
-    {
-      "name": "improve-logging",
-      "source": "./plugins/improve-logging",
-      "description": "Audit logging quality and produce prioritized fix recommendations",
-      "category": "code-quality",
-      "keywords": ["logging", "observability", "code-quality", "audit"]
-    },
-    {
-      "name": "task-agent",
-      "source": "./plugins/task-agent",
-      "description": "Read tasks from agent-tasks.yml, implement each via an agent, and open PRs",
-      "category": "automation",
-      "keywords": ["automation", "multi-repo", "ci"]
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/find-dead-code"
     },
     {
       "name": "find-skills",
       "source": "./plugins/find-skills",
       "description": "Analyze the active repository and recommend relevant Claude Code skills from known marketplaces",
       "category": "productivity",
-      "keywords": ["skills", "plugins", "marketplace", "recommendations", "discovery"]
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/find-skills"
+    },
+    {
+      "name": "improve-logging",
+      "source": "./plugins/improve-logging",
+      "description": "Audit logging quality and produce prioritized fix recommendations",
+      "category": "code-quality",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/improve-logging"
+    },
+    {
+      "name": "task-agent",
+      "source": "./plugins/task-agent",
+      "description": "Read tasks from agent-tasks.yml, implement each via an agent, and open PRs",
+      "category": "automation",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/task-agent"
     }
   ]
 }

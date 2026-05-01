@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.2.0] - 2026-05-01
+
+### Added
+- **Plugin detail panel** — clicking a plugin in the website opens a slide-in drawer showing its description (or a copyable prompt if none), skills, agents, MCP servers, and bundle membership
+- **Plugins view** — new default tab in the website; plugins, skills, agents, MCP servers, and bundles each have their own grid view
+- **Agent support** — build pipeline and website now index and display agents; `copilot-review-fixer` is the first registered agent (bundled with `task-agent`)
+- **MCP server support** — build pipeline and website now index and display MCP servers
+- `.claude-plugin/bundles.json` — bundle definitions extracted from build script into a standalone config file
+- `scripts/lib/catalog.js` — generates Agents and MCP Servers sections in `CATALOG.md`
+
+### Changed
+- **`marketplace.json` is now generated from `plugins/*/` scan** — `build-index.js` reads each `plugins/<name>/.claude-plugin/plugin.json`, derives `name`, `description`, `category`, `source`, and `homepage`, and writes `.claude-plugin/marketplace.json`; the old hand-maintained `marketplace.source.json` is retired
+- **CI commits `marketplace.json` back** — `pages.yml` upgraded to `contents: write`; after `npm run build` the pipeline commits `.claude-plugin/marketplace.json` to the branch if it changed (with `[skip ci]` to prevent loops)
+- **`plugin.json` now declares `category`** — each of the 8 local plugins has a `category` field; categories no longer live in a separate registry file
+- **`fetch-marketplace.js` rewritten** — skills and agents are now auto-discovered from their default directories (`skills/`, `agents/`) when not explicitly declared; a string declaration is treated as a parent directory to scan (via GitHub Contents API for remote repos); MCP servers now accept an object keyed by server name, a string path to a JSON file, or a `.mcp.json` at the plugin root
+- **`skills_index.json`** now includes `plugins`, `agents`, `mcpServers`, and updated `meta` counts alongside `skills`
+- `marketplaces.json` now accepts an optional `description` per marketplace entry, used in the generated `marketplace.json`
+- External plugin categories flow from the upstream `marketplace.json` directly; `external-overrides.json` supplements where the upstream does not declare one
+- `pages.yml` — removed AI categorisation; no longer needs `models: read` permission or `MODELS_TOKEN`
+
+### Removed
+- `marketplace.source.json` — replaced by per-plugin `category` in `plugin.json` and build-time generation
+- AI-based categorisation via GitHub Models API (`categorize.js` deleted, `MODELS_TOKEN` removed from CI)
+- "Add marketplace" runtime feature from the website — was non-functional; marketplace list is now build-time only
+- `$schema` field removed from generated `marketplace.json` (URL was a 404 with no replacement)
+
 ## [1.1.0] - 2026-04-19
 
 ### Added

@@ -1,8 +1,7 @@
 {
   "name": "find-dead-code",
-  "version": "1.0.0",
   "description": "Find unused functions, classes, variables, and imports across languages",
   "author": { "name": "dan323" },
-  "repository": "https://github.com/dan323/easier-life-skills",
-  "keywords": ["dead-code", "unused", "refactoring", "cleanup"]
+  "category": "code-quality",
+  "skills": ["./skills/find-dead-code"]
 }

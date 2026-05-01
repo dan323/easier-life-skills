@@ -9,11 +9,13 @@ easier-life-skills is a content repository — there is no compiled code, no run
 ```
 easier-life-skills/
 ├── .claude-plugin/
-│   └── marketplace.json     Marketplace catalog (lists all plugins)
+│   ├── marketplace.json         Generated from plugins/ scan — committed; do not edit by hand
+│   ├── bundles.json             Bundle definitions (curated skill sets)
+│   └── external-overrides.json  Category overrides for external marketplace plugins/skills
 ├── plugins/
 │   ├── changelog/
 │   │   ├── .claude-plugin/
-│   │   │   └── plugin.json  Plugin manifest (name, version, description)
+│   │   │   └── plugin.json  Plugin manifest — name, description, category, skills[], agents[]
 │   │   ├── skills/
 │   │   │   └── changelog/
 │   │   │       └── SKILL.md Required — instructions the agent follows
@@ -24,6 +26,23 @@ easier-life-skills/
 │   │   └── evals/
 │   │       └── evals.json   Optional — test cases for the skill
 │   └── <other-plugins>/     (same layout)
+├── scripts/
+│   ├── build-index.js       Orchestrator — scans plugins/, generates marketplace.json, writes skills_index.json + CATALOG.md
+│   └── lib/
+│       ├── fetch-marketplace.js  Fetches plugins from one repo; discovers skills/agents/mcpServers
+│       ├── catalog.js            Generates CATALOG.md content
+│       └── frontmatter.js        YAML frontmatter parser for SKILL.md files
+├── assets/                  Website JS modules (loaded via GitHub Pages)
+│   ├── app.js               Boot + event wiring
+│   ├── api.js               Fetches skills_index.json from GitHub
+│   ├── state.js             Shared mutable state (plugins, skills, agents, mcpServers, bundles)
+│   ├── marketplace.js       Loads marketplace index into state
+│   ├── panel.js             Plugin detail slide-in panel
+│   ├── render.js            Renders plugin/skill/agent/mcpServer/bundle grids + filters
+│   └── components.js        DOM builders for cards and source tags
+├── installer/               npx CLI installer (@dan323/easier-life-skills)
+├── marketplaces.json        List of { owner, repo, description? } pairs the build script aggregates
+├── index.html               Interactive marketplace website
 ├── docs/
 │   ├── getting-started.md
 │   ├── architecture.md
@@ -31,6 +50,64 @@ easier-life-skills/
 ├── CHANGELOG.md
 └── README.md
 ```
+
+## Build Pipeline
+
+The build script is the only runtime component. It runs in CI (GitHub Actions) on every push to `master`:
+
+```
+plugins/*/plugin.json  →  build-index.js  →  .claude-plugin/marketplace.json  (committed back)
+marketplaces.json      →                  →  skills_index.json                 (gitignored)
+                                          →  CATALOG.md                        (gitignored)
+```
+
+1. **Scan `plugins/`** — `build-index.js` reads every `plugins/<name>/.claude-plugin/plugin.json`, derives `name`, `description`, `category`, `source`, and `homepage`, and writes `.claude-plugin/marketplace.json`. This file is committed back to the branch by CI if it changed.
+2. **Aggregate** — `marketplaces.json` lists one or more `{ owner, repo }` pairs. For each, the script fetches (or reads locally) `.claude-plugin/marketplace.json`, then discovers skills, agents, and MCP servers per plugin.
+3. **Discovery** — for each plugin, `fetch-marketplace.js` resolves skills, agents, and MCP servers:
+   - If `skills` / `agents` is a string array in `plugin.json` or the marketplace entry, each element is a specific directory path containing `SKILL.md` / a `.md` agent file.
+   - If the field is a string, it is treated as a parent directory to scan (subdirs = skills, `.md` files = agents). Uses the local filesystem or the GitHub Contents API for remote repos.
+   - If absent, the default directories (`skills/`, `agents/`) are scanned.
+   - MCP servers can be an object keyed by server name, a string path to a JSON file, or auto-loaded from `.mcp.json` at the plugin root.
+4. **Categorise** — local plugins carry their `category` from `plugin.json`. External plugins use the category from the upstream `marketplace.json` if present; `.claude-plugin/external-overrides.json` supplements where the upstream does not declare one.
+5. **Bundle membership** is attached to each skill from `.claude-plugin/bundles.json`.
+6. `skills_index.json` and `CATALOG.md` are gitignored and rebuilt on every CI run; they are deployed to GitHub Pages with the static site assets.
+7. The website loads `skills_index.json` at runtime. The marketplace list is fixed at build time.
+
+## Plugin Schema
+
+Each `plugin.json` declares what the plugin provides, including its category:
+
+```json
+{
+  "name": "task-agent",
+  "description": "Read tasks from agent-tasks.yml, implement each via an agent, and open PRs",
+  "author": { "name": "dan323" },
+  "category": "automation",
+  "skills":   ["./skills/task-agent"],
+  "agents":   ["./agents/copilot-review-fixer"]
+}
+```
+
+The `category` field is the source of truth for categorisation. The build scans all `plugins/*/` directories and generates `.claude-plugin/marketplace.json` automatically:
+
+```json
+{
+  "name": "easier-life-skills",
+  "description": "...",
+  "owner": { "name": "dan323" },
+  "plugins": [
+    {
+      "name": "task-agent",
+      "source": "./plugins/task-agent",
+      "description": "...",
+      "category": "automation",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/task-agent"
+    }
+  ]
+}
+```
+
+This file is committed to the repo (not gitignored) and kept up to date by CI on every push.
 
 ## How Skills Work
 

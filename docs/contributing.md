@@ -20,7 +20,7 @@ Then in Claude Code: `/plugin marketplace add ./`
 ```
 plugins/<your-skill-name>/
 ├── .claude-plugin/
-│   └── plugin.json
+│   └── plugin.json          name, description, category, skills[]
 ├── skills/
 │   └── <your-skill-name>/
 │       └── SKILL.md
@@ -100,8 +100,11 @@ In Claude Code: `/plugin marketplace add ./` (from the repo root), then `/plugin
 
 Open a Claude Code session in a suitable test directory and run your trigger phrase. Iterate on the `SKILL.md` until the output matches your expectations, then run the evals with the `skill-creator` skill for a more rigorous check.
 
-### 5. Submit a pull request
+### 5. Add category and rebuild
 
+Add a `"category"` field to `plugins/<your-skill-name>/.claude-plugin/plugin.json` (one of `productivity`, `documentation`, `code-quality`, `automation`), then run `node scripts/build-index.js` to regenerate the derived files. The script will automatically add your plugin to `.claude-plugin/marketplace.json`.
+
+Submit a pull request:
 - One skill per PR
 - Include at least 3 evals
 - Update `CHANGELOG.md` under `## [Unreleased] > ### Added`

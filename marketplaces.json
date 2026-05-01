@@ -1,3 +1,5 @@
 [
-  { "owner": "dan323", "repo": "easier-life-skills" }
+  { "owner": "dan323", "repo": "easier-life-skills", "description": "Reusable skill plugins for Claude Code — changelog generation, dead code detection, documentation, brainstorming, and more" },
+  { "owner": "anthropics", "repo": "skills" },
+  { "owner": "anthropics", "repo": "knowledge-work-plugins" }
 ]

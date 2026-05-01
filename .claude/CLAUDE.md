@@ -35,7 +35,7 @@ The installer lives in `installer/` and requires Node.js ≥ 18.
 .claude/
   CLAUDE.md                 ← This file
 .claude-plugin/
-  marketplace.json          ← Marketplace catalog (lists all plugins)
+  marketplace.json          ← Generated from plugins/ scan — committed; do not edit by hand
 .github/
   workflows/
     pages.yml               ← GitHub Pages deployment workflow
@@ -70,7 +70,7 @@ plugins/
       evals.json            ← Alternative evals location (document-project uses this)
     run.sh                  ← Optional: non-interactive entry point (task-agent only)
 scripts/
-  build-index.js            ← Generates skills_index.json from plugin manifests
+  build-index.js            ← Generates skills_index.json, CATALOG.md, and marketplace.json
 CATALOG.md                  ← Human-readable catalog with suggested bundles
 CHANGELOG.md                ← Version history (Keep a Changelog format)
 README.md                   ← Project overview and quick-start
@@ -91,10 +91,13 @@ skills_index.json           ← Generated index; rebuild with: node scripts/buil
   "version": "X.Y.Z",
   "description": "What the plugin does",
   "author": { "name": "dan323" },
-  "repository": "https://github.com/dan323/easier-life-skills",
-  "keywords": ["tag1", "tag2"]
+  "category": "productivity",
+  "skills": ["./skills/plugin-name"],
+  "agents": ["./agents/agent-name"]
 }
 ```
+
+`category` must be one of `productivity`, `documentation`, `code-quality`, `automation`. The build script reads this file to generate `.claude-plugin/marketplace.json` automatically — no separate registry file needed.
 
 ## Evals Format (`evals.json`)
 
@@ -133,25 +136,24 @@ Include at least 3–5 evals per plugin. Cover the happy path, idempotent re-run
 
 ## Current Plugins
 
-| Plugin | Version | Category | Purpose |
-|--------|---------|----------|---------|
-| `brainstorm` | 1.0.0 | Productivity | Read the project and suggest the 5 most valuable next features or improvements |
-| `changelog` | 1.0.0 | Documentation | Generate/update CHANGELOG.md from git history (Keep a Changelog format) |
-| `document-project` | 1.0.0 | Documentation | Create README + `/docs` structure |
-| `find-breaking-rest-api` | 3.0.0 | Code Quality | Find breaking REST API changes — multi-file routers, shared schemas, auth |
-| `find-dead-code` | 1.0.0 | Code Quality | Find unused functions, classes, imports across languages |
-| `improve-logging` | 1.0.0 | Code Quality | Audit logging quality and produce prioritised fix recommendations |
-| `task-agent` | 1.1.0 | Automation | Read tasks from agent-tasks.yml, spawn agents per task, open PRs, and automatically fix Copilot review comments |
-| `find-skills` | 1.0.0 | Productivity | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces |
+| Plugin                   | Version | Category      | Purpose                                                                                                         |
+|--------------------------|---------|---------------|-----------------------------------------------------------------------------------------------------------------|
+| `brainstorm`             | 1.0.0   | Productivity  | Read the project and suggest the 5 most valuable next features or improvements                                  |
+| `changelog`              | 1.0.0   | Documentation | Generate/update CHANGELOG.md from git history (Keep a Changelog format)                                         |
+| `document-project`       | 1.0.0   | Documentation | Create README + `/docs` structure                                                                               |
+| `find-breaking-rest-api` | 3.0.0   | Code Quality  | Find breaking REST API changes — multi-file routers, shared schemas, auth                                       |
+| `find-dead-code`         | 1.0.0   | Code Quality  | Find unused functions, classes, imports across languages                                                        |
+| `improve-logging`        | 1.0.0   | Code Quality  | Audit logging quality and produce prioritised fix recommendations                                               |
+| `task-agent`             | 1.1.0   | Automation    | Read tasks from agent-tasks.yml, spawn agents per task, open PRs, and automatically fix Copilot review comments |
+| `find-skills`            | 1.0.0   | Productivity  | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces                 |
 
 ## Adding a New Plugin
 
 1. Create `plugins/<skill-name>/` with the structure above.
 2. Write `plugins/<skill-name>/skills/<skill-name>/SKILL.md` following the phase-based format of existing skills.
-3. Add `plugins/<skill-name>/.claude-plugin/plugin.json` with name, version, description, and keywords.
+3. Add `plugins/<skill-name>/.claude-plugin/plugin.json` with name, version, description, category, and skills[].
 4. Add `plugins/<skill-name>/skills/<skill-name>/evals/evals.json` with at least 3–5 test scenarios.
-5. Register it in `.claude-plugin/marketplace.json` under `plugins`.
-6. Run `node scripts/build-index.js` to regenerate `skills_index.json`.
+5. Run `node scripts/build-index.js` — this automatically adds the plugin to `.claude-plugin/marketplace.json`.
 7. Optionally add sub-agents to `plugins/<skill-name>/agents/<agent-name>.md` — each must have valid YAML frontmatter (`name`, `description`, `tools`). Skills spawn them via the Agent tool using `subagent_type`.
 8. Optionally add reference docs to `plugins/<skill-name>/references/<topic>.md` — keep these minimal: only non-obvious, trap-prone facts the agent would otherwise get wrong. Do not document things any LLM already knows.
 9. Optionally add `plugins/<skill-name>/examples/` with sample input/output files.
@@ -182,7 +184,7 @@ plugins/task-agent/
 
 ## Web UI and GitHub Pages
 
-`index.html` + `assets/` provide a static marketplace browser deployed via GitHub Pages (`.github/workflows/pages.yml`). The page reads `skills_index.json` at runtime. Always regenerate `skills_index.json` after adding or modifying a plugin.
+`index.html` + `assets/` provide a static marketplace browser deployed via GitHub Pages (`.github/workflows/pages.yml`). The page reads `skills_index.json` at runtime. The build also generates `.claude-plugin/marketplace.json` — a combined catalog with absolute source references for all repos in `marketplaces.json`. Always run `node scripts/build-index.js` after adding or modifying a plugin.
 
 ## Doc Rules
 

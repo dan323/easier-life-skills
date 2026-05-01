@@ -1,16 +1,45 @@
-/* render.js — renders the skill grid, bundle grid, and category filters */
+/* render.js — renders skill, agent, mcp, and bundle grids plus category filters */
 
-import { state }                    from './state.js';
-import { skillCard, bundleCard, titleCase } from './components.js';
+import { state }                               from './state.js';
+import { pluginCard, skillCard, agentCard, mcpCard, bundleCard, titleCase } from './components.js';
 
+const pluginsGrid = document.getElementById('plugins-grid');
 const skillsGrid  = document.getElementById('skills-grid');
+const agentsGrid  = document.getElementById('agents-grid');
+const mcpGrid     = document.getElementById('mcp-grid');
 const bundlesGrid = document.getElementById('bundles-grid');
 const filtersEl   = document.getElementById('filters');
 const countEl     = document.getElementById('count');
 
 export function render() {
-  if (state.view === 'skills') renderSkills();
-  else renderBundles();
+  if      (state.view === 'plugins')    renderPlugins();
+  else if (state.view === 'skills')     renderSkills();
+  else if (state.view === 'agents')     renderAgents();
+  else if (state.view === 'mcpServers') renderMcpServers();
+  else                                  renderBundles();
+}
+
+export function renderPlugins() {
+  const multiRepo = new Set(state.plugins.map(p => p._repo)).size > 1;
+
+  const filtered = state.plugins.filter(plugin => {
+    if (state.activeCategories.size && !state.activeCategories.has(plugin.category)) return false;
+    if (!state.query) return true;
+    return (
+      plugin.name.includes(state.query) ||
+      plugin.description.toLowerCase().includes(state.query)
+    );
+  });
+
+  countEl.textContent = `${filtered.length} of ${state.plugins.length} plugins`;
+
+  if (!filtered.length) {
+    pluginsGrid.innerHTML = '<div class="empty"><p>🔍</p><p>No plugins match your search</p></div>';
+    return;
+  }
+
+  pluginsGrid.innerHTML = '';
+  filtered.forEach(plugin => pluginsGrid.appendChild(pluginCard(plugin, multiRepo)));
 }
 
 export function renderSkills() {
@@ -37,6 +66,50 @@ export function renderSkills() {
   filtered.forEach(skill => skillsGrid.appendChild(skillCard(skill, multiRepo)));
 }
 
+export function renderAgents() {
+  const multiRepo = new Set(state.agents.map(a => a._repo)).size > 1;
+
+  const filtered = state.agents.filter(agent => {
+    if (!state.query) return true;
+    return (
+      agent.name.includes(state.query) ||
+      agent.description.toLowerCase().includes(state.query)
+    );
+  });
+
+  countEl.textContent = `${filtered.length} of ${state.agents.length} agents`;
+
+  if (!filtered.length) {
+    agentsGrid.innerHTML = '<div class="empty"><p>🤖</p><p>No agents found</p></div>';
+    return;
+  }
+
+  agentsGrid.innerHTML = '';
+  filtered.forEach(agent => agentsGrid.appendChild(agentCard(agent, multiRepo)));
+}
+
+export function renderMcpServers() {
+  const multiRepo = new Set(state.mcpServers.map(m => m._repo)).size > 1;
+
+  const filtered = state.mcpServers.filter(mcp => {
+    if (!state.query) return true;
+    return (
+      mcp.name.includes(state.query) ||
+      mcp.description.toLowerCase().includes(state.query)
+    );
+  });
+
+  countEl.textContent = `${filtered.length} of ${state.mcpServers.length} MCP servers`;
+
+  if (!filtered.length) {
+    mcpGrid.innerHTML = '<div class="empty"><p>🔌</p><p>No MCP servers found</p></div>';
+    return;
+  }
+
+  mcpGrid.innerHTML = '';
+  filtered.forEach(mcp => mcpGrid.appendChild(mcpCard(mcp, multiRepo)));
+}
+
 export function renderBundles() {
   countEl.textContent = `${state.bundles.length} bundles`;
   bundlesGrid.innerHTML = '';
@@ -46,7 +119,8 @@ export function renderBundles() {
 export function rebuildFilters() {
   filtersEl.innerHTML = '';
 
-  const categories = [...new Set(state.skills.map(s => s.category))].sort();
+  const source = state.view === 'skills' ? state.skills : state.plugins;
+  const categories = [...new Set(source.map(s => s.category).filter(Boolean))].sort();
 
   // Drop active categories that no longer exist
   for (const cat of state.activeCategories) {

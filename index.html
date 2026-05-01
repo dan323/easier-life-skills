@@ -13,7 +13,7 @@
   <header>
     <div class="header-left">
       <h1>easier-life-<span>skills</span></h1>
-      <p>A Claude Code skill marketplace · <span id="skill-count">…</span> skills loaded</p>
+      <p>A Claude Code skill marketplace · <span id="skill-count">…</span> items loaded</p>
     </div>
     <div class="header-right">
       <a class="btn-gh" href="https://github.com/dan323/easier-life-skills" target="_blank" rel="noopener">★ GitHub</a>
@@ -54,7 +54,10 @@
     <input id="search" type="search" placeholder="Search skills…" autocomplete="off" />
     <div class="filter-group" id="filters"></div>
     <div class="view-toggle">
-      <button class="view-btn active" id="view-skills">Skills</button>
+      <button class="view-btn active" id="view-plugins">Plugins</button>
+      <button class="view-btn" id="view-skills">Skills</button>
+      <button class="view-btn" id="view-agents">Agents</button>
+      <button class="view-btn" id="view-mcp">MCP Servers</button>
       <button class="view-btn" id="view-bundles">Bundles</button>
     </div>
   </div>
@@ -62,16 +65,15 @@
   <!-- ── Marketplaces bar ── -->
   <div class="marketplace-bar">
     <div class="marketplace-sources" id="marketplace-sources"></div>
-    <div class="marketplace-add">
-      <input id="repo-input" type="text" placeholder="Add marketplace: owner/repo" autocomplete="off" />
-      <button id="repo-add-btn">Add</button>
-    </div>
   </div>
 
   <!-- ── Main ── -->
   <main>
     <div class="count" id="count"></div>
-    <div id="skills-grid"></div>
+    <div id="plugins-grid"></div>
+    <div id="skills-grid" style="display:none"></div>
+    <div id="agents-grid" style="display:none"></div>
+    <div id="mcp-grid" style="display:none"></div>
     <div id="bundles-grid" style="display:none"></div>
   </main>
 
@@ -84,6 +86,53 @@
       <a href="https://github.com/dan323/easier-life-skills">GitHub</a>
     </span>
   </footer>
+
+  <!-- ── Plugin detail panel ── -->
+  <div id="plugin-panel">
+    <div id="panel-overlay"></div>
+    <div class="panel-content">
+      <div class="panel-header">
+        <div class="panel-title-row">
+          <a id="panel-name" class="panel-name" rel="noopener"></a>
+          <span id="panel-category" class="badge badge-cat"></span>
+        </div>
+        <button id="panel-close" class="panel-close-btn" title="Close">×</button>
+      </div>
+
+      <p id="panel-desc" class="panel-desc"></p>
+
+      <div id="panel-prompt" class="panel-prompt">
+        <span class="panel-prompt-label">Try asking:</span>
+        <span id="panel-prompt-text" class="panel-prompt-text"></span>
+        <button id="panel-prompt-copy" class="panel-copy-btn">Copy</button>
+      </div>
+
+      <div id="panel-skills-section" class="panel-section">
+        <h3 class="panel-section-title">Skills <span id="panel-skills-count" class="panel-count"></span></h3>
+        <div id="panel-skills-list" class="panel-items"></div>
+      </div>
+
+      <div id="panel-agents-section" class="panel-section">
+        <h3 class="panel-section-title">Agents <span id="panel-agents-count" class="panel-count"></span></h3>
+        <div id="panel-agents-list" class="panel-items"></div>
+      </div>
+
+      <div id="panel-mcp-section" class="panel-section">
+        <h3 class="panel-section-title">MCP Servers <span id="panel-mcp-count" class="panel-count"></span></h3>
+        <div id="panel-mcp-list" class="panel-items"></div>
+      </div>
+
+      <div id="panel-bundles-section" class="panel-section">
+        <h3 class="panel-section-title">Part of bundles</h3>
+        <div id="panel-bundles-list" class="panel-items"></div>
+      </div>
+
+      <div class="panel-install-row">
+        <code id="panel-install-cmd"></code>
+        <button id="panel-install-copy" class="panel-copy-btn">Copy install</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="assets/app.js"></script>
 </body>

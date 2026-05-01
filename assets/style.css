@@ -297,7 +297,10 @@ main { padding: 20px 32px; }
 }
 
 /* ── Skill Cards ── */
-#skills-grid {
+#plugins-grid,
+#skills-grid,
+#agents-grid,
+#mcp-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 14px;
@@ -445,6 +448,12 @@ main { padding: 20px 32px; }
 }
 .bundle-skill-item::before { content: '▸'; color: var(--accent); font-size: 0.65rem; }
 
+.plugin-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 2px; }
+.chip { font-size: 0.73rem; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+.chip-skill  { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+.chip-agent  { background: color-mix(in srgb, #a78bfa 12%, transparent); color: #a78bfa; border: 1px solid color-mix(in srgb, #a78bfa 30%, transparent); }
+.chip-mcp    { background: color-mix(in srgb, #34d399 12%, transparent); color: #34d399; border: 1px solid color-mix(in srgb, #34d399 30%, transparent); }
+
 .bundle-install {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -502,11 +511,177 @@ footer {
 footer a { color: var(--accent); text-decoration: none; }
 footer a:hover { text-decoration: underline; }
 
+/* ── Plugin detail panel ── */
+#plugin-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+#plugin-panel.open { pointer-events: all; }
+
+#panel-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  transition: background 0.25s ease;
+}
+#plugin-panel.open #panel-overlay { background: rgba(0,0,0,0.55); }
+
+.panel-content {
+  position: relative;
+  width: min(520px, 95vw);
+  height: 100%;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+#plugin-panel.open .panel-content { transform: translateX(0); }
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.panel-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.panel-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+}
+.panel-name:hover { text-decoration: underline; }
+
+.panel-close-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.panel-close-btn:hover { background: var(--surface-hover); color: var(--text); }
+
+.panel-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.panel-prompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  flex-wrap: wrap;
+}
+.panel-prompt-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  padding-top: 2px;
+}
+.panel-prompt-text {
+  flex: 1;
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.45;
+  min-width: 0;
+}
+
+.panel-section { display: flex; flex-direction: column; gap: 10px; }
+.panel-section-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+.panel-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-radius: 10px;
+  font-size: 0.68rem;
+  padding: 1px 6px;
+  margin-left: 4px;
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+.panel-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel-copy-btn, #panel-install-copy {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.panel-copy-btn:hover, #panel-install-copy:hover { background: var(--surface-hover); color: var(--text); }
+
+.panel-bundle-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.panel-bundle-name { font-size: 0.85rem; font-weight: 600; }
+.panel-bundle-desc { font-size: 0.78rem; color: var(--text-muted); }
+
+.panel-install-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: auto;
+}
+.panel-install-row code { flex: 1; font-size: 0.82rem; color: var(--text); }
+
+.panel-empty { font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
   header, .quickstart, .controls, .marketplace-bar, main, footer { padding-left: 16px; padding-right: 16px; }
   .view-toggle { margin-left: 0; }
-  #skills-grid, #bundles-grid { grid-template-columns: 1fr; }
+  #plugins-grid, #skills-grid, #agents-grid, #mcp-grid, #bundles-grid { grid-template-columns: 1fr; }
   .step-cmd { flex-wrap: wrap; }
   #repo-input { width: 140px; }
 }
