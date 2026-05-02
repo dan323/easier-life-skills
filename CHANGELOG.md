@@ -1,8 +1,9 @@
 # Changelog
 
-## [1.4.0] - 2026-05-01
+## [1.4.0] - 2026-05-02
 
 ### Fixed
+- **`main`/`master` branch mismatch** — the GitHub Trees API requires the exact branch ref; repos that use `main` as their default branch (e.g. `anthropics/knowledge-work-plugins`) previously returned 404 for all tree lookups because the build always tried `master` first. Raw content fetches (`raw.githubusercontent.com`) silently redirect `master`→`main` so file reads worked, but tree-based skill discovery failed entirely. Fix: if the Trees API returns 404, retry with the alternate canonical name (`master`↔`main`). Skills for `knowledge-work-plugins` jumped from ~146 to ~300 after this fix.
 - **External plugin skill discovery** — `fetch-marketplace.ts` no longer uses the local repo's filesystem when resolving skills for external plugins (repos referenced via `source: url` or `source: git-subdir`); previously, paths like `skills/` would match the local directory instead of fetching from the remote repo
 - **SHA-pinned sources** — plugins with `sha`-pinned upstream refs (no `ref` branch) now correctly resolve to the pinned SHA instead of defaulting to `main`; affects `fastly-agent-toolkit`, `brightdata-plugin`, `searchfit-seo`, `ai-firstify`, `product-tracking-skills`, `box`, and similar externally-hosted plugins
 - **Per-repo root isolation** — `build-index.ts` now passes `null` as the local root for all non-local marketplaces, ensuring no cross-contamination between the local repo's file tree and remote repo content
