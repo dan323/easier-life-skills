@@ -247,8 +247,10 @@ async function parseSkill(
   repo: string,
 ): Promise<Skill | null> {
   const skillDir  = normalisePath(skillRelPath);
-  const skillName = skillDir.split('/').pop()!;
-  const skillPath = pluginRoot ? `${pluginRoot}/${skillDir}/SKILL.md` : `${skillDir}/SKILL.md`;
+  // When the skill is declared at the plugin root ("./"), fall back to the plugin name
+  const skillName = skillDir.split('/').pop()! || pluginEntry.name;
+  // Use filter(Boolean) to avoid double-slash or leading-slash when skillDir is empty
+  const skillPath = [...[pluginRoot, skillDir].filter(Boolean), 'SKILL.md'].join('/');
 
   const content = await readFile(skillPath, remoteBase, root);
   if (!content) return null;
