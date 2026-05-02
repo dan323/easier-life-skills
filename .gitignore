@@ -13,5 +13,8 @@ skills_index.json
 CATALOG.md
 assets/bundle.js
 
+# Build cache
+.cache/
+
 # Node
 node_modules/

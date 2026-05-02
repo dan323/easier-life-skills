@@ -24,9 +24,12 @@ function mcpRow(mcp: McpServer): string {
   return `| \`${mcp.name}\` | \`${src}\` | ${mcp.description} | \`${mcp.command || ''}\` | \`${mcp.installCommand}\` |`;
 }
 
-function bundleSection(bundle: Bundle): string[] {
-  const repo  = bundle.source?.repo || 'easier-life-skills';
-  const lines = bundle.skills.map(name => `/plugin install ${name}@${repo}`);
+function bundleSection(bundle: Bundle, allSkills: Skill[]): string[] {
+  const lines = bundle.skills.map(name => {
+    const skill = allSkills.find(s => s.name === name);
+    const repo  = skill?.source.repo ?? bundle.source?.repo ?? 'easier-life-skills';
+    return `/plugin install ${name}@${repo}`;
+  });
   return [
     `### ${bundle.name}`,
     ``,
@@ -89,7 +92,7 @@ export function generateCatalog(
 
   if (bundles.length > 0) {
     lines.push(`---`, ``, `## By Bundle`, ``);
-    bundles.forEach(b => lines.push(...bundleSection(b)));
+    bundles.forEach(b => lines.push(...bundleSection(b, skills)));
   }
 
   return lines.join('\n');

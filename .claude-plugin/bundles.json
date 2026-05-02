@@ -18,6 +18,24 @@
     "skills": ["find-dead-code", "improve-logging", "find-breaking-rest-api"]
   },
   {
+    "id": "analyst",
+    "name": "Analyst",
+    "description": "All read-only skills — safe to run on any repo, no file modifications",
+    "skills": ["brainstorm", "find-breaking-rest-api", "find-dead-code", "find-skills", "improve-logging"]
+  },
+  {
+    "id": "automation",
+    "name": "Automation",
+    "description": "Automated task execution and release tracking for CI pipelines",
+    "skills": ["task-agent", "changelog"]
+  },
+  {
+    "id": "document-writer",
+    "name": "Document Writer",
+    "description": "Create project docs and changelogs, plus read/write Word, PDF, PowerPoint, and Excel files",
+    "skills": ["document-project", "changelog", "docx", "pdf", "pptx", "xlsx"]
+  },
+  {
     "id": "full-stack",
     "name": "Full Stack",
     "description": "All skills — for solo developers and small teams",

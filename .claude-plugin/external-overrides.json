@@ -17,12 +17,12 @@
       "web-artifacts-builder": { "category": "development" },
       "webapp-testing":        { "category": "development" },
       "doc-coauthoring":       { "category": "productivity" },
-      "docx":                  { "category": "productivity" },
+      "docx":                  { "category": "documentation" },
       "internal-comms":        { "category": "productivity" },
-      "pdf":                   { "category": "productivity" },
+      "pdf":                   { "category": "documentation" },
       "pptx":                  { "category": "productivity" },
       "slack-gif-creator":     { "category": "productivity" },
-      "xlsx":                  { "category": "productivity" }
+      "xlsx":                  { "category": "documentation" }
     }
   },
   "anthropics/knowledge-work-plugins": {
@@ -49,7 +49,7 @@
       "searchfit-seo":            { "category": "productivity" },
       "product-tracking-skills":  { "category": "productivity" },
       "postiz":                   { "category": "productivity" },
-      "pdf-viewer":               { "category": "productivity" },
+      "pdf-viewer":               { "category": "documentation" },
       "finance":                  { "category": "finance" },
       "bigdata-com":              { "category": "finance" },
       "design":                   { "category": "design" },

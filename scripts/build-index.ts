@@ -74,7 +74,9 @@ const allAgents:     import('./lib/types.js').Agent[]     = [];
 const allMcpServers: import('./lib/types.js').McpServer[] = [];
 
 for (const { owner, repo } of marketplaces) {
-  const { plugins, skills, agents, mcpServers } = await fetchMarketplaceSkills(owner, repo, ROOT);
+  // Pass local root only for the local repo; external marketplaces must not touch local fs
+  const localRoot = (owner === LOCAL_OWNER && repo === LOCAL_REPO) ? ROOT : null;
+  const { plugins, skills, agents, mcpServers } = await fetchMarketplaceSkills(owner, repo, localRoot);
   allPlugins.push(...plugins);
   allSkills.push(...skills);
   allAgents.push(...agents);

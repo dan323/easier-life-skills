@@ -2,6 +2,8 @@
 
 # Plan: Transform easier-life-skills into an Interactive Marketplace
 
+> **Status: All phases complete.** See [CHANGELOG.md](../CHANGELOG.md) for what shipped. The sections below are preserved as the original design rationale.
+
 ## What We're Building
 
 Four independent layers on top of the existing repo:
@@ -13,9 +15,9 @@ Four independent layers on top of the existing repo:
 
 ---
 
-## Phase 1 — Data Foundation
+## Phase 1 — Data Foundation ✓
 
-**Files:** `scripts/build-index.js` → generates `skills_index.json` + `CATALOG.md`
+**Files:** `scripts/build-index.ts` → generates `skills_index.json` + `CATALOG.md`
 
 - Node.js script, zero dependencies (built-ins only)
 - Reads `.claude-plugin/marketplace.json` + each `plugins/<name>/skills/<name>/SKILL.md` frontmatter
@@ -26,7 +28,7 @@ Each skill entry in the index includes: `name`, `version`, `description`, `categ
 
 ---
 
-## Phase 2 — Role-Based Bundles
+## Phase 2 — Role-Based Bundles ✓
 
 Four bundles for the current 8 skills:
 
@@ -39,9 +41,9 @@ Four bundles for the current 8 skills:
 
 ---
 
-## Phase 3 — GitHub Pages Website
+## Phase 3 — GitHub Pages Website ✓
 
-**Tech stack:** Vanilla HTML + CSS + JS — single `index.html`, no build step, no framework. Fetches `skills_index.json` at runtime via `fetch()`.
+**Tech stack:** Vanilla HTML + CSS + TypeScript — single `index.html`, esbuild bundles `assets/src/app.ts` to `assets/bundle.js`. Fetches `skills_index.json` at runtime via `fetch()`.
 
 **Features:**
 - Skill cards with category badge, description, readOnly tag, copy-to-clipboard install command
@@ -51,7 +53,7 @@ Four bundles for the current 8 skills:
 
 ---
 
-## Phase 4 — `npx` Installer CLI
+## Phase 4 — `npx` Installer CLI ✓
 
 **Package:** `@dan323/easier-life-skills` published on npm  
 **Location:** `installer/` directory in the repo
@@ -77,7 +79,7 @@ Fetches `skills_index.json` from raw GitHub, copies SKILL.md files into `~/.clau
 
 ---
 
-## Phase 5 — GitHub Actions
+## Phase 5 — GitHub Actions ✓
 
 **File:** `.github/workflows/pages.yml`
 

@@ -29,6 +29,13 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Restore tree cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/trees
+          key: gh-trees-${{ hashFiles('marketplaces.json') }}
+          restore-keys: gh-trees-
+
       - name: Install dependencies
         run: npm ci
 

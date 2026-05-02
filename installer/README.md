@@ -25,12 +25,12 @@ npx @dan323/easier-life-skills --skill changelog --yes
 
 ## Bundles
 
-| Bundle | Skills |
-|---|---|
-| `backend-developer` | find-breaking-rest-api, find-dead-code, improve-logging, changelog |
-| `open-source-maintainer` | changelog, document-project, brainstorm, find-skills |
-| `code-quality` | find-dead-code, improve-logging, find-breaking-rest-api |
-| `full-stack` | all skills |
+| Bundle                   | Skills                                                             |
+|--------------------------|--------------------------------------------------------------------|
+| `backend-developer`      | find-breaking-rest-api, find-dead-code, improve-logging, changelog |
+| `open-source-maintainer` | changelog, document-project, brainstorm, find-skills               |
+| `code-quality`           | find-dead-code, improve-logging, find-breaking-rest-api            |
+| `full-stack`             | all skills                                                         |
 
 ## Requirements
 

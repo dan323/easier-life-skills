@@ -36,18 +36,20 @@ The installer lives in `installer/` and requires Node.js ≥ 18.
   CLAUDE.md                 ← This file
 .claude-plugin/
   marketplace.json          ← Generated from plugins/ scan — committed; do not edit by hand
+  external-overrides.json   ← Category overrides for external plugins/skills
 .github/
   workflows/
     pages.yml               ← GitHub Pages deployment workflow
 assets/
-  app.js                    ← Marketplace web UI JavaScript
+  src/                      ← TypeScript source for the web UI
+    app.ts                  ← Entry point (compiled to bundle.js by esbuild)
+    types.ts, state.ts, api.ts, components.ts, marketplace.ts, render.ts, panel.ts
+  bundle.js                 ← Compiled output — gitignored, built by npm run build
   style.css                 ← Marketplace web UI styling
 docs/
   architecture.md           ← System design documentation
   contributing.md           ← Guide for adding new plugins
-  final-plan-architecture.md
   getting-started.md
-  plan.md
 installer/
   bin/install.js            ← NPM installer script
   package.json              ← @dan323/easier-life-skills NPM package
@@ -70,12 +72,19 @@ plugins/
       evals.json            ← Alternative evals location (document-project uses this)
     run.sh                  ← Optional: non-interactive entry point (task-agent only)
 scripts/
-  build-index.js            ← Generates skills_index.json, CATALOG.md, and marketplace.json
+  build-index.ts            ← Generates skills_index.json, CATALOG.md, and marketplace.json
+  lib/
+    fetch-marketplace.ts    ← Fetches/discovers skills, agents, MCP servers from one repo
+    catalog.ts              ← Generates CATALOG.md content
+    frontmatter.ts          ← YAML frontmatter parser
+    types.ts                ← Shared TypeScript types
+tsconfig.json               ← TypeScript config for scripts/ (NodeNext)
+tsconfig.web.json           ← TypeScript config for assets/src/ (bundler + DOM)
 CATALOG.md                  ← Human-readable catalog with suggested bundles
 CHANGELOG.md                ← Version history (Keep a Changelog format)
 README.md                   ← Project overview and quick-start
 index.html                  ← Static web UI for browsing the marketplace
-skills_index.json           ← Generated index; rebuild with: node scripts/build-index.js
+skills_index.json           ← Generated index; rebuild with: npm run build
 ```
 
 > **Evals location note:** Most plugins place `evals.json` at
@@ -132,7 +141,7 @@ Include at least 3–5 evals per plugin. Cover the happy path, idempotent re-run
 - Skills are **framework-aware** — e.g., `find-dead-code` knows not to flag Spring `@Bean` methods or DI-injected classes as dead.
 - Skills support **monorepos** — detect multi-package layouts and apply per-package logic when appropriate.
 - **Deduplication** is required — skills that append to existing files must check for existing entries before writing.
-- Read-only skills (e.g., `find-dead-code`, `find-breaking-rest-api`, `improve-logging`, `find-skills`) must never write or modify files in the target project.
+- Read-only skills (e.g., `find-dead-code`, `find-breaking-rest-api`, `improve-logging`, `find-skills`) must never write or modify files in the target project. A skill is auto-tagged `readOnly` by the build pipeline when its `tools` list contains no `Write`, `Edit`, or `NotebookEdit` — no explicit marker needed.
 
 ## Current Plugins
 
@@ -153,7 +162,7 @@ Include at least 3–5 evals per plugin. Cover the happy path, idempotent re-run
 2. Write `plugins/<skill-name>/skills/<skill-name>/SKILL.md` following the phase-based format of existing skills.
 3. Add `plugins/<skill-name>/.claude-plugin/plugin.json` with name, version, description, category, and skills[].
 4. Add `plugins/<skill-name>/skills/<skill-name>/evals/evals.json` with at least 3–5 test scenarios.
-5. Run `node scripts/build-index.js` — this automatically adds the plugin to `.claude-plugin/marketplace.json`.
+5. Run `npm run build` — this automatically adds the plugin to `.claude-plugin/marketplace.json`.
 7. Optionally add sub-agents to `plugins/<skill-name>/agents/<agent-name>.md` — each must have valid YAML frontmatter (`name`, `description`, `tools`). Skills spawn them via the Agent tool using `subagent_type`.
 8. Optionally add reference docs to `plugins/<skill-name>/references/<topic>.md` — keep these minimal: only non-obvious, trap-prone facts the agent would otherwise get wrong. Do not document things any LLM already knows.
 9. Optionally add `plugins/<skill-name>/examples/` with sample input/output files.
@@ -184,7 +193,7 @@ plugins/task-agent/
 
 ## Web UI and GitHub Pages
 
-`index.html` + `assets/` provide a static marketplace browser deployed via GitHub Pages (`.github/workflows/pages.yml`). The page reads `skills_index.json` at runtime. The build also generates `.claude-plugin/marketplace.json` — a combined catalog with absolute source references for all repos in `marketplaces.json`. Always run `node scripts/build-index.js` after adding or modifying a plugin.
+`index.html` + `assets/` provide a static marketplace browser deployed via GitHub Pages (`.github/workflows/pages.yml`). The page loads `assets/bundle.js` (compiled from `assets/src/app.ts` by esbuild) and reads `skills_index.json` at runtime. The build also generates `.claude-plugin/marketplace.json` — a combined catalog with absolute source references for all repos in `marketplaces.json`. Always run `npm run build` after adding or modifying a plugin. Run `npm run typecheck` to type-check both the scripts and the web app.
 
 ## Doc Rules
 

@@ -4,11 +4,12 @@
 
 ## Setup
 
-No build step required. Clone the repo and install the marketplace to test locally:
+Clone the repo, install dependencies, and install the marketplace to test locally:
 
 ```bash
 git clone https://github.com/dan323/easier-life-skills.git
 cd easier-life-skills
+npm install
 ```
 
 Then in Claude Code: `/plugin marketplace add ./`
@@ -102,7 +103,9 @@ Open a Claude Code session in a suitable test directory and run your trigger phr
 
 ### 5. Add category and rebuild
 
-Add a `"category"` field to `plugins/<your-skill-name>/.claude-plugin/plugin.json` (one of `productivity`, `documentation`, `code-quality`, `automation`), then run `node scripts/build-index.js` to regenerate the derived files. The script will automatically add your plugin to `.claude-plugin/marketplace.json`.
+Add a `"category"` field to `plugins/<your-skill-name>/.claude-plugin/plugin.json` (one of `productivity`, `documentation`, `code-quality`, `automation`), then run `npm run build` to regenerate the derived files. The script will automatically add your plugin to `.claude-plugin/marketplace.json`.
+
+If your skill only reads files (no `Write`, `Edit`, or `NotebookEdit` in its `tools` list), it will automatically be tagged as read-only in the index — no extra marker needed.
 
 Submit a pull request:
 - One skill per PR

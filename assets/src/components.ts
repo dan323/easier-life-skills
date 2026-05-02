@@ -202,13 +202,12 @@ export function bundleCard(bundle: Bundle): HTMLElement {
   const card = document.createElement('div');
   card.className = 'bundle-card';
 
-  const repoName     = bundle._repo?.split('/')[1] ?? bundle._repo ?? '';
   const bundleSkills = bundle.skills
-    .map(name => state.skills.find(s => s.name === name && s._repo === bundle._repo))
+    .map(name => state.skills.find(s => s.name === name))
     .filter((s): s is Skill => s !== undefined);
 
-  const installBlock = bundle.skills
-    .map(name => `/plugin install ${name}@${repoName}`)
+  const installBlock = bundleSkills
+    .map(s => `/plugin install ${s.name}@${s.source.repo}`)
     .join('\n');
 
   card.innerHTML = `

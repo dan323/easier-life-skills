@@ -1,9 +1,13 @@
 /* lib/fetch-marketplace.ts — fetches skills, agents, and mcpServers from one GitHub marketplace repo */
 
-import { readFileSync, existsSync, readdirSync } from 'fs';
-import { join }                                  from 'path';
-import { parseFrontmatter }                      from './frontmatter.js';
+import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 'fs';
+import { join, dirname }                                                    from 'path';
+import { fileURLToPath }                                                    from 'url';
+import { parseFrontmatter }                                                 from './frontmatter.js';
 import type { Skill, Agent, McpServer, Plugin, Bundle, MarketplaceResult } from './types.js';
+
+const __dirname  = dirname(fileURLToPath(import.meta.url));
+const CACHE_DIR  = join(__dirname, '../../.cache/trees');
 
 const RAW_BASE = 'https://raw.githubusercontent.com';
 
@@ -17,9 +21,9 @@ async function fetchJson<T>(url: string): Promise<T> {
   return JSON.parse(await fetchText(url)) as T;
 }
 
-/** Read a file preferring local copy, falling back to remote URL. */
-async function readFile(relativePath: string, remoteBaseUrl: string, root: string): Promise<string | null> {
-  if (relativePath) {
+/** Read a file preferring local copy (when root is set), falling back to remote URL. */
+async function readFile(relativePath: string, remoteBaseUrl: string, root: string | null): Promise<string | null> {
+  if (root && relativePath) {
     const localPath = join(root, relativePath);
     if (existsSync(localPath)) return readFileSync(localPath, 'utf8');
   }
@@ -40,12 +44,40 @@ function ghHeaders(): Record<string, string> {
   return h;
 }
 
+function cacheKey(owner: string, repo: string, ref: string): string {
+  return `${owner}__${repo}__${ref}.json`.replace(/[^a-zA-Z0-9._-]/g, '_');
+}
+
+function readTreeCache(owner: string, repo: string, ref: string): Map<string, string> | null {
+  const path = join(CACHE_DIR, cacheKey(owner, repo, ref));
+  if (!existsSync(path)) return null;
+  try {
+    const entries = JSON.parse(readFileSync(path, 'utf8')) as Array<[string, string]>;
+    return new Map(entries);
+  } catch {
+    return null;
+  }
+}
+
+function writeTreeCache(owner: string, repo: string, ref: string, map: Map<string, string>): void {
+  try {
+    mkdirSync(CACHE_DIR, { recursive: true });
+    writeFileSync(join(CACHE_DIR, cacheKey(owner, repo, ref)), JSON.stringify([...map.entries()]));
+  } catch { /* non-fatal */ }
+}
+
 async function getTree(remoteBase: string): Promise<Map<string, string> | null> {
   if (treeCache.has(remoteBase)) return treeCache.get(remoteBase)!;
 
   const m = remoteBase.match(/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)/);
   if (!m) { treeCache.set(remoteBase, null); return null; }
   const [, ghOwner, ghRepo, ghBranch] = m as [string, string, string, string];
+
+  const cached = readTreeCache(ghOwner, ghRepo, ghBranch);
+  if (cached) {
+    treeCache.set(remoteBase, cached);
+    return cached;
+  }
 
   try {
     const res = await fetch(
@@ -64,6 +96,7 @@ async function getTree(remoteBase: string): Promise<Map<string, string> | null> 
     const map = new Map<string, string>();
     for (const entry of data.tree) map.set(entry.path, entry.type);
     treeCache.set(remoteBase, map);
+    writeTreeCache(ghOwner, ghRepo, ghBranch, map);
     return map;
   } catch {
     treeCache.set(remoteBase, null);
@@ -73,8 +106,8 @@ async function getTree(remoteBase: string): Promise<Map<string, string> | null> 
 
 interface DirEntry { name: string; isDir: boolean }
 
-async function listDir(dirPath: string, remoteBase: string, root: string): Promise<DirEntry[]> {
-  if (dirPath) {
+async function listDir(dirPath: string, remoteBase: string, root: string | null): Promise<DirEntry[]> {
+  if (root && dirPath) {
     const localPath = join(root, dirPath);
     if (existsSync(localPath)) {
       return readdirSync(localPath, { withFileTypes: true })
@@ -128,7 +161,7 @@ interface ResolvedSource {
 
 type PluginSourceDecl =
   | string
-  | { source: 'url'; url: string; ref?: string }
+  | { source: 'url'; url: string; ref?: string; sha?: string }
   | { source: 'git-subdir'; url: string; path?: string; ref?: string; sha?: string }
   | null
   | undefined;
@@ -178,14 +211,14 @@ function resolveSource(
 
   if (source && source.source === 'url') {
     const url = source.url.replace(/\.git$/, '');
-    const extBranch = source.ref || 'main';
+    const extBranch = source.sha || source.ref || 'main';
     const base = parseGitHubBase(url, extBranch);
     return { pluginRoot: '', remoteBase: base ?? url, external: true };
   }
 
   if (source && source.source === 'git-subdir') {
     const url = source.url.replace(/\.git$/, '');
-    const extBranch = source.ref || 'main';
+    const extBranch = source.sha || source.ref || 'main';
     const subPath = normalisePath(source.path);
     const base = parseGitHubBase(url, extBranch);
     return { pluginRoot: subPath, remoteBase: base ?? url, external: true };
@@ -198,7 +231,7 @@ async function parseSkill(
   skillRelPath: string,
   pluginRoot: string,
   remoteBase: string,
-  root: string,
+  root: string | null,
   pluginEntry: PluginEntry,
   owner: string,
   repo: string,
@@ -235,7 +268,7 @@ async function parseAgent(
   agentRelPath: string,
   pluginRoot: string,
   remoteBase: string,
-  root: string,
+  root: string | null,
   pluginEntry: PluginEntry,
   owner: string,
   repo: string,
@@ -285,7 +318,7 @@ async function discoverSkills(
   decl: string[] | string | null | undefined,
   pluginRoot: string,
   remoteBase: string,
-  root: string,
+  root: string | null,
   pluginEntry: PluginEntry,
   owner: string,
   repo: string,
@@ -315,7 +348,7 @@ async function discoverAgents(
   decl: string[] | string | null | undefined,
   pluginRoot: string,
   remoteBase: string,
-  root: string,
+  root: string | null,
   pluginEntry: PluginEntry,
   owner: string,
   repo: string,
@@ -345,7 +378,7 @@ async function discoverMcpServers(
   decl: Record<string, McpConfig> | McpConfig[] | string | null | undefined,
   pluginRoot: string,
   remoteBase: string,
-  root: string,
+  root: string | null,
   pluginEntry: PluginEntry,
   owner: string,
   repo: string,
@@ -393,7 +426,7 @@ interface MarketplaceJson {
   bundles?: Bundle[];
 }
 
-export async function fetchMarketplaceSkills(owner: string, repo: string, root: string): Promise<MarketplaceResult> {
+export async function fetchMarketplaceSkills(owner: string, repo: string, root: string | null): Promise<MarketplaceResult> {
   const branch  = 'master';
   const baseUrl = `${RAW_BASE}/${owner}/${repo}/${branch}`;
 
@@ -413,15 +446,17 @@ export async function fetchMarketplaceSkills(owner: string, repo: string, root: 
   const plugins:    Plugin[]    = [];
 
   for (const pluginEntry of marketplaceJson.plugins ?? []) {
-    const { pluginRoot, remoteBase } = resolveSource(
+    const { pluginRoot, remoteBase, external } = resolveSource(
       pluginEntry.source, pluginEntry, owner, repo, branch
     );
+    // For external repos, don't use local filesystem (it's the wrong repo)
+    const effectiveRoot = external ? null : root;
 
     const pluginJsonPath = [pluginRoot, '.claude-plugin/plugin.json'].filter(Boolean).join('/');
 
     let pluginJson: PluginJson | null = null;
     try {
-      const text = await readFile(pluginJsonPath, remoteBase, root);
+      const text = await readFile(pluginJsonPath, remoteBase, effectiveRoot);
       if (text) pluginJson = JSON.parse(text) as PluginJson;
     } catch {
       console.warn(`  [warn] Could not parse plugin.json at ${pluginJsonPath}`);
@@ -431,9 +466,9 @@ export async function fetchMarketplaceSkills(owner: string, repo: string, root: 
     const agentsDecl = pluginJson?.agents  ?? pluginEntry.agents  ?? null;
     const mcpsDecl   = pluginJson?.mcpServers ?? pluginEntry.mcpServers ?? null;
 
-    const foundSkills     = await discoverSkills(skillsDecl, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
-    const foundAgents     = await discoverAgents(agentsDecl, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
-    const foundMcpServers = await discoverMcpServers(mcpsDecl, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
+    const foundSkills     = await discoverSkills(skillsDecl, pluginRoot, remoteBase, effectiveRoot, pluginEntry, owner, repo);
+    const foundAgents     = await discoverAgents(agentsDecl, pluginRoot, remoteBase, effectiveRoot, pluginEntry, owner, repo);
+    const foundMcpServers = await discoverMcpServers(mcpsDecl, pluginRoot, remoteBase, effectiveRoot, pluginEntry, owner, repo);
 
     skills.push(...foundSkills);
     agents.push(...foundAgents);
