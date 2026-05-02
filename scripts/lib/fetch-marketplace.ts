@@ -79,29 +79,39 @@ async function getTree(remoteBase: string): Promise<Map<string, string> | null> 
     return cached;
   }
 
-  try {
-    const res = await fetch(
-      `https://api.github.com/repos/${ghOwner}/${ghRepo}/git/trees/${ghBranch}?recursive=1`,
-      { headers: ghHeaders() }
-    );
-    if (!res.ok) {
-      if (res.status === 403 || res.status === 429) {
-        console.warn(`  [warn] GitHub API rate limit hit fetching tree for ${ghOwner}/${ghRepo} — set GITHUB_TOKEN for higher limits`);
-      }
-      treeCache.set(remoteBase, null); return null;
-    }
-    const data = await res.json() as { tree?: Array<{ path: string; type: string }> };
-    if (!data.tree) { treeCache.set(remoteBase, null); return null; }
+  // raw.githubusercontent.com silently redirects master→main (and vice-versa), but
+  // the Trees API requires the exact ref — so fall back to the alternate name on 404.
+  const refsToTry = [ghBranch, ghBranch === 'master' ? 'main' : 'master'];
 
-    const map = new Map<string, string>();
-    for (const entry of data.tree) map.set(entry.path, entry.type);
-    treeCache.set(remoteBase, map);
-    writeTreeCache(ghOwner, ghRepo, ghBranch, map);
-    return map;
-  } catch {
-    treeCache.set(remoteBase, null);
-    return null;
+  for (const ref of refsToTry) {
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${ghOwner}/${ghRepo}/git/trees/${ref}?recursive=1`,
+        { headers: ghHeaders() }
+      );
+      if (!res.ok) {
+        if (res.status === 403 || res.status === 429) {
+          console.warn(`  [warn] GitHub API rate limit hit fetching tree for ${ghOwner}/${ghRepo} — set GITHUB_TOKEN for higher limits`);
+          treeCache.set(remoteBase, null); return null;
+        }
+        if (res.status === 404) continue; // try alternate branch name
+        treeCache.set(remoteBase, null); return null;
+      }
+      const data = await res.json() as { tree?: Array<{ path: string; type: string }> };
+      if (!data.tree) { treeCache.set(remoteBase, null); return null; }
+
+      const map = new Map<string, string>();
+      for (const entry of data.tree) map.set(entry.path, entry.type);
+      treeCache.set(remoteBase, map);
+      writeTreeCache(ghOwner, ghRepo, ref, map);
+      return map;
+    } catch {
+      // network error on this ref — try the next one
+    }
   }
+
+  treeCache.set(remoteBase, null);
+  return null;
 }
 
 interface DirEntry { name: string; isDir: boolean }
