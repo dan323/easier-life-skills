@@ -7,6 +7,7 @@ description: >
   "are there any skills for this?", or "recommend skills". Optionally searches online
   if the user explicitly includes "online" or "search the web" in their request.
 tools: Bash, Read, Glob, Grep, WebSearch, WebFetch
+model: sonnet
 ---
 
 # Find Skills

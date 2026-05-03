@@ -17,7 +17,7 @@ overlay.addEventListener('click',  closePanel);
 closeBtn.addEventListener('click', closePanel);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
 
-export function openPluginPanel(plugin: Plugin): void {
+function openPluginPanel(plugin: Plugin): void {
   const nameEl = document.getElementById('panel-name') as HTMLAnchorElement;
   nameEl.textContent = plugin.name;
   nameEl.href        = plugin.homepage ?? '#';

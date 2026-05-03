@@ -245,55 +245,14 @@ header {
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-muted);
-}
-
-.source-tag.builtin { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
-
-.source-tag .remove-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.8rem;
-  line-height: 1;
-  padding: 0 0 0 2px;
-  display: flex;
-  align-items: center;
+  transition: all 0.15s;
 }
-.source-tag .remove-btn:hover { color: #f85149; }
+.source-tag:hover { border-color: var(--text-muted); color: var(--text); }
+.source-tag.builtin { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.source-tag.active  { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 
 .source-error { border-color: #f85149 !important; color: #f85149 !important; }
-
-.marketplace-add {
-  display: flex;
-  gap: 6px;
-}
-
-#repo-input {
-  padding: 5px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  font-size: 0.8rem;
-  width: 200px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-#repo-input:focus { border-color: var(--accent); }
-#repo-input::placeholder { color: var(--text-muted); }
-
-#repo-add-btn {
-  padding: 5px 14px;
-  border-radius: 6px;
-  border: 1px solid var(--accent);
-  background: var(--accent-dim);
-  color: var(--accent);
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-#repo-add-btn:hover { background: #264d7a; }
 
 /* ── Main ── */
 main { padding: 20px 32px 80px; }
@@ -706,7 +665,6 @@ footer a:hover { text-decoration: underline; }
 }
 .panel-install-row code { flex: 1; font-size: 0.82rem; color: var(--text); }
 
-.panel-empty { font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
 
 /* ── Responsive ── */
 @media (max-width: 640px) {
@@ -714,5 +672,4 @@ footer a:hover { text-decoration: underline; }
   .view-toggle { margin-left: 0; }
   #plugins-grid, #skills-grid, #agents-grid, #mcp-grid, #commands-grid, #bundles-grid { grid-template-columns: 1fr; }
   .step-cmd { flex-wrap: wrap; }
-  #repo-input { width: 140px; }
 }

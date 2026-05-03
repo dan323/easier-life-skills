@@ -10,6 +10,7 @@ description: >
   TRIGGER this skill whenever the user mentions REST APIs, endpoints, routes, or API versioning
   alongside words like "breaking", "changed", "removed", "compatible", or "diff".
 tools: Bash, Read, Glob, Grep
+model: sonnet
 metadata:
   version: 3.0
 ---

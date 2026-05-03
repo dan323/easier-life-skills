@@ -2,6 +2,7 @@
 name: improve-logging
 description: Audit and improve logging quality across a codebase. Use when the user asks to "improve logging", "fix log levels", "add logging", "review our logs", "make logging consistent", "we have bad logging", or anything about log messages being unclear, missing, or at the wrong severity. Produces a prioritized list of recommendations — does not edit files directly.
 tools: Bash, Read, Glob, Grep
+model: haiku
 metadata:
   version: 1.0
 ---

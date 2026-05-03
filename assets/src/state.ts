@@ -9,6 +9,7 @@ export interface AppState {
   bundles:          Bundle[];
   query:            string;
   activeCategories: Set<string>;
+  activeRepos:      Set<string>;
   view:             string;
 }
 
@@ -21,5 +22,6 @@ export const state: AppState = {
   bundles:          [],
   query:            '',
   activeCategories: new Set(),
+  activeRepos:      new Set(),
   view:             'plugins',
 };

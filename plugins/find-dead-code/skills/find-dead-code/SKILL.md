@@ -2,6 +2,7 @@
 name: find-dead-code
 description: Find unused code — functions, classes, variables, imports, constants, types, and more. Use when the user asks to "find dead code", "find unused code", "clean up unused imports", "find unreachable code", or "find what can be deleted". Accounts for dependency injection frameworks (Spring, CDI, NestJS, Angular, etc.) to avoid false positives.
 tools: Bash, Read, Glob, Grep
+model: haiku
 metadata:
    version: 1.0
 ---

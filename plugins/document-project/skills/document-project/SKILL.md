@@ -2,6 +2,7 @@
 name: document-project
 description: Create or improve project documentation. Use when the user asks to "document the project", "create docs", "improve documentation", "write a README", "add a getting started guide", or mentions that documentation is missing or outdated. Produces a minimal root README.md and a /docs directory with linked pages. All diagrams use ASCII or Mermaid.
 tools: Bash, Read, Write, Edit, Glob, Grep
+model: sonnet
 metadata:
   version: 1.0
 ---

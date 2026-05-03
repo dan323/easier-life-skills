@@ -23,10 +23,11 @@ export function render(): void {
   else                                  renderBundles();
 }
 
-export function renderPlugins(): void {
+function renderPlugins(): void {
   const multiRepo = new Set(state.plugins.map(p => p._repo)).size > 1;
 
   const filtered = state.plugins.filter(plugin => {
+    if (state.activeRepos.size      && !state.activeRepos.has(plugin._repo ?? ''))      return false;
     if (state.activeCategories.size && !state.activeCategories.has(plugin.category ?? '')) return false;
     if (!state.query) return true;
     return plugin.name.includes(state.query) || plugin.description.toLowerCase().includes(state.query);
@@ -43,10 +44,11 @@ export function renderPlugins(): void {
   filtered.forEach(plugin => pluginsGrid.appendChild(pluginCard(plugin, multiRepo)));
 }
 
-export function renderSkills(): void {
+function renderSkills(): void {
   const multiRepo = new Set(state.skills.map(s => s._repo)).size > 1;
 
   const filtered = state.skills.filter(skill => {
+    if (state.activeRepos.size      && !state.activeRepos.has(skill._repo ?? ''))           return false;
     if (state.activeCategories.size && !state.activeCategories.has(skill.category ?? '')) return false;
     if (!state.query) return true;
     return (
@@ -67,10 +69,11 @@ export function renderSkills(): void {
   filtered.forEach(skill => skillsGrid.appendChild(skillCard(skill, multiRepo)));
 }
 
-export function renderAgents(): void {
+function renderAgents(): void {
   const multiRepo = new Set(state.agents.map(a => a._repo)).size > 1;
 
   const filtered = state.agents.filter(agent => {
+    if (state.activeRepos.size && !state.activeRepos.has(agent._repo ?? '')) return false;
     if (!state.query) return true;
     return agent.name.includes(state.query) || agent.description.toLowerCase().includes(state.query);
   });
@@ -86,10 +89,11 @@ export function renderAgents(): void {
   filtered.forEach(agent => agentsGrid.appendChild(agentCard(agent, multiRepo)));
 }
 
-export function renderMcpServers(): void {
+function renderMcpServers(): void {
   const multiRepo = new Set(state.mcpServers.map(m => m._repo)).size > 1;
 
   const filtered = state.mcpServers.filter(mcp => {
+    if (state.activeRepos.size && !state.activeRepos.has(mcp._repo ?? '')) return false;
     if (!state.query) return true;
     return mcp.name.includes(state.query) || mcp.description.toLowerCase().includes(state.query);
   });
@@ -105,10 +109,11 @@ export function renderMcpServers(): void {
   filtered.forEach(mcp => mcpGrid.appendChild(mcpCard(mcp, multiRepo)));
 }
 
-export function renderCommands(): void {
+function renderCommands(): void {
   const multiRepo = new Set(state.commands.map(c => c._repo)).size > 1;
 
   const filtered = state.commands.filter(cmd => {
+    if (state.activeRepos.size && !state.activeRepos.has(cmd._repo ?? '')) return false;
     if (!state.query) return true;
     return cmd.name.includes(state.query) || cmd.description.toLowerCase().includes(state.query);
   });
@@ -124,7 +129,7 @@ export function renderCommands(): void {
   filtered.forEach(cmd => commandsGrid.appendChild(commandCard(cmd, multiRepo)));
 }
 
-export function renderBundles(): void {
+function renderBundles(): void {
   countEl.textContent = `${state.bundles.length} bundles`;
   bundlesGrid.innerHTML = '';
   state.bundles.forEach(bundle => bundlesGrid.appendChild(bundleCard(bundle)));

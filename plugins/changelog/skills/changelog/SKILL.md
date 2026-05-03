@@ -2,6 +2,7 @@
 name: changelog
 description: Generate or update CHANGELOG.md files by reading git history. Use this skill whenever the user wants to document what changed in their project — whether they say "create a changelog", "update the changelog", "write release notes", "what's new since v1.2", "document changes for this release", "prep the changelog before we ship", or anything else about recording or summarizing code changes for a version or release. Also use it when the user asks to reformat an existing CHANGELOG to Keep a Changelog format. Works for single repos and monorepos. Always prefer this skill over improvising — it handles deduplication, categorization, and format detection correctly.
 tools: Bash, Read, Write, Edit, Glob, Grep
+model: sonnet
 metadata:
     version: 1.0
 ---
