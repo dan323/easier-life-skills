@@ -1,6 +1,11 @@
-import { state }                                                                    from './state.ts';
-import { copyText, titleCase, setPluginPanelOpener, skillCard, agentCard, mcpCard } from './components.ts';
-import type { Plugin, Skill, Agent, McpServer }                                     from './types.ts';
+import { state }                           from './state.ts';
+import { copyText, titleCase }             from './utils.ts';
+import { setPluginPanelOpener }            from './card-plugin.ts';
+import { skillCard }                       from './card-skill.ts';
+import { agentCard }                       from './card-agent.ts';
+import { mcpCard }                         from './card-mcp.ts';
+import { commandCard }                     from './card-command.ts';
+import type { Plugin, Skill, Agent, McpServer, Command } from './types.ts';
 
 setPluginPanelOpener(openPluginPanel);
 
@@ -58,6 +63,14 @@ export function openPluginPanel(plugin: Plugin): void {
       .map(n => state.mcpServers.find(m => m.name === n && m._repo === plugin._repo))
       .filter((m): m is McpServer => m !== undefined),
     item => mcpCard(item, false),
+  );
+
+  renderCardSection<Command>(
+    'panel-commands-section', 'panel-commands-list', 'panel-commands-count',
+    (plugin.commands ?? [])
+      .map(n => state.commands.find(c => c.name === n && c._repo === plugin._repo))
+      .filter((c): c is Command => c !== undefined),
+    item => commandCard(item, false),
   );
 
   const bundles        = state.bundles.filter(b => plugin.skills.some(s => b.skills.includes(s)));

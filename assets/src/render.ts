@@ -1,19 +1,25 @@
-import { state }                                                                    from './state.ts';
-import { pluginCard, skillCard, agentCard, mcpCard, bundleCard, titleCase }         from './components.ts';
+import { state }        from './state.ts';
+import { pluginCard }   from './card-plugin.ts';
+import { skillCard }    from './card-skill.ts';
+import { agentCard }    from './card-agent.ts';
+import { mcpCard }      from './card-mcp.ts';
+import { commandCard }  from './card-command.ts';
+import { bundleCard }   from './card-bundle.ts';
 
-const pluginsGrid = document.getElementById('plugins-grid') as HTMLElement;
-const skillsGrid  = document.getElementById('skills-grid')  as HTMLElement;
-const agentsGrid  = document.getElementById('agents-grid')  as HTMLElement;
-const mcpGrid     = document.getElementById('mcp-grid')     as HTMLElement;
-const bundlesGrid = document.getElementById('bundles-grid') as HTMLElement;
-const filtersEl   = document.getElementById('filters')      as HTMLElement;
-const countEl     = document.getElementById('count')        as HTMLElement;
+const pluginsGrid  = document.getElementById('plugins-grid')  as HTMLElement;
+const skillsGrid   = document.getElementById('skills-grid')   as HTMLElement;
+const agentsGrid   = document.getElementById('agents-grid')   as HTMLElement;
+const mcpGrid      = document.getElementById('mcp-grid')      as HTMLElement;
+const commandsGrid = document.getElementById('commands-grid') as HTMLElement;
+const bundlesGrid  = document.getElementById('bundles-grid')  as HTMLElement;
+const countEl      = document.getElementById('count')         as HTMLElement;
 
 export function render(): void {
   if      (state.view === 'plugins')    renderPlugins();
   else if (state.view === 'skills')     renderSkills();
   else if (state.view === 'agents')     renderAgents();
   else if (state.view === 'mcpServers') renderMcpServers();
+  else if (state.view === 'commands')   renderCommands();
   else                                  renderBundles();
 }
 
@@ -99,32 +105,28 @@ export function renderMcpServers(): void {
   filtered.forEach(mcp => mcpGrid.appendChild(mcpCard(mcp, multiRepo)));
 }
 
+export function renderCommands(): void {
+  const multiRepo = new Set(state.commands.map(c => c._repo)).size > 1;
+
+  const filtered = state.commands.filter(cmd => {
+    if (!state.query) return true;
+    return cmd.name.includes(state.query) || cmd.description.toLowerCase().includes(state.query);
+  });
+
+  countEl.textContent = `${filtered.length} of ${state.commands.length} commands`;
+
+  if (!filtered.length) {
+    commandsGrid.innerHTML = '<div class="empty"><p>⌨️</p><p>No commands found</p></div>';
+    return;
+  }
+
+  commandsGrid.innerHTML = '';
+  filtered.forEach(cmd => commandsGrid.appendChild(commandCard(cmd, multiRepo)));
+}
+
 export function renderBundles(): void {
   countEl.textContent = `${state.bundles.length} bundles`;
   bundlesGrid.innerHTML = '';
   state.bundles.forEach(bundle => bundlesGrid.appendChild(bundleCard(bundle)));
 }
 
-export function rebuildFilters(): void {
-  filtersEl.innerHTML = '';
-
-  const source     = state.view === 'skills' ? state.skills : state.plugins;
-  const categories = [...new Set(source.map(s => s.category).filter((c): c is string => c !== null && c !== undefined))].sort();
-
-  for (const cat of state.activeCategories) {
-    if (!categories.includes(cat)) state.activeCategories.delete(cat);
-  }
-
-  categories.forEach(cat => {
-    const btn = document.createElement('button');
-    btn.className = 'filter-btn' + (state.activeCategories.has(cat) ? ' active' : '');
-    btn.textContent = titleCase(cat);
-    btn.addEventListener('click', () => {
-      if (state.activeCategories.has(cat)) state.activeCategories.delete(cat);
-      else state.activeCategories.add(cat);
-      btn.classList.toggle('active', state.activeCategories.has(cat));
-      render();
-    });
-    filtersEl.appendChild(btn);
-  });
-}

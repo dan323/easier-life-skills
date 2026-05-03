@@ -12,6 +12,7 @@ export interface Plugin {
   skills:         string[];
   agents:         string[];
   mcpServers:     string[];
+  commands:       string[];
   installCommand: string;
   source:         Source;
   _repo?:         string;
@@ -50,6 +51,16 @@ export interface McpServer {
   _repo?:         string;
 }
 
+export interface Command {
+  name:           string;
+  description:    string;
+  commandPath:    string;
+  rawCommandUrl:  string;
+  installCommand: string;
+  source:         Source;
+  _repo?:         string;
+}
+
 export interface Bundle {
   name:        string;
   description: string;
@@ -64,6 +75,7 @@ export interface SkillsIndexMeta {
   skillCount:     number;
   agentCount:     number;
   mcpServerCount: number;
+  commandCount?:  number;
 }
 
 export interface SkillsIndex {
@@ -72,5 +84,6 @@ export interface SkillsIndex {
   skills:     Skill[];
   agents:     Agent[];
   mcpServers: McpServer[];
+  commands:   Command[];
   bundles:    Bundle[];
 }

@@ -1,8 +1,9 @@
-import { fetchIndex }              from './api.ts';
-import { state }                   from './state.ts';
-import { sourceTag }               from './components.ts';
-import { rebuildFilters, render }  from './render.ts';
-import type { SkillsIndexMeta }    from './types.ts';
+import { fetchIndex }           from './api.ts';
+import { state }                from './state.ts';
+import { sourceTag }            from './source-tag.ts';
+import { render }               from './render.ts';
+import { rebuildFilters }       from './filters.ts';
+import type { SkillsIndexMeta } from './types.ts';
 
 const sourcesEl = document.getElementById('marketplace-sources') as HTMLElement;
 
@@ -22,11 +23,12 @@ export async function loadMarketplace(ownerRepo: string, builtin = false): Promi
 
   loadingTag.remove();
 
-  state.plugins.push(...(index.plugins ?? []).map(p => ({ ...p, _repo: ownerRepo })));
-  state.skills.push(...(index.skills ?? []).map(s => ({ ...s, _repo: ownerRepo })));
-  state.agents.push(...(index.agents ?? []).map(a => ({ ...a, _repo: ownerRepo })));
+  state.plugins.push(...(index.plugins   ?? []).map(p => ({ ...p, _repo: ownerRepo })));
+  state.skills.push(...(index.skills     ?? []).map(s => ({ ...s, _repo: ownerRepo })));
+  state.agents.push(...(index.agents     ?? []).map(a => ({ ...a, _repo: ownerRepo })));
   state.mcpServers.push(...(index.mcpServers ?? []).map(m => ({ ...m, _repo: ownerRepo })));
-  state.bundles.push(...(index.bundles ?? []).map(b => ({ ...b, _repo: ownerRepo })));
+  state.commands.push(...(index.commands  ?? []).map(c => ({ ...c, _repo: ownerRepo })));
+  state.bundles.push(...(index.bundles   ?? []).map(b => ({ ...b, _repo: ownerRepo })));
 
   const countBySource: Record<string, number> = {};
   for (const plugin of index.plugins ?? []) {

@@ -308,7 +308,8 @@ main { padding: 20px 32px 80px; }
 #plugins-grid,
 #skills-grid,
 #agents-grid,
-#mcp-grid {
+#mcp-grid,
+#commands-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 14px;
@@ -464,7 +465,8 @@ main { padding: 20px 32px 80px; }
 .chip { font-size: 0.73rem; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
 .chip-skill  { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
 .chip-agent  { background: color-mix(in srgb, #a78bfa 12%, transparent); color: #a78bfa; border: 1px solid color-mix(in srgb, #a78bfa 30%, transparent); }
-.chip-mcp    { background: color-mix(in srgb, #34d399 12%, transparent); color: #34d399; border: 1px solid color-mix(in srgb, #34d399 30%, transparent); }
+.chip-mcp     { background: color-mix(in srgb, #34d399 12%, transparent); color: #34d399; border: 1px solid color-mix(in srgb, #34d399 30%, transparent); }
+.chip-command { background: color-mix(in srgb, #fb923c 12%, transparent); color: #fb923c; border: 1px solid color-mix(in srgb, #fb923c 30%, transparent); }
 
 .expand-btn {
   font-size: 0.72rem;
@@ -710,7 +712,7 @@ footer a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   header, .quickstart, .controls, .marketplace-bar, main, footer { padding-left: 16px; padding-right: 16px; }
   .view-toggle { margin-left: 0; }
-  #plugins-grid, #skills-grid, #agents-grid, #mcp-grid, #bundles-grid { grid-template-columns: 1fr; }
+  #plugins-grid, #skills-grid, #agents-grid, #mcp-grid, #commands-grid, #bundles-grid { grid-template-columns: 1fr; }
   .step-cmd { flex-wrap: wrap; }
   #repo-input { width: 140px; }
 }

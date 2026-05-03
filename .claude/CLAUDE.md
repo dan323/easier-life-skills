@@ -163,9 +163,9 @@ Include at least 3–5 evals per plugin. Cover the happy path, idempotent re-run
 3. Add `plugins/<skill-name>/.claude-plugin/plugin.json` with name, version, description, category, and skills[].
 4. Add `plugins/<skill-name>/skills/<skill-name>/evals/evals.json` with at least 3–5 test scenarios.
 5. Run `npm run build` — this automatically adds the plugin to `.claude-plugin/marketplace.json`.
-7. Optionally add sub-agents to `plugins/<skill-name>/agents/<agent-name>.md` — each must have valid YAML frontmatter (`name`, `description`, `tools`). Skills spawn them via the Agent tool using `subagent_type`.
-8. Optionally add reference docs to `plugins/<skill-name>/references/<topic>.md` — keep these minimal: only non-obvious, trap-prone facts the agent would otherwise get wrong. Do not document things any LLM already knows.
-9. Optionally add `plugins/<skill-name>/examples/` with sample input/output files.
+6. Optionally add sub-agents to `plugins/<skill-name>/agents/<agent-name>.md` — each must have valid YAML frontmatter (`name`, `description`, `tools`). Skills spawn them via the Agent tool using `subagent_type`.
+7. Optionally add reference docs to `plugins/<skill-name>/references/<topic>.md` — keep these minimal: only non-obvious, trap-prone facts the agent would otherwise get wrong. Do not document things any LLM already knows.
+8. Optionally add `plugins/<skill-name>/examples/` with sample input/output files.
 
 ## task-agent Plugin Details
 

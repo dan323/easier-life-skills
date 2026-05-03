@@ -1,19 +1,20 @@
 import { state }           from './state.ts';
 import { loadMarketplace } from './marketplace.ts';
 import { render }          from './render.ts';
-import { copyText }        from './components.ts';
+import { copyText }        from './utils.ts';
 import './panel.ts';
 
 const BUILTIN_REPO = 'dan323/easier-life-skills';
 
-type ViewKey = 'plugins' | 'skills' | 'agents' | 'mcpServers' | 'bundles';
+type ViewKey = 'plugins' | 'skills' | 'agents' | 'mcpServers' | 'commands' | 'bundles';
 
-const VIEW_IDS: ViewKey[] = ['plugins', 'skills', 'agents', 'mcpServers', 'bundles'];
+const VIEW_IDS: ViewKey[] = ['plugins', 'skills', 'agents', 'mcpServers', 'commands', 'bundles'];
 const GRID_IDS: Record<ViewKey, string> = {
   plugins:    'plugins-grid',
   skills:     'skills-grid',
   agents:     'agents-grid',
   mcpServers: 'mcp-grid',
+  commands:   'commands-grid',
   bundles:    'bundles-grid',
 };
 const BTN_IDS: Record<ViewKey, string> = {
@@ -21,6 +22,7 @@ const BTN_IDS: Record<ViewKey, string> = {
   skills:     'view-skills',
   agents:     'view-agents',
   mcpServers: 'view-mcp',
+  commands:   'view-commands',
   bundles:    'view-bundles',
 };
 
@@ -51,6 +53,7 @@ function switchView(view: ViewKey): void {
   });
   (document.getElementById('filters') as HTMLElement).style.display =
     (view === 'plugins' || view === 'skills') ? 'flex' : 'none';
+
   render();
 }
 

@@ -48,6 +48,17 @@ export interface McpServer {
   _repo?: string;
 }
 
+export interface Command {
+  name: string;
+  pluginName: string;
+  description: string;
+  commandPath: string;
+  rawCommandUrl: string;
+  installCommand: string;
+  source: PluginSource;
+  _repo?: string;
+}
+
 export interface Plugin {
   name: string;
   description: string;
@@ -56,6 +67,7 @@ export interface Plugin {
   skills: string[];
   agents: string[];
   mcpServers: string[];
+  commands: string[];
   installCommand: string;
   source: PluginSource;
   _repo?: string;
@@ -81,5 +93,6 @@ export interface MarketplaceResult {
   skills: Skill[];
   agents: Agent[];
   mcpServers: McpServer[];
+  commands: Command[];
   bundles: Bundle[];
 }

@@ -72,15 +72,17 @@ const allPlugins:    Plugin[]  = [];
 const allSkills:     Skill[]   = [];
 const allAgents:     import('./lib/types.js').Agent[]     = [];
 const allMcpServers: import('./lib/types.js').McpServer[] = [];
+const allCommands:   import('./lib/types.js').Command[]   = [];
 
 for (const { owner, repo } of marketplaces) {
   // Pass local root only for the local repo; external marketplaces must not touch local fs
   const localRoot = (owner === LOCAL_OWNER && repo === LOCAL_REPO) ? ROOT : null;
-  const { plugins, skills, agents, mcpServers } = await fetchMarketplaceSkills(owner, repo, localRoot);
+  const { plugins, skills, agents, mcpServers, commands } = await fetchMarketplaceSkills(owner, repo, localRoot);
   allPlugins.push(...plugins);
   allSkills.push(...skills);
   allAgents.push(...agents);
   allMcpServers.push(...mcpServers);
+  allCommands.push(...commands);
 }
 
 // Apply external overrides for categories
@@ -114,16 +116,18 @@ const index = {
     skillCount:     allSkills.length,
     agentCount:     allAgents.length,
     mcpServerCount: allMcpServers.length,
+    commandCount:   allCommands.length,
   },
   plugins:    allPlugins,
   skills:     allSkills,
   agents:     allAgents,
   mcpServers: allMcpServers,
+  commands:   allCommands,
   bundles:    BUNDLES,
 };
 
 writeFileSync(join(ROOT, 'skills_index.json'), JSON.stringify(index, null, 2) + '\n');
-console.log(`\n✓ skills_index.json — ${allPlugins.length} plugins, ${allSkills.length} skills, ${allAgents.length} agents, ${allMcpServers.length} MCP servers from ${marketplaces.length} marketplace(s)`);
+console.log(`\n✓ skills_index.json — ${allPlugins.length} plugins, ${allSkills.length} skills, ${allAgents.length} agents, ${allMcpServers.length} MCP servers, ${allCommands.length} commands from ${marketplaces.length} marketplace(s)`);
 
 writeFileSync(join(ROOT, 'CATALOG.md'), generateCatalog(allSkills, allAgents, allMcpServers, BUNDLES, marketplaces));
 console.log(`✓ CATALOG.md`);
