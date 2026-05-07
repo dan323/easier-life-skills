@@ -59,6 +59,18 @@ export interface Command {
   _repo?: string;
 }
 
+export interface Hook {
+  name: string;
+  pluginName: string;
+  description: string;
+  events: string[];
+  hookPath: string;
+  rawHookUrl: string;
+  installCommand: string;
+  source: PluginSource;
+  _repo?: string;
+}
+
 export interface Plugin {
   name: string;
   description: string;
@@ -68,6 +80,7 @@ export interface Plugin {
   agents: string[];
   mcpServers: string[];
   commands: string[];
+  hooks: string[];
   installCommand: string;
   source: PluginSource;
   _repo?: string;
@@ -94,5 +107,6 @@ export interface MarketplaceResult {
   agents: Agent[];
   mcpServers: McpServer[];
   commands: Command[];
+  hooks: Hook[];
   bundles: Bundle[];
 }

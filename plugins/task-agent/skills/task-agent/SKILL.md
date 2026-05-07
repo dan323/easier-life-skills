@@ -283,6 +283,17 @@ Spawn a background agent using the Agent tool with:
 
 ---
 
+## Phase 6 — Remove all temporary files
+
+After all tasks are done, spawn an agent to clean up the local clones in `/tmp/multi-repo-tasks/` to free up disk space.
+This can be a simple bash command:
+
+```bash
+rm -rf /tmp/multi-repo-tasks
+```
+
+---
+
 ## Rules
 - There are 2 mcps for GitHub. One is `github` and the other is `github2`. Use `github2` only to create and manage PRs into repos that are not owned by me.
 - In /references there are more context to read. These files relate to programming languages, package manager, etc. Read only those that make sense for the task at hand.

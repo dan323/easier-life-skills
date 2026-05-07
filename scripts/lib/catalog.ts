@@ -1,6 +1,6 @@
 /* lib/catalog.ts — generates the CATALOG.md content from aggregated skills, agents, and MCP servers */
 
-import type { Skill, Agent, McpServer, Bundle, MarketplaceEntry } from './types.js';
+import type { Skill, Agent, McpServer, Hook, Bundle, MarketplaceEntry } from './types.js';
 
 function titleCase(str: string): string {
   return str.replace(/-/g, ' ').replace(/(^|\s)(\w)/g, (_, sep, c) => sep + c.toUpperCase());
@@ -22,6 +22,12 @@ function agentRow(agent: Agent): string {
 function mcpRow(mcp: McpServer): string {
   const src = `${mcp.source.owner}/${mcp.source.repo}`;
   return `| \`${mcp.name}\` | \`${src}\` | ${mcp.description} | \`${mcp.command || ''}\` | \`${mcp.installCommand}\` |`;
+}
+
+function hookRow(hook: Hook): string {
+  const src    = `${hook.source.owner}/${hook.source.repo}`;
+  const events = hook.events.join(', ') || '—';
+  return `| [\`${hook.name}\`](${hook.rawHookUrl}) | \`${src}\` | ${hook.description} | ${events} | \`${hook.installCommand}\` |`;
 }
 
 function bundleSection(bundle: Bundle, allSkills: Skill[]): string[] {
@@ -46,6 +52,7 @@ export function generateCatalog(
   skills: Skill[],
   agents: Agent[],
   mcpServers: McpServer[],
+  hooks: Hook[],
   bundles: Bundle[],
   marketplaces: MarketplaceEntry[],
 ): string {
@@ -55,7 +62,7 @@ export function generateCatalog(
   const lines: string[] = [
     `# Skill Catalog`,
     ``,
-    `> ${skills.length} skills · ${agents.length} agents · ${mcpServers.length} MCP servers from ${marketplaces.length} marketplace(s) · Last updated: ${date}`,
+    `> ${skills.length} skills · ${agents.length} agents · ${mcpServers.length} MCP servers · ${hooks.length} hooks from ${marketplaces.length} marketplace(s) · Last updated: ${date}`,
     ``,
     ...marketplaces.map(m => `- [\`${m.owner}/${m.repo}\`](https://github.com/${m.owner}/${m.repo})`),
     ``,
@@ -87,6 +94,14 @@ export function generateCatalog(
     lines.push(`| Server | Marketplace | What it does | Command | Install |`);
     lines.push(`|---|---|---|---|---|`);
     mcpServers.forEach(m => lines.push(mcpRow(m)));
+    lines.push(``);
+  }
+
+  if (hooks.length > 0) {
+    lines.push(`---`, ``, `## Hooks`, ``);
+    lines.push(`| Hook | Marketplace | What it does | Events | Install |`);
+    lines.push(`|---|---|---|---|---|`);
+    hooks.forEach(h => lines.push(hookRow(h)));
     lines.push(``);
   }
 

@@ -7,15 +7,16 @@ import './panel.ts';
 
 const BUILTIN_REPO = 'dan323/easier-life-skills';
 
-type ViewKey = 'plugins' | 'skills' | 'agents' | 'mcpServers' | 'commands' | 'bundles';
+type ViewKey = 'plugins' | 'skills' | 'agents' | 'mcpServers' | 'commands' | 'hooks' | 'bundles';
 
-const VIEW_IDS: ViewKey[] = ['plugins', 'skills', 'agents', 'mcpServers', 'commands', 'bundles'];
+const VIEW_IDS: ViewKey[] = ['plugins', 'skills', 'agents', 'mcpServers', 'commands', 'hooks', 'bundles'];
 const GRID_IDS: Record<ViewKey, string> = {
   plugins:    'plugins-grid',
   skills:     'skills-grid',
   agents:     'agents-grid',
   mcpServers: 'mcp-grid',
   commands:   'commands-grid',
+  hooks:      'hooks-grid',
   bundles:    'bundles-grid',
 };
 const BTN_IDS: Record<ViewKey, string> = {
@@ -24,10 +25,12 @@ const BTN_IDS: Record<ViewKey, string> = {
   agents:     'view-agents',
   mcpServers: 'view-mcp',
   commands:   'view-commands',
+  hooks:      'view-hooks',
   bundles:    'view-bundles',
 };
 
 const searchEl = document.getElementById('search') as HTMLInputElement;
+const sortBtn  = document.getElementById('sort-btn')  as HTMLButtonElement;
 
 // ── Quick-start copy buttons ──
 
@@ -41,6 +44,31 @@ searchEl.addEventListener('input', e => {
   state.query = (e.target as HTMLInputElement).value.toLowerCase();
   syncStateToUrl();
   render();
+});
+
+// ── Sort ──
+
+function updateSortBtn(): void {
+  sortBtn.textContent = state.sort === 'az' ? 'A→Z' : 'Z→A';
+  sortBtn.title = state.sort === 'az' ? 'Sort Z→A' : 'Sort A→Z';
+}
+
+sortBtn.addEventListener('click', () => {
+  state.sort = state.sort === 'az' ? 'za' : 'az';
+  updateSortBtn();
+  syncStateToUrl();
+  render();
+});
+
+// ── Keyboard shortcuts ──
+
+document.addEventListener('keydown', e => {
+  const tag = (e.target as Element).tagName;
+  if (e.key === '/' && tag !== 'INPUT' && tag !== 'TEXTAREA') {
+    e.preventDefault();
+    searchEl.focus();
+    searchEl.select();
+  }
 });
 
 // ── View toggle ──
@@ -64,12 +92,14 @@ function switchView(view: ViewKey): void {
 // ── Boot ──
 
 void (async () => {
-  const { view, query, repos, cats } = readUrlState();
+  const { view, query, repos, cats, sort } = readUrlState();
 
   state.query = query;
+  state.sort  = sort;
   for (const repo of repos) state.activeRepos.add(repo);
   for (const cat  of cats)  state.activeCategories.add(cat);
   searchEl.value = query;
+  updateSortBtn();
 
   await loadMarketplace(BUILTIN_REPO, true);
 

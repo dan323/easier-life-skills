@@ -20,6 +20,13 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/changelog"
     },
     {
+      "name": "cost-tracker",
+      "source": "./plugins/cost-tracker",
+      "description": "Append token usage and estimated cost to ~/.claude/cost-log.jsonl on every Stop event",
+      "category": "productivity",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/cost-tracker"
+    },
+    {
       "name": "document-project",
       "source": "./plugins/document-project",
       "description": "Create or improve project documentation with README and /docs structure",

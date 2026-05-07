@@ -1,0 +1,67 @@
+{
+  "skill_name": "cost-tracker",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Install the cost-tracker hook",
+      "description": "Happy path: hook is installed and fires on Stop, appending a valid JSON line to the log file",
+      "setup": "mkdir -p /tmp/eval-cost-tracker-0 && rm -f ~/.claude/cost-log.jsonl",
+      "expected_output": "~/.claude/cost-log.jsonl exists and contains at least one valid JSON line with date, session_id, input_tokens, output_tokens, and estimated_usd fields",
+      "files": [],
+      "assertions": [
+        {
+          "id": "log-file-exists",
+          "text": "~/.claude/cost-log.jsonl exists after a Stop event fires"
+        },
+        {
+          "id": "valid-json-line",
+          "text": "Each line in the log file is valid JSON parseable by python3 -c 'import json,sys; [json.loads(l) for l in sys.stdin]'"
+        },
+        {
+          "id": "required-fields",
+          "text": "Each JSON entry contains date, session_id, input_tokens, output_tokens, and estimated_usd"
+        },
+        {
+          "id": "date-format",
+          "text": "The date field is an ISO-8601 UTC timestamp ending in Z"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Install the cost-tracker hook and fire it multiple times",
+      "description": "Idempotency: each Stop event appends a new line; the file grows monotonically and existing entries are not modified",
+      "setup": "rm -f ~/.claude/cost-log.jsonl",
+      "expected_output": "After two Stop events the log file contains exactly two JSON lines, each distinct",
+      "files": [],
+      "assertions": [
+        {
+          "id": "appends-not-overwrites",
+          "text": "The log file contains one line per Stop event fired (append mode, not overwrite)"
+        },
+        {
+          "id": "earlier-entries-intact",
+          "text": "The first entry is still present and unchanged after a second Stop event fires"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Fire the cost-tracker hook when usage data is missing from stdin",
+      "description": "Graceful degradation: if the Stop event stdin has no usage field, the hook still writes a line with zero token counts rather than crashing",
+      "setup": "echo '{\"session_id\":\"test\"}' | python3 -c \"import json,sys,os,datetime; d=json.load(sys.stdin); u=d.get('usage',{}); i=u.get('input_tokens',0); o=u.get('output_tokens',0); open(os.path.expanduser('~/.claude/cost-log.jsonl'),'a').write(json.dumps({'date':datetime.datetime.utcnow().isoformat()+'Z','session_id':d.get('session_id',''),'input_tokens':i,'output_tokens':o,'estimated_usd':round(i*3e-6+o*15e-6,6)})+chr(10))\"",
+      "expected_output": "A JSON line is written with input_tokens=0, output_tokens=0, estimated_usd=0.0, and session_id='test'",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-crash-on-missing-usage",
+          "text": "The hook exits without error when the stdin JSON has no usage field"
+        },
+        {
+          "id": "zero-tokens-written",
+          "text": "The written entry has input_tokens=0 and output_tokens=0"
+        }
+      ]
+    }
+  ]
+}

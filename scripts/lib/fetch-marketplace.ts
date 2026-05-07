@@ -186,6 +186,7 @@ interface PluginEntry {
   agents?: string[] | string | null;
   mcpServers?: Record<string, McpConfig> | McpConfig[] | string | null;
   commands?: string[] | string | null;
+  hooks?: string[] | string | null;
   homepage?: string | null;
 }
 
@@ -206,6 +207,7 @@ interface PluginJson {
   agents?: string[] | string | null;
   mcpServers?: Record<string, McpConfig> | McpConfig[] | string | null;
   commands?: string[] | string | null;
+  hooks?: string[] | string | null;
 }
 
 function resolveSource(
@@ -495,6 +497,74 @@ async function discoverCommands(
   return results;
 }
 
+async function parseHook(
+  hookRelPath: string,
+  pluginRoot: string,
+  remoteBase: string,
+  root: string | null,
+  pluginEntry: PluginEntry,
+  owner: string,
+  repo: string,
+): Promise<import('./types.js').Hook | null> {
+  const hookRel      = normalisePath(hookRelPath);
+  const hookName     = hookRel.split('/').pop()!.replace(/\.md$/i, '');
+  const hookPathBase = pluginRoot ? `${pluginRoot}/${hookRel}` : hookRel;
+  const fullHookPath = hookPathBase.endsWith('.md') ? hookPathBase : `${hookPathBase}.md`;
+
+  const content = await readFile(fullHookPath, remoteBase, root);
+  if (!content) return null;
+
+  const frontmatter = parseFrontmatter(content);
+  const events: string[] = Array.isArray(frontmatter.events)
+    ? (frontmatter.events as string[])
+    : typeof frontmatter.trigger === 'string'
+      ? [frontmatter.trigger as string]
+      : typeof frontmatter.events === 'string'
+        ? [(frontmatter.events as string)]
+        : [];
+
+  return {
+    name:           (frontmatter.name as string | undefined) ?? hookName,
+    pluginName:     pluginEntry.name,
+    description:    (frontmatter.description as string | undefined) ?? '',
+    events,
+    hookPath:       fullHookPath,
+    rawHookUrl:     `${remoteBase}/${fullHookPath}`,
+    installCommand: `/plugin install ${pluginEntry.name}@${repo}`,
+    source:         { owner, repo, repoUrl: `https://github.com/${owner}/${repo}` },
+  };
+}
+
+async function discoverHooks(
+  decl: string[] | string | null | undefined,
+  pluginRoot: string,
+  remoteBase: string,
+  root: string | null,
+  pluginEntry: PluginEntry,
+  owner: string,
+  repo: string,
+): Promise<import('./types.js').Hook[]> {
+  const results: import('./types.js').Hook[] = [];
+
+  if (Array.isArray(decl)) {
+    for (const hp of decl) {
+      const hook = await parseHook(hp, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
+      if (hook) results.push(hook);
+    }
+    return results;
+  }
+
+  const scanRel     = decl != null ? normalisePath(decl) : 'hooks';
+  const fullScanDir = [pluginRoot, scanRel].filter(Boolean).join('/');
+  const entries     = await listDir(fullScanDir, remoteBase, root);
+  for (const entry of entries.filter(e => !e.isDir && e.name.endsWith('.md'))) {
+    const relPath = scanRel ? `${scanRel}/${entry.name}` : entry.name;
+    const hook = await parseHook(relPath, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
+    if (hook) results.push(hook);
+  }
+  return results;
+}
+
 interface MarketplaceJson {
   plugins?: PluginEntry[];
   bundles?: Bundle[];
@@ -508,16 +578,39 @@ export async function fetchMarketplaceSkills(owner: string, repo: string, root: 
 
   let marketplaceJson: MarketplaceJson;
   try {
-    marketplaceJson = await fetchJson<MarketplaceJson>(`${baseUrl}/.claude-plugin/marketplace.json`);
-  } catch (err) {
-    console.warn(`  [warn] Could not fetch marketplace.json for ${owner}/${repo}: ${(err as Error).message}`);
-    return { skills: [], agents: [], mcpServers: [], commands: [], bundles: [], plugins: [] };
+    const text = await readFile('.claude-plugin/marketplace.json', baseUrl, root);
+    if (!text) throw new Error('not found');
+    marketplaceJson = JSON.parse(text) as MarketplaceJson;
+  } catch {
+    // Not a multi-plugin marketplace — try treating the repo as a single plugin
+    try {
+      const text2 = await readFile('.claude-plugin/plugin.json', baseUrl, root);
+      if (!text2) throw new Error('not found');
+      const pluginJson = JSON.parse(text2) as PluginJson;
+      console.log(`  [info] No marketplace.json found — treating ${owner}/${repo} as a single plugin`);
+      marketplaceJson = {
+        plugins: [{
+          name:        pluginJson.name ?? repo,
+          description: pluginJson.description,
+          category:    pluginJson.category,
+          skills:      pluginJson.skills,
+          agents:      pluginJson.agents,
+          mcpServers:  pluginJson.mcpServers,
+          commands:    pluginJson.commands,
+          source:      './',  // root of the repo
+        }],
+      };
+    } catch (err) {
+      console.warn(`  [warn] Could not fetch marketplace.json or plugin.json for ${owner}/${repo}: ${(err as Error).message}`);
+      return { skills: [], agents: [], mcpServers: [], commands: [], hooks: [], bundles: [], plugins: [] };
+    }
   }
 
   const skills:     Skill[]     = [];
   const agents:     Agent[]     = [];
   const mcpServers: McpServer[] = [];
   const commands:   Command[]   = [];
+  const hooks:      import('./types.js').Hook[] = [];
   const plugins:    Plugin[]    = [];
 
   for (const pluginEntry of marketplaceJson.plugins ?? []) {
@@ -541,16 +634,19 @@ export async function fetchMarketplaceSkills(owner: string, repo: string, root: 
     const agentsDecl   = pluginJson?.agents     ?? pluginEntry.agents     ?? null;
     const mcpsDecl     = pluginJson?.mcpServers ?? pluginEntry.mcpServers ?? null;
     const commandsDecl = pluginJson?.commands   ?? pluginEntry.commands   ?? null;
+    const hooksDecl    = pluginJson?.hooks      ?? pluginEntry.hooks      ?? null;
 
     const foundSkills     = await discoverSkills(skillsDecl, pluginRoot, remoteBase, effectiveRoot, pluginEntry, owner, repo);
     const foundAgents     = await discoverAgents(agentsDecl, pluginRoot, remoteBase, effectiveRoot, pluginEntry, owner, repo);
     const foundMcpServers = await discoverMcpServers(mcpsDecl, pluginRoot, remoteBase, effectiveRoot, pluginEntry, owner, repo);
     const foundCommands   = await discoverCommands(commandsDecl, pluginRoot, remoteBase, effectiveRoot, pluginEntry, owner, repo);
+    const foundHooks      = await discoverHooks(hooksDecl, pluginRoot, remoteBase, effectiveRoot, pluginEntry, owner, repo);
 
     skills.push(...foundSkills);
     agents.push(...foundAgents);
     mcpServers.push(...foundMcpServers);
     commands.push(...foundCommands);
+    hooks.push(...foundHooks);
 
     plugins.push({
       name:           pluginEntry.name,
@@ -561,6 +657,7 @@ export async function fetchMarketplaceSkills(owner: string, repo: string, root: 
       agents:         foundAgents.map(a => a.name),
       mcpServers:     foundMcpServers.map(m => m.name),
       commands:       foundCommands.map(c => c.name),
+      hooks:          foundHooks.map(h => h.name),
       installCommand: `/plugin install ${pluginEntry.name}@${repo}`,
       source:         { owner, repo, repoUrl: `https://github.com/${owner}/${repo}` },
     });
@@ -573,6 +670,6 @@ export async function fetchMarketplaceSkills(owner: string, repo: string, root: 
     source: { owner, repo, repoUrl: `https://github.com/${owner}/${repo}` },
   }));
 
-  console.log(`  ✓ ${plugins.length} plugins, ${skills.length} skills, ${agents.length} agents, ${mcpServers.length} MCP servers, ${commands.length} commands from ${owner}/${repo}`);
-  return { plugins, skills, agents, mcpServers, commands, bundles };
+  console.log(`  ✓ ${plugins.length} plugins, ${skills.length} skills, ${agents.length} agents, ${mcpServers.length} MCP servers, ${commands.length} commands, ${hooks.length} hooks from ${owner}/${repo}`);
+  return { plugins, skills, agents, mcpServers, commands, hooks, bundles };
 }

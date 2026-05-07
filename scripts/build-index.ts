@@ -9,7 +9,7 @@ import { join, dirname }               from 'path';
 import { fileURLToPath }               from 'url';
 import { fetchMarketplaceSkills }      from './lib/fetch-marketplace.js';
 import { generateCatalog }             from './lib/catalog.js';
-import type { MarketplaceEntry, Plugin, Skill, Bundle } from './lib/types.js';
+import type { MarketplaceEntry, Plugin, Skill, Bundle, Hook } from './lib/types.js';
 
 const ROOT         = join(dirname(fileURLToPath(import.meta.url)), '..');
 const marketplaces = JSON.parse(readFileSync(join(ROOT, 'marketplaces.json'), 'utf8')) as MarketplaceEntry[];
@@ -73,16 +73,18 @@ const allSkills:     Skill[]   = [];
 const allAgents:     import('./lib/types.js').Agent[]     = [];
 const allMcpServers: import('./lib/types.js').McpServer[] = [];
 const allCommands:   import('./lib/types.js').Command[]   = [];
+const allHooks:      Hook[]    = [];
 
 for (const { owner, repo } of marketplaces) {
   // Pass local root only for the local repo; external marketplaces must not touch local fs
   const localRoot = (owner === LOCAL_OWNER && repo === LOCAL_REPO) ? ROOT : null;
-  const { plugins, skills, agents, mcpServers, commands } = await fetchMarketplaceSkills(owner, repo, localRoot);
+  const { plugins, skills, agents, mcpServers, commands, hooks } = await fetchMarketplaceSkills(owner, repo, localRoot);
   allPlugins.push(...plugins);
   allSkills.push(...skills);
   allAgents.push(...agents);
   allMcpServers.push(...mcpServers);
   allCommands.push(...commands);
+  allHooks.push(...hooks);
 }
 
 // Apply external overrides for categories
@@ -95,6 +97,19 @@ for (const skill of allSkills) {
   const repoKey = `${skill.source.owner}/${skill.source.repo}`;
   const cat = OVERRIDES[repoKey]?.skills?.[skill.name]?.category;
   if (cat) skill.category = cat;
+}
+
+// Auto-assign 'mixed' to plugins whose skills span multiple categories and have no explicit category
+for (const plugin of allPlugins) {
+  if (plugin.category) continue;
+  const repoKey = `${plugin.source.owner}/${plugin.source.repo}`;
+  const cats = new Set(
+    allSkills
+      .filter(s => plugin.skills.includes(s.name) && `${s.source.owner}/${s.source.repo}` === repoKey)
+      .map(s => s.category)
+      .filter((c): c is string => c !== null)
+  );
+  if (cats.size > 1) plugin.category = 'mixed';
 }
 
 // Attach bundle membership to skills
@@ -117,17 +132,19 @@ const index = {
     agentCount:     allAgents.length,
     mcpServerCount: allMcpServers.length,
     commandCount:   allCommands.length,
+    hookCount:      allHooks.length,
   },
   plugins:    allPlugins,
   skills:     allSkills,
   agents:     allAgents,
   mcpServers: allMcpServers,
   commands:   allCommands,
+  hooks:      allHooks,
   bundles:    BUNDLES,
 };
 
 writeFileSync(join(ROOT, 'skills_index.json'), JSON.stringify(index, null, 2) + '\n');
-console.log(`\n✓ skills_index.json — ${allPlugins.length} plugins, ${allSkills.length} skills, ${allAgents.length} agents, ${allMcpServers.length} MCP servers, ${allCommands.length} commands from ${marketplaces.length} marketplace(s)`);
+console.log(`\n✓ skills_index.json — ${allPlugins.length} plugins, ${allSkills.length} skills, ${allAgents.length} agents, ${allMcpServers.length} MCP servers, ${allCommands.length} commands, ${allHooks.length} hooks from ${marketplaces.length} marketplace(s)`);
 
-writeFileSync(join(ROOT, 'CATALOG.md'), generateCatalog(allSkills, allAgents, allMcpServers, BUNDLES, marketplaces));
+writeFileSync(join(ROOT, 'CATALOG.md'), generateCatalog(allSkills, allAgents, allMcpServers, allHooks, BUNDLES, marketplaces));
 console.log(`✓ CATALOG.md`);

@@ -26,6 +26,8 @@
   --cat-database-bg: #0d2f2a;
   --cat-development: #9f99aa;
   --cat-development-bg: #0f3335;
+  --cat-mixed: #f97316;
+  --cat-mixed-bg: #2a1500;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -195,6 +197,20 @@ header {
 .filter-btn:hover { color: var(--text); border-color: var(--text-muted); }
 .filter-btn.active { color: var(--text); border-color: var(--accent); background: var(--accent-dim); }
 
+.sort-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.sort-btn:hover { color: var(--accent); border-color: var(--accent); }
+
 .view-toggle {
   margin-left: auto;
   display: flex;
@@ -254,6 +270,16 @@ header {
 
 .source-error { border-color: #f85149 !important; color: #f85149 !important; }
 
+.marketplace-add-cta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 3px 0;
+  transition: color 0.15s;
+}
+.marketplace-add-cta:hover { color: var(--accent); }
+
 /* ── Main ── */
 main { padding: 20px 32px 80px; }
 
@@ -268,7 +294,8 @@ main { padding: 20px 32px 80px; }
 #skills-grid,
 #agents-grid,
 #mcp-grid,
-#commands-grid {
+#commands-grid,
+#hooks-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 14px;
@@ -328,6 +355,7 @@ main { padding: 20px 32px 80px; }
 .badge-design     { background: var(--cat-design-bg);     color: var(--cat-design); }
 .badge-database     { background: var(--cat-database-bg);     color: var(--cat-database); }
 .badge-development     { background: var(--cat-development-bg);     color: var(--cat-development); }
+.badge-mixed           { background: var(--cat-mixed-bg);           color: var(--cat-mixed); }
 
 .badge-source {
   background: #1a2030;
@@ -426,6 +454,7 @@ main { padding: 20px 32px 80px; }
 .chip-agent  { background: color-mix(in srgb, #a78bfa 12%, transparent); color: #a78bfa; border: 1px solid color-mix(in srgb, #a78bfa 30%, transparent); }
 .chip-mcp     { background: color-mix(in srgb, #34d399 12%, transparent); color: #34d399; border: 1px solid color-mix(in srgb, #34d399 30%, transparent); }
 .chip-command { background: color-mix(in srgb, #fb923c 12%, transparent); color: #fb923c; border: 1px solid color-mix(in srgb, #fb923c 30%, transparent); }
+.chip-hook    { background: color-mix(in srgb, #e879f9 12%, transparent); color: #e879f9; border: 1px solid color-mix(in srgb, #e879f9 30%, transparent); }
 
 .expand-btn {
   font-size: 0.72rem;
@@ -670,6 +699,6 @@ footer a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   header, .quickstart, .controls, .marketplace-bar, main, footer { padding-left: 16px; padding-right: 16px; }
   .view-toggle { margin-left: 0; }
-  #plugins-grid, #skills-grid, #agents-grid, #mcp-grid, #commands-grid, #bundles-grid { grid-template-columns: 1fr; }
+  #plugins-grid, #skills-grid, #agents-grid, #mcp-grid, #commands-grid, #hooks-grid, #bundles-grid { grid-template-columns: 1fr; }
   .step-cmd { flex-wrap: wrap; }
 }

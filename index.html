@@ -51,14 +51,16 @@
 
   <!-- ── Controls ── -->
   <div class="controls">
-    <input id="search" type="search" placeholder="Search skills…" autocomplete="off" />
+    <input id="search" type="search" placeholder="Search skills… (press / to focus)" autocomplete="off" />
     <div class="filter-group" id="filters"></div>
+    <button id="sort-btn" class="sort-btn" title="Sort Z→A">A→Z</button>
     <div class="view-toggle">
       <button class="view-btn active" id="view-plugins">Plugins</button>
       <button class="view-btn" id="view-skills">Skills</button>
       <button class="view-btn" id="view-agents">Agents</button>
       <button class="view-btn" id="view-mcp">MCP Servers</button>
       <button class="view-btn" id="view-commands">Commands</button>
+      <button class="view-btn" id="view-hooks">Hooks</button>
       <button class="view-btn" id="view-bundles">Bundles</button>
     </div>
   </div>
@@ -66,6 +68,7 @@
   <!-- ── Marketplaces bar ── -->
   <div class="marketplace-bar">
     <div class="marketplace-sources" id="marketplace-sources"></div>
+    <a class="marketplace-add-cta" href="https://github.com/dan323/easier-life-skills/issues/new?template=add-marketplace.yml" target="_blank" rel="noopener">Add your marketplace →</a>
   </div>
 
   <!-- ── Main ── -->
@@ -76,6 +79,7 @@
     <div id="agents-grid" style="display:none"></div>
     <div id="mcp-grid" style="display:none"></div>
     <div id="commands-grid" style="display:none"></div>
+    <div id="hooks-grid" style="display:none"></div>
     <div id="bundles-grid" style="display:none"></div>
   </main>
 
@@ -127,6 +131,11 @@
       <div id="panel-commands-section" class="panel-section">
         <h3 class="panel-section-title">Commands <span id="panel-commands-count" class="panel-count"></span></h3>
         <div id="panel-commands-list" class="panel-items"></div>
+      </div>
+
+      <div id="panel-hooks-section" class="panel-section">
+        <h3 class="panel-section-title">Hooks <span id="panel-hooks-count" class="panel-count"></span></h3>
+        <div id="panel-hooks-list" class="panel-items"></div>
       </div>
 
       <div id="panel-bundles-section" class="panel-section">

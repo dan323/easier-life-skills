@@ -4,6 +4,7 @@ import { skillCard }    from './card-skill.ts';
 import { agentCard }    from './card-agent.ts';
 import { mcpCard }      from './card-mcp.ts';
 import { commandCard }  from './card-command.ts';
+import { hookCard }     from './card-hook.ts';
 import { bundleCard }   from './card-bundle.ts';
 
 const pluginsGrid  = document.getElementById('plugins-grid')  as HTMLElement;
@@ -11,8 +12,17 @@ const skillsGrid   = document.getElementById('skills-grid')   as HTMLElement;
 const agentsGrid   = document.getElementById('agents-grid')   as HTMLElement;
 const mcpGrid      = document.getElementById('mcp-grid')      as HTMLElement;
 const commandsGrid = document.getElementById('commands-grid') as HTMLElement;
+const hooksGrid    = document.getElementById('hooks-grid')    as HTMLElement;
 const bundlesGrid  = document.getElementById('bundles-grid')  as HTMLElement;
 const countEl      = document.getElementById('count')         as HTMLElement;
+
+function sorted<T extends { name: string }>(items: T[]): T[] {
+  return [...items].sort((a, b) =>
+    state.sort === 'za'
+      ? b.name.localeCompare(a.name)
+      : a.name.localeCompare(b.name),
+  );
+}
 
 export function render(): void {
   if      (state.view === 'plugins')    renderPlugins();
@@ -20,6 +30,7 @@ export function render(): void {
   else if (state.view === 'agents')     renderAgents();
   else if (state.view === 'mcpServers') renderMcpServers();
   else if (state.view === 'commands')   renderCommands();
+  else if (state.view === 'hooks')      renderHooks();
   else                                  renderBundles();
 }
 
@@ -41,7 +52,7 @@ function renderPlugins(): void {
   }
 
   pluginsGrid.innerHTML = '';
-  filtered.forEach(plugin => pluginsGrid.appendChild(pluginCard(plugin, multiRepo)));
+  sorted(filtered).forEach(plugin => pluginsGrid.appendChild(pluginCard(plugin, multiRepo)));
 }
 
 function renderSkills(): void {
@@ -66,7 +77,7 @@ function renderSkills(): void {
   }
 
   skillsGrid.innerHTML = '';
-  filtered.forEach(skill => skillsGrid.appendChild(skillCard(skill, multiRepo)));
+  sorted(filtered).forEach(skill => skillsGrid.appendChild(skillCard(skill, multiRepo)));
 }
 
 function renderAgents(): void {
@@ -86,7 +97,7 @@ function renderAgents(): void {
   }
 
   agentsGrid.innerHTML = '';
-  filtered.forEach(agent => agentsGrid.appendChild(agentCard(agent, multiRepo)));
+  sorted(filtered).forEach(agent => agentsGrid.appendChild(agentCard(agent, multiRepo)));
 }
 
 function renderMcpServers(): void {
@@ -106,7 +117,7 @@ function renderMcpServers(): void {
   }
 
   mcpGrid.innerHTML = '';
-  filtered.forEach(mcp => mcpGrid.appendChild(mcpCard(mcp, multiRepo)));
+  sorted(filtered).forEach(mcp => mcpGrid.appendChild(mcpCard(mcp, multiRepo)));
 }
 
 function renderCommands(): void {
@@ -126,7 +137,31 @@ function renderCommands(): void {
   }
 
   commandsGrid.innerHTML = '';
-  filtered.forEach(cmd => commandsGrid.appendChild(commandCard(cmd, multiRepo)));
+  sorted(filtered).forEach(cmd => commandsGrid.appendChild(commandCard(cmd, multiRepo)));
+}
+
+function renderHooks(): void {
+  const multiRepo = new Set(state.hooks.map(h => h._repo)).size > 1;
+
+  const filtered = state.hooks.filter(hook => {
+    if (state.activeRepos.size && !state.activeRepos.has(hook._repo ?? '')) return false;
+    if (!state.query) return true;
+    return (
+      hook.name.includes(state.query) ||
+      hook.description.toLowerCase().includes(state.query) ||
+      hook.events.some(e => e.toLowerCase().includes(state.query))
+    );
+  });
+
+  countEl.textContent = `${filtered.length} of ${state.hooks.length} hooks`;
+
+  if (!filtered.length) {
+    hooksGrid.innerHTML = '<div class="empty"><p>🪝</p><p>No hooks found</p></div>';
+    return;
+  }
+
+  hooksGrid.innerHTML = '';
+  sorted(filtered).forEach(hook => hooksGrid.appendChild(hookCard(hook, multiRepo)));
 }
 
 function renderBundles(): void {

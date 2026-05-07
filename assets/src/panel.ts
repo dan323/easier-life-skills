@@ -5,7 +5,8 @@ import { skillCard }                       from './card-skill.ts';
 import { agentCard }                       from './card-agent.ts';
 import { mcpCard }                         from './card-mcp.ts';
 import { commandCard }                     from './card-command.ts';
-import type { Plugin, Skill, Agent, McpServer, Command } from './types.ts';
+import { hookCard }                        from './card-hook.ts';
+import type { Plugin, Skill, Agent, McpServer, Command, Hook } from './types.ts';
 
 setPluginPanelOpener(openPluginPanel);
 
@@ -71,6 +72,14 @@ function openPluginPanel(plugin: Plugin): void {
       .map(n => state.commands.find(c => c.name === n && c._repo === plugin._repo))
       .filter((c): c is Command => c !== undefined),
     item => commandCard(item, false),
+  );
+
+  renderCardSection<Hook>(
+    'panel-hooks-section', 'panel-hooks-list', 'panel-hooks-count',
+    (plugin.hooks ?? [])
+      .map(n => state.hooks.find(h => h.name === n && h._repo === plugin._repo))
+      .filter((h): h is Hook => h !== undefined),
+    item => hookCard(item, false),
   );
 
   const bundles        = state.bundles.filter(b => plugin.skills.some(s => b.skills.includes(s)));
