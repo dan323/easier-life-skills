@@ -34,11 +34,11 @@ A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](h
 
 ## Marketplace Browser
 
-Browse and search all available skills, agents, and MCP servers at the interactive marketplace:
+Browse and search all available skills, agents, commands, hooks, and MCP servers at the interactive marketplace:
 
 **https://dan323.github.io/easier-life-skills/**
 
-The website supports adding other marketplaces — paste any `owner/repo` that publishes a compatible `skills_index.json`.
+Use the **A→Z / Z→A** sort toggle or press **`/`** to focus the search box. Click any plugin card for a detail panel with install instructions.
 
 ## Bundles
 
@@ -53,17 +53,19 @@ Install a curated set of skills in one go:
 
 ## Schema Compatibility
 
-This marketplace follows the [Anthropic plugin schema](https://anthropic.com/claude-code/marketplace.schema.json). Each `plugin.json` declares which skills, agents, and MCP servers the plugin provides:
+This marketplace follows the [Anthropic plugin schema](https://anthropic.com/claude-code/marketplace.schema.json). Each `plugin.json` declares which skills and MCP servers the plugin provides:
 
 ```json
 {
   "name": "task-agent",
   "description": "...",
   "author": { "name": "dan323" },
-  "skills": ["./skills/task-agent"],
-  "agents": ["./agents/copilot-review-fixer"]
+  "category": "automation",
+  "skills": ["./skills/task-agent"]
 }
 ```
+
+Sub-agents live in `plugins/<name>/agents/` and are auto-discovered by Claude Code from that directory — they do not need to be listed in `plugin.json`.
 
 ## Documentation
 
@@ -71,4 +73,3 @@ This marketplace follows the [Anthropic plugin schema](https://anthropic.com/cla
 - [Architecture](docs/architecture.md)
 - [Contributing a Skill](docs/contributing.md)
 - [Roadmap](docs/plan.md)
-- [Target Architecture](docs/final-plan-architecture.md)

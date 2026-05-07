@@ -39,6 +39,17 @@ Skills trigger automatically when Claude recognises a matching request — you d
 
 Each skill produces output in your current working directory (report files, updated `CHANGELOG.md`, new `README.md`, etc.).
 
+## Marketplace Browser
+
+Browse all skills, agents, commands, hooks, and MCP servers at **https://dan323.github.io/easier-life-skills/**
+
+| Shortcut | Action |
+|----------|--------|
+| Press `/` | Focus the search box |
+| Click **A→Z** button | Toggle sort direction |
+| Click a plugin card | Open a detail panel with full description and install command |
+| Click a source tag | Filter by marketplace |
+
 ## Updating
 
 ```

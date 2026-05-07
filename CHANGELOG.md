@@ -1,5 +1,31 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **`cost-tracker` hook plugin** — `Stop`/`SubagentStop` hook that appends a JSON line to `~/.claude/cost-log.jsonl` with `date`, `session_id`, `input_tokens`, `output_tokens`, and `estimated_usd` (Sonnet pricing by default); aggregatable with `jq` one-liners; requires Python 3
+- **Sort controls** — A→Z / Z→A toggle button in the controls bar; applies to all views (plugins, skills, agents, MCP servers, commands, hooks); sort direction is persisted in the URL hash
+- **Keyboard shortcut** — press `/` anywhere on the page to focus the search box and select all text
+- **"Add your marketplace →" CTA** — link in the marketplace bar opens a GitHub issue template (`.github/ISSUE_TEMPLATE/add-marketplace.yml`) that collects `owner/repo`, description, and a requirements checklist
+
+### Fixed
+- **`task-agent` plugin manifest** — removed the `agents` field from `plugin.json`; Claude Code's current manifest validator rejected the `["./agents/…"]` string-array format with "agents: Invalid input", preventing the plugin from loading
+- **Local-first marketplace resolution** — `fetch-marketplace.ts` now reads `.claude-plugin/marketplace.json` and `.claude-plugin/plugin.json` via `readFile` (local-filesystem-first) instead of always fetching remotely; local builds now pick up newly added plugins immediately without needing to push first
+
+## [1.5.0] - 2026-05-03
+
+### Added
+- **Commands and Hooks support** — build pipeline, web UI, and type definitions now index and display Command and Hook entities alongside plugins, skills, agents, and MCP servers; each has its own grid view and card component
+- **URL state sharing** — active view, search query, category filters, and repo filters are now synced to the URL hash (`#view=skills&q=…&cat=…&repo=…`); links to specific filtered states are now shareable and survive page reload (`url-state.ts`)
+- **`card-hook.ts`** — dedicated card component for hooks, showing event trigger chips alongside install command
+
+### Changed
+- **Web UI component split** — monolithic `components.ts` (250 lines) replaced by individual `card-plugin.ts`, `card-skill.ts`, `card-agent.ts`, `card-mcp.ts`, `card-command.ts`, `card-bundle.ts`, `source-tag.ts`, `filters.ts`, and `utils.ts`; each entity type is now independently editable
+- **Skill-specific model URLs** — each skill's `rawSkillUrl` now links directly to its source file in the upstream repo with the correct branch ref
+
+### Fixed
+- **Skill path resolution at plugin root** — when a skill is declared as `"./"` in `plugin.json`, `parseSkill` now falls back to the plugin name instead of producing an empty string, and uses `filter(Boolean)` to avoid double-slash paths (deeea00)
+
 ## [1.4.0] - 2026-05-02
 
 ### Fixed
@@ -85,3 +111,11 @@
 - `find-breaking-rest-api` skill
 - `improve-logging` skill
 - `brainstorm` skill
+
+[Unreleased]: https://github.com/dan323/skill-easy-life/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/dan323/skill-easy-life/compare/v1.4.0...v1.5.0
+[1.4.0]: https://github.com/dan323/skill-easy-life/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/dan323/skill-easy-life/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/dan323/skill-easy-life/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/dan323/skill-easy-life/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/dan323/skill-easy-life/compare/v0.1.0...v1.0.0
