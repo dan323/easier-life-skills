@@ -24,12 +24,13 @@ export async function loadMarketplace(ownerRepo: string, builtin = false): Promi
 
   loadingTag.remove();
 
-  state.plugins.push(...(index.plugins    ?? []).map(p => ({ ...p, _repo: ownerRepo })));
-  state.skills.push(...(index.skills      ?? []).map(s => ({ ...s, _repo: ownerRepo })));
-  state.agents.push(...(index.agents      ?? []).map(a => ({ ...a, _repo: ownerRepo })));
-  state.mcpServers.push(...(index.mcpServers ?? []).map(m => ({ ...m, _repo: ownerRepo })));
-  state.commands.push(...(index.commands  ?? []).map(c => ({ ...c, _repo: ownerRepo })));
-  state.hooks.push(...(index.hooks        ?? []).map(h => ({ ...h, _repo: ownerRepo })));
+  const sourceKey = (s: { owner: string; repo: string }) => `${s.owner}/${s.repo}`;
+  state.plugins.push(...(index.plugins    ?? []).map(p => ({ ...p, _repo: sourceKey(p.source) })));
+  state.skills.push(...(index.skills      ?? []).map(s => ({ ...s, _repo: sourceKey(s.source) })));
+  state.agents.push(...(index.agents      ?? []).map(a => ({ ...a, _repo: sourceKey(a.source) })));
+  state.mcpServers.push(...(index.mcpServers ?? []).map(m => ({ ...m, _repo: sourceKey(m.source) })));
+  state.commands.push(...(index.commands  ?? []).map(c => ({ ...c, _repo: sourceKey(c.source) })));
+  state.hooks.push(...(index.hooks        ?? []).map(h => ({ ...h, _repo: sourceKey(h.source) })));
   state.bundles.push(...(index.bundles    ?? []).map(b => ({ ...b, _repo: ownerRepo })));
 
   const countBySource: Record<string, number> = {};
