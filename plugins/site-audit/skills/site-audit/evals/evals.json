@@ -1,0 +1,107 @@
+{
+  "skill_name": "site-audit",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Audit https://example.com for UX issues and bugs",
+      "description": "Happy path: a valid public URL is provided. The skill should fetch the page, spawn all four agents, and write site-audit-report.md with a summary table and categorized findings.",
+      "setup": "mkdir -p /tmp/eval-site-audit-0 && cd /tmp/eval-site-audit-0",
+      "expected_output": "A file named site-audit-report.md is written in the current directory. It contains a '# Site Audit: https://example.com' heading, a Summary table with at least the four category rows (UX, Accessibility, Performance, Bugs), and a 'Top 5 Recommendations' section. The skill also confirms the total issue count in conversation.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "report-written",
+          "text": "site-audit-report.md is created in the current directory"
+        },
+        {
+          "id": "report-has-heading",
+          "text": "The report starts with '# Site Audit: https://example.com'"
+        },
+        {
+          "id": "report-has-summary-table",
+          "text": "The report contains a markdown table with rows for UX, Accessibility, Performance, and Bugs"
+        },
+        {
+          "id": "report-has-recommendations",
+          "text": "The report contains a 'Top 5 Recommendations' section with at least one item"
+        },
+        {
+          "id": "skill-confirms-count",
+          "text": "The skill outputs a confirmation message mentioning the total number of issues found"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Can you check this site for me? I want to know if there are any problems.",
+      "description": "No URL provided. The skill must ask the user for the URL before proceeding — it must not guess or use a placeholder.",
+      "setup": "mkdir -p /tmp/eval-site-audit-1 && cd /tmp/eval-site-audit-1",
+      "expected_output": "The skill asks the user to provide a URL. It does not attempt to fetch anything or write any files.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "asks-for-url",
+          "text": "The skill asks the user which URL to audit before proceeding"
+        },
+        {
+          "id": "no-file-written",
+          "text": "No site-audit-report.md file is created"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Audit http://localhost:19999/nonexistent for UX issues",
+      "description": "Unreachable URL. The skill should detect the failure when trying to fetch the page and stop gracefully with a clear error message, not crash or write an empty report.",
+      "setup": "mkdir -p /tmp/eval-site-audit-2 && cd /tmp/eval-site-audit-2",
+      "expected_output": "The skill reports that the URL is unreachable or returned an error, explains what happened, and does not write a site-audit-report.md file.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "reports-error",
+          "text": "The skill outputs a message explaining that the URL could not be reached"
+        },
+        {
+          "id": "no-partial-report",
+          "text": "No site-audit-report.md is written (the skill does not write an empty or broken report)"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Audit https://example.com — I just ran this yesterday, please audit it again",
+      "description": "Idempotent re-run: the skill is invoked when site-audit-report.md already exists from a previous run. It should overwrite the file with fresh results, not append to it or refuse to run.",
+      "setup": "mkdir -p /tmp/eval-site-audit-3 && cd /tmp/eval-site-audit-3 && echo '# Site Audit: https://example.com\n*Generated: 2026-05-06T10:00:00Z*\n\nOld report content.' > site-audit-report.md",
+      "expected_output": "The skill runs a fresh audit and overwrites site-audit-report.md. The new file contains a more recent timestamp than 2026-05-06T10:00:00Z. The old content is replaced, not appended to.",
+      "files": ["site-audit-report.md"],
+      "assertions": [
+        {
+          "id": "report-overwritten",
+          "text": "site-audit-report.md is overwritten with fresh content (timestamp is newer than the pre-existing file)"
+        },
+        {
+          "id": "no-duplicate-headings",
+          "text": "The report does not contain '# Site Audit' more than once (content was replaced, not appended)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Do a full site audit of https://example.com and make sure you check for accessibility issues too",
+      "description": "User explicitly asks for accessibility coverage. The report must include an Accessibility Issues section with WCAG criteria referenced, even if no violations are found (section must state 'No accessibility issues found' if clean).",
+      "setup": "mkdir -p /tmp/eval-site-audit-4 && cd /tmp/eval-site-audit-4",
+      "expected_output": "site-audit-report.md is written and contains an 'Accessibility Issues' section. If issues are found, at least one entry references a WCAG criterion. If no issues are found, the section states this explicitly rather than being omitted.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "accessibility-section-present",
+          "text": "The report contains an '## Accessibility Issues' section"
+        },
+        {
+          "id": "wcag-referenced-or-clean-state",
+          "text": "The accessibility section either references WCAG criteria (e.g., '1.1.1', '2.4.1') or explicitly states no issues were found"
+        }
+      ]
+    }
+  ]
+}

@@ -62,6 +62,13 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/improve-logging"
     },
     {
+      "name": "site-audit",
+      "source": "./plugins/site-audit",
+      "description": "Audit a website for UX issues, bugs, accessibility problems, and unexpected behavior. Spawns specialized agents in parallel and writes a markdown report.",
+      "category": "code-quality",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/site-audit"
+    },
+    {
       "name": "task-agent",
       "source": "./plugins/task-agent",
       "description": "Read tasks from agent-tasks.yml, implement each via an agent, and open PRs",

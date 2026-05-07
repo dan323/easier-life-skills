@@ -1,0 +1,8 @@
+{
+  "name": "site-audit",
+  "version": "1.0.0",
+  "description": "Audit a website for UX issues, bugs, accessibility problems, and unexpected behavior. Spawns specialized agents in parallel and writes a markdown report.",
+  "author": { "name": "dan323" },
+  "category": "code-quality",
+  "skills": ["./skills/site-audit"]
+}

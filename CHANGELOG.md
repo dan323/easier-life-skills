@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- **`site-audit` plugin** — audits a live website for UX issues, accessibility violations (WCAG 2.1), performance problems, and functional bugs; spawns four specialist agents in parallel (`ux-analyst`, `accessibility-auditor`, `performance-auditor`, `bug-hunter`); uses Lighthouse, axe-cli, pa11y, and Playwright via `npx` when available, with AI-based WebFetch analysis as fallback; writes `site-audit-report.md` with findings grouped by severity; includes an `audit-logger` hook that appends completed audits to `~/.claude/audit-history.jsonl`
 - **`cost-tracker` hook plugin** — `Stop`/`SubagentStop` hook that appends a JSON line to `~/.claude/cost-log.jsonl` with `date`, `session_id`, `input_tokens`, `output_tokens`, and `estimated_usd` (Sonnet pricing by default); aggregatable with `jq` one-liners; requires Python 3
 - **Sort controls** — A→Z / Z→A toggle button in the controls bar; applies to all views (plugins, skills, agents, MCP servers, commands, hooks); sort direction is persisted in the URL hash
 - **Keyboard shortcut** — press `/` anywhere on the page to focus the search box and select all text
