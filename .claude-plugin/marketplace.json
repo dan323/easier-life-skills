@@ -64,7 +64,7 @@
     {
       "name": "site-audit",
       "source": "./plugins/site-audit",
-      "description": "Audit a website for UX issues, bugs, accessibility problems, and unexpected behavior. Spawns specialized agents in parallel and writes a markdown report.",
+      "description": "Audit a website for UX issues, bugs, accessibility problems, and unexpected behavior. site-mapper crawls once via Playwright MCP to produce sitemap.json; ux-analyst, accessibility-auditor, performance-auditor, and bug-script-runner then run in parallel against the shared artifact. bug-script-runner generates a Playwright spec on the fly using real selectors and executes it via npx playwright test.",
       "category": "code-quality",
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/site-audit"
     },

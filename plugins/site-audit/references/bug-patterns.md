@@ -33,11 +33,33 @@
 - Visible text containing `[object Object]` → high
 - Visible text containing literal `undefined` or `null` as a word → high
 
-## Playwright findings (if available)
-- Console `error` messages → high/critical depending on content
+## Browser findings (interactive crawl)
+- Console `error` messages on load → high/critical depending on content
+- Console `error` messages produced *after* a click → high (record the click path)
 - `requestfailed` events (network-level resource failures) → medium
 - HTTP 4xx/5xx for page resources → high for 5xx, medium for 4xx
 - Navigation failure (timeout, SSL error) → critical
+- Click on a link/button that lands on a 4xx/5xx page → high (record click path)
+- Click that triggers an XHR/fetch returning 4xx/5xx → medium
+
+## Interactive UX failure patterns (only visible by clicking)
+- **Dead click** — a button or link that, when clicked, does nothing observable
+  (no navigation, no console activity, no DOM mutation, no network request)
+  → medium
+- **Modal trap** — a modal opens but its close button (`✕`, `Close`, `Cancel`,
+  `Esc` key, backdrop click) does not dismiss it → high
+- **Menu opens but links are dead** — dropdown reveals links that 404 or do
+  nothing → high
+- **Search returns nothing useful** — search form returns a results page with
+  no items, no "no results" empty state, and no error → medium
+- **Pagination loop** — Next/Prev returns the same page, or page N returns 404
+  → high
+- **Cookie banner re-appears** — banner returns after clicking Accept/Reject,
+  blocking interaction → high
+- **Empty button label** — button whose accessible name is empty, `undefined`,
+  `null`, or a literal template token (`{{...}}`, `${...}`) → high
+- **Hover-only menu on touch** — menu only opens on hover, with no click
+  handler → medium (mobile users cannot reach the contents)
 
 ## Severity guide
 - **critical** — data loss, security issue, or complete feature failure
