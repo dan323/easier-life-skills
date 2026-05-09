@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.7.0] - 2026-05-09
+
+### Changed
+- **`site-audit` 1.3.0 — reduced token usage** — eliminated the two main sources of excess token consumption:
+  - **Removed Phase 2 reference embedding**: the skill no longer reads all five reference files (`ux-checks.md`, `accessibility-checks.md`, `performance-checks.md`, `bug-patterns.md`, `script-authoring.md`) into the main context and embeds them verbatim in every agent prompt; each specialist agent now receives only the path to its reference file and reads it independently, removing ~15 KB from the orchestrator context and significantly shortening each of the four parallel agent prompts
+  - **Windows compatibility for `bug-script-runner`**: the agent now runs `uname -s` as its first step; on Windows (`MINGW`/`MSYS`/`CYGWIN`) it skips the `npx playwright test` spec-file path entirely (which previously burned 100k+ tokens due to `/tmp` divergence between the Write tool and Bash) and instead uses the Playwright MCP tools directly to navigate, inspect console errors, check network requests, detect template bleed-through, and click safe interactive elements; the Linux/macOS spec-file path is unchanged
+
+### Added
+- **`site-audit-report.md`** — first audit of the project's own GitHub Pages site (`https://dan323.github.io/easier-life-skills/`); 39 findings across UX (13), accessibility (16), performance (5), and bugs (5); Lighthouse score 94/100; no critical issues
+
 ## [1.6.0] - 2026-05-09
 
 ### Fixed

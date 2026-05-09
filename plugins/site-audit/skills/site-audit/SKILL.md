@@ -53,28 +53,9 @@ The `sitemap.json` artifact will live at `/tmp/site-audit-<host>/sitemap.json`.
 Fetch the homepage using WebFetch. If it fails, stop and report:
 > "Cannot reach [URL]: [error]. Please check the URL and try again."
 
-From the response, extract and save:
-- Page title (from `<title>`)
-- Meta description content
-- Homepage HTML (save first 8 000 characters as a safety-net for `ux-analyst`'s
-  fallback path)
-
----
-
-## Phase 2 — Load references
-
-Read all five reference files. These contain the checklists and rules each
-agent uses. Reading them now (once, lazily) avoids embedding the content in
-every agent definition and keeps the reference docs as a single source of
-truth.
-
-```
-Read: plugins/site-audit/references/ux-checks.md            → UX_CHECKS
-Read: plugins/site-audit/references/accessibility-checks.md → A11Y_CHECKS
-Read: plugins/site-audit/references/performance-checks.md   → PERF_CHECKS
-Read: plugins/site-audit/references/bug-patterns.md         → BUG_PATTERNS
-Read: plugins/site-audit/references/script-authoring.md     → SCRIPT_RULES
-```
+Extract the page title and meta description. Do not save or embed the full
+HTML — the sitemap artifact produced by `site-mapper` is the canonical source
+of page structure for all downstream agents.
 
 ---
 
@@ -124,12 +105,7 @@ Prompt:
 Audit the UX of [URL].
 
 Sitemap path: /tmp/site-audit-<host>/sitemap.json
-
-Homepage HTML (first 8000 chars, only used if you cannot read the sitemap):
-[HTML]
-
-UX checklist to apply:
-[UX_CHECKS]
+UX checklist: plugins/site-audit/references/ux-checks.md — Read this file first.
 
 Return ONLY a JSON array of findings. No prose, no markdown fences.
 Each object: {"severity":"critical|high|medium|low","category":"<from checklist>","page":"<url>","issue":"<description>","recommendation":"<specific fix>"}
@@ -142,9 +118,7 @@ Prompt:
 Audit the accessibility of [URL].
 
 Sitemap path: /tmp/site-audit-<host>/sitemap.json
-
-WCAG checklist to apply (also contains CLI severity mapping):
-[A11Y_CHECKS]
+WCAG checklist (includes CLI severity mapping): plugins/site-audit/references/accessibility-checks.md — Read this file first.
 
 Return ONLY a JSON array of findings. No prose, no markdown fences.
 Each object: {"severity":"critical|high|medium|low","wcag":"<criterion>","page":"<url>","element":"<selector or description>","issue":"<description>","recommendation":"<specific fix>"}
@@ -157,9 +131,7 @@ Prompt:
 Audit the performance of [URL].
 
 Sitemap path: /tmp/site-audit-<host>/sitemap.json
-
-Performance thresholds and manual checks:
-[PERF_CHECKS]
+Performance thresholds and manual checks: plugins/site-audit/references/performance-checks.md — Read this file first.
 
 Return ONLY a JSON object. No prose, no markdown fences.
 Format: {"lighthouseScore":<0-100 or null>,"findings":[{"severity":"critical|high|medium|low","metric":"<metric>","page":"<url>","issue":"<description>","value":"<measured value or null>","recommendation":"<specific fix>"}]}
@@ -169,22 +141,16 @@ Format: {"lighthouseScore":<0-100 or null>,"findings":[{"severity":"critical|hig
 
 This agent reads the sitemap, generates a Playwright spec tailored to the
 real selectors observed during the crawl, executes it, and parses the JSON
-reporter output.
+reporter output. On Windows it falls back to Playwright MCP tools directly.
 
 Prompt:
 ```
-Find functional bugs on [URL] by generating and executing a Playwright spec.
+Find functional bugs on [URL].
 
 Sitemap path: /tmp/site-audit-<host>/sitemap.json
 Working directory: /tmp/site-audit-<host>/
-
-Bug patterns catalogue (use to decide which assertions to generate and how to
-map failures to severity):
-[BUG_PATTERNS]
-
-Script-authoring rules (selector grounding, click-safety blocklist,
-severity prefix conventions, reporter shape):
-[SCRIPT_RULES]
+Bug patterns catalogue: plugins/site-audit/references/bug-patterns.md — Read this file first.
+Script-authoring rules: plugins/site-audit/references/script-authoring.md — Read this file too.
 
 Return ONLY a JSON array of findings. No prose, no markdown fences.
 Each object: {"severity":"critical|high|medium|low","type":"<bug type>","page":"<url>","issue":"<description, prefix with click path or test title if useful>","recommendation":"<specific fix>"}
