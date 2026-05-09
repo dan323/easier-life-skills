@@ -509,7 +509,7 @@ main { padding: 20px 32px 80px; }
 .bundle-skill-item::before { content: '▸'; color: var(--accent); font-size: 0.65rem; }
 
 .plugin-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 2px; min-width: 0; }
-.chip { font-size: 0.73rem; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+.chip { font-size: 0.73rem; padding: 2px 8px; border-radius: 10px; max-width: 100%; word-break: break-word; }
 .chip-skill  { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
 .chip-agent  { background: color-mix(in srgb, #a78bfa 12%, transparent); color: #a78bfa; border: 1px solid color-mix(in srgb, #a78bfa 30%, transparent); }
 .chip-mcp     { background: color-mix(in srgb, #34d399 12%, transparent); color: #34d399; border: 1px solid color-mix(in srgb, #34d399 30%, transparent); }
