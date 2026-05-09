@@ -53,11 +53,15 @@ function getOrCreateTag(ownerRepo: string, builtin: boolean): HTMLElement {
   const existing = sourcesEl.querySelector(`[data-repo="${CSS.escape(ownerRepo)}"]`);
   if (existing) return existing as HTMLElement;
   const tag = sourceTag(ownerRepo, builtin);
-  tag.classList.toggle('active', state.activeRepos.has(ownerRepo));
+  const isActive = state.activeRepos.has(ownerRepo);
+  tag.classList.toggle('active', isActive);
+  tag.setAttribute('aria-pressed', String(isActive));
   tag.addEventListener('click', () => {
     if (state.activeRepos.has(ownerRepo)) state.activeRepos.delete(ownerRepo);
     else state.activeRepos.add(ownerRepo);
-    tag.classList.toggle('active', state.activeRepos.has(ownerRepo));
+    const nowActive = state.activeRepos.has(ownerRepo);
+    tag.classList.toggle('active', nowActive);
+    tag.setAttribute('aria-pressed', String(nowActive));
     syncStateToUrl();
     rebuildFilters();
     render();

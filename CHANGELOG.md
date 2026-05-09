@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.8.0] - 2026-05-09
+
+### Fixed
+- **Accessibility (High — WCAG 2.1.1)** — plugin cards (`.skill-card`) now have `role="button"`, `tabindex="0"`, and Enter/Space keydown handlers so keyboard-only users can open the detail panel
+- **Accessibility (High — WCAG 4.1.2)** — source-filter tags converted from `<div>` to `<button>` elements; `aria-pressed` updated on toggle
+- **Accessibility (High — WCAG 4.1.2)** — detail panel: focus moves to Close button on open; sibling content is marked `inert` (focus trap); focus is restored to the triggering card on close; panel has `role="dialog"`, `aria-modal="true"`, and `aria-hidden="true"` when closed
+- **Accessibility (High — WCAG 4.1.2)** — all Copy buttons now have descriptive `aria-label="Copy install command for <name>"` instead of the generic "Copy" that was indistinguishable across 16 buttons
+- **Accessibility (Medium — WCAG 4.1.2)** — view toggle buttons, category filter buttons now carry `aria-pressed="true/false"` updated on each click; sort button carries a full `aria-label` describing current order and click action
+- **Accessibility (Medium — WCAG 2.4.1)** — skip link now uses the standard clip pattern (`clip-path: inset(50%)`) instead of `left: -9999px` offscreen positioning
+- **Bugs** — `plugin.description` null guard added in `card-plugin.ts`, `panel.ts`, and `render.ts`; null description no longer crashes `.trim()` or renders the literal string "null"
+- **UX** — "Full catalog" footer link now points to the GitHub-rendered CATALOG.md page (opens in new tab) instead of the raw file with no navigation and a console error
+- **UX** — expand button label now reads "+N items" instead of the ambiguous "+N more"
+- **UX** — GitHub header link has `aria-label="GitHub (opens in new tab)"`
+- **Performance** — added `<link rel="preload" as="fetch" href="skills_index.json">` so the JSON starts loading in parallel with bundle.js, reducing the 3-hop fetch chain
+- **Performance** — `.marketplace-bar` now has `min-height: 48px` to reserve layout space before JS renders source tags, reducing CLS
+
 ## [1.7.0] - 2026-05-09
 
 ### Changed

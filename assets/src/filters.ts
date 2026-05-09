@@ -17,13 +17,17 @@ export function rebuildFilters(): void {
   }
 
   categories.forEach(cat => {
+    const active = state.activeCategories.has(cat);
     const btn = document.createElement('button');
-    btn.className = 'filter-btn' + (state.activeCategories.has(cat) ? ' active' : '');
+    btn.className = 'filter-btn' + (active ? ' active' : '');
     btn.textContent = titleCase(cat);
+    btn.setAttribute('aria-pressed', String(active));
     btn.addEventListener('click', () => {
       if (state.activeCategories.has(cat)) state.activeCategories.delete(cat);
       else state.activeCategories.add(cat);
-      btn.classList.toggle('active', state.activeCategories.has(cat));
+      const nowActive = state.activeCategories.has(cat);
+      btn.classList.toggle('active', nowActive);
+      btn.setAttribute('aria-pressed', String(nowActive));
       syncStateToUrl();
       render();
     });

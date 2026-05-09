@@ -51,11 +51,15 @@
 
 .skip-link {
   position: absolute;
-  left: -9999px;
-  top: auto;
   width: 1px;
   height: 1px;
+  padding: 0;
+  margin: -1px;
   overflow: hidden;
+  clip: rect(0,0,0,0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 .skip-link:focus {
   position: fixed;
@@ -294,6 +298,7 @@ header {
   flex-wrap: wrap;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
+  min-height: 48px;
 }
 
 .marketplace-sources {
@@ -310,6 +315,7 @@ header {
   padding: 3px 10px;
   border-radius: 20px;
   font-size: 0.75rem;
+  font-family: inherit;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-muted);
@@ -364,6 +370,7 @@ main { padding: 20px 32px 80px; }
   transition: border-color 0.15s, transform 0.1s;
 }
 .skill-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.skill-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-color: var(--accent); }
 
 .card-header {
   display: flex;

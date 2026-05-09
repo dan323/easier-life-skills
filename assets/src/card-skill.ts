@@ -20,7 +20,7 @@ export function skillCard(skill: Skill, showSource: boolean): HTMLElement {
     <p class="card-desc">${skill.description}</p>
     <div class="card-install">
       <code>${skill.installCommand}</code>
-      <button class="copy-btn" title="Copy install command">Copy</button>
+      <button class="copy-btn" title="Copy install command" aria-label="Copy install command for ${skill.name}">Copy</button>
     </div>
   `;
 

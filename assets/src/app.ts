@@ -51,6 +51,12 @@ searchEl.addEventListener('input', e => {
 function updateSortBtn(): void {
   sortBtn.textContent = state.sort === 'az' ? 'Sort: A→Z' : 'Sort: Z→A';
   sortBtn.title = state.sort === 'az' ? 'Click to sort Z→A' : 'Click to sort A→Z';
+  sortBtn.setAttribute(
+    'aria-label',
+    state.sort === 'az'
+      ? 'Currently sorted A to Z. Click to sort Z to A.'
+      : 'Currently sorted Z to A. Click to sort A to Z.',
+  );
 }
 
 sortBtn.addEventListener('click', () => {
@@ -80,7 +86,9 @@ VIEW_IDS.forEach(view => {
 function switchView(view: ViewKey): void {
   state.view = view;
   VIEW_IDS.forEach(v => {
-    (document.getElementById(BTN_IDS[v]) as HTMLElement).classList.toggle('active', v === view);
+    const btn = document.getElementById(BTN_IDS[v]) as HTMLElement;
+    btn.classList.toggle('active', v === view);
+    btn.setAttribute('aria-pressed', String(v === view));
     (document.getElementById(GRID_IDS[v]) as HTMLElement).style.display = v === view ? 'grid' : 'none';
   });
   (document.getElementById('filters') as HTMLElement).style.display =

@@ -14,11 +14,14 @@ const panel    = document.getElementById('plugin-panel')  as HTMLElement;
 const overlay  = document.getElementById('panel-overlay') as HTMLElement;
 const closeBtn = document.getElementById('panel-close')   as HTMLButtonElement;
 
+let _lastFocused: HTMLElement | null = null;
+
 overlay.addEventListener('click',  closePanel);
 closeBtn.addEventListener('click', closePanel);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
 
 function openPluginPanel(plugin: Plugin): void {
+  _lastFocused = document.activeElement as HTMLElement;
   const nameEl = document.getElementById('panel-name') as HTMLAnchorElement;
   nameEl.textContent = plugin.name;
   nameEl.href        = plugin.homepage ?? '#';
@@ -28,12 +31,12 @@ function openPluginPanel(plugin: Plugin): void {
   catEl.textContent = plugin.category ? titleCase(plugin.category) : 'Uncategorized';
   catEl.className   = `badge badge-cat badge-${plugin.category ?? 'uncategorized'}`;
 
-  const hasDesc    = plugin.description.trim().length > 0;
+  const hasDesc    = (plugin.description ?? '').trim().length > 0;
   const pluginUrl  = plugin.homepage ?? `https://github.com/${plugin.source.owner}/${plugin.source.repo}`;
   const promptText = `Explain to me what I would find in plugin ${pluginUrl} and what would it be used for`;
 
   const descEl = document.getElementById('panel-desc') as HTMLElement;
-  descEl.textContent   = plugin.description;
+  descEl.textContent   = plugin.description ?? '';
   descEl.style.display = hasDesc ? '' : 'none';
 
   const promptEl = document.getElementById('panel-prompt') as HTMLElement;
@@ -99,15 +102,33 @@ function openPluginPanel(plugin: Plugin): void {
 
   (document.getElementById('panel-install-cmd') as HTMLElement).textContent = plugin.installCommand;
   const installCopyBtn = document.getElementById('panel-install-copy') as HTMLButtonElement;
+  installCopyBtn.setAttribute('aria-label', `Copy install command for ${plugin.name}`);
   installCopyBtn.onclick = () => copyText(plugin.installCommand, installCopyBtn);
 
   panel.classList.add('open');
+  panel.removeAttribute('aria-hidden');
   document.body.style.overflow = 'hidden';
+
+  for (const sibling of Array.from(document.body.children)) {
+    if (sibling !== panel) (sibling as HTMLElement).setAttribute('inert', '');
+  }
+
+  requestAnimationFrame(() => closeBtn.focus());
 }
 
 function closePanel(): void {
   panel.classList.remove('open');
+  panel.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
+
+  for (const sibling of Array.from(document.body.children)) {
+    if (sibling !== panel) (sibling as HTMLElement).removeAttribute('inert');
+  }
+
+  if (_lastFocused && document.body.contains(_lastFocused)) {
+    _lastFocused.focus();
+    _lastFocused = null;
+  }
 }
 
 function renderCardSection<T>(

@@ -41,7 +41,7 @@ function renderPlugins(): void {
     if (state.activeRepos.size      && !state.activeRepos.has(plugin._repo ?? ''))      return false;
     if (state.activeCategories.size && !state.activeCategories.has(plugin.category ?? '')) return false;
     if (!state.query) return true;
-    return plugin.name.includes(state.query) || plugin.description.toLowerCase().includes(state.query);
+    return plugin.name.includes(state.query) || (plugin.description ?? '').toLowerCase().includes(state.query);
   });
 
   countEl.textContent = `${filtered.length} of ${state.plugins.length} plugins`;

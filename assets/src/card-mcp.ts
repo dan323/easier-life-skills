@@ -17,7 +17,7 @@ export function mcpCard(mcp: McpServer, showSource: boolean): HTMLElement {
     ${mcp.command ? `<p class="card-desc" style="font-size:0.78rem;color:var(--text-muted)">Command: <code>${mcp.command}</code></p>` : ''}
     <div class="card-install">
       <code>${mcp.installCommand}</code>
-      <button class="copy-btn" title="Copy install command">Copy</button>
+      <button class="copy-btn" title="Copy install command" aria-label="Copy install command for ${mcp.name}">Copy</button>
     </div>
   `;
 

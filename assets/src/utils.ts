@@ -22,6 +22,7 @@ export function makeExpandable<T>(
   items: T[],
   limit: number,
   renderItem: (item: T) => HTMLElement,
+  itemType = 'more',
 ): void {
   let expanded = false;
   function draw(): void {
@@ -30,7 +31,7 @@ export function makeExpandable<T>(
     if (items.length > limit) {
       const btn = document.createElement('button');
       btn.className = 'expand-btn';
-      btn.textContent = expanded ? 'Show less' : `+${items.length - limit} more`;
+      btn.textContent = expanded ? 'Show less' : `+${items.length - limit} ${itemType}`;
       btn.addEventListener('click', e => { e.stopPropagation(); expanded = !expanded; draw(); });
       container.appendChild(btn);
     }

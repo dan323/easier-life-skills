@@ -7,6 +7,7 @@
   <meta name="description" content="A curated marketplace of Claude Code skills for common development workflows." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230d1117'/><text x='16' y='23' font-size='20' font-weight='700' font-family='system-ui,sans-serif' fill='%2358a6ff' text-anchor='middle'>S</text></svg>" />
   <link rel="stylesheet" href="assets/style.css" />
+  <link rel="preload" as="fetch" href="skills_index.json" crossorigin />
 </head>
 <body>
 
@@ -19,7 +20,7 @@
       <p>A Claude Code skill marketplace · <span id="skill-count" aria-live="polite" aria-atomic="true">…</span> items loaded</p>
     </div>
     <div class="header-right">
-      <a class="btn-gh" href="https://github.com/dan323/easier-life-skills" target="_blank" rel="noopener"><span aria-hidden="true">★</span> GitHub</a>
+      <a class="btn-gh" href="https://github.com/dan323/easier-life-skills" target="_blank" rel="noopener" aria-label="GitHub (opens in new tab)"><span aria-hidden="true">★</span> GitHub</a>
     </div>
   </header>
 
@@ -60,14 +61,14 @@
     </form>
     <div class="filter-group" id="filters"></div>
     <button id="sort-btn" class="sort-btn" title="Click to sort Z→A">Sort: A→Z</button>
-    <div class="view-toggle">
-      <button class="view-btn active" id="view-plugins">Plugins</button>
-      <button class="view-btn" id="view-skills">Skills</button>
-      <button class="view-btn" id="view-agents">Agents</button>
-      <button class="view-btn" id="view-mcp">MCP Servers</button>
-      <button class="view-btn" id="view-commands">Commands</button>
-      <button class="view-btn" id="view-hooks">Hooks</button>
-      <button class="view-btn" id="view-bundles">Bundles</button>
+    <div class="view-toggle" role="group" aria-label="View type">
+      <button class="view-btn active" id="view-plugins" aria-pressed="true">Plugins</button>
+      <button class="view-btn" id="view-skills" aria-pressed="false">Skills</button>
+      <button class="view-btn" id="view-agents" aria-pressed="false">Agents</button>
+      <button class="view-btn" id="view-mcp" aria-pressed="false">MCP Servers</button>
+      <button class="view-btn" id="view-commands" aria-pressed="false">Commands</button>
+      <button class="view-btn" id="view-hooks" aria-pressed="false">Hooks</button>
+      <button class="view-btn" id="view-bundles" aria-pressed="false">Bundles</button>
     </div>
   </div>
 
@@ -93,14 +94,14 @@
   <footer>
     <span>Updated <span id="generated">…</span></span>
     <span>
-      <a href="CATALOG.md">Full catalog</a> ·
+      <a href="https://github.com/dan323/easier-life-skills/blob/master/CATALOG.md" target="_blank" rel="noopener" aria-label="Full catalog (opens in new tab)">Full catalog</a> ·
       <a href="https://github.com/dan323/easier-life-skills/blob/master/docs/contributing.md" target="_blank" rel="noopener">Contribute</a> ·
       <a href="https://github.com/dan323/easier-life-skills" target="_blank" rel="noopener">GitHub</a>
     </span>
   </footer>
 
   <!-- ── Plugin detail panel ── -->
-  <div id="plugin-panel">
+  <div id="plugin-panel" aria-hidden="true" aria-modal="true" role="dialog" aria-label="Plugin details">
     <div id="panel-overlay"></div>
     <div class="panel-content">
       <div class="panel-header">

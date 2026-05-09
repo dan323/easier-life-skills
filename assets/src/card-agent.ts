@@ -21,7 +21,7 @@ export function agentCard(agent: Agent, showSource: boolean): HTMLElement {
     <p class="card-desc" style="font-size:0.78rem;color:var(--text-muted)">Tools: ${toolList}</p>
     <div class="card-install">
       <code>${agent.installCommand}</code>
-      <button class="copy-btn" title="Copy install command">Copy</button>
+      <button class="copy-btn" title="Copy install command" aria-label="Copy install command for ${agent.name}">Copy</button>
     </div>
   `;
 
