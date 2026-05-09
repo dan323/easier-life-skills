@@ -1,7 +1,7 @@
 ---
 name: site-mapper
 description: Crawls a website with Playwright (via the Playwright MCP server) and writes a sitemap.json artifact describing pages, real selectors, forms, links, and console/network errors observed during the crawl. Other site-audit agents read this artifact instead of crawling the site themselves.
-tools: mcp__playwright__browser_navigate, mcp__playwright__browser_navigate_back, mcp__playwright__browser_click, mcp__playwright__browser_hover, mcp__playwright__browser_snapshot, mcp__playwright__browser_take_screenshot, mcp__playwright__browser_console_messages, mcp__playwright__browser_network_requests, mcp__playwright__browser_press_key, mcp__playwright__browser_wait_for, mcp__playwright__browser_close, Write
+tools: mcp__plugin_site-audit_playwright__browser_navigate, mcp__plugin_site-audit_playwright__browser_navigate_back, mcp__plugin_site-audit_playwright__browser_click, mcp__plugin_site-audit_playwright__browser_hover, mcp__plugin_site-audit_playwright__browser_snapshot, mcp__plugin_site-audit_playwright__browser_take_screenshot, mcp__plugin_site-audit_playwright__browser_console_messages, mcp__plugin_site-audit_playwright__browser_network_requests, mcp__plugin_site-audit_playwright__browser_press_key, mcp__plugin_site-audit_playwright__browser_wait_for, mcp__plugin_site-audit_playwright__browser_close, Write
 background: false
 ---
 
@@ -56,7 +56,7 @@ downstream agent can decide whether to assert against it.
 
 ### Step 1 — Start the browser
 
-Call `mcp__playwright__browser_navigate` with the seed URL.
+Call `mcp__plugin_site-audit_playwright__browser_navigate` with the seed URL.
 
 If the call returns an error indicating the MCP server is unavailable, **stop
 and fail loudly**. Return a one-line JSON error object:
@@ -73,7 +73,7 @@ observations that only a browser can provide.
 
 After every navigation, in order:
 
-1. `mcp__playwright__browser_snapshot` — read the accessibility tree. Use this
+1. `mcp__plugin_site-audit_playwright__browser_snapshot` — read the accessibility tree. Use this
    to extract:
    - **Forms:** `selector`, `action`, `method`, `fields[]` (each with selector,
      name, type, required), `submit_selector` if present.
@@ -81,9 +81,9 @@ After every navigation, in order:
      `selector`, `role`, accessible `text`.
    - **Links:** same-host `<a href>` — record `selector`, `href` (absolute),
      `text`.
-2. `mcp__playwright__browser_console_messages` — capture every `error` and
+2. `mcp__plugin_site-audit_playwright__browser_console_messages` — capture every `error` and
    `warning` emitted during load. Record `text` and `source`.
-3. `mcp__playwright__browser_network_requests` — list every request. Record any
+3. `mcp__plugin_site-audit_playwright__browser_network_requests` — list every request. Record any
    with `status >= 400` or that failed outright. Save to `failed_requests[]`.
 
 Append the result to your in-memory pages array.
@@ -95,14 +95,14 @@ clickable controls (per the rules above). Prefer **breadth**: visit varied page
 types (`/`, `/about`, `/contact`, `/products`, a product detail, search
 results) before drilling deeper.
 
-Pick one candidate, click it (or `mcp__playwright__browser_navigate` for direct
+Pick one candidate, click it (or `mcp__plugin_site-audit_playwright__browser_navigate` for direct
 URL hops). Re-run Step 2.
 
 Stop when any of the budgets is hit.
 
 ### Step 4 — Close the browser
 
-Call `mcp__playwright__browser_close` before writing the artifact.
+Call `mcp__plugin_site-audit_playwright__browser_close` before writing the artifact.
 
 ### Step 5 — Write sitemap.json
 
