@@ -7,7 +7,13 @@ export function copyText(text: string, btn: HTMLElement): void {
     const original = btn.textContent;
     btn.textContent = 'Copied!';
     btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1800);
+    const announce = document.getElementById('sr-announce');
+    if (announce) { announce.textContent = 'Command copied to clipboard'; }
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove('copied');
+      if (announce) { announce.textContent = ''; }
+    }, 3000);
   });
 }
 

@@ -5,18 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>easier-life-skills — Claude Code Skill Marketplace</title>
   <meta name="description" content="A curated marketplace of Claude Code skills for common development workflows." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230d1117'/><text x='16' y='23' font-size='20' font-weight='700' font-family='system-ui,sans-serif' fill='%2358a6ff' text-anchor='middle'>S</text></svg>" />
   <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
 
+  <a href="#main" class="skip-link">Skip to main content</a>
+
   <!-- ── Header ── -->
   <header>
     <div class="header-left">
-      <h1>easier-life-<span>skills</span></h1>
-      <p>A Claude Code skill marketplace · <span id="skill-count">…</span> items loaded</p>
+      <h1><a href="." class="home-link">easier-life-<span>skills</span></a></h1>
+      <p>A Claude Code skill marketplace · <span id="skill-count" aria-live="polite" aria-atomic="true">…</span> items loaded</p>
     </div>
     <div class="header-right">
-      <a class="btn-gh" href="https://github.com/dan323/easier-life-skills" target="_blank" rel="noopener">★ GitHub</a>
+      <a class="btn-gh" href="https://github.com/dan323/easier-life-skills" target="_blank" rel="noopener"><span aria-hidden="true">★</span> GitHub</a>
     </div>
   </header>
 
@@ -24,6 +27,7 @@
   <section class="quickstart">
     <div class="quickstart-inner">
       <h2>Get started in 2 steps</h2>
+      <p class="quickstart-note">Run these commands inside the <a href="https://claude.ai/code" target="_blank" rel="noopener">Claude Code CLI</a>.</p>
       <div class="steps">
         <div class="step">
           <div class="step-num">1</div>
@@ -41,7 +45,7 @@
             <div class="step-label">Install any skill — browse below, then run</div>
             <div class="step-cmd">
               <code>/plugin install &lt;skill-name&gt;@easier-life-skills</code>
-              <button class="copy-btn" data-copy="/plugin install changelog@easier-life-skills">Copy example</button>
+              <button class="copy-btn" data-copy="/plugin install changelog@easier-life-skills">Copy (changelog example)</button>
             </div>
           </div>
         </div>
@@ -51,9 +55,11 @@
 
   <!-- ── Controls ── -->
   <div class="controls">
-    <input id="search" type="search" placeholder="Search skills… (press / to focus)" autocomplete="off" />
+    <form role="search" style="display:contents">
+      <input id="search" type="search" placeholder="Search skills… (press / to focus)" autocomplete="off" aria-label="Search skills" />
+    </form>
     <div class="filter-group" id="filters"></div>
-    <button id="sort-btn" class="sort-btn" title="Sort Z→A">A→Z</button>
+    <button id="sort-btn" class="sort-btn" title="Click to sort Z→A">Sort: A→Z</button>
     <div class="view-toggle">
       <button class="view-btn active" id="view-plugins">Plugins</button>
       <button class="view-btn" id="view-skills">Skills</button>
@@ -72,8 +78,8 @@
   </div>
 
   <!-- ── Main ── -->
-  <main>
-    <div class="count" id="count"></div>
+  <main id="main">
+    <div class="count" id="count" aria-live="polite" aria-atomic="true"></div>
     <div id="plugins-grid"></div>
     <div id="skills-grid" style="display:none"></div>
     <div id="agents-grid" style="display:none"></div>
@@ -87,9 +93,9 @@
   <footer>
     <span>Updated <span id="generated">…</span></span>
     <span>
-      <a href="https://github.com/dan323/easier-life-skills/blob/master/CATALOG.md">Full catalog</a> ·
-      <a href="https://github.com/dan323/easier-life-skills/blob/master/docs/contributing.md">Contribute</a> ·
-      <a href="https://github.com/dan323/easier-life-skills">GitHub</a>
+      <a href="CATALOG.md">Full catalog</a> ·
+      <a href="https://github.com/dan323/easier-life-skills/blob/master/docs/contributing.md" target="_blank" rel="noopener">Contribute</a> ·
+      <a href="https://github.com/dan323/easier-life-skills" target="_blank" rel="noopener">GitHub</a>
     </span>
   </footer>
 
@@ -102,7 +108,7 @@
           <a id="panel-name" class="panel-name" rel="noopener"></a>
           <span id="panel-category" class="badge badge-cat"></span>
         </div>
-        <button id="panel-close" class="panel-close-btn" title="Close">×</button>
+        <button id="panel-close" class="panel-close-btn" aria-label="Close"><span aria-hidden="true">×</span></button>
       </div>
 
       <p id="panel-desc" class="panel-desc"></p>
@@ -149,6 +155,8 @@
       </div>
     </div>
   </div>
+
+  <div id="sr-announce" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
   <script type="module" src="assets/bundle.js"></script>
 </body>

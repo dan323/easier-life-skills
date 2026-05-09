@@ -1,6 +1,27 @@
 # Changelog
 
-## [Unreleased]
+## [1.6.0] - 2026-05-09
+
+### Fixed
+- **Accessibility (Critical — WCAG 1.3.1)** — search input now has `aria-label="Search skills"`; previously had no accessible name, so screen readers announced "edit, blank"
+- **Accessibility (High — WCAG 2.4.1)** — added a visually-hidden skip link (`Skip to main content`) as the first focusable element; `<main>` now has `id="main"`
+- **Accessibility (High — WCAG 4.1.2)** — `#panel-close` button now has `aria-label="Close"` with the `×` glyph wrapped in `aria-hidden`
+- **Accessibility (High — WCAG 4.1.2)** — decorative `★` in the GitHub header link is now `aria-hidden`; screen readers no longer announce "black star"
+- **Accessibility (High — WCAG 1.4.3)** — `.badge-source` foreground lifted to `#8ba3c4` on `#0e1424` (was ~3.99:1, now ≥4.5:1); `.badge-documentation` text changed to `#4f9bff` on `#0d2137` (was ~3.51:1, now ~5.2:1)
+- **Accessibility (Medium — WCAG 4.1.2)** — `#skill-count` and `#count` now have `aria-live="polite" aria-atomic="true"` so filter changes are announced to screen readers
+- **Accessibility (Low — WCAG 1.3.5)** — search input is now wrapped in `<form role="search">` to expose the search landmark
+- **UX — missing focus styles** — added global `:focus-visible` rule (2px accent outline); all buttons, links, and interactive controls now have a visible keyboard focus ring
+- **UX — muted text contrast** — `--text-muted` lifted from `#8b949e` to `#b1bac4` for improved legibility
+- **UX — footer "Full catalog" 404** — link changed from `https://github.com/dan323/easier-life-skills/blob/master/CATALOG.md` (the file is gitignored and never committed) to the relative `CATALOG.md` served by GitHub Pages
+- **UX — external link inconsistency** — footer "Contribute" and "GitHub" links now use `target="_blank" rel="noopener"`, matching the header GitHub button
+- **UX — sort button ambiguity** — sort button text changed to `Sort: A→Z` / `Sort: Z→A` with matching `Click to sort …` tooltip so current order and next action are unambiguous
+- **UX — copy confirmation** — "Copied!" confirmation extended from 1.8 s to 3 s; a `#sr-announce` `aria-live="polite"` region now announces "Command copied to clipboard" to screen readers
+- **UX — quickstart jargon** — added "Run these commands inside the Claude Code CLI" note with a link to the Claude Code docs above the quickstart steps
+- **UX — misleading copy button** — Step 2 "Copy example" button relabelled to "Copy (changelog example)" to make clear it copies a specific example, not the placeholder shown
+- **UX — favicon 404** — added inline SVG `<link rel="icon">` data URI; eliminates the 404 console error on every page load
+- **UX — H1 not a home link** — `<h1>` is now wrapped in `<a href=".">` so clicking the logo resets all URL state
+- **UX — mobile tap targets** — on `≤640px` all interactive buttons now have `min-height: 44px; min-width: 44px` (WCAG 2.5.5 target size)
+- **UX — view toggle mobile overflow** — view toggle is now `overflow-x: auto` on narrow viewports so the 7 buttons scroll rather than wrap
 
 ### Added
 - **`site-audit` plugin** — audits a live website for UX issues, accessibility violations (WCAG 2.1), performance problems, and functional bugs; spawns four specialist agents in parallel (`ux-analyst`, `accessibility-auditor`, `performance-auditor`, `bug-hunter`); uses Lighthouse, axe-cli, pa11y, and Playwright via `npx` when available, with AI-based WebFetch analysis as fallback; writes `site-audit-report.md` with findings grouped by severity; includes an `audit-logger` hook that appends completed audits to `~/.claude/audit-history.jsonl`

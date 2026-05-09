@@ -49,8 +49,8 @@ searchEl.addEventListener('input', e => {
 // ── Sort ──
 
 function updateSortBtn(): void {
-  sortBtn.textContent = state.sort === 'az' ? 'A→Z' : 'Z→A';
-  sortBtn.title = state.sort === 'az' ? 'Sort Z→A' : 'Sort A→Z';
+  sortBtn.textContent = state.sort === 'az' ? 'Sort: A→Z' : 'Sort: Z→A';
+  sortBtn.title = state.sort === 'az' ? 'Click to sort Z→A' : 'Click to sort A→Z';
 }
 
 sortBtn.addEventListener('click', () => {
