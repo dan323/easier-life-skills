@@ -378,6 +378,7 @@ main { padding: 20px 32px 80px; }
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .card-name {
@@ -386,6 +387,8 @@ main { padding: 20px 32px 80px; }
   font-family: 'SF Mono', 'Fira Code', monospace;
   color: var(--accent);
   text-decoration: none;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 .card-name:hover { text-decoration: underline; }
 
