@@ -1,7 +1,7 @@
 ---
 name: improve-logging
 description: Audit and improve logging quality across a codebase. Use when the user asks to "improve logging", "fix log levels", "add logging", "review our logs", "make logging consistent", "we have bad logging", or anything about log messages being unclear, missing, or at the wrong severity. Produces a prioritized list of recommendations — does not edit files directly.
-tools: Bash, Read, Glob, Grep
+tools: Bash, Read, Glob, Grep, TaskCreate, TaskUpdate
 model: haiku
 metadata:
   version: 1.0
@@ -12,6 +12,15 @@ metadata:
 Audit a codebase's logging and produce a prioritized list of recommendations covering three areas: missing log statements, incorrect severity levels, and poor message quality. Also enforces (or proposes) a consistent logging pattern across the whole application.
 
 **This skill is read-only.** It produces a recommendation report. It does not edit any file.
+
+## Task Tracking
+
+Before doing any work, call `TaskCreate` for each phase below. Call `TaskUpdate` (status `in_progress`) when you begin a phase and `TaskUpdate` (status `completed`) when you finish it.
+
+- Detect languages and logging frameworks
+- Establish logging pattern
+- Scan for issues
+- Write report
 
 ## Phase 1: Detect Languages and Logging Frameworks
 

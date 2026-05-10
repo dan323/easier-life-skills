@@ -1,7 +1,7 @@
 ---
 name: document-project
 description: Create or improve project documentation. Use when the user asks to "document the project", "create docs", "improve documentation", "write a README", "add a getting started guide", or mentions that documentation is missing or outdated. Produces a minimal root README.md and a /docs directory with linked pages. All diagrams use ASCII or Mermaid.
-tools: Bash, Read, Write, Edit, Glob, Grep
+tools: Bash, Read, Write, Edit, Glob, Grep, TaskCreate, TaskUpdate
 model: sonnet
 metadata:
   version: 1.0
@@ -10,6 +10,18 @@ metadata:
 # Document Project
 
 Create or improve project documentation: a minimal root `README.md` that describes the project and links to a `/docs` directory containing all detailed pages. Every file and section is cross-linked so readers can navigate naturally. All diagrams are ASCII or Mermaid — no external image dependencies.
+
+## Task Tracking
+
+Before doing any work, call `TaskCreate` for each phase below. Call `TaskUpdate` (status `in_progress`) when you begin a phase and `TaskUpdate` (status `completed`) when you finish it.
+
+- Understand the project
+- Audit existing documentation
+- Plan documentation structure
+- Write root README.md
+- Write /docs pages
+- Cross-link pages
+- Print summary
 
 ## Phase 1: Understand the Project
 

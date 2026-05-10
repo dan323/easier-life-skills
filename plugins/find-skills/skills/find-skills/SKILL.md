@@ -6,7 +6,7 @@ description: >
   for this project?", "find skills for my repo", "what plugins should I install?",
   "are there any skills for this?", or "recommend skills". Optionally searches online
   if the user explicitly includes "online" or "search the web" in their request.
-tools: Bash, Read, Glob, Grep, WebSearch, WebFetch
+tools: Bash, Read, Glob, Grep, WebSearch, WebFetch, TaskCreate, TaskUpdate
 model: sonnet
 ---
 
@@ -17,6 +17,19 @@ marketplaces that would be valuable for this project.
 
 **This skill is read-only.** It produces a recommendation report. It does not install
 anything or modify any file.
+
+---
+
+## Task Tracking
+
+Before doing any work, call `TaskCreate` for each phase below. Call `TaskUpdate` (status `in_progress`) when you begin a phase and `TaskUpdate` (status `completed`) when you finish it.
+
+- Determine search mode
+- Understand repository
+- Load known marketplaces
+- Online search (create only if online mode is active)
+- Match skills to project
+- Write report
 
 ---
 

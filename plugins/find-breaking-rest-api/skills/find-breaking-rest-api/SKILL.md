@@ -9,7 +9,7 @@ description: >
   changes, and path prefix changes. Reads git history — no external tools required.
   TRIGGER this skill whenever the user mentions REST APIs, endpoints, routes, or API versioning
   alongside words like "breaking", "changed", "removed", "compatible", or "diff".
-tools: Bash, Read, Glob, Grep
+tools: Bash, Read, Glob, Grep, TaskCreate, TaskUpdate
 model: sonnet
 metadata:
   version: 3.0
@@ -20,6 +20,17 @@ metadata:
 Compare the REST API surface between two git revisions and produce a structured, actionable report. A breaking change is any change that requires existing API clients to update their code.
 
 **This skill is read-only.** It produces a report. It does not modify any file.
+
+---
+
+## Task Tracking
+
+Before doing any work, call `TaskCreate` for each phase below. Call `TaskUpdate` (status `in_progress`) when you begin a phase and `TaskUpdate` (status `completed`) when you finish it.
+
+- Determine comparison range
+- Find and compare API surface
+- Classify changes
+- Write report
 
 ---
 

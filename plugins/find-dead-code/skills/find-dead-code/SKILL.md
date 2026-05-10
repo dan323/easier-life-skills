@@ -1,7 +1,7 @@
 ---
 name: find-dead-code
 description: Find unused code — functions, classes, variables, imports, constants, types, and more. Use when the user asks to "find dead code", "find unused code", "clean up unused imports", "find unreachable code", or "find what can be deleted". Accounts for dependency injection frameworks (Spring, CDI, NestJS, Angular, etc.) to avoid false positives.
-tools: Bash, Read, Glob, Grep
+tools: Bash, Read, Glob, Grep, TaskCreate, TaskUpdate
 model: haiku
 metadata:
    version: 1.0
@@ -12,6 +12,17 @@ metadata:
 Identify code that is defined but never used: functions, classes, methods, variables, constants, types, imports, and exports. Reports candidates with file and line number. Accounts for patterns that make code appear unused but are actually invoked at runtime (dependency injection, reflection, serialization, entry points, decorators).
 
 **This skill is read-only.** It produces a report. It does not delete or modify any file.
+
+## Task Tracking
+
+Before doing any work, call `TaskCreate` for each phase below. Call `TaskUpdate` (status `in_progress`) when you begin a phase and `TaskUpdate` (status `completed`) when you finish it.
+
+- Detect languages and tooling
+- Identify safe symbols
+- Analyze code (language-specific)
+- Detect reflection patterns
+- Rank findings by confidence
+- Write report
 
 ## Phase 1: Detect Languages and Tooling
 

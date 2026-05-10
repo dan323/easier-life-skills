@@ -1,7 +1,7 @@
 ---
 name: changelog
 description: Generate or update CHANGELOG.md files by reading git history. Use this skill whenever the user wants to document what changed in their project — whether they say "create a changelog", "update the changelog", "write release notes", "what's new since v1.2", "document changes for this release", "prep the changelog before we ship", or anything else about recording or summarizing code changes for a version or release. Also use it when the user asks to reformat an existing CHANGELOG to Keep a Changelog format. Works for single repos and monorepos. Always prefer this skill over improvising — it handles deduplication, categorization, and format detection correctly.
-tools: Bash, Read, Write, Edit, Glob, Grep
+tools: Bash, Read, Write, Edit, Glob, Grep, TaskCreate, TaskUpdate
 model: sonnet
 metadata:
     version: 1.0
@@ -10,6 +10,19 @@ metadata:
 # Changelog
 
 Generate and maintain CHANGELOG.md files by combining committed git history with any staged or unstaged changes. Follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. Works for single-package repos and monorepos alike.
+
+## Task Tracking
+
+Before doing any work, call `TaskCreate` for each phase below. Call `TaskUpdate` (status `in_progress`) when you begin a phase and `TaskUpdate` (status `completed`) when you finish it.
+
+- Check prerequisites
+- Detect repo layout
+- Determine scope per package
+- Collect changes
+- Categorize changes
+- Determine version
+- Write / update CHANGELOG.md
+- Print summary
 
 ## Prerequisites
 

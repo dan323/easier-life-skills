@@ -27,6 +27,13 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/cost-tracker"
     },
     {
+      "name": "cv-linkedin",
+      "source": "./plugins/cv-linkedin",
+      "description": "Analyze and improve a CV and LinkedIn profile with stronger language, quantified achievements, and aligned keywords",
+      "category": "productivity",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/cv-linkedin"
+    },
+    {
       "name": "document-project",
       "source": "./plugins/document-project",
       "description": "Create or improve project documentation with README and /docs structure",

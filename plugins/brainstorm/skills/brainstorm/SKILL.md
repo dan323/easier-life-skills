@@ -8,7 +8,7 @@ description: >
   the user seems stuck or is asking for direction on their project.
   TRIGGER this skill whenever the user asks for ideas, suggestions, or "what next" guidance
   about their own codebase — even if they don't say "brainstorm" explicitly.
-tools: Bash, Read, Glob, Grep
+tools: Bash, Read, Glob, Grep, TaskCreate, TaskUpdate
 model: haiku
 ---
 
@@ -20,6 +20,17 @@ insights that come from reading the whole codebase at once and thinking hard abo
 what it could become, not just what it's missing.
 
 **This skill is read-only.** It produces a report. It does not modify any file.
+
+---
+
+## Task Tracking
+
+Before doing any work, call `TaskCreate` for each phase below. Call `TaskUpdate` (status `in_progress`) when you begin a phase and `TaskUpdate` (status `completed`) when you finish it.
+
+- Understand the project
+- Read source code
+- Analyze ideas (three-lens)
+- Write report
 
 ---
 

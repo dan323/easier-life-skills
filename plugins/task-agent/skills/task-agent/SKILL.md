@@ -3,7 +3,7 @@ name: task-agent
 description: >
   Reads a list of tasks in a yaml to be done in certain github repos. Agents clone the repo, do the task,
   commit the changes and create a PR. Not to be called automatically by Claude by any means.
-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, mcp__github__search_repositories, mcp__github__create_pull_request, mcp__github__pull_request_read
+tools: Bash, Read, Write, Edit, Glob, Grep, Agent, TaskCreate, TaskUpdate, mcp__github__search_repositories, mcp__github__create_pull_request, mcp__github__pull_request_read
 model: opus
 ---
 
@@ -14,6 +14,17 @@ State is persisted in `agent-tasks-state.yml` in the same directory, so reruns a
 pick up where the previous run left off.
 
 **Prereqs:** `python3`, `git`.
+
+---
+
+## Task Tracking
+
+Before doing any work, call `TaskCreate` for each phase below. Call `TaskUpdate` (status `in_progress`) when you begin a phase and `TaskUpdate` (status `completed`) when you finish it.
+
+- Load config and state
+- Prepare repository
+- Execute task and open PR
+- Update state and report
 
 ---
 

@@ -6,7 +6,7 @@ description: >
   "check this URL", "review this website", "find issues on", "test this page",
   "what's wrong with", or anything about evaluating a live website for quality.
   Writes a site-audit-report.md with findings grouped by severity.
-tools: WebFetch, Bash, Agent, Write, Read
+tools: WebFetch, Bash, Agent, Write, Read, TaskCreate, TaskUpdate
 version: 1.1
 ---
 
@@ -23,6 +23,18 @@ is not available, because every downstream agent depends on the real selectors
 and runtime observations only a browser can produce. axe-cli, pa11y, and
 Lighthouse are still fetched on demand via `npx --yes` per their respective
 agents.
+
+---
+
+## Task Tracking
+
+Before doing any work, call `TaskCreate` for each phase below. Call `TaskUpdate` (status `in_progress`) when you begin a phase and `TaskUpdate` (status `completed`) when you finish it.
+
+- Get URL and verify reachability
+- Build site map
+- Run parallel analysis (UX, accessibility, performance, bugs)
+- Parse results
+- Write report
 
 ---
 

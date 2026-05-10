@@ -1,0 +1,233 @@
+{
+  "skill_name": "cv-linkedin",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Please improve my CV at /tmp/eval-cv-linkedin-0/cv.md. My LinkedIn username is john-smith-dev.",
+      "description": "Backend engineer CV with weak verbs ('helped', 'worked on', 'was responsible for'), zero quantified bullets, no summary, no GitHub link in contact section, and a flat skills dump with no categories. LinkedIn fetch will be blocked. Skill must detect 'Engineer' role, add summary using the engineer template, replace weak verbs, add [METRIC] placeholders with hint text, restructure skills into category groups, add GitHub placeholder, and handle LinkedIn failure gracefully with an explicit paste request.",
+      "setup": "mkdir -p /tmp/eval-cv-linkedin-0 && cat > /tmp/eval-cv-linkedin-0/cv.md << 'EOF'\nJohn Smith\njohn.smith@email.com | +1 555-0100 | New York, NY\n\nEXPERIENCE\n\nSoftware Developer — Acme Corp (2021–2024)\n- Helped with backend API development using Python and Django\n- Worked on improving system performance\n- Was responsible for database migrations using Alembic and PostgreSQL\n- Assisted the team with code reviews on GitHub\n- Participated in sprint planning and backlog grooming\n\nJunior Developer — StartupXYZ (2019–2021)\n- Involved in building the customer-facing mobile app in React Native\n- Worked on bug fixes across the codebase\n- Helped with writing unit tests with pytest\n- Participated in on-call rotation\n\nEDUCATION\nComputer Science, State University, 2019\n\nSKILLS\nPython, JavaScript, SQL, Git, Django, React Native, PostgreSQL, Alembic, pytest\nEOF",
+      "expected_output": "cv-improved.md written with: role detected as Engineer; a generated 3-sentence engineer-pattern summary mentioning backend/Python; all weak verbs replaced (at least 6 bullets rewritten); [METRIC: e.g. ...] placeholders with hint text appended to every unquantified bullet (all 9 need them); skills restructured into category groups (Languages, Frameworks, Databases, Tools at minimum); GitHub placeholder added in contact section; 'Changes Made' header present. Skill must also report that LinkedIn access failed and explicitly ask the user to paste or provide their profile content.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "role-detected-as-engineer",
+          "text": "The 'Changes Made' block or summary states the detected role is Engineer (or Software Engineer / Developer)"
+        },
+        {
+          "id": "cv-improved-written",
+          "text": "cv-improved.md is created and contains at least one '## Experience' or '## Work History' or '## EXPERIENCE' section header (not just an empty file)"
+        },
+        {
+          "id": "summary-added-with-engineer-template",
+          "text": "cv-improved.md contains a Summary or Profile section that mentions backend development, Python, or Django and follows an engineer-pattern pitch (seniority + domain + outcome)"
+        },
+        {
+          "id": "weak-verbs-replaced",
+          "text": "The phrases 'helped with', 'worked on', 'was responsible for', 'assisted', 'participated in', and 'involved in' do not appear in the experience bullets of cv-improved.md"
+        },
+        {
+          "id": "metric-placeholders-with-hint-text",
+          "text": "At least 7 bullets in cv-improved.md contain a '[METRIC: e.g.' placeholder with specific hint text inside — not bare '[METRIC]' tokens"
+        },
+        {
+          "id": "skills-restructured-into-categories",
+          "text": "The Skills section in cv-improved.md is organized into named categories (e.g. Languages, Frameworks, Databases, or Tools) rather than a flat comma-separated list"
+        },
+        {
+          "id": "github-placeholder-added",
+          "text": "cv-improved.md contains a GitHub placeholder or note in the contact section, since no GitHub link was present in the original"
+        },
+        {
+          "id": "original-not-overwritten",
+          "text": "The original file /tmp/eval-cv-linkedin-0/cv.md still contains 'Helped with backend API development' (original content unchanged)"
+        },
+        {
+          "id": "linkedin-failure-asks-to-paste",
+          "text": "The skill communicates that LinkedIn profile access failed AND explicitly uses the word 'paste' or 'provide' when asking for the user's profile content"
+        },
+        {
+          "id": "content-preserved-alembic",
+          "text": "cv-improved.md mentions Alembic or PostgreSQL in the experience section — original technologies from the CV are preserved, not replaced with hallucinated alternatives"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Can you improve my resume? It's at /tmp/eval-cv-linkedin-1/resume.md. Skip LinkedIn for now.",
+      "description": "Product Manager CV with strong bullets and metrics already present, but missing a summary section entirely. Skills section lacks PM-specific methodology terms (A/B testing, user research, OKRs) even though they appear in bullets. Role must be detected as PM, summary must follow PM template, skills should be restructured with PM category groups. No linkedin-improvements.md should be produced.",
+      "setup": "mkdir -p /tmp/eval-cv-linkedin-1 && cat > /tmp/eval-cv-linkedin-1/resume.md << 'EOF'\nMaria Garcia\nmaria.garcia@email.com | Austin, TX\n\nWORK EXPERIENCE\n\nSenior Product Manager — DataFlow Inc (Mar 2022–Present)\n- Launched DataFlow Analytics from 0 to $4.2M ARR in 18 months by partnering with sales to define enterprise pricing tiers\n- Ran 3 rounds of user research (22 interviews) that directly shaped the Q3 roadmap and reduced time-to-value from 14 days to 3 days\n- Drove A/B testing programme of 8 experiments per quarter, lifting trial-to-paid conversion by 19%\n- Aligned cross-functional team of 3 engineers, 1 designer, and 1 data scientist around a shared quarterly OKR\n\nProduct Manager — RetailTech Co (Jun 2019–Feb 2022)\n- Defined and shipped a self-serve checkout feature adopted by 62% of the user base within 90 days of launch\n- Prioritised backlog for a 5-person squad using data from Mixpanel and user feedback sessions\n- Partnered with engineering to reduce sprint cycle time from 3 weeks to 1 week through process changes\n- Delivered 3 integrations (Shopify, Salesforce, Zendesk) that each contributed >$200k ARR\n\nEDUCATION\nB.A. Economics, University of Texas at Austin, 2019\n\nSKILLS\nProduct Management, Roadmapping, Stakeholder Management, Jira, Figma, Mixpanel\nEOF",
+      "expected_output": "cv-improved.md written with: role detected as Product Manager; a new Summary section following the PM template (product type + business impact credential); Skills section expanded to include PM methodology terms present in bullets (A/B testing, user research, OKRs, cross-functional) and reorganised into PM-appropriate categories (Product Methodology, Analytics & Research, Tools); all strong quantified bullets preserved unchanged. No linkedin-improvements.md created.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "role-detected-as-pm",
+          "text": "The 'Changes Made' block or summary states the detected role is Product Manager or PM"
+        },
+        {
+          "id": "summary-added-with-pm-template",
+          "text": "cv-improved.md contains a new Summary or Profile section that references product management experience, a product type (B2B SaaS, enterprise, or retail), and a business or user impact signal"
+        },
+        {
+          "id": "skills-expanded-with-pm-terms",
+          "text": "The Skills section in cv-improved.md includes A/B Testing, user research, or OKRs — terms present in the experience bullets but absent from the original skills list"
+        },
+        {
+          "id": "strong-bullets-preserved-verbatim",
+          "text": "The exact phrase '$4.2M ARR' appears in cv-improved.md in a bullet that also contains '18 months' — confirming the quantified bullet was preserved verbatim and not paraphrased or split"
+        },
+        {
+          "id": "linkedin-file-not-created",
+          "text": "The file /tmp/eval-cv-linkedin-1/linkedin-improvements.md does NOT exist — LinkedIn was skipped by the user"
+        },
+        {
+          "id": "original-not-overwritten",
+          "text": "The original /tmp/eval-cv-linkedin-1/resume.md still exists with its original content unchanged"
+        },
+        {
+          "id": "summary-contains-metric",
+          "text": "The new Summary section in cv-improved.md contains a specific number, dollar amount, or concrete product signal (not just generic language like 'proven track record' or 'results-driven')"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Improve my CV at /tmp/eval-cv-linkedin-2/cv.md. Here is my LinkedIn profile content since I know you can't fetch it directly:\n\nHeadline: Software Engineer at MegaCorp\n\nAbout: I am a software engineer with experience in Java and Spring Boot. I enjoy solving problems and working with teams.\n\nExperience:\n- Software Engineer, MegaCorp (2020–present): Worked on backend services.\n- Developer, OldCo (2017–2020): Maintained legacy systems.\n\nSkills: Java, Spring Boot, SQL, Agile",
+      "description": "Engineer CV with 'Senior Software Engineer' title at MegaCorp but LinkedIn shows 'Software Engineer' — title inconsistency. LinkedIn About is weak and first-person. LinkedIn experience descriptions are vague ('Worked on backend services') while CV has strong quantified bullets. Tests inconsistency detection, engineer-pattern About rewrite, and LinkedIn description improvement using CV content.",
+      "setup": "mkdir -p /tmp/eval-cv-linkedin-2 && cat > /tmp/eval-cv-linkedin-2/cv.md << 'EOF'\nAlex Johnson\nalex.johnson@protonmail.com | +1 206-555-0199 | Seattle, WA\ngithub.com/alexjdev | linkedin.com/in/alexjohnson-dev\n\nPROFILE\nSenior backend engineer with 7 years of experience in Java and distributed systems. Specialised in high-throughput microservices and event-driven architectures.\n\nEXPERIENCE\n\nSenior Software Engineer — MegaCorp (Jan 2020–Present)\n- Architected a microservices platform handling 50k requests/second across 12 services\n- Cut P99 API latency from 850ms to 95ms by introducing a Redis caching layer\n- Led a team of 5 engineers to deliver a real-time fraud detection system on schedule\n- Reduced infrastructure costs by $180k/year through reserved instance optimisation\n\nSoftware Developer — OldCo (Mar 2017–Dec 2019)\n- Built ETL pipelines in Java processing 10M records per night\n- Maintained and refactored a 200k-line legacy monolith, reducing defect rate by 28%\n- Helped onboard 3 new developers with documentation and pairing sessions\n\nEDUCATION\nB.Eng. Software Engineering, University of Washington, 2017\n\nSKILLS\nJava, Spring Boot, Redis, Kafka, PostgreSQL, AWS, Docker, Kubernetes, SQL, Git\nEOF",
+      "expected_output": "cv-improved.md with minor targeted changes: 'Helped onboard' bullet rewritten with a strong verb and [METRIC] placeholder added. linkedin-improvements.md must: flag the 'Senior Software Engineer' (CV) vs 'Software Engineer' (LinkedIn) title inconsistency; suggest engineer-pattern headlines with Java/distributed-systems keywords; rewrite the About section removing first person and expanding beyond 'I enjoy solving problems'; provide MegaCorp experience bullets using the CV's strong quantified content; note Redis, Kafka, Docker, Kubernetes as skills to add to LinkedIn.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "title-inconsistency-flagged",
+          "text": "linkedin-improvements.md flags the inconsistency between 'Senior Software Engineer' (CV) and 'Software Engineer' (LinkedIn) for the MegaCorp role"
+        },
+        {
+          "id": "engineer-headline-suggested",
+          "text": "linkedin-improvements.md suggests at least 2 headline options that include Java or distributed systems or microservices keywords and follow the engineer headline template (not just 'Software Engineer at MegaCorp')"
+        },
+        {
+          "id": "about-first-person-removed-with-metric",
+          "text": "The suggested About section in linkedin-improvements.md does not start with 'I am' or 'I ' and references at least one specific metric from the CV (50k requests/second, P99 latency, $180k, or 28%)"
+        },
+        {
+          "id": "experience-description-improved",
+          "text": "linkedin-improvements.md suggests replacing 'Worked on backend services' with bullets drawn from the CV's quantified content (latency cut, cost reduction, or fraud detection system)"
+        },
+        {
+          "id": "missing-skills-flagged",
+          "text": "linkedin-improvements.md identifies Redis, Kafka, Docker, or Kubernetes as skills to add to LinkedIn (present in CV but absent from LinkedIn skills list)"
+        },
+        {
+          "id": "cv-improved-written",
+          "text": "cv-improved.md is created and the 'Helped onboard' bullet uses a stronger verb (not 'Helped')"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Review my CV at /tmp/eval-cv-linkedin-3/cv.md and improve my LinkedIn. LinkedIn username is claire-em-eng. Since you probably can't fetch it, here is the content:\n\nHeadline: Engineering Manager\n\nAbout: (empty)\n\nExperience:\n- Engineering Manager, ScaleUp (2021–present): (no description)\n- Senior Software Engineer, OldPlace (2018–2021): (no description)\n\nSkills: Engineering Management, Python, Agile",
+      "description": "Engineering Manager CV that is already well-written with team size and delivery metrics. LinkedIn is severely incomplete: generic headline with no context, empty About, no experience descriptions. Tests EM role detection, EM-pattern summary check, EM-specific LinkedIn headline templates, and full About section generation from CV content. Also tests that 'Featured skills' quick win recommends EM-appropriate top-3 skills.",
+      "setup": "mkdir -p /tmp/eval-cv-linkedin-3 && cat > /tmp/eval-cv-linkedin-3/cv.md << 'EOF'\nClaire Martin\nclaire.martin@email.com | London, UK\n\nPROFILE\nEngineering manager with 6 years leading backend and platform teams in B2B SaaS. Known for building high-trust, high-delivery teams. Track record of scaling engineering orgs through hypergrowth while maintaining quality and low attrition.\n\nEXPERIENCE\n\nEngineering Manager — ScaleUp (Apr 2021–Present)\n- Grew engineering team from 4 to 18 across 3 squads (backend, platform, data) in 18 months\n- Reduced attrition from 34% to 8% year-over-year by introducing structured career ladders and quarterly 1:1 goal reviews\n- Delivered 4 consecutive quarters on roadmap commitments with a team CSAT of 4.6/5\n- Partnered with CTO to define technical strategy for migrating monolith to microservices, unblocking 3 dependent product streams\n- Hired and onboarded 11 engineers; established a structured interview process that cut time-to-hire from 9 weeks to 4 weeks\n\nSenior Software Engineer — OldPlace (Jan 2018–Mar 2021)\n- Architected real-time notification system handling 2M events/day using Kafka and Go\n- Led technical design for API gateway consolidation, reducing external integrations from 14 to 5\n- Mentored 4 junior engineers; 2 were promoted within 18 months\n\nEDUCATION\nM.Sc. Computer Science, Imperial College London, 2017\n\nSKILLS\nEngineering Management, Team Leadership, Hiring & Onboarding, Career Development, Technical Strategy, Go, Kafka, Python, Agile, JIRA\nEOF",
+      "expected_output": "cv-improved.md with minimal changes (CV is already strong) — Changes Made should explicitly state 0 bullets rewritten or that no rewrites were needed. linkedin-improvements.md must: suggest EM-pattern headlines (include team size and domain context, not just 'Engineering Manager'); generate a full About section (~150+ words) that references '34%', '8%', or '18' (the specific attrition and team growth numbers); provide experience descriptions for both roles using CV content; list 'Team Building' or 'Performance Management' as a suggested featured top-3 skill; mark adding the About section as Quick Win #1.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "role-detected-as-em",
+          "text": "The 'Changes Made' block or summary states the detected role is Engineering Manager or EM"
+        },
+        {
+          "id": "em-headline-suggested",
+          "text": "linkedin-improvements.md suggests at least 2 headline options that include team size context or domain (B2B SaaS, platform, or similar) and follow the EM headline template"
+        },
+        {
+          "id": "about-references-specific-metrics",
+          "text": "The suggested About section in linkedin-improvements.md is at least 120 words AND references specific metrics from the CV: '34%' or '8%' or '18' (team growth from 4 to 18, or attrition reduction numbers)"
+        },
+        {
+          "id": "experience-descriptions-filled",
+          "text": "linkedin-improvements.md provides experience description bullets for the ScaleUp EM role derived from the CV's quantified content"
+        },
+        {
+          "id": "about-is-top-quick-win",
+          "text": "The Quick Wins section in linkedin-improvements.md lists adding the About section as the #1 priority"
+        },
+        {
+          "id": "cv-changes-zero-rewrites",
+          "text": "The 'Changes Made' section in cv-improved.md explicitly states 0 bullets rewritten or 'no rewrites needed' or 'none' — confirming the already-strong CV was not unnecessarily modified"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Please review my CV at /tmp/eval-cv-linkedin-5/cv.pdf. Skip LinkedIn for now.",
+      "description": "Tests that when a PDF CV is provided, the skill activates PDF reading capability and logs it explicitly using the Phase 1 instructions (check for document-skills:pdf, log the method used). The PDF contains a backend engineer profile for Sophie Turner at CloudSoft GmbH with weak verbs and unquantified bullets. The primary assertion is that the skill logs PDF reading with the specific named method, and that the output preserves real content from the PDF (Sophie Turner, CloudSoft) rather than hallucinating.",
+      "setup": "mkdir -p /tmp/eval-cv-linkedin-5 && python3 << 'PYEOF'\nimport os\n\nstream = b\"\"\"BT\n/F1 12 Tf\n50 750 Td\n(Sophie Turner) Tj\n0 -16 Td\n(sophie.turner@email.com | Berlin, Germany) Tj\n0 -32 Td\n(EXPERIENCE) Tj\n0 -16 Td\n(Backend Engineer - CloudSoft GmbH  2020-2024) Tj\n0 -16 Td\n(- Worked on REST API development using Python and FastAPI) Tj\n0 -16 Td\n(- Helped improve system reliability and uptime) Tj\n0 -16 Td\n(- Was responsible for PostgreSQL database schema migrations) Tj\n0 -16 Td\n(- Participated in code reviews and sprint ceremonies) Tj\n0 -32 Td\n(Junior Developer - WebAgency 2018-2020) Tj\n0 -16 Td\n(- Assisted with building client websites in Django) Tj\n0 -16 Td\n(- Worked on fixing bugs across multiple projects) Tj\n0 -32 Td\n(EDUCATION) Tj\n0 -16 Td\n(B.Sc. Computer Science, TU Berlin, 2018) Tj\n0 -32 Td\n(SKILLS) Tj\n0 -16 Td\n(Python, FastAPI, Django, PostgreSQL, Docker, Git, Linux) Tj\nET\"\"\"\n\nobj1 = b\"1 0 obj\\n<< /Type /Catalog /Pages 2 0 R >>\\nendobj\\n\"\nobj2 = b\"2 0 obj\\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\\nendobj\\n\"\nobj3 = b\"3 0 obj\\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\\nendobj\\n\"\nobj4 = b\"4 0 obj\\n<< /Length \" + str(len(stream)).encode() + b\" >>\\nstream\\n\" + stream + b\"\\nendstream\\nendobj\\n\"\nobj5 = b\"5 0 obj\\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\\nendobj\\n\"\n\nheader = b\"%PDF-1.4\\n\"\npos = len(header)\noffsets = []\nparts = [obj1, obj2, obj3, obj4, obj5]\nfor p in parts:\n    offsets.append(pos)\n    pos += len(p)\n\nxref_pos = pos\nxref = b\"xref\\n0 6\\n0000000000 65535 f \\n\"\nfor o in offsets:\n    xref += \"{:010d} 00000 n \\n\".format(o).encode()\n\ntrailer = b\"trailer\\n<< /Size 6 /Root 1 0 R >>\\nstartxref\\n\" + str(xref_pos).encode() + b\"\\n%%EOF\\n\"\npdf = header + b\"\".join(parts) + xref + trailer\n\nwith open('/tmp/eval-cv-linkedin-5/cv.pdf', 'wb') as f:\n    f.write(pdf)\nprint('PDF created, size:', len(pdf))\nPYEOF",
+      "expected_output": "The skill logs that it read the CV as a PDF file — mentioning 'PDF' explicitly and stating whether it used document-skills:pdf or the Read tool directly. cv-improved.md is written to /tmp/eval-cv-linkedin-5/ with: 'Sophie Turner' and 'CloudSoft' preserved from the PDF content; role detected as Engineer; a new summary section; weak verbs replaced; [METRIC] placeholders on all unquantified bullets. LinkedIn skipped as requested.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "pdf-reading-logged-with-method",
+          "text": "The skill's conversation output mentions 'PDF' explicitly AND also mentions either 'document-skills:pdf' or 'Read tool' — showing the specific method used, not just 'reading the file' generically"
+        },
+        {
+          "id": "cv-improved-written-from-pdf",
+          "text": "The file /tmp/eval-cv-linkedin-5/cv-improved.md is created despite the input being a PDF"
+        },
+        {
+          "id": "content-preserved-from-pdf",
+          "text": "cv-improved.md contains 'Sophie Turner' or 'CloudSoft' or 'FastAPI' — confirming real PDF content was read and preserved, not hallucinated"
+        },
+        {
+          "id": "role-detected-as-engineer",
+          "text": "The 'Changes Made' block in cv-improved.md states the detected role is Engineer (or Backend Engineer / Software Engineer)"
+        },
+        {
+          "id": "weak-verbs-replaced",
+          "text": "The phrases 'worked on', 'helped improve', 'was responsible for', 'participated in', and 'assisted with' do not appear in the experience bullets of cv-improved.md"
+        },
+        {
+          "id": "metric-placeholders-added",
+          "text": "At least 5 bullets in cv-improved.md contain a [METRIC] placeholder for quantification"
+        },
+        {
+          "id": "original-pdf-not-overwritten",
+          "text": "The original /tmp/eval-cv-linkedin-5/cv.pdf still exists and is a valid PDF (starts with %PDF-)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "My CV is at /tmp/eval-cv-linkedin-4/cv.md. Here is my LinkedIn content:\n\nHeadline: Full Stack Developer\n\nAbout: Developer who likes building things. Always learning.\n\nExperience:\n- Full Stack Developer, FinanceFlow (2022–present): Built features.\n- Junior Dev, AgencyX (2020–2022): Worked on client projects.\n\nSkills: JavaScript, React",
+      "description": "Early-career full-stack engineer with a good Projects section (the main differentiator at this experience level) but no GitHub link in the CV contact section. LinkedIn About is empty-equivalent and generic. Tests that the skill: detects Engineer role; flags the missing GitHub link as a high-priority action; promotes the Projects section in the CV since work experience is thin; generates a headline with stack keywords; rewrites the minimal LinkedIn About using the CV's project achievements (OpenBudget) as the core credential in the opening sentences.",
+      "setup": "mkdir -p /tmp/eval-cv-linkedin-4 && cat > /tmp/eval-cv-linkedin-4/cv.md << 'EOF'\nLuca Rossi\nluca.rossi@gmail.com | Milan, Italy\n\nSUMMARY\nFull-stack developer passionate about building great user experiences. Fast learner who enjoys working with modern JavaScript frameworks.\n\nEXPERIENCE\n\nFull Stack Developer — FinanceFlow (Sep 2022–Present)\n- Built and shipped the customer dashboard in React and TypeScript, used daily by 3,000 paying customers\n- Integrated Plaid API for bank account linking, handling OAuth flows and webhook processing in Node.js\n- Reduced frontend bundle size by 41% through code splitting and lazy loading, cutting initial load time from 4.2s to 1.1s\n\nJunior Developer — AgencyX (Jun 2020–Aug 2022)\n- Built 14 client websites using React, Next.js, and Tailwind CSS\n- Implemented e-commerce checkout flows for 3 clients using Stripe; highest-volume site processed €180k/month\n- Set up CI/CD pipeline with GitHub Actions, cutting manual deployment time from 2 hours to 8 minutes\n\nPROJECTS\n\nOpenBudget (open source, 340 GitHub stars)\n- Personal finance dashboard built with Next.js, Prisma, and PostgreSQL; 1,200 monthly active users\n- Featured on Hacker News front page (top 10 for 6 hours)\n\nEDUCATION\nB.Sc. Computer Science, Politecnico di Milano, 2020\n\nSKILLS\nJavaScript, TypeScript, React, Next.js, Node.js, PostgreSQL, Tailwind CSS, Git, GitHub Actions, Stripe, Plaid\nEOF",
+      "expected_output": "cv-improved.md with: summary rewritten to remove 'passionate about' and 'fast learner', replacing with engineer-pattern pitch that mentions a specific technology (React, TypeScript, or Node.js) or metric; GitHub placeholder added since no GitHub link is in the original contact. linkedin-improvements.md must: suggest headlines with full-stack / React / TypeScript / Node.js keywords; generate an About section that mentions OpenBudget within the first 60 words (leading with the standout credential); flag the LinkedIn About as severely weak; recommend adding TypeScript, Next.js, Node.js to LinkedIn skills; mark 'Add GitHub profile link' as a top quick win.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "generic-summary-removed-specific-added",
+          "text": "The phrases 'passionate about' and 'fast learner' do not appear in the cv-improved.md summary AND the rewritten summary includes a specific technology (React, TypeScript, or Node.js) or a concrete metric"
+        },
+        {
+          "id": "github-placeholder-added",
+          "text": "cv-improved.md adds a GitHub link or placeholder in the contact section, and the skill flags this as important given the user has a notable open-source project"
+        },
+        {
+          "id": "engineer-headline-suggested",
+          "text": "linkedin-improvements.md suggests headlines that include React, TypeScript, Node.js, or full-stack keywords — more specific than 'Full Stack Developer'"
+        },
+        {
+          "id": "about-opens-with-openbudget",
+          "text": "The suggested LinkedIn About section mentions OpenBudget within the first 60 words — leading with the standout credential rather than burying it"
+        },
+        {
+          "id": "missing-skills-added",
+          "text": "linkedin-improvements.md recommends adding TypeScript, Next.js, or Node.js to LinkedIn skills (present in CV but absent from LinkedIn's skills list)"
+        },
+        {
+          "id": "cv-improved-written",
+          "text": "cv-improved.md is created and the original cv.md is not modified"
+        }
+      ]
+    }
+  ]
+}
