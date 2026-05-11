@@ -442,6 +442,7 @@ main { padding: 20px 32px 80px; }
 .badge-database     { background: var(--cat-database-bg);     color: var(--cat-database); }
 .badge-development     { background: var(--cat-development-bg);     color: var(--cat-development); }
 .badge-mixed           { background: var(--cat-mixed-bg);           color: var(--cat-mixed); }
+.badge-skill           { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
 
 .badge-source {
   background: #0e1424;
@@ -781,6 +782,66 @@ footer a:hover { text-decoration: underline; }
 .panel-install-row + .panel-install-row { margin-top: -12px; }
 .panel-install-row[hidden] { display: none; }
 .panel-install-row code { flex: 1; font-size: 0.82rem; color: var(--text); word-break: break-all; }
+
+/* ── Entity detail panel (left side, mirrors plugin panel) ── */
+#entity-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-start;
+  pointer-events: none;
+}
+#entity-panel.open { pointer-events: all; }
+
+#entity-panel-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  transition: background 0.25s ease;
+}
+#entity-panel.open #entity-panel-overlay { background: rgba(0,0,0,0.55); }
+
+.entity-panel-content {
+  position: relative;
+  width: min(520px, 95vw);
+  height: 100%;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+}
+#entity-panel.open .entity-panel-content { transform: translateX(0); }
+
+.panel-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.panel-code-block {
+  display: block;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.78rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--text);
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.panel-source-link {
+  font-size: 0.83rem;
+  color: var(--accent);
+  text-decoration: none;
+  word-break: break-all;
+}
+.panel-source-link:hover { text-decoration: underline; }
+
+.panel-section[hidden] { display: none; }
 
 
 /* ── Responsive ── */

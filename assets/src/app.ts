@@ -5,6 +5,7 @@ import { copyText }                 from './utils.ts';
 import { syncStateToUrl, readUrlState } from './url-state.ts';
 import { BUILTIN_REPO }             from './constants.ts';
 import './panel.ts';
+import './entity-panel.ts';
 
 type ViewKey = 'plugins' | 'skills' | 'agents' | 'mcpServers' | 'commands' | 'hooks' | 'bundles';
 

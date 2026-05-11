@@ -24,6 +24,7 @@ export interface Skill {
   description:    string;
   category:       string | null;
   keywords:       string[];
+  tools?:         string[];
   readOnly:       boolean;
   rawSkillUrl:    string;
   installCommand: string;

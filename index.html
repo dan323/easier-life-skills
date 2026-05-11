@@ -161,6 +161,63 @@
     </div>
   </div>
 
+  <!-- ── Entity detail panel (left side) ── -->
+  <div id="entity-panel" aria-hidden="true" aria-modal="true" role="dialog" aria-label="Item details">
+    <div id="entity-panel-overlay"></div>
+    <div class="entity-panel-content">
+      <div class="panel-header">
+        <div class="panel-title-row">
+          <a id="entity-panel-name" class="panel-name" rel="noopener"></a>
+          <span id="entity-panel-kind"     class="badge"></span>
+          <span id="entity-panel-category" class="badge"></span>
+          <span id="entity-panel-source"   class="badge badge-source"></span>
+        </div>
+        <button id="entity-panel-close" class="panel-close-btn" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+
+      <p id="entity-panel-desc" class="panel-desc"></p>
+
+      <div id="entity-panel-tools-section" class="panel-section">
+        <h3 class="panel-section-title">Tools <span id="entity-panel-tools-count" class="panel-count"></span></h3>
+        <div id="entity-panel-tools-list" class="panel-chips"></div>
+      </div>
+
+      <div id="entity-panel-events-section" class="panel-section">
+        <h3 class="panel-section-title">Triggers on</h3>
+        <div id="entity-panel-events-list" class="panel-chips"></div>
+      </div>
+
+      <div id="entity-panel-keywords-section" class="panel-section">
+        <h3 class="panel-section-title">Keywords</h3>
+        <div id="entity-panel-keywords-list" class="panel-chips"></div>
+      </div>
+
+      <div id="entity-panel-bundles-section" class="panel-section">
+        <h3 class="panel-section-title">Part of bundles</h3>
+        <div id="entity-panel-bundles-list" class="panel-items"></div>
+      </div>
+
+      <div id="entity-panel-command-section" class="panel-section">
+        <h3 class="panel-section-title">Command</h3>
+        <code id="entity-panel-command" class="panel-code-block"></code>
+      </div>
+
+      <div id="entity-panel-source-link-section" class="panel-section">
+        <h3 class="panel-section-title">Source</h3>
+        <a id="entity-panel-source-link" target="_blank" rel="noopener" class="panel-source-link"></a>
+      </div>
+
+      <div id="entity-panel-marketplace-row" class="panel-install-row" hidden>
+        <code id="entity-panel-marketplace-cmd"></code>
+        <button id="entity-panel-marketplace-copy" class="panel-copy-btn">Copy add</button>
+      </div>
+      <div class="panel-install-row">
+        <code id="entity-panel-install-cmd"></code>
+        <button id="entity-panel-install-copy" class="panel-copy-btn">Copy install</button>
+      </div>
+    </div>
+  </div>
+
   <div id="sr-announce" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
   <script type="module" src="assets/bundle.js"></script>

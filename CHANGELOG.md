@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.12.0] - 2026-05-11
+
+### Added
+- **Web UI — left-side detail panel for skills, agents, MCP servers, commands, and hooks** — entity cards in those views are now clickable (and Enter/Space focusable) and open a panel that slides in from the left edge. The panel shows the full description, kind + category + source badges, the relevant chip section (Tools for skills/agents, Triggers-on for hooks, Keywords for skills, Command for MCP servers), the parent bundles a skill belongs to, a Source link to the raw file, plus the `marketplace add` + `plugin install` rows already used by the plugin panel. The existing plugin panel stays on the right, so both can be open at once on wide screens.
+
+### Changed
+- **Web UI — agent cards no longer list tools inline** — the `Tools: …` line was producing horizontal overflow on agents with many tools (e.g. `task-agent`); tools are now only rendered as colored chips inside the entity detail panel, keeping the grid card the same shape as other entity cards.
+- **Web UI — entity card descriptions explicitly clamped to 2 lines with ellipsis** — already enforced by `-webkit-line-clamp: 2; overflow: hidden` on `.card-desc`, but now the full text is reachable via the new detail panel instead of having to click the card to expand inline. Cards became `role="button"` + `tabindex="0"` to advertise the new affordance to keyboard / AT users.
+- **`assets/src/types.ts`** — `Skill.tools` added (optional) to reflect what the index actually carries; needed by the new panel to render the Tools section.
+
 ## [1.11.0] - 2026-05-11
 
 ### Added

@@ -40,7 +40,8 @@ easier-life-skills/
 │   │   ├── constants.ts     Shared constants (e.g. BUILTIN_REPO)
 │   │   ├── state.ts         Typed shared state (plugins, skills, agents, mcpServers, commands, hooks, bundles, sort)
 │   │   ├── marketplace.ts   Loads marketplace index into state; wires per-tag `marketplace add` copy buttons
-│   │   ├── panel.ts         Plugin detail slide-in panel; shows `marketplace add` line for non-builtin sources
+│   │   ├── panel.ts         Plugin detail slide-in panel (right side); shows `marketplace add` line for non-builtin sources
+│   │   ├── entity-panel.ts  Skill/agent/MCP/command/hook detail slide-in panel (left side); shows tools, events, keywords, bundles, source link, install commands
 │   │   ├── render.ts        Renders entity grids (plugins/skills/agents/MCP/commands/hooks/bundles)
 │   │   ├── url-state.ts     Syncs view, query, filters, and sort to the URL hash for shareable links
 │   │   ├── filters.ts       Category and repo filter bar
