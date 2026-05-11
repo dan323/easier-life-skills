@@ -37,9 +37,10 @@ easier-life-skills/
 │   ├── src/                 TypeScript source for the website (compiled to bundle.js by esbuild)
 │   │   ├── app.ts           Boot + event wiring + sort/keyboard shortcuts (esbuild entry point)
 │   │   ├── api.ts           Fetches skills_index.json from GitHub
+│   │   ├── constants.ts     Shared constants (e.g. BUILTIN_REPO)
 │   │   ├── state.ts         Typed shared state (plugins, skills, agents, mcpServers, commands, hooks, bundles, sort)
-│   │   ├── marketplace.ts   Loads marketplace index into state
-│   │   ├── panel.ts         Plugin detail slide-in panel
+│   │   ├── marketplace.ts   Loads marketplace index into state; wires per-tag `marketplace add` copy buttons
+│   │   ├── panel.ts         Plugin detail slide-in panel; shows `marketplace add` line for non-builtin sources
 │   │   ├── render.ts        Renders entity grids (plugins/skills/agents/MCP/commands/hooks/bundles)
 │   │   ├── url-state.ts     Syncs view, query, filters, and sort to the URL hash for shareable links
 │   │   ├── filters.ts       Category and repo filter bar

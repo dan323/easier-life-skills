@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.11.0] - 2026-05-11
+
+### Added
+- **Web UI — per-marketplace install command on every source tag** — each marketplace chip in the marketplace bar now has a `+` button that copies `/plugin marketplace add <owner>/<repo>` to the clipboard, so visitors can install marketplaces beyond the built-in `dan323/easier-life-skills` directly from the chip row. The tag itself still acts as a filter toggle; the `+` is keyboard-focusable and stops click propagation so it doesn't double-fire as a filter toggle.
+- **Web UI — plugin detail panel surfaces the `marketplace add` step** — when an opened plugin's source is not the built-in marketplace (e.g. `anthropics/skills`, `mattpocock/skills`), the panel renders a `/plugin marketplace add <owner>/<repo>` row above the existing install row, with its own Copy button. Built-in plugins continue to show only the install row (the marketplace add is already covered by the page's quickstart).
+
+### Changed
+- **Web UI — `source-tag` element converted from `<button>` to `<div role="button">`** — needed to nest the per-tag `+` copy button without producing invalid HTML; Enter/Space still toggle the filter, `aria-pressed` is preserved.
+- **Web UI — `assets/src/constants.ts`** — extracted the `BUILTIN_REPO` constant (`dan323/easier-life-skills`) out of `app.ts` so the panel can detect non-builtin sources without a circular import.
+
+## [1.10.0] - 2026-05-11
+
+### Changed
+- **`cv-linkedin` 2.1.0 — relaxed the "every bullet needs a metric" rule to reflect real engineering CVs** — Phase 3b's quantification check is now a broader **outcome check**: a bullet is complete if it carries a number, a scope/scale phrase, a named system, a before/after comparison, or a complexity signal — not only a digit. Hard numbers remain the right outcome for PMs and EMs (whose work is inherently measured in KPIs), but for engineers, scope and named systems are equally valid. Phase 5's placeholder is renamed `[METRIC]` → `[OUTCOME]` and must list at least two non-number options so users are not pushed to invent metrics. The change makes the skill more honest about what real engineering CVs look like (roughly 20–30% of bullets carry hard numbers; the rest convey outcome through scope and systems language).
+- **`cv-linkedin` Phase 5 rule** — `[OUTCOME]` placeholders are now applied only to **pure-task** bullets ("Wrote unit tests"). Bullets that already carry scope, a named system, or a comparison are left as-is, even if they have no digit. The "Changes Made" block surfaces this explicitly.
+
+### Added
+- **`cv-linkedin` eval 2 assertion `no-outcome-placeholder-on-complete-bullets`** — verifies the skill leaves already-complete bullets alone instead of piling on placeholders (catches regressions to the old dogmatic behaviour).
+
+## [1.9.0] - 2026-05-11
+
+### Changed
+- **`cv-linkedin` 2.0.0 — switched LinkedIn data source from live fetching to the official LinkedIn data export (breaking)** — Phase 2 now reads CSVs from a user-provided export directory (`Profile.csv`, `Positions.csv`, `Education.csv`, `Skills.csv` required; `Certifications.csv`, `Languages.csv`, `Projects.csv`, `Volunteering.csv` optional). The previous WebFetch-based scrape only ever returned the LinkedIn top card because the rest of the profile is lazy-loaded behind authenticated XHR calls, and cookie-based scraping additionally violates LinkedIn's TOS. The data export is LinkedIn's sanctioned mechanism and gives complete source-of-truth data. `WebFetch` removed from the skill's tool list.
+- **`cv-linkedin` Phase 0 now walks the user through requesting the export** — if the export directory is missing, the skill emits the URL `https://www.linkedin.com/mypreferences/d/download-my-data`, the categories to tick (`Profile`, `Positions`, `Education`, `Skills`, `Certifications`, `Languages`, `Projects`), and waits for the user to return with the path. The "skip LinkedIn" path still works for CV-only runs.
+- **`cv-linkedin` Phase 4e (CV vs. LinkedIn alignment) is now concrete** — comparisons are anchored on `Company Name` (Positions.csv) and `School Name` (Education.csv) joins against the CV rather than fuzzy text matching.
+
+### Added
+- **`cv-linkedin` reference doc `linkedin-export-schema.md`** — documents required/optional CSV columns, the `Month YYYY` date format, the `Description` multi-line gotcha (must use a real CSV parser, not `split(",")`), the `Started On`/`Start Date` column-name drift across export vintages, and the absence of "featured skills" flagging in the export.
+- **`cv-linkedin` eval 6** — covers the "user has only a LinkedIn username, no export yet" path; asserts the skill emits export instructions and refuses to fabricate analysis from the bare username.
+
 ## [1.8.0] - 2026-05-09
 
 ### Fixed

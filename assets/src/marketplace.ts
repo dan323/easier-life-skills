@@ -4,25 +4,26 @@ import { sourceTag }            from './source-tag.ts';
 import { render }               from './render.ts';
 import { rebuildFilters }       from './filters.ts';
 import { syncStateToUrl }       from './url-state.ts';
+import { copyText }             from './utils.ts';
 import type { SkillsIndexMeta } from './types.ts';
 
 const sourcesEl = document.getElementById('marketplace-sources') as HTMLElement;
 
 export async function loadMarketplace(ownerRepo: string, builtin = false): Promise<boolean> {
   const loadingTag = getOrCreateTag(ownerRepo, builtin);
-  (loadingTag.querySelector('.label') as HTMLElement).textContent = 'loading…';
+  loadingTag.label.textContent = 'loading…';
 
   let index;
   try {
     index = await fetchIndex(ownerRepo, builtin);
   } catch (err) {
-    (loadingTag.querySelector('.label') as HTMLElement).textContent = `${ownerRepo} ✕`;
-    loadingTag.classList.add('source-error');
-    loadingTag.title = (err as Error).message;
+    loadingTag.label.textContent = `${ownerRepo} ✕`;
+    loadingTag.root.classList.add('source-error');
+    loadingTag.root.title = (err as Error).message;
     return false;
   }
 
-  loadingTag.remove();
+  loadingTag.root.remove();
 
   const sourceKey = (s: { owner: string; repo: string }) => `${s.owner}/${s.repo}`;
   state.plugins.push(...(index.plugins    ?? []).map(p => ({ ...p, _repo: sourceKey(p.source) })));
@@ -39,8 +40,9 @@ export async function loadMarketplace(ownerRepo: string, builtin = false): Promi
     countBySource[key] = (countBySource[key] ?? 0) + 1;
   }
   for (const [repo, count] of Object.entries(countBySource)) {
-    const tag = getOrCreateTag(repo, repo === ownerRepo);
-    (tag.querySelector('.label') as HTMLElement).textContent = `${repo} (${count})`;
+    const tag = getOrCreateTag(repo, repo === ownerRepo && builtin);
+    tag.label.textContent = `${repo} (${count})`;
+    tag.copyBtn.hidden = false;
   }
 
   updateMeta(index.meta);
@@ -49,24 +51,49 @@ export async function loadMarketplace(ownerRepo: string, builtin = false): Promi
   return true;
 }
 
-function getOrCreateTag(ownerRepo: string, builtin: boolean): HTMLElement {
+function getOrCreateTag(ownerRepo: string, builtin: boolean): ReturnType<typeof sourceTag> {
   const existing = sourcesEl.querySelector(`[data-repo="${CSS.escape(ownerRepo)}"]`);
-  if (existing) return existing as HTMLElement;
+  if (existing) {
+    return {
+      root:    existing as HTMLElement,
+      label:   existing.querySelector('.label')          as HTMLElement,
+      copyBtn: existing.querySelector('.source-add-copy') as HTMLButtonElement,
+    };
+  }
+
   const tag = sourceTag(ownerRepo, builtin);
   const isActive = state.activeRepos.has(ownerRepo);
-  tag.classList.toggle('active', isActive);
-  tag.setAttribute('aria-pressed', String(isActive));
-  tag.addEventListener('click', () => {
+  tag.root.classList.toggle('active', isActive);
+  tag.root.setAttribute('aria-pressed', String(isActive));
+
+  const toggle = (): void => {
     if (state.activeRepos.has(ownerRepo)) state.activeRepos.delete(ownerRepo);
     else state.activeRepos.add(ownerRepo);
     const nowActive = state.activeRepos.has(ownerRepo);
-    tag.classList.toggle('active', nowActive);
-    tag.setAttribute('aria-pressed', String(nowActive));
+    tag.root.classList.toggle('active', nowActive);
+    tag.root.setAttribute('aria-pressed', String(nowActive));
     syncStateToUrl();
     rebuildFilters();
     render();
+  };
+
+  tag.root.addEventListener('click', e => {
+    if ((e.target as HTMLElement).closest('.source-add-copy')) return;
+    toggle();
   });
-  sourcesEl.appendChild(tag);
+  tag.root.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggle();
+    }
+  });
+
+  tag.copyBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    copyText(`/plugin marketplace add ${ownerRepo}`, tag.copyBtn);
+  });
+
+  sourcesEl.appendChild(tag.root);
   return tag;
 }
 

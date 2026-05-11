@@ -3,9 +3,8 @@ import { loadMarketplace }          from './marketplace.ts';
 import { render }                   from './render.ts';
 import { copyText }                 from './utils.ts';
 import { syncStateToUrl, readUrlState } from './url-state.ts';
+import { BUILTIN_REPO }             from './constants.ts';
 import './panel.ts';
-
-const BUILTIN_REPO = 'dan323/easier-life-skills';
 
 type ViewKey = 'plugins' | 'skills' | 'agents' | 'mcpServers' | 'commands' | 'hooks' | 'bundles';
 

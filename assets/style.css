@@ -311,8 +311,8 @@ header {
 .source-tag {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
+  gap: 6px;
+  padding: 3px 4px 3px 10px;
   border-radius: 20px;
   font-size: 0.75rem;
   font-family: inherit;
@@ -321,10 +321,33 @@ header {
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s;
+  user-select: none;
 }
 .source-tag:hover { border-color: var(--text-muted); color: var(--text); }
 .source-tag.builtin { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 .source-tag.active  { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+.source-add-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.source-add-copy:hover { background: rgba(255,255,255,0.08); border-color: currentColor; }
+.source-tag.active .source-add-copy:hover { background: rgba(0,0,0,0.18); }
+.source-add-copy.copied { color: var(--green); border-color: var(--green); }
 
 .source-error { border-color: #f85149 !important; color: #f85149 !important; }
 
@@ -755,7 +778,9 @@ footer a:hover { text-decoration: underline; }
   padding: 12px 14px;
   margin-top: auto;
 }
-.panel-install-row code { flex: 1; font-size: 0.82rem; color: var(--text); }
+.panel-install-row + .panel-install-row { margin-top: -12px; }
+.panel-install-row[hidden] { display: none; }
+.panel-install-row code { flex: 1; font-size: 0.82rem; color: var(--text); word-break: break-all; }
 
 
 /* ── Responsive ── */

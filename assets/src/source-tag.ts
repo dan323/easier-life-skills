@@ -1,14 +1,30 @@
-export function sourceTag(ownerRepo: string, builtin: boolean): HTMLElement {
-  const tag = document.createElement('button');
-  tag.type = 'button';
-  tag.className = 'source-tag' + (builtin ? ' builtin' : '');
-  tag.dataset['repo'] = ownerRepo;
-  tag.setAttribute('aria-pressed', 'false');
+export interface SourceTagElements {
+  root:    HTMLElement;
+  label:   HTMLElement;
+  copyBtn: HTMLButtonElement;
+}
+
+export function sourceTag(ownerRepo: string, builtin: boolean): SourceTagElements {
+  const root = document.createElement('div');
+  root.className = 'source-tag' + (builtin ? ' builtin' : '');
+  root.dataset['repo'] = ownerRepo;
+  root.setAttribute('role', 'button');
+  root.setAttribute('tabindex', '0');
+  root.setAttribute('aria-pressed', 'false');
 
   const label = document.createElement('span');
   label.className = 'label';
   label.textContent = 'loading…';
-  tag.appendChild(label);
+  root.appendChild(label);
 
-  return tag;
+  const copyBtn = document.createElement('button');
+  copyBtn.type = 'button';
+  copyBtn.className = 'source-add-copy';
+  copyBtn.title = `Copy "/plugin marketplace add ${ownerRepo}"`;
+  copyBtn.setAttribute('aria-label', `Copy marketplace add command for ${ownerRepo}`);
+  copyBtn.textContent = '+';
+  copyBtn.hidden = true;
+  root.appendChild(copyBtn);
+
+  return { root, label, copyBtn };
 }

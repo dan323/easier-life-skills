@@ -6,6 +6,7 @@ import { agentCard }                       from './card-agent.ts';
 import { mcpCard }                         from './card-mcp.ts';
 import { commandCard }                     from './card-command.ts';
 import { hookCard }                        from './card-hook.ts';
+import { BUILTIN_REPO }                    from './constants.ts';
 import type { Plugin, Skill, Agent, McpServer, Command, Hook } from './types.ts';
 
 setPluginPanelOpener(openPluginPanel);
@@ -98,6 +99,19 @@ function openPluginPanel(plugin: Plugin): void {
     bundlesSection.style.display = '';
   } else {
     bundlesSection.style.display = 'none';
+  }
+
+  const sourceKey       = `${plugin.source.owner}/${plugin.source.repo}`;
+  const marketplaceRow  = document.getElementById('panel-marketplace-row')  as HTMLElement;
+  const marketplaceCmd  = `/plugin marketplace add ${sourceKey}`;
+  if (sourceKey === BUILTIN_REPO) {
+    marketplaceRow.hidden = true;
+  } else {
+    marketplaceRow.hidden = false;
+    (document.getElementById('panel-marketplace-cmd') as HTMLElement).textContent = marketplaceCmd;
+    const marketplaceCopyBtn = document.getElementById('panel-marketplace-copy') as HTMLButtonElement;
+    marketplaceCopyBtn.setAttribute('aria-label', `Copy marketplace add command for ${sourceKey}`);
+    marketplaceCopyBtn.onclick = () => copyText(marketplaceCmd, marketplaceCopyBtn);
   }
 
   (document.getElementById('panel-install-cmd') as HTMLElement).textContent = plugin.installCommand;

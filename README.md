@@ -11,6 +11,16 @@ A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](h
 /plugin install changelog@easier-life-skills
 ```
 
+The marketplace browser at the bottom of this README also surfaces plugins from other Claude Code marketplaces. To install those, add each of their marketplaces alongside this one — for example:
+
+```
+/plugin marketplace add anthropics/skills
+/plugin marketplace add mattpocock/skills
+/plugin install document-skills@skills
+```
+
+Or copy the right command directly from the [marketplace browser](#marketplace-browser): every source tag has a `+` button that copies its `/plugin marketplace add …` line, and every plugin detail panel shows both the `marketplace add` and `plugin install` commands you need.
+
 ## Plugins
 
 ### Skills
@@ -34,11 +44,19 @@ A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](h
 
 ## Marketplace Browser
 
-Browse and search all available skills, agents, commands, hooks, and MCP servers at the interactive marketplace:
+Browse and search skills, agents, commands, hooks, and MCP servers from **multiple Claude Code marketplaces** (currently `dan323/easier-life-skills`, `anthropics/skills`, and `mattpocock/skills`) at the interactive marketplace:
 
 **https://dan323.github.io/easier-life-skills/**
 
-Use the **A→Z / Z→A** sort toggle or press **`/`** to focus the search box. Click any plugin card for a detail panel with install instructions.
+| Action                          | What it does                                                                                          |
+|---------------------------------|-------------------------------------------------------------------------------------------------------|
+| Press **`/`**                   | Focus the search box                                                                                  |
+| Toggle **A→Z / Z→A**             | Flip sort direction                                                                                   |
+| Click a **source tag**           | Filter results down to that marketplace                                                              |
+| Click the **`+`** on a tag       | Copy `/plugin marketplace add <owner>/<repo>` to your clipboard                                       |
+| Click a **plugin card**          | Open a detail panel; for non-builtin sources the panel shows both the `marketplace add` and `plugin install` commands |
+
+The list of aggregated marketplaces is defined in [`marketplaces.json`](marketplaces.json); a PR adding your own marketplace there will surface it on the next build.
 
 ## Bundles
 
