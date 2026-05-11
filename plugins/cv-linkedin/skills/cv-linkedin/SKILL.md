@@ -8,9 +8,11 @@ description: >
   anything about career documents for software engineers, developers, product
   managers, product owners, engineering managers, tech leads, SREs, DevOps
   engineers, data engineers, ML engineers, or other software-industry roles.
-  The user must provide a CV file path and a LinkedIn username or URL. If
-  either is missing, ask for both before proceeding.
-tools: Read, Write, Glob, WebFetch, TaskCreate, TaskUpdate
+  The user must provide a CV file path and a path to an unzipped LinkedIn data
+  export directory (obtained via LinkedIn's "Get a copy of your data" feature).
+  If either is missing, ask for both before proceeding and — if the export is
+  missing — walk the user through requesting it.
+tools: Read, Write, Glob, TaskCreate, TaskUpdate, SkillInvoke(document-skills:pdf)
 model: sonnet
 ---
 
@@ -29,7 +31,7 @@ Before doing any work, call `TaskCreate` for each phase below. Call `TaskUpdate`
 
 - Read CV
 - Detect role type
-- Fetch LinkedIn profile
+- Read LinkedIn data export
 - Analyze CV
 - Analyze LinkedIn profile
 - Write improved CV
@@ -42,15 +44,21 @@ Before doing any work, call `TaskCreate` for each phase below. Call `TaskUpdate`
 
 Before doing anything else, confirm you have both of:
 
-1. **CV file path** — path to their CV (plain text, Markdown, PDF text, or similar)
-2. **LinkedIn username or URL** — e.g. `john-doe-123` or `https://www.linkedin.com/in/john-doe-123/`
+1. **CV file path** — path to their CV (plain text, Markdown, PDF text, or similar).
+2. **LinkedIn data export directory** — path to a directory containing the CSV files from LinkedIn's official "Get a copy of your data" export (at minimum `Profile.csv`, `Positions.csv`, `Education.csv`, `Skills.csv`). May be a path to an unzipped directory or a path to the `.zip` itself — if a `.zip`, unzip it in place first.
 
-If either is missing from the user's message, ask for both at once before proceeding.
+Direct LinkedIn fetching is **not** supported by this skill: LinkedIn's User Agreement prohibits automated extraction, the live page only server-renders the top card (About / Experience / Education / Skills are lazy-loaded behind authenticated XHR calls), and cookie-based scraping risks account restrictions. The data export is LinkedIn's sanctioned alternative and gives complete, structured, source-of-truth data.
 
-Parse the LinkedIn username from any format the user provides:
-- `john-doe-123` → `john-doe-123`
-- `https://www.linkedin.com/in/john-doe-123/` → `john-doe-123`
-- `linkedin.com/in/john-doe-123` → `john-doe-123`
+If either input is missing, **ask for both at once**. If the user does not yet have the LinkedIn export, give them this instruction verbatim and wait:
+
+> To get your LinkedIn data:
+> 1. Open <https://www.linkedin.com/mypreferences/d/download-my-data>
+> 2. Choose **"Want something in particular?"** and tick at least: `Profile`, `Positions`, `Education`, `Skills`, `Certifications`, `Languages`, `Projects`.
+> 3. Click **Request archive**, re-enter your password.
+> 4. The fast archive arrives by email in ~10 minutes; download and unzip it.
+> 5. Reply with the path to the unzipped folder (and your CV path).
+
+**If the user explicitly says to skip LinkedIn** (e.g. "skip LinkedIn", "just the CV"), proceed with only the CV. Skip Phases 2 (Read LinkedIn export), 4 (Analyse LinkedIn), and 6 (Write LinkedIn guide). Note the skip in the final summary.
 
 ---
 
@@ -107,26 +115,30 @@ If the role cannot be determined from the CV, ask: "What type of role are you ta
 
 ---
 
-## Phase 2: Fetch the LinkedIn Profile
+## Phase 2: Read the LinkedIn Data Export
 
-Attempt to fetch the public LinkedIn profile at:
-`https://www.linkedin.com/in/{username}/`
+Read the CSVs from the export directory. See `references/linkedin-export-schema.md` for the exact column names, the `Month YYYY` date format, and the multi-line `Description` field gotcha (use a real CSV parser — do not split on commas yourself).
 
-**If the fetch succeeds and returns profile content:**
-Extract: headline, about/summary text, experience entries (title, company, description),
-education, skills list, any featured posts or certifications visible.
+**Required CSVs** (skill stops with an error if any are missing):
+- `Profile.csv` — single-row CSV. Extract `First Name`, `Last Name`, `Headline`, `Summary` (= LinkedIn About), `Industry`, `Geo Location`, `Websites`, `Twitter Handles`.
+- `Positions.csv` — one row per role. Extract `Company Name`, `Title`, `Description`, `Location`, `Started On`, `Finished On` (empty string = current role).
+- `Education.csv` — one row per entry. Extract `School Name`, `Start Date`, `End Date`, `Degree Name`, `Notes`, `Activities`.
+- `Skills.csv` — one row per skill. Extract `Name`.
 
-**If the fetch fails, returns a login page, or returns a 999/redirect response:**
-Tell the user exactly this:
-> "I couldn't access your LinkedIn profile automatically — LinkedIn restricts automated access.
-> Please paste the key parts of your LinkedIn profile here: your current headline, the About/summary
-> section, your experience descriptions (at least the most recent 2–3 roles), and your skills list.
-> I'll continue once I have that content."
+**Optional CSVs** (use if present, do not fail if absent):
+- `Certifications.csv` — `Name`, `Authority`, `Started On`, `Finished On`, `License Number`, `Url`.
+- `Languages.csv` — `Name`, `Proficiency`.
+- `Projects.csv` — `Title`, `Description`, `Started On`, `Finished On`, `Url`.
+- `Volunteering.csv` — `Company Name`, `Role`, `Started On`, `Finished On`, `Cause`, `Description`.
 
-Wait for the user's response before proceeding with any LinkedIn analysis.
+**Reading rules:**
+- Use a real CSV parser. The `Description` and `Summary` fields commonly contain embedded newlines, commas, and quotes.
+- LinkedIn export column names vary slightly across vintages. If a required column is not found by its expected name, look for the close variants documented in `references/linkedin-export-schema.md` (e.g. `Started On` vs `Start Date`).
+- If the directory exists but a required CSV is missing or empty, list which file is missing and ask the user to re-export with the right categories ticked. Do not proceed to Phase 4.
+- If the path the user provided is a `.zip`, unzip it in place (to a sibling folder named like the zip without `.zip`) and use that as the export directory.
+- Sort `Positions.csv` rows by `Started On` descending so the most recent role is processed first; rows with empty `Finished On` are current and rank highest.
 
-**If the user explicitly says to skip LinkedIn** (e.g. "skip LinkedIn", "just the CV"):
-Skip Phases 4 and 6. Note the skip in the final summary.
+Note which optional CSVs are absent — this affects Phase 4 (e.g. no Certifications.csv means certifications cannot be audited; do not invent any).
 
 ---
 
@@ -159,25 +171,43 @@ For each bullet across all roles, check:
 
 **Strong verb banks by role:**
 
-| Role | Strong Verbs |
-|---|---|
+| Role     | Strong Verbs                                                                                                                                                  |
+|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Engineer | *engineered, architected, built, shipped, refactored, migrated, automated, reduced, optimised, scaled, deployed, integrated, designed, implemented, debugged* |
-| PM / PO | *defined, launched, prioritised, drove, shipped, grew, negotiated, aligned, validated, synthesised, owned, partnered, increased, reduced, delivered* |
-| EM / TL | *led, hired, grew, scaled, restructured, established, mentored, unblocked, defined, championed, partnered, transformed, delivered, set, cultivated* |
+| PM / PO  | *defined, launched, prioritised, drove, shipped, grew, negotiated, aligned, validated, synthesised, owned, partnered, increased, reduced, delivered*          |
+| EM / TL  | *led, hired, grew, scaled, restructured, established, mentored, unblocked, defined, championed, partnered, transformed, delivered, set, cultivated*           |
 
-**Quantification — flag every bullet with zero numbers:**
+**Outcome check — flag bullets that are pure task, with no outcome of any kind.**
 
-| Role | Metric types to look for |
-|---|---|
-| Engineer | Latency (ms), throughput (req/s), uptime (%), test coverage (%), build/deploy time, lines of code removed, cost savings ($) |
-| PM / PO | MAU/DAU, conversion rate (%), ARR/MRR ($), NPS, sprint velocity, time-to-market, number of experiments run |
-| EM / TL | Team size (#), hiring targets met (#), attrition rate (%), delivery on-time (%), promotion rate, number of teams/squads managed |
+A bullet is *complete* if it carries at least one of:
 
-A bullet with zero numbers needs `[METRIC: e.g. reduced latency by X%]` appended.
+- A **number** (latency, throughput, users, cost, dollar amount, percent, team size).
+- A **scope or scale phrase** ("across 12 services", "for a 30-engineer org", "in a 2M-user product").
+- A **named system or shipped artifact** ("the order-orchestration service", "v2 of the billing API", "the fraud-detection pipeline").
+- A **before/after comparison**, even without numbers ("migrated from REST to gRPC", "replaced the bash deploy script with GitLab CI").
+- A **complexity / problem signal** ("designed the leader-election protocol", "debugged a memory leak in the JVM scheduler").
+
+A bullet that has **none** of those — e.g. "Wrote unit tests", "Worked on backend services",
+"Participated in code reviews" — is pure task; flag it.
+
+Numbers are **one** way to add outcome, not the only way. Invented or trivially small
+numbers are worse than no number — recruiters and hiring managers spot them. For
+engineers, scope and named-system signals are equally legitimate; for PMs and EMs, hard
+numbers carry more weight because business KPIs and team metrics are inherent to the role.
+
+| Role     | Metric types when a number IS the right outcome                                                                                 |
+|----------|---------------------------------------------------------------------------------------------------------------------------------|
+| Engineer | Latency (ms), throughput (req/s), uptime (%), test coverage (%), build/deploy time, lines of code removed, cost savings ($)     |
+| PM / PO  | MAU/DAU, conversion rate (%), ARR/MRR ($), NPS, sprint velocity, time-to-market, number of experiments run                      |
+| EM / TL  | Team size (#), hiring targets met (#), attrition rate (%), delivery on-time (%), promotion rate, number of teams/squads managed |
+
+A pure-task bullet needs `[OUTCOME: e.g. <scope phrase> OR <named system> OR <number>]` appended — listing **at least two non-number options** so the user is not pushed to invent a metric.
 
 **Result vs. task:**
 "Wrote unit tests" (task) vs. "Achieved 94% test coverage on the payments service,
-catching 3 critical regressions before they reached production" (result).
+catching 3 critical regressions before they reached production" (number-as-outcome) vs.
+"Built the regression-test harness for the payments service" (named-system-as-outcome) —
+both rewrites are valid.
 
 ### 3c. Education and Certifications
 
@@ -225,7 +255,12 @@ catching 3 critical regressions before they reached production" (result).
 
 ## Phase 4: Analyse the LinkedIn Profile
 
-*(Skip entirely if the user chose to skip LinkedIn.)*
+*(Skip entirely if the user chose to skip LinkedIn in Phase 0.)*
+
+The data here is parsed from CSVs in Phase 2, so every check below operates on
+concrete values — do not hedge with "if the headline is present". A field is
+either present (non-empty string in the CSV) or absent (empty string / missing
+column). Treat absent as a flagged finding, not a question to ask the user.
 
 ### 4a. Headline
 
@@ -234,11 +269,11 @@ LinkedIn headline is the #1 field recruiters use in search filters.
 
 **Headline templates by role:**
 
-| Role | Template |
-|---|---|
-| Engineer | `{Seniority} {Specialisation} Engineer · {Primary Stack} · {Domain or Impact}` |
-| PM | `{Seniority} Product Manager · {Product Type, e.g. B2B SaaS / Consumer / Platform} · {Impact angle, e.g. 0-to-1 / Growth / Enterprise}` |
-| EM / TL | `Engineering Manager · {Team/Org context} · {Scale or domain, e.g. 40-person org / Fintech / Developer Tooling}` |
+| Role     | Template                                                                                                                                |
+|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| Engineer | `{Seniority} {Specialisation} Engineer · {Primary Stack} · {Domain or Impact}`                                                          |
+| PM       | `{Seniority} Product Manager · {Product Type, e.g. B2B SaaS / Consumer / Platform} · {Impact angle, e.g. 0-to-1 / Growth / Enterprise}` |
+| EM / TL  | `Engineering Manager · {Team/Org context} · {Scale or domain, e.g. 40-person org / Fintech / Developer Tooling}`                        |
 
 Examples:
 - "Senior Backend Engineer · Go & Kafka · Building high-throughput fintech systems"
@@ -276,11 +311,13 @@ Examples:
 
 ### 4e. CV vs. LinkedIn Alignment
 
-Cross-reference every role, date, and title between the CV and LinkedIn. Flag:
-- Different job title for the same role (recruiters notice and ask)
-- Date mismatches (start or end year differs by more than 1 month)
-- Roles present on the CV but absent from LinkedIn
-- Roles present on LinkedIn but absent from the CV
+For each `Positions.csv` row, find the matching CV role by `Company Name`. Compare:
+- `Title` vs. CV title — flag any difference (recruiters notice and ask).
+- `Started On` / `Finished On` vs. CV dates — flag a mismatch greater than ~1 month. The CSV format is `Month YYYY`; CV dates may be `YYYY` only or a range — normalise to year before comparing.
+- Roles present on the CV but absent from `Positions.csv` (LinkedIn looks abandoned for that period).
+- Roles present in `Positions.csv` but absent from the CV (CV looks incomplete or there's a deliberate omission worth surfacing).
+
+For Education, do the same comparison using `School Name` as the join key.
 
 ---
 
@@ -301,8 +338,7 @@ If the CV content was pasted directly (no file path), write to `./cv-improved.md
     Known for {strength, e.g. "building high-trust teams" / "technical transformation"}.
     Track record of {delivery or org outcome}.`
 - Replace every weak verb with a strong one from the role-specific verb bank in Phase 3b.
-- For every unquantified bullet, append ` [METRIC: e.g. {role-relevant metric}]` — the
-  user fills in the real number.
+- For every **pure-task** bullet (no outcome of any kind, per the Phase 3b outcome check), append `[OUTCOME: e.g. <scope phrase>, <named system>, or <number>]`, listing **at least two non-number suggestions** drawn from the role and surrounding context. Do **not** append this to bullets that already carry scope, a named system, or a before/after comparison — even if no digit is present; those are already complete.
 - **Do not invent facts.** Preserve company names, dates, titles, and technologies exactly.
 - If the Skills section was absent, create one using the role-appropriate category structure
   from Phase 3d, populated from technologies named in experience bullets.
@@ -319,7 +355,7 @@ If the CV content was pasted directly (no file path), write to `./cv-improved.md
 - Role detected: {Engineer / PM / EM}
 - Summary: [added / rewrote — reason]
 - Bullets rewritten: N across M roles (weak verbs → strong verbs)
-- [METRIC] placeholders added: N bullets
+- [OUTCOME] placeholders added: N bullets (only pure-task bullets — others left as-is)
 - Skills section: [added with role structure / reformatted / unchanged]
 - [any other changes, e.g. GitHub placeholder added]
 ```
@@ -363,8 +399,8 @@ Generated: {today's date}
 {Write a complete improved About section using the role-specific flow from Phase 4b.
  Line 1–2 (hook, visible before "see more"): lead with role + domain + a hook credential.
  Lines 3–6: core skills, domain expertise, one or two standout achievements from the CV.
- Engineers: include primary stack and a scale/performance fact.
- PMs: include product type and a business impact fact.
+ Engineers: include primary stack and a scale-or-system fact (a number, a scope phrase, or a named system — whichever is most credible from the CV).
+ PMs: include product type and a business impact fact (numbers carry weight here — use them if the CV has them).
  EMs: include team size and an org achievement.
  Final 2 lines: what they are looking for + contact CTA.}
 
@@ -419,7 +455,7 @@ Role: {Engineer / PM / EM / Other}
 **Improved CV:** {full path to cv-improved.md}
   - Summary: {added fresh / rewrote generic version}
   - Bullets improved: {N} across {M} roles
-  - [METRIC] placeholders added: {N}
+  - [OUTCOME] placeholders added: {N} (on pure-task bullets only)
   {any other notable changes}
 
 **LinkedIn Guide:** {full path to linkedin-improvements.md}   [or "Skipped"]

@@ -1,7 +1,7 @@
 {
   "name": "cv-linkedin",
-  "version": "1.0.0",
-  "description": "Analyze and improve a CV and LinkedIn profile with stronger language, quantified achievements, and aligned keywords",
+  "version": "2.1.0",
+  "description": "Analyze and improve a CV and LinkedIn profile (driven by the official LinkedIn data export, not live scraping) with stronger language, quantified achievements, and aligned keywords",
   "author": { "name": "dan323" },
   "category": "productivity",
   "skills": ["./skills/cv-linkedin"]

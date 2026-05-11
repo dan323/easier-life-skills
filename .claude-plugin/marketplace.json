@@ -29,7 +29,7 @@
     {
       "name": "cv-linkedin",
       "source": "./plugins/cv-linkedin",
-      "description": "Analyze and improve a CV and LinkedIn profile with stronger language, quantified achievements, and aligned keywords",
+      "description": "Analyze and improve a CV and LinkedIn profile (driven by the official LinkedIn data export, not live scraping) with stronger language, quantified achievements, and aligned keywords",
       "category": "productivity",
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/cv-linkedin"
     },
