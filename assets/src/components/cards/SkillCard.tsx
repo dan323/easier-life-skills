@@ -15,23 +15,14 @@ export function SkillCard({ skill, showSource, showInstall, onOpen }: Props) {
   const activate = () => onOpen(skill);
 
   return (
-    <div
-      class="skill-card"
-      role="button"
-      tabindex={0}
-      aria-label={`Open details for skill ${skill.name}`}
-      style={{ cursor: 'pointer' }}
-      onClick={activate}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } }}
-    >
+    <div class="skill-card">
       <div class="card-header">
-        <a
+        <button
+          type="button"
           class="card-name"
-          href={skill.rawSkillUrl}
-          target="_blank"
-          rel="noopener"
-          onClick={e => e.stopPropagation()}
-        >{skill.name}</a>
+          aria-label={`Open details for skill ${skill.name}`}
+          onClick={activate}
+        >{skill.name}</button>
         <div class="card-badges">
           {skill.readOnly && <span class="badge badge-readonly">read-only</span>}
           <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>

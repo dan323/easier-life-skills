@@ -11,23 +11,14 @@ interface Props {
 export function CommandCard({ command: cmd, showSource, showInstall, onOpen }: Props) {
   const activate = () => onOpen(cmd);
   return (
-    <div
-      class="skill-card"
-      role="button"
-      tabindex={0}
-      aria-label={`Open details for command ${cmd.name}`}
-      style={{ cursor: 'pointer' }}
-      onClick={activate}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } }}
-    >
+    <div class="skill-card">
       <div class="card-header">
-        <a
+        <button
+          type="button"
           class="card-name"
-          href={cmd.rawCommandUrl}
-          target="_blank"
-          rel="noopener"
-          onClick={e => e.stopPropagation()}
-        >{cmd.name}</a>
+          aria-label={`Open details for command ${cmd.name}`}
+          onClick={activate}
+        >{cmd.name}</button>
         <div class="card-badges">
           <span class="badge badge-cat badge-automation">Command</span>
           {showSource && <span class="badge badge-source">{cmd._repo}</span>}

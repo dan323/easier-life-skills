@@ -383,6 +383,7 @@ main { padding: 20px 32px 80px; }
 }
 
 .skill-card {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -394,7 +395,7 @@ main { padding: 20px 32px 80px; }
   transition: border-color 0.15s, transform 0.1s;
 }
 .skill-card:hover { border-color: var(--accent); transform: translateY(-1px); }
-.skill-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-color: var(--accent); }
+.skill-card:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; border-color: var(--accent); }
 
 .card-header {
   display: flex;
@@ -409,11 +410,31 @@ main { padding: 20px 32px 80px; }
   font-weight: 600;
   font-family: 'SF Mono', 'Fira Code', monospace;
   color: var(--accent);
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  text-align: left;
   text-decoration: none;
+  cursor: pointer;
   min-width: 0;
   overflow-wrap: break-word;
 }
 .card-name:hover { text-decoration: underline; }
+.card-name:focus { outline: none; }
+.card-name:focus-visible { outline: none; }
+.card-name::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+}
+
+/* Lift sibling interactive controls above the stretched-link overlay so
+ * they remain independently clickable (copy button, "+N more" expand). */
+.skill-card .card-install,
+.skill-card .plugin-chips,
+.skill-card .card-chips { position: relative; z-index: 1; }
 
 .card-badges {
   display: flex;

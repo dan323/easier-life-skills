@@ -11,23 +11,14 @@ interface Props {
 export function AgentCard({ agent, showSource, showInstall, onOpen }: Props) {
   const activate = () => onOpen(agent);
   return (
-    <div
-      class="skill-card"
-      role="button"
-      tabindex={0}
-      aria-label={`Open details for agent ${agent.name}`}
-      style={{ cursor: 'pointer' }}
-      onClick={activate}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } }}
-    >
+    <div class="skill-card">
       <div class="card-header">
-        <a
+        <button
+          type="button"
           class="card-name"
-          href={agent.rawAgentUrl}
-          target="_blank"
-          rel="noopener"
-          onClick={e => e.stopPropagation()}
-        >{agent.name}</a>
+          aria-label={`Open details for agent ${agent.name}`}
+          onClick={activate}
+        >{agent.name}</button>
         <div class="card-badges">
           {agent.background && <span class="badge badge-readonly">background</span>}
           <span class="badge badge-cat badge-automation">Agent</span>

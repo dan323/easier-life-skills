@@ -1,190 +1,373 @@
-# Site Audit: https://dan323.github.io/easier-life-skills/
-*Generated: 2026-05-09T08:20:00Z*
+# Site Audit: http://127.0.0.1:4567/
+*Generated: 2026-05-12T00:00:00Z*
+
+> Target is the local dev server (`npm run dev`, esbuild `--serve`). Some
+> performance findings are dev-only (unminified bundle, no cache headers) and
+> would resolve in the production GitHub Pages build — they are tagged inline.
+
+> **Phase 1 fix applied (2026-05-12):** the 15 nested-interactive WCAG 4.1.2
+> violations on plugin / skill / agent / MCP / command / hook cards are
+> resolved. Cards no longer use `role="button"`; the title is a real
+> `<button class="card-name">` and a CSS stretched-link overlay keeps the rest
+> of the card click-through to the title. Verified with axe-cli (28 → 13
+> violations) and a Playwright smoke test (`/tmp/phase1-smoke2.mjs`). The
+> 3 remaining nested-interactive entries are on the marketplace source tag
+> (Phase 2); the 10 region findings are Phase 3.
 
 ## Summary
 
 | Category       | Critical | High | Medium | Low | Total |
 |----------------|----------|------|--------|-----|-------|
-| UX             | 0        | 4    | 5      | 4   | 13    |
-| Accessibility  | 0        | 9    | 6      | 1   | 16    |
-| Performance    | 0        | 0    | 1      | 4   | 5     |
-| Bugs           | 0        | 2    | 2      | 1   | 5     |
-| **Total**      | **0**    | **15**| **14** | **10**| **39** |
+| UX             | 0        | 0    | 4      | 3   | 7     |
+| Accessibility  | 0        | 17   | 11     | 0   | 28    |
+| Performance    | 0        | 0    | 4      | 4   | 8     |
+| Bugs           | 0        | 0    | 0      | 0   | 0     |
+| **Total**      | **0**    | **17**| **19**| **7**| **43** |
 
-> **Lighthouse performance score: 94/100**
+> **Lighthouse performance score: 93/100**
+
+No critical issues were found. The site is functionally healthy — no console
+errors, no failed requests, no template bleed-through, sort/filter/view
+controls all behave correctly. The dominant theme is **17 nested-interactive
+WCAG violations**: every plugin card is `role="button"` while also containing
+focusable children (title link, copy button), and marketplace source tags
+do the same.
 
 ---
 
 ## Critical Issues
 
-*No critical issues found.*
+*None.*
 
 ---
 
 ## UX Issues
 
-### High
-
-- **https://dan323.github.io/easier-life-skills/** (Content clarity) — The "Get started in 2 steps" code block for step 2 is pre-filled with `/plugin install changelog@easier-life-skills` rather than a generic placeholder. A user who copies it verbatim installs `changelog` regardless of which plugin they actually browsed to.
-  *Fix: Replace the hardcoded example with `/plugin install <skill-name>@easier-life-skills` and add a note like "(replace `<skill-name>` with the plugin you want)".*
-
-- **https://dan323.github.io/easier-life-skills/CATALOG.md** (Content clarity) — The "Full catalog" footer link navigates to a raw Markdown file served as `text/plain`. The browser renders unstyled monospace text with no page title, no navigation, and a console error. Confirmed via live browser test.
-  *Fix: Either render CATALOG.md inside the SPA as a styled panel, link to the GitHub-rendered view, or add a "Back to marketplace" HTML anchor at the top of the raw file.*
-
-- **https://dan323.github.io/easier-life-skills/CATALOG.md** (Navigation) — The CATALOG.md page is a dead-end with no logo, no navigation, and no route back except the browser Back button.
-  *Fix: Add a "Back to marketplace" link, or serve the catalog as an in-app rendered page.*
-
-- **https://dan323.github.io/easier-life-skills/** (Consistency) — The "+7 more", "+8 more", and "+2 more" expand buttons on plugin skill tags use purely numeric labels with no noun. It is unclear whether clicking expands skills, tags, or opens a detail panel.
-  *Fix: Change labels to "+7 more skills" (or whichever noun applies) so the action is self-describing.*
-
 ### Medium
 
-- **https://dan323.github.io/easier-life-skills/** (Navigation) — All application state (category, view, sort, repo) is stored in URL hash params, but there is no visible summary line reflecting the current filter context for users following a shared URL.
-  *Fix: Add a visible label such as "Showing: Skills — sorted Z to A" below the filter controls that reflects hash state.*
+- **http://127.0.0.1:4567/** (Consistency / Unexpected behavior) — Card titles
+  for plugins from the built-in marketplace render as `<a target="_blank">` to
+  GitHub; cards from external marketplaces render the title as a plain
+  `<span>`. The two are visually identical, but clicking the title on one
+  opens GitHub in a new tab while the other does nothing extra — and in
+  both cases the surrounding card is `role="button"` that opens a detail
+  panel. Users cannot predict what clicking the title will do.
+  *Fix: render the title as a non-link inside the card and move the "Open on
+  GitHub" affordance to an explicit button inside the detail panel (or a
+  consistent small icon link on every card). See
+  `assets/src/components/cards/PluginCard.tsx` and `SkillCard.tsx`.*
 
-- **https://dan323.github.io/easier-life-skills/** (Consistency) — Category filter buttons (Automation, Code Quality, etc.) are only shown in the Plugins view. Switching to Skills, Agents, or other tabs hides them entirely without explanation.
-  *Fix: Either show the category bar in all views (greyed-out or adapted) or add a visible note when entering a non-Plugins view.*
+- **http://127.0.0.1:4567/** (Consistency) — The marketplace source tag is
+  both a filter toggle (`role="button"` on the wrapper) and contains a `+`
+  button that copies the `/plugin marketplace add …` command. The two
+  actions live in overlapping click targets distinguished only by the
+  `aria-label`. Sighted users have to discover by trial that the `+` copies
+  rather than adds a marketplace.
+  *Fix: separate the two surfaces — make the chip body the filter toggle
+  with clear visual affordance, and replace the `+` glyph with a small icon
+  + visible tooltip on hover ("Copy install command"). See `MarketplaceBar.tsx`.*
 
-- **https://dan323.github.io/easier-life-skills/#repo=anthropics%2Fskills** (Content clarity) — When the source filter is set to `anthropics/skills`, the category bar silently narrows (removing Automation, Code Quality, Mixed), which users could mistake for a rendering bug.
-  *Fix: Add a tooltip or inline note such as "Showing categories available in anthropics/skills" when the category list is narrowed by a source filter.*
+- **http://127.0.0.1:4567/** (Error and empty states) — Switching the view
+  toggle to **Commands** shows `0 of 0 commands` with no further guidance.
+  Same applies to any view that happens to be empty for the current filter
+  combination. Users may think the page is broken.
+  *Fix: when the result set is empty, render a one-line message under the
+  count ("No commands in this marketplace yet — try the Skills or Agents
+  views"). See the empty branch in `Grid.tsx`.*
 
-- **https://dan323.github.io/easier-life-skills/** (Mobile hints) — Source-list filter items are `<div>` elements with `cursor: pointer`. On mobile, these lack native tap-target sizing and may be difficult to activate reliably.
-  *Fix: Convert source-list items to `<button>` elements or add `role="button"` and a `min-height: 44px`.*
-
-- **https://dan323.github.io/easier-life-skills/** (Consistency) — The `mattpocock-skills` plugin card has a `null` description. If the UI renders an empty card body silently, that card is visually inconsistent with all others.
-  *Fix: Provide a fallback description "No description available" and ensure card layout does not collapse when description is absent.*
+- **http://127.0.0.1:4567/** (Mobile hints) — The controls row packs five
+  category filter buttons, three marketplace chips, a sort button, and seven
+  view-toggle buttons. On viewports narrower than ~700 CSS px this is very
+  likely to wrap awkwardly or cause horizontal scroll (could not verify
+  responsive breakpoints from the rendered HTML alone).
+  *Fix: collapse the seven view-toggle buttons into a single `<select>` on
+  narrow viewports (or a horizontally scrollable strip with snap points), and
+  wrap filter chips into a second row. Verify at 320 / 375 / 414 px.*
 
 ### Low
 
-- **https://dan323.github.io/easier-life-skills/** (Content clarity) — The sort button label reads "Sort: A→Z" when sorted A→Z, ambiguously describing the current state rather than the click action.
-  *Fix: Use a label like "Sort Z→A" (the action) with a secondary indicator "Currently: A→Z", or a tooltip clarifying the toggle.*
+- **http://127.0.0.1:4567/** (Forms) — The search input has no visible label,
+  only `aria-label="Search skills"` and a placeholder of "Search skills…
+  (press / to focus)". Placeholder disappears on focus, so the hint about the
+  `/` shortcut vanishes when the user is actually typing.
+  *Fix: keep the hint as helper text below the input (or convert the `/` hint
+  into a small kbd indicator inside the input that stays visible on focus).*
 
-- **https://dan323.github.io/easier-life-skills/** (Navigation) — The GitHub header link lacks a visible "opens in new tab" indicator (external-link icon + `aria-label`).
-  *Fix: Add a standard external-link icon and `aria-label="GitHub (opens in new tab)"` to the link.*
+- **http://127.0.0.1:4567/** (Loading states) — Between the static HTML shell
+  and Preact hydration the page is empty (`<div id="root"></div>`). On slow
+  connections this is a visible blank state. The fetch preload helps but does
+  not paint anything.
+  *Fix: inline a minimal skeleton (header + 6 placeholder card rectangles) in
+  `index.html` so the user sees structure immediately. Remove on first render.*
 
-- **https://dan323.github.io/easier-life-skills/#view=agents** (Content clarity) — The Agents view provides no explanation of what an "agent" is in this marketplace's terminology versus a "skill" or "plugin".
-  *Fix: Add a one-sentence contextual note under the Agents tab header.*
-
-- **https://dan323.github.io/easier-life-skills/** (Mobile hints) — The 7-tab type row (Plugins / Skills / Agents / MCP Servers / Commands / Hooks / Bundles) may overflow on narrow viewports since multi-word labels like "MCP Servers" take significant space.
-  *Fix: Implement a scrollable horizontal tab strip with visible scroll affordances, or collapse less-used tabs behind a "More" dropdown on mobile.*
+- **http://127.0.0.1:4567/** (Consistency) — The sort button label "Sort:
+  A→Z" doubles as both current state and clickable affordance, but the
+  visible UI gives no separate icon indicating it's a toggle. The `aria-label`
+  helpfully says "Currently sorted A to Z. Click to sort Z to A.", but
+  sighted users have to guess.
+  *Fix: add a small ⇅ icon next to the label so the button reads as a toggle,
+  not a static badge.*
 
 ---
 
 ## Accessibility Issues
 
+> Source: axe-cli against the rendered page. 28 violations across two rules.
+
 ### High
 
-- **https://dan323.github.io/easier-life-skills/** (WCAG 2.4.1) — `.skip-link` — The skip-to-main-content link is visually hidden via `left: -9999px` and uses `position: fixed` on focus with no guarantee of rendering above all overlays at all viewport sizes. Should be verified with NVDA/JAWS.
-  *Fix: Use the standard clip pattern (`clip-path` or `clip + overflow:hidden`) instead of offscreen positioning for the skip link.*
+- **`.builtin`** (WCAG 4.1.2) — Nested interactive controls: a
+  focusable/interactive element is nested inside another interactive element
+  (card with `role=button` containing an inner button or link). Screen
+  readers may not announce both; focus order can be unpredictable.
+  *Fix: flatten the interactive structure. Either make the card non-interactive
+  (remove `role=button` and `tabindex`) and rely on the inner controls, or
+  remove the inner interactive children and expose a single keyboard target.*
 
-- **https://dan323.github.io/easier-life-skills/CATALOG.md** (WCAG 2.4.2) — `<title>` — The CATALOG.md page has an empty title (sitemap records `"title": ""`).
-  *Fix: Serve CATALOG.md as an HTML page with a meaningful `<title>`, or replace the link with one pointing to a properly titled page.*
+- **`div[data-repo="anthropics/skills"]`** (WCAG 4.1.2) — Nested interactive
+  controls inside the marketplace bar entry: an interactive child (copy
+  button) is nested inside an outer interactive container (filter toggle).
+  *Fix: stop event bubbling from inner controls and ensure the outer element
+  is not itself a button (remove `role=button`/`tabindex` from the wrapper),
+  so only one focusable control exists per region.*
 
-- **https://dan323.github.io/easier-life-skills/** (WCAG 4.1.2) — `<a id="panel-name" class="panel-name">` — The plugin detail panel's name anchor is an empty, focusable `<a>` with no text and no `aria-label` when the panel is closed, making it invisible to assistive technologies.
-  *Fix: Add `aria-hidden="true"` and `tabindex="-1"` to `#panel-name` when the panel is closed, or apply the `inert` attribute to the entire closed panel.*
+- **`div[data-repo="mattpocock/skills"]`** (WCAG 4.1.2) — Same nested
+  interactive issue on the marketplace bar entry.
+  *Fix: remove the outer interactive role or remove the inner focusable
+  controls; only one interactive control should occupy a given clickable
+  region.*
 
-- **https://dan323.github.io/easier-life-skills/** (WCAG 4.1.2) — `.source-tag` elements — Marketplace source filter tags are `<div>` elements with click handlers but no `role="button"`, no `tabindex`, and no keyboard event handling. Completely inaccessible to keyboard and AT users.
-  *Fix: Change each source tag to a `<button>` element (strongly preferred over adding ARIA attributes to a `<div>`).*
+- **`div[aria-label="Open details for brainstorm"]`** (WCAG 4.1.2) — Skill
+  card exposed as a `role="button"` contains a nested `CopyButton` and
+  external link.
+  *Fix: drop the outer `role="button"` and use a single inner button as the
+  primary affordance, or move copy + link controls into the detail panel.*
 
-- **https://dan323.github.io/easier-life-skills/** (WCAG 2.1.1) — `.skill-card` — Plugin cards are `<div>` elements with `click` listeners and `cursor: pointer` but no `role`, no `tabindex`, and no keyboard handler. Keyboard users cannot open the plugin detail panel.
-  *Fix: Add `role="button"` and `tabindex="0"` to each card, and a `keydown` handler triggering open on Enter and Space.*
+- **`div[aria-label="Open details for changelog"]`** (WCAG 4.1.2) — Skill
+  card with `role=button` contains nested interactive controls.
+  *Fix: avoid putting `<button>`/`<a>` elements inside a `role=button`
+  container; lift inner controls into the detail panel or drop the outer
+  button role.*
 
-- **https://dan323.github.io/easier-life-skills/** (WCAG 4.1.2) — `.copy-btn` buttons — All Copy buttons carry only the visible text "Copy" or "Copy all". With 16 Copy buttons on the same page, screen reader users cannot distinguish which command each button copies.
-  *Fix: Add a descriptive `aria-label` to each Copy button, e.g., `aria-label="Copy install command for changelog"`.*
+- **`div[aria-label="Open details for claude-api"]`** (WCAG 4.1.2) — Skill
+  card with `role=button` contains nested interactive controls.
+  *Fix: restructure so only one interactive element is announced per card;
+  remove the outer `role=button` or the inner buttons.*
 
-- **https://dan323.github.io/easier-life-skills/#cat=automation** (WCAG 4.1.2) — Plugin detail panel — When a card is clicked and the panel opens, focus is not programmatically moved into the panel. Keyboard and screen reader users remain focused on the card behind the overlay.
-  *Fix: After `panel.classList.add('open')`, call `closeBtn.focus()` to move focus into the panel. On close, restore focus to the triggering card.*
+- **`div[aria-label="Open details for cost-tracker"]`** (WCAG 4.1.2) — Skill
+  card with `role=button` contains nested interactive controls.
+  *Fix: restructure so only one interactive element is announced per card;
+  remove the outer `role=button` or the inner buttons.*
 
-- **https://dan323.github.io/easier-life-skills/#cat=automation** (WCAG 4.1.2) — Plugin detail panel — The panel does not implement a focus trap. Keyboard users can Tab through the underlying page behind the overlay.
-  *Fix: Use the `inert` attribute on all sibling elements outside the panel when it is open, or implement a manual focus trap cycling Tab/Shift+Tab within panel focusable elements.*
+- **`div[aria-label="Open details for cv-linkedin"]`** (WCAG 4.1.2) — Skill
+  card with `role=button` contains nested interactive controls.
+  *Fix: restructure so only one interactive element is announced per card;
+  remove the outer `role=button` or the inner buttons.*
 
-- **https://dan323.github.io/easier-life-skills/** (WCAG 2.1.1) — `#panel-overlay` — The overlay backdrop has a click handler to close the panel but no keyboard equivalent. Acceptable only if the close button reliably receives focus on panel open (see focus management finding above).
-  *Fix: Confirm the close button receives focus when the panel opens so keyboard users always have a reachable dismiss path.*
+- **`.skill-card[role="button"]:nth-child(6)` (document-project)** (WCAG 4.1.2)
+  — Skill card exposed as a button contains nested interactive controls.
+  *Fix: pick a single interactive layer for the card.*
+
+- **`.skill-card[role="button"]:nth-child(7)` (document-skills)** (WCAG 4.1.2)
+  — Skill card exposed as a button contains nested interactive controls.
+  *Fix: pick a single interactive layer for the card.*
+
+- **`.skill-card[role="button"]:nth-child(8)` (example-skills)** (WCAG 4.1.2)
+  — Skill card exposed as a button contains nested interactive controls.
+  *Fix: pick a single interactive layer for the card.*
+
+- **`.skill-card[role="button"]:nth-child(9)` (find-breaking-rest-api)** (WCAG 4.1.2)
+  — Skill card exposed as a button contains nested interactive controls.
+  *Fix: pick a single interactive layer for the card.*
+
+- **`.skill-card[role="button"]:nth-child(10)` (find-dead-code)** (WCAG 4.1.2)
+  — Skill card exposed as a button contains nested interactive controls.
+  *Fix: pick a single interactive layer for the card.*
+
+- **`div[aria-label="Open details for find-skills"]`** (WCAG 4.1.2) — Skill
+  card with `role=button` contains nested interactive controls.
+  *Fix: restructure so only one interactive element is announced per card.*
+
+- **`.skill-card[role="button"]:nth-child(12)` (improve-logging)** (WCAG 4.1.2)
+  — Skill card exposed as a button contains nested interactive controls.
+  *Fix: pick a single interactive layer for the card.*
+
+- **`.skill-card[role="button"]:nth-child(13)` (mattpocock-skills)** (WCAG 4.1.2)
+  — Skill card exposed as a button contains nested interactive controls.
+  *Fix: pick a single interactive layer for the card.*
+
+- **`div[aria-label="Open details for site-audit"]`** (WCAG 4.1.2) — Skill
+  card with `role=button` contains nested interactive controls.
+  *Fix: restructure so only one interactive element is announced per card.*
+
+- **`div[aria-label="Open details for task-agent"]`** (WCAG 4.1.2) — Skill
+  card with `role=button` contains nested interactive controls.
+  *Fix: restructure so only one interactive element is announced per card.*
+
+> **Note:** the 18 high entries above share a single root cause: the
+> `SkillCard`/`PluginCard` component wraps the entire tile in a
+> `role="button"` for the open-panel click, *and* renders a child `<a>`
+> (GitHub title link) and child `<button>` (copy). One fix in
+> `assets/src/components/cards/PluginCard.tsx` (and `SkillCard.tsx`, plus
+> `MarketplaceBar.tsx` for the two source-tag cases) resolves all of them.
 
 ### Medium
 
-- **https://dan323.github.io/easier-life-skills/** (WCAG 4.1.2) — View toggle buttons (`#view-plugins`, `#view-skills`, etc.) — Active state is conveyed only via CSS class and color; no `aria-pressed` attribute is set.
-  *Fix: Add `aria-pressed="true"` to the active view button and `aria-pressed="false"` to others; update on `switchView()`.*
+- **`h2`** (WCAG 1.3.1) — Page content is not contained inside a landmark
+  region; the h2 sits outside `<main>`/`<nav>`/`<header>`/`<footer>`.
+  *Fix: wrap top-level page sections in semantic landmarks (`<main>`,
+  `<nav>`, `<header>`, etc.) so assistive tech can skip between regions.*
 
-- **https://dan323.github.io/easier-life-skills/** (WCAG 4.1.2) — Category filter buttons (`.filter-btn`) — Active/inactive state communicated only through CSS. No `aria-pressed` attribute.
-  *Fix: Set `aria-pressed="true"` on active filter buttons and `aria-pressed="false"` on inactive ones; update in the click handler.*
+- **`.quickstart-note`** (WCAG 1.3.1) — Quickstart note content sits outside
+  any landmark.
+  *Fix: place the quickstart block inside a `<section aria-labelledby="…">`
+  or under `<main>`.*
 
-- **https://dan323.github.io/easier-life-skills/** (WCAG 4.1.2) — Sort button (`#sort-btn`) — Sort direction communicated only through text content change. No `aria-pressed` or `aria-label` update on toggle.
-  *Fix: Update `aria-label` on each click to explicitly state current and next direction, e.g., `aria-label="Currently sorted A to Z. Click to sort Z to A."`*
+- **`.step:nth-child(1) > .step-num`** (WCAG 1.3.1) — Step 1 number is
+  rendered outside any landmark.
+  *Fix: wrap the QuickStart steps inside a `<section>` or `<main>` landmark.*
 
-- **https://dan323.github.io/easier-life-skills/** (WCAG 1.4.3) — Small text elements using `color: var(--text-muted)` and badge elements — Contrast appears adequate at larger sizes, but smallest text (0.65–0.72rem badges) and muted-on-dark combinations should be verified with a dedicated tool.
-  *Fix: Verify all text/background combinations with WebAIM Contrast Checker, especially badge and caption text at minimum font sizes.*
+- **`.step:nth-child(1) > .step-body > .step-label`** (WCAG 1.3.1) — Step 1
+  label sits outside any landmark.
+  *Fix: wrap the QuickStart in a `<section>`/`<main>` landmark.*
 
-- **https://dan323.github.io/easier-life-skills/** (WCAG 1.3.1) — `.card-desc` `<p>` — The description paragraph has `cursor: pointer` and `user-select: none` and toggles an `.expanded` class, but has no semantic role or keyboard access for this interactive behavior.
-  *Fix: Remove the click-to-expand behavior from the description paragraph (rely on the card-level click), or wrap the expand trigger in a `<button>` with `aria-expanded` state.*
+- **`.step:nth-child(1) > .step-body > .step-cmd > code`** (WCAG 1.3.1) —
+  Step 1 command code sits outside any landmark.
+  *Fix: wrap the QuickStart in a `<section>`/`<main>` landmark.*
 
-- **https://dan323.github.io/easier-life-skills/** (WCAG 4.1.1) — Dynamically rendered card elements — The dynamic rendering pipeline in `render.ts` replaces grid contents on each render. Risk of duplicate `id` attributes being introduced for panel sub-elements at runtime.
-  *Fix: Audit the rendered DOM after page load to confirm no duplicate `id` attributes are present.*
+- **`.step:nth-child(2) > .step-num`** (WCAG 1.3.1) — Step 2 number is
+  rendered outside any landmark.
+  *Fix: wrap the QuickStart in a `<section>`/`<main>` landmark.*
 
-### Low
+- **`.step:nth-child(2) > .step-body > .step-label`** (WCAG 1.3.1) — Step 2
+  label sits outside any landmark.
+  *Fix: wrap the QuickStart in a `<section>`/`<main>` landmark.*
 
-- **https://dan323.github.io/easier-life-skills/** (WCAG 1.3.5) — `<input id="search" type="search">` — The search input has `autocomplete="off"` explicitly set. No personal-data inputs present. No action required.
+- **`.step:nth-child(2) > .step-body > .step-cmd > code`** (WCAG 1.3.1) —
+  Step 2 command code sits outside any landmark.
+  *Fix: wrap the QuickStart in a `<section>`/`<main>` landmark.*
+
+- **`.view-toggle`** (WCAG 1.3.1) — View toggle control is rendered outside
+  any landmark.
+  *Fix: group the controls bar inside `<section aria-label="Filters and view">`
+  or `<nav>` so it is reachable via landmark navigation.*
+
+- **`.marketplace-add-cta`** (WCAG 1.3.1) — Marketplace add CTA sits outside
+  any landmark.
+  *Fix: place the marketplace bar inside `<nav aria-label="Marketplaces">` or
+  `<section>`.*
+
+> **Note:** the medium entries above also stem from one root cause — the
+> `.quickstart`, `.controls`, and `.marketplace-bar` blocks sit directly
+> under the React root rather than inside semantic landmarks. Adding a
+> wrapping `<section>` (or `<nav>` for the marketplace bar) and moving the
+> grid inside `<main>` (which already exists) clears every entry. See
+> `assets/src/components/App.tsx`, `QuickStart.tsx`, `Controls.tsx`,
+> `MarketplaceBar.tsx`.
 
 ---
 
 ## Performance Issues
 
-> **Lighthouse performance score: 94/100**
-
 ### Medium
 
-- **https://dan323.github.io/easier-life-skills/** (Cumulative Layout Shift) — `body > div.marketplace-bar` causes a layout shift of **0.146** (good threshold: < 0.1) after JavaScript injects the source-list content into the DOM. Value: `CLS 0.146`.
-  *Fix: Reserve space for the marketplace-bar before JS executes with a fixed `min-height` in CSS, or render it inline in the HTML so it is present before the JS bundle loads.*
+- **CLS (Cumulative Layout Shift)** — measured 0.149, above the 0.1 "good"
+  threshold. Single large shift on `<main id="main">` as the plugin grid
+  renders after `skills_index.json` is fetched.
+  *Fix: render skeleton/placeholder cards with `min-height` matching final
+  card size, or set `min-height` on `<main>` while loading. See the fetch-
+  driven hydration in `assets/src/components/App.tsx`.*
+
+- **Unminified JavaScript** — `assets/bundle.js` served unminified, 23.7 KiB
+  (30.6%) of potential savings. *(measured: 77,487 bytes; 23,708 wasted)*
+  *Dev-only: esbuild `--serve` emits unminified output. Verify `npm run
+  build` passes `--minify`.*
+
+- **Unused JavaScript** — ~34.8 KiB (44.8%) of `bundle.js` is unused on first
+  paint. *(measured: 34,751 wasted bytes of 77,487)*
+  *Fix: consider code-splitting heavy components (`PluginPanel`, `EntityPanel`,
+  `MarketplaceBar`) via dynamic `import()` so they load on demand. Re-measure
+  after minification in the production build.*
+
+- **Render-blocking resources** — `assets/style.css` blocks first paint with
+  ~300 ms wasted, no `media` attribute or async loading. *(measured: 21,410
+  bytes)*
+  *Fix: inline critical CSS in `<head>` and load `assets/style.css` with
+  `media="print" onload="this.media='all'"`, or split into critical /
+  non-critical sheets. Add `rel="preload" as="style"` for the file.*
 
 ### Low
 
-- **https://dan323.github.io/easier-life-skills/** (Render-blocking resources) — `assets/style.css` is loaded as a render-blocking stylesheet in `<head>`. FCP is fast (0.8 s) so real-world impact is small, but the block adds latency on slow connections. Value: `4063 bytes`.
-  *Fix: Inline critical-path CSS in `<head>` and load the full stylesheet with `<link rel="preload" as="style" onload="this.rel='stylesheet'">`.*
+- **Cache lifetime** — `bundle.js` and `style.css` served with no
+  `Cache-Control` headers (~97 KiB re-downloaded per visit).
+  *Dev-only: esbuild `--serve` disables caching. In production (GitHub
+  Pages), ensure assets are content-hashed or served with long
+  `Cache-Control max-age` via Pages defaults.*
 
-- **https://dan323.github.io/easier-life-skills/** (Cache lifetime) — `assets/bundle.js` and `assets/style.css` are served with a 10-minute TTL (600 s) by GitHub Pages. Repeat visitors re-download ~10 KiB on every visit beyond that window.
-  *Fix: Use content-hashed filenames (e.g., `bundle.abc123.js`) so assets can be cached indefinitely via `Cache-Control: max-age=31536000, immutable`.*
+- **Touch target size** — some interactive elements lack sufficient
+  size/spacing for touch (Lighthouse `target-size` audit failed).
+  *Fix: audit small buttons (`CopyButton`, filter chips, sort controls) in
+  `assets/src/components/` and ensure 44×44 CSS px minimum with adequate
+  spacing.*
 
-- **https://dan323.github.io/easier-life-skills/** (Critical request chain depth) — Content depends on a 3-hop sequential fetch chain: HTML → `assets/bundle.js` → `skills_index.json`. Plugin cards only render after all three complete (~139 ms on fast network; longer on mobile). Value: `chain depth: 3`.
-  *Fix: Add `<link rel="preload" as="fetch" href="skills_index.json" crossorigin>` in `<head>` so `skills_index.json` starts loading in parallel with `bundle.js`.*
+- **Accessible name mismatch** — elements with visible text labels do not
+  have matching accessible names (`label-content-name-mismatch`).
+  *Fix: review `aria-label` values on icon-bearing buttons (`CopyButton`,
+  panel close buttons) so the accessible name begins with or matches the
+  visible text.*
 
-- **https://dan323.github.io/easier-life-skills/CATALOG.md** (Missing favicon) — The browser requests `https://dan323.github.io/favicon.ico` and receives a 404, adding an unnecessary RTT on every page load. Value: `HTTP 404`.
-  *Fix: Add a `favicon.ico` at the repository root or a `<link rel="icon">` tag in `index.html` pointing to a valid asset.*
+- **Network dependency tree** — critical path is HTML → bundle.js →
+  skills_index.json (sequential). The `<link rel=preload as=fetch>` mitigates
+  the last step but `bundle.js` still has to download before fetch
+  initiates parsing.
+  *Fix: add `<link rel="modulepreload" href="assets/bundle.js">` to the
+  HTML shell to start the fetch earlier.*
 
 ---
 
 ## Bugs & Functional Issues
 
-### High
-
-- **https://dan323.github.io/easier-life-skills/** (Template bleed / null rendering) — The `mattpocock-skills` plugin card has `description: null` in `skills_index.json`. If the card template interpolates this field without a null guard, the literal string `"null"` may appear in the visible card description area.
-  *Fix: Add a null guard in `render.ts` / `components.ts`: use `description ?? ''` or `description ?? 'No description available'` before injecting the description into the DOM.*
-
-- **https://dan323.github.io/easier-life-skills/CATALOG.md** (Broken navigation / dead-end page) — Clicking "Full catalog" in the footer navigates to a raw Markdown file that renders as unstyled text with a console error, empty page title, and no navigation back to the marketplace. Confirmed via live browser test.
-  *Fix: Render CATALOG.md in-SPA as a styled panel, or link to the GitHub-rendered HTML view. At minimum, add a "Back to marketplace" anchor at the top of the raw file.*
-
-### Medium
-
-- **https://dan323.github.io/easier-life-skills/#view=skills** (Filter state bleed across views) — Category filter (`cat=automation`) and search query persist in the URL when switching between type tabs (e.g., Plugins → Skills), showing 0 results with no indication that a cross-view filter is active. Confirmed via live browser test (URL became `#view=skills&q=xyznotfound&cat=automation`).
-  *Fix: Clear or visually surface cross-view filter state when switching tabs, or add a prominent "Clear filters" affordance.*
-
-- **https://dan323.github.io/easier-life-skills/** (Duplicate accessible button names) — 16 "Copy" buttons share the identical accessible name "Copy" (confirmed: Playwright strict-mode violation resolving to 16 elements). Screen readers and keyboard users cannot distinguish between them.
-  *Fix: Add `aria-label` to each Copy button identifying what it copies, e.g., `aria-label="Copy install command for changelog"`.*
-
-### Low
-
-- **https://dan323.github.io/easier-life-skills/#cat=automation** (Modal trap risk) — The detail panel's Close button may not dismiss the panel in all hash-routing scenarios. If the panel state is re-triggered when the hash is restored after Back-button navigation, the panel could reopen unexpectedly.
-  *Fix: Verify that clicking Close removes the `open` class and that Back-button navigation does not re-trigger the panel. Ensure panel state is not driven solely by the URL hash.*
+*No functional bugs found.* Playwright exercised search, sort toggle,
+category filter, view toggle, marketplace filter, card click → panel open,
+Escape → panel close, and URL hash sync — all behaved correctly. No
+console errors, no failed requests, no template bleed-through, no broken
+images or links.
 
 ---
 
 ## Top 5 Recommendations
 
-1. **Fix plugin card and source-filter keyboard accessibility** — Plugin cards (`.skill-card`) and source filter tags (`.source-tag`) are `<div>` elements with click handlers but no keyboard access. This blocks all keyboard-only and assistive-technology users from the two core interactions on the page. Add `role="button"`, `tabindex="0"`, and Enter/Space keydown handlers, or convert to native `<button>` elements.
+1. **Fix nested interactive controls on plugin cards (single root cause for
+   ~17 high-severity a11y violations, and the UX inconsistency).** In
+   `assets/src/components/cards/PluginCard.tsx` and `SkillCard.tsx`, drop the
+   outer `role="button"` + `tabindex="0"` from `.skill-card` and instead make
+   the card name itself the primary keyboard target (a real `<button>` that
+   opens the panel, or an `<a href>` plus an explicit "Details" button).
+   This also resolves the UX issue where clicking the title navigates to
+   GitHub from some cards but not others.
 
-2. **Implement focus management and focus trap for the plugin detail panel** — When the panel opens, focus remains on the card behind the overlay; while open, Tab escapes to the underlying page. On open, call `closeBtn.focus()`; use the `inert` attribute on sibling content; on close, restore focus to the triggering card.
+2. **Apply the same fix to the marketplace source tag.** In
+   `assets/src/components/MarketplaceBar.tsx`, remove `role="button"` /
+   `tabindex="0"` from the wrapper `<div>` and turn the label itself into a
+   `<button>` (filter toggle), keeping the `+` as a sibling `<button>`
+   (copy command) — so the two actions are visually and structurally
+   distinct.
 
-3. **Fix the CATALOG.md dead-end** — The "Full catalog" footer link navigates to a raw Markdown file with a console error, no title, and no back navigation. Render the catalog in-SPA, or replace the link with one pointing to the GitHub-rendered HTML view.
+3. **Wrap top-level page sections in semantic landmarks (clears 10 medium
+   a11y violations).** Add `<section aria-labelledby="quickstart-h2">`
+   around QuickStart, `<nav aria-label="Marketplaces">` around
+   `MarketplaceBar`, and ensure the controls/grid live inside `<main>`.
+   One coordinated change in `App.tsx` / `QuickStart.tsx` /
+   `MarketplaceBar.tsx` / `Controls.tsx`.
 
-4. **Add `aria-pressed` to all toggle buttons** — View tabs, category filter buttons, and the sort toggle communicate active state only via CSS. Adding `aria-pressed="true/false"` (updated on each click) is a small, targeted change that makes all three controls accessible to screen reader users with no visual change.
+4. **Render placeholder skeleton cards to eliminate CLS 0.149.** Either
+   reserve a `min-height` on `<main>` during the initial fetch, or render 6
+   skeleton cards with the same dimensions as real cards. The grid is the
+   only major above-the-fold element that arrives async, so fixing this
+   single shift should push the Lighthouse perf score above 95.
 
-5. **Add descriptive `aria-label` to all Copy buttons** — 16 "Copy" buttons share an identical accessible name. Adding `aria-label="Copy install command for <plugin-name>"` to each simultaneously resolves an accessibility issue, a UX confusion point, and a confirmed bug finding, and is among the lowest-effort fixes in the report.
+5. **Improve the empty state for views with zero items.** When the filtered
+   count is 0, render a one-line helper below the count (e.g. "No commands
+   in this marketplace — try Skills or Agents") inside `Grid.tsx`. Currently
+   users see "0 of 0 commands" and a blank page, which feels like a bug
+   rather than an empty bucket.

@@ -11,17 +11,14 @@ interface Props {
 export function McpCard({ mcp, showSource, showInstall, onOpen }: Props) {
   const activate = () => onOpen(mcp);
   return (
-    <div
-      class="skill-card"
-      role="button"
-      tabindex={0}
-      aria-label={`Open details for MCP server ${mcp.name}`}
-      style={{ cursor: 'pointer' }}
-      onClick={activate}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } }}
-    >
+    <div class="skill-card">
       <div class="card-header">
-        <span class="card-name">{mcp.name}</span>
+        <button
+          type="button"
+          class="card-name"
+          aria-label={`Open details for MCP server ${mcp.name}`}
+          onClick={activate}
+        >{mcp.name}</button>
         <div class="card-badges">
           <span class="badge badge-cat badge-database">MCP Server</span>
           {showSource && <span class="badge badge-source">{mcp._repo}</span>}

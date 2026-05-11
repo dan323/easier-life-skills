@@ -17,10 +17,10 @@ import { describe, it, expect } from 'vitest';
 import { bootApp, click } from './harness.ts';
 
 function cardByName(gridId: string, name: string): HTMLElement {
-  const card = Array.from(document.querySelectorAll<HTMLElement>(`#${gridId} .skill-card`))
-    .find(c => c.querySelector('.card-name')?.textContent === name);
-  if (!card) throw new Error(`Card not found in #${gridId}: ${name}`);
-  return card;
+  const button = Array.from(document.querySelectorAll<HTMLElement>(`#${gridId} .skill-card .card-name`))
+    .find(b => b.textContent === name);
+  if (!button) throw new Error(`Card not found in #${gridId}: ${name}`);
+  return button;
 }
 
 function ancestorWithAttr(el: Element | null, attr: string, value?: string): Element | null {

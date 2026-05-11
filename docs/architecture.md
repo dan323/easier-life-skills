@@ -94,6 +94,8 @@ URL hash  ⇄  readUrlState/writeUrlState  ⇄  App state (useState)
 
 There is no global state singleton. Components communicate only through props (downward) and callbacks (upward).
 
+**Card interactivity.** Each card in `assets/src/components/cards/*` is a non-interactive `<div class="skill-card">`. The card title is the single interactive element: `<button class="card-name" onClick={openPanel}>`. A CSS "stretched link" overlay (`.card-name::after { position: absolute; inset: 0; }` over `.skill-card { position: relative; }`) makes the entire card area route clicks to the title button without nesting any focusable element inside an interactive ancestor — required for WCAG 4.1.2 (no nested-interactive). The copy button and `+N more` expand button are siblings of the title (lifted above the overlay with `position: relative; z-index: 1` on `.card-install` / `.plugin-chips` / `.card-chips`), so they remain independently clickable and keyboard-reachable. When the card needs to link out to the source repo, that link lives only inside the open panel (`panel-name` / Source section), not on the card.
+
 ### Local development
 
 ```bash

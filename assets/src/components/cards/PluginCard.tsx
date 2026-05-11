@@ -28,19 +28,14 @@ export function PluginCard({ plugin, showSource, onOpen }: Props) {
   const activate = () => onOpen(plugin);
 
   return (
-    <div
-      class="skill-card"
-      role="button"
-      tabindex={0}
-      aria-label={`Open details for ${plugin.name}`}
-      style={{ cursor: 'pointer' }}
-      onClick={activate}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } }}
-    >
+    <div class="skill-card">
       <div class="card-header">
-        {plugin.homepage
-          ? <a class="card-name" href={plugin.homepage} target="_blank" rel="noopener" onClick={e => e.stopPropagation()}>{plugin.name}</a>
-          : <span class="card-name">{plugin.name}</span>}
+        <button
+          type="button"
+          class="card-name"
+          aria-label={`Open details for ${plugin.name}`}
+          onClick={activate}
+        >{plugin.name}</button>
         <div class="card-badges">
           <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>
           {showSource && <span class="badge badge-source">{plugin._repo}</span>}
