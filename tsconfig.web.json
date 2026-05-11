@@ -8,7 +8,9 @@
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "lib": ["ES2022", "DOM"]
+    "lib": ["ES2022", "DOM"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
   },
-  "include": ["assets/src/**/*.ts"]
+  "include": ["assets/src/**/*.ts", "assets/src/**/*.tsx"]
 }

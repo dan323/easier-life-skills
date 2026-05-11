@@ -1,17 +1,12 @@
-import { state } from './state.ts';
-
-export function syncStateToUrl(): void {
-  const params = new URLSearchParams();
-  if (state.view !== 'plugins') params.set('view', state.view);
-  if (state.query)              params.set('q', state.query);
-  if (state.sort !== 'az')      params.set('sort', state.sort);
-  for (const repo of state.activeRepos)      params.append('repo', repo);
-  for (const cat  of state.activeCategories) params.append('cat',  cat);
-  const qs = params.toString();
-  history.replaceState(null, '', qs ? `#${qs}` : location.pathname + location.search);
+export interface UrlState {
+  view:  string;
+  query: string;
+  sort:  'az' | 'za';
+  repos: string[];
+  cats:  string[];
 }
 
-export function readUrlState(): { view: string; query: string; repos: string[]; cats: string[]; sort: 'az' | 'za' } {
+export function readUrlState(): UrlState {
   const params = new URLSearchParams(location.hash.slice(1));
   return {
     view:  params.get('view') ?? 'plugins',
@@ -20,4 +15,15 @@ export function readUrlState(): { view: string; query: string; repos: string[]; 
     repos: params.getAll('repo'),
     cats:  params.getAll('cat'),
   };
+}
+
+export function writeUrlState(s: UrlState): void {
+  const params = new URLSearchParams();
+  if (s.view !== 'plugins') params.set('view', s.view);
+  if (s.query)              params.set('q', s.query);
+  if (s.sort !== 'az')      params.set('sort', s.sort);
+  for (const repo of s.repos) params.append('repo', repo);
+  for (const cat  of s.cats)  params.append('cat',  cat);
+  const qs = params.toString();
+  history.replaceState(null, '', qs ? `#${qs}` : location.pathname + location.search);
 }

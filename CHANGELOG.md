@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.13.0] - 2026-05-11
+
+### Changed
+- **Web UI rewritten in Preact** — `assets/src/` is now a Preact component tree (`components/App.tsx` owns app state via `useState`/`useLayoutEffect`; `components/cards/*` for each card; `PluginPanel.tsx`, `EntityPanel.tsx`, `Controls.tsx`, `MarketplaceBar.tsx`, `Filters.tsx`, `Header.tsx`, `QuickStart.tsx`, `Footer.tsx`, `Grid.tsx`, `Expandable.tsx`, `CopyButton.tsx`). The imperative DOM modules (`render.ts`, `panel.ts`, `entity-panel.ts`, `filters.ts`, `source-tag.ts`, `state.ts`, `card-*.ts`) were deleted; only the framework-agnostic `api.ts`, `url-state.ts`, `utils.ts`, `constants.ts`, `types.ts`, and the rewritten `marketplace.ts` remain. The build entry is now `app.tsx`. **Behavior is identical** — verified by the new test suite below.
+- **`index.html` reduced to a 16-line shell** (was 225 lines) — the header, quickstart, controls, marketplace bar, footer, and both detail panels are now rendered by Preact from a single `<div id="root">`. The visible HTML, CSS classes, and DOM IDs remain unchanged so the existing `assets/style.css` is untouched.
+- **`assets/src/url-state.ts`** — refactored from singleton-coupled `syncStateToUrl()` to pure `readUrlState() / writeUrlState(state)` so state owners can be replaced without touching URL serialisation.
+
+### Added
+- **Web UI regression test suite** — `tests/` contains vitest + happy-dom behavioural tests that boot the real `app.tsx` against a fixture `skills_index.json` and drive the page via user-visible DOM. Coverage includes initial render, search, sort, view toggle for all 7 tabs, category/source filters, plugin panel, entity panel for all 5 kinds, URL state sync+restore, and copy buttons. Run with `npm test` (`npm run test:watch` for the watch loop).
+- **Panel interactivity regression tests** — `tests/panel-interactivity.test.ts` makes DOM-state assertions (no ancestor of the open panel may carry `inert` or `aria-hidden="true"`; `#root` must be cleared of both attributes after the panel closes). This catches the class of bug where a previous version applied `inert` to `#root` itself, freezing every interaction inside the panel. Behavioural-only tests cannot catch this because happy-dom silently ignores `inert`.
+
+### Fixed
+- **Web UI — panels no longer freeze every interaction when opened** — the previous version walked `document.body.children` and applied the `inert` attribute to each non-panel sibling to trap focus. After the Preact rewrite the panels live inside `<div id="root">` rather than as direct body children, so `inert` landed on `#root` itself — which contains the panels — making the close button and overlay unclickable. The body-children walk was removed; focus management and scroll-lock are retained.
+- **Web UI — plugin panel removes redundant per-item copy buttons** — the SkillCard, AgentCard, McpCard, CommandCard, and HookCard components now accept `showInstall: boolean` and skip rendering their `.card-install` row when it's `false`. The plugin panel passes `showInstall={false}` to all embedded cards, so the only copy buttons left are the plugin-level `Copy install` / `Copy add` rows at the bottom of the panel. Grid views still pass `showInstall={true}`.
+- **Web UI — plugin install row stays visible while the panel scrolls** — the marketplace-add and install rows are now wrapped in `#panel-install-footer`, a sticky element (`position: sticky; bottom: -24px`) pinned to the bottom of the scrolling `.panel-content`. Plugins with many skills no longer hide the install command below the fold.
+- **`npm run dev`** — one-command local development. Runs `tsx scripts/build-index.ts` once (to generate `skills_index.json`), then esbuild's built-in `--serve` mode on `http://127.0.0.1:4567/` with automatic rebuild on file changes. `index.html` includes a small inline live-reload snippet that subscribes to esbuild's `/esbuild` SSE endpoint and refreshes the page after each rebuild; the snippet only activates on `localhost`/`127.0.0.1` so it's a no-op on GitHub Pages.
+- **Build / dev dependencies** — `preact ^10.29.1` (runtime), `@preact/preset-vite`, `vitest`, and `happy-dom` (test-time). Bundle is 75.8 KB unminified.
+- **`assets/src/marketplace.ts`** — repurposed as a pure data loader: returns `{ plugins, skills, agents, mcpServers, commands, hooks, bundles, sources, meta }` or an error envelope. Previously mutated global state; now consumed by `App.tsx` via `setState`.
+
 ## [1.12.0] - 2026-05-11
 
 ### Added

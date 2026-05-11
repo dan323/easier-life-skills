@@ -777,11 +777,22 @@ footer a:hover { text-decoration: underline; }
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px 14px;
-  margin-top: auto;
 }
-.panel-install-row + .panel-install-row { margin-top: -12px; }
 .panel-install-row[hidden] { display: none; }
 .panel-install-row code { flex: 1; font-size: 0.82rem; color: var(--text); word-break: break-all; }
+
+.panel-install-footer {
+  position: sticky;
+  bottom: -24px;
+  margin: auto -24px -24px;
+  padding: 16px 24px 24px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 2;
+}
 
 /* ── Entity detail panel (left side, mirrors plugin panel) ── */
 #entity-panel {

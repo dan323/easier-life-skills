@@ -6,16 +6,25 @@
     "installer"
   ],
   "scripts": {
-    "build": "tsx scripts/build-index.ts && esbuild assets/src/app.ts --bundle --outfile=assets/bundle.js --format=esm",
+    "build": "tsx scripts/build-index.ts && esbuild assets/src/app.tsx --bundle --outfile=assets/bundle.js --format=esm --jsx=automatic --jsx-import-source=preact",
+    "dev": "tsx scripts/build-index.ts && esbuild assets/src/app.tsx --bundle --outfile=assets/bundle.js --format=esm --jsx=automatic --jsx-import-source=preact --servedir=. --serve=127.0.0.1:4567",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.web.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "publish:installer": "npm publish --workspace installer --access public"
   },
   "engines": {
     "node": ">=18"
   },
   "devDependencies": {
+    "@preact/preset-vite": "^2.10.5",
     "@types/node": "^25.6.0",
+    "happy-dom": "^20.9.0",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6"
+  },
+  "dependencies": {
+    "preact": "^10.29.1"
   }
 }

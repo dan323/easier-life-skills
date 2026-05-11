@@ -41,11 +41,27 @@ The installer lives in `installer/` and requires Node.js ≥ 18.
   workflows/
     pages.yml               ← GitHub Pages deployment workflow
 assets/
-  src/                      ← TypeScript source for the web UI
-    app.ts                  ← Entry point (compiled to bundle.js by esbuild)
-    types.ts, state.ts, api.ts, components.ts, marketplace.ts, render.ts, panel.ts
+  src/                      ← TypeScript / Preact source for the web UI
+    app.tsx                 ← Entry point — renders <App> into #root (esbuild)
+    api.ts                  ← Fetches skills_index.json
+    constants.ts            ← BUILTIN_REPO and other constants
+    marketplace.ts          ← Pure data loader (returns parsed index + source counts)
+    url-state.ts            ← read/write filter+view+sort state to the URL hash
+    utils.ts, types.ts
+    components/             ← Preact component tree
+      App.tsx               ← Top-level state owner (useState / useLayoutEffect)
+      Header.tsx, QuickStart.tsx, Footer.tsx
+      Controls.tsx, Filters.tsx, MarketplaceBar.tsx, Grid.tsx
+      PluginPanel.tsx, EntityPanel.tsx
+      CopyButton.tsx, Expandable.tsx
+      cards/                ← PluginCard, SkillCard, AgentCard, McpCard, CommandCard, HookCard, BundleCard
   bundle.js                 ← Compiled output — gitignored, built by npm run build
   style.css                 ← Marketplace web UI styling
+tests/                      ← Vitest + happy-dom regression suite for the web UI
+  harness.ts                ← Boots app.tsx against a fixture
+  fixtures/skills_index.json
+  *.test.ts                 ← initial-render, search, sort, view-toggle, filters, panels, url-state, copy-buttons
+vitest.config.ts            ← @preact/preset-vite + happy-dom env
 docs/
   architecture.md           ← System design documentation
   contributing.md           ← Guide for adding new plugins
@@ -193,7 +209,17 @@ plugins/task-agent/
 
 ## Web UI and GitHub Pages
 
-`index.html` + `assets/` provide a static marketplace browser deployed via GitHub Pages (`.github/workflows/pages.yml`). The page loads `assets/bundle.js` (compiled from `assets/src/app.ts` by esbuild) and reads `skills_index.json` at runtime. The build also generates `.claude-plugin/marketplace.json` — a combined catalog with absolute source references for all repos in `marketplaces.json`. Always run `npm run build` after adding or modifying a plugin. Run `npm run typecheck` to type-check both the scripts and the web app.
+`index.html` + `assets/` provide a static marketplace browser deployed via GitHub Pages (`.github/workflows/pages.yml`). `index.html` is a minimal shell with `<div id="root">`; the page is rendered by **Preact** from `assets/bundle.js` (compiled from `assets/src/app.tsx` by esbuild with `--jsx=automatic --jsx-import-source=preact`). All visible markup, IDs, and CSS classes are owned by the Preact components in `assets/src/components/`.
+
+App state lives in the top-level `<App>` component via `useState` hooks; URL sync, the `/` keyboard shortcut, and the panel Escape handlers use `useLayoutEffect` so behavior is observable synchronously after each event (this is what makes the regression tests deterministic). There is no global state singleton — components communicate only through props and callbacks.
+
+The build also generates `.claude-plugin/marketplace.json` — a combined catalog with absolute source references for all repos in `marketplaces.json`.
+
+**Scripts:**
+- `npm run dev` — one-command local dev. Runs build-index once, then esbuild's `--serve` mode on `http://127.0.0.1:4567/`. `index.html` contains a tiny inline snippet that listens to esbuild's `/esbuild` SSE endpoint and reloads on every rebuild (active only on `localhost`/`127.0.0.1`). Ctrl+C to stop.
+- `npm run build` — production build. Run this after adding or modifying a plugin.
+- `npm run typecheck` — type-checks scripts and the web app.
+- `npm test` / `npm run test:watch` — vitest + happy-dom regression suite. When touching anything under `assets/src/`, these tests must stay green.
 
 ## Doc Rules
 

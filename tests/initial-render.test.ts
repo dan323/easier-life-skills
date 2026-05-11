@@ -1,0 +1,47 @@
+import { describe, it, expect } from 'vitest';
+import { bootApp, visibleGridId, cardNames } from './harness.ts';
+
+describe('initial render', () => {
+  it('defaults to the plugins view', async () => {
+    await bootApp();
+    expect(visibleGridId()).toBe('plugins-grid');
+    const pluginsBtn = document.getElementById('view-plugins')!;
+    expect(pluginsBtn.classList.contains('active')).toBe(true);
+    expect(pluginsBtn.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('renders all five plugins from the fixture, sorted A→Z', async () => {
+    await bootApp();
+    const names = cardNames('plugins-grid');
+    expect(names).toEqual(['changelog', 'document-project', 'find-dead-code', 'hooks-pack', 'slack-tools']);
+  });
+
+  it('renders the plugin count', async () => {
+    await bootApp();
+    expect(document.getElementById('count')!.textContent).toBe('5 of 5 plugins');
+    expect(document.getElementById('skill-count')!.textContent).toBe('5');
+  });
+
+  it('renders source tags for every distinct plugin source', async () => {
+    await bootApp();
+    const tags = Array.from(document.querySelectorAll<HTMLElement>('#marketplace-sources .source-tag'));
+    const labels = tags.map(t => t.querySelector('.label')?.textContent ?? '');
+    expect(labels).toContain('dan323/easier-life-skills (3)');
+    expect(labels).toContain('external/slack-tools (1)');
+    expect(labels).toContain('external/hooks-pack (1)');
+  });
+
+  it('shows category filter buttons drawn from plugin categories', async () => {
+    await bootApp();
+    const cats = Array.from(document.querySelectorAll<HTMLElement>('#filters .filter-btn'))
+      .map(b => b.textContent ?? '');
+    expect(cats).toEqual(expect.arrayContaining(['Automation', 'Code Quality', 'Documentation']));
+  });
+
+  it('renders the formatted generated date', async () => {
+    await bootApp();
+    const gen = document.getElementById('generated')!.textContent ?? '';
+    expect(gen).not.toBe('…');
+    expect(gen.length).toBeGreaterThan(0);
+  });
+});
