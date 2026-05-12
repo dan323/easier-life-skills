@@ -216,13 +216,25 @@ header {
   align-items: center;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
+  /* Reserve room for the filter chip row that materialises after data loads
+   * so loading → loaded doesn't push <main> down. */
+  min-height: 112px;
+}
+
+.search-form { display: contents; }
+
+.search-wrap {
+  position: relative;
+  flex: 0 1 340px;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
 }
 
 #search {
   flex: 1;
-  min-width: 200px;
-  max-width: 340px;
-  padding: 7px 12px;
+  min-width: 0;
+  padding: 7px 36px 7px 12px; /* right room for the .search-kbd hint */
   border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--bg);
@@ -233,6 +245,29 @@ header {
 }
 #search:focus { border-color: var(--accent); outline: none; }
 #search::placeholder { color: var(--text-muted); }
+
+/* Visible keyboard-shortcut hint chip. Hidden when the input is focused or
+ * has content, so the chip never sits on top of the user's text. */
+.search-kbd {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+.search-wrap:focus-within .search-kbd,
+.search-wrap #search:not(:placeholder-shown) ~ .search-kbd {
+  display: none;
+}
 
 .filter-group {
   display: flex;
@@ -266,6 +301,9 @@ header {
   white-space: nowrap;
 }
 .sort-btn:hover { color: var(--accent); border-color: var(--accent); }
+.sort-icon { opacity: 0.75; margin-right: 4px; }
+.sort-btn:hover .sort-icon { opacity: 1; }
+.sort-label { /* targetable by tests; no visual change */ }
 
 .view-toggle {
   margin-left: auto;
@@ -298,7 +336,9 @@ header {
   flex-wrap: wrap;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
-  min-height: 48px;
+  /* Reserve room for 2 rows of source-tag chips so loading → loaded
+   * doesn't shift <main> down when chips wrap on narrower viewports. */
+  min-height: 80px;
 }
 
 .marketplace-sources {
@@ -644,6 +684,7 @@ main { padding: 20px 32px 80px; }
   grid-column: 1 / -1;
 }
 .empty p:first-child { font-size: 1.5rem; margin-bottom: 8px; }
+.empty-hint { margin-top: 6px; font-size: 0.85rem; color: var(--text-muted); }
 
 /* Placeholder cards rendered while skills_index.json is loading. Match
  * .skill-card's outer dimensions (border, radius, min-height) so the grid
@@ -1057,6 +1098,13 @@ body.catalog-page footer {
   .view-toggle { margin-left: 0; overflow-x: auto; }
   #plugins-grid, #skills-grid, #agents-grid, #mcp-grid, #commands-grid, #hooks-grid, #bundles-grid { grid-template-columns: 1fr; }
   .step-cmd { flex-wrap: wrap; }
+
+  /* Narrow viewports wrap source-tag chips one-per-row (long repo paths like
+   * "DustyWalker/claude-code-marketplace (n)" don't fit side-by-side at
+   * 412px), so the marketplace-bar grows from a single row to several. The
+   * desktop-default 80px is too small here; reserve room for the loaded
+   * state up front to avoid pushing <main> down. */
+  .marketplace-bar { min-height: 240px; }
 
   /* 44×44px minimum touch target */
   .filter-btn, .sort-btn, .view-btn, .copy-btn, .expand-btn,

@@ -38,6 +38,21 @@
 > 93 → 99**, LCP 2.0s, FCP 1.4s, TBT 0ms, Speed Index 1.5s. Verified with
 > a throttled Playwright smoke (`/tmp/phase4-smoke.mjs`) and a real
 > Lighthouse run (`/tmp/lh-phase4.json`).
+>
+> **Phase 5 + 6 fix applied (2026-05-12):** UX polish + production build
+> correctness, plus an additional CLS rescue after the catalog work added
+> three more marketplaces and reintroduced layout shift outside `<main>`.
+> Search input now carries a visible `<kbd>/</kbd>` shortcut chip (hidden
+> on focus/typing). Sort button leads with a `⇅` icon. Empty-state copy
+> distinguishes "no items in this view's dataset" (suggests other populated
+> views) from "filters dropped everything" (existing copy). `npm run build`
+> now passes `--minify` (bundle 73 KB → **44.3 KB**); `index.html` adds
+> `<link rel="modulepreload" href="assets/bundle.js" />`. CLS fixes:
+> `.marketplace-bar` and `.controls` carry `min-height` reservations, and
+> `.search-wrap` switches from `flex: 1; max-width: 340px` to
+> `flex: 0 1 340px` so the input width doesn't expand when sibling filter
+> buttons appear. Final Lighthouse: **Desktop 100/100, CLS 0.041; Mobile
+> 99/100, CLS 0.044** — both well under 0.1. Vitest 79/79.
 
 ## Summary
 

@@ -1,11 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { bootApp, cardNames, click } from './harness.ts';
 
+function sortLabel(): string {
+  return document.querySelector('#sort-btn .sort-label')!.textContent ?? '';
+}
+
 describe('sort', () => {
   it('defaults to A→Z', async () => {
     await bootApp();
-    const btn = document.getElementById('sort-btn')!;
-    expect(btn.textContent).toBe('Sort: A→Z');
+    expect(sortLabel()).toBe('Sort: A→Z');
     const names = cardNames('plugins-grid');
     expect([...names].sort()).toEqual(names);
   });
@@ -13,8 +16,7 @@ describe('sort', () => {
   it('toggles to Z→A and reorders the cards', async () => {
     await bootApp();
     click('#sort-btn');
-    const btn = document.getElementById('sort-btn')!;
-    expect(btn.textContent).toBe('Sort: Z→A');
+    expect(sortLabel()).toBe('Sort: Z→A');
     const names = cardNames('plugins-grid');
     expect(names).toEqual(['slack-tools', 'hooks-pack', 'find-dead-code', 'document-project', 'changelog']);
   });
@@ -23,7 +25,7 @@ describe('sort', () => {
     await bootApp();
     click('#sort-btn');
     click('#sort-btn');
-    expect(document.getElementById('sort-btn')!.textContent).toBe('Sort: A→Z');
+    expect(sortLabel()).toBe('Sort: A→Z');
     const names = cardNames('plugins-grid');
     expect(names[0]).toBe('changelog');
   });

@@ -43,6 +43,6 @@ describe('URL state', () => {
   it('restore: applies sort=za from the hash', async () => {
     await bootApp({ hash: '#sort=za' });
     expect(cardNames('plugins-grid')[0]).toBe('slack-tools');
-    expect(document.getElementById('sort-btn')!.textContent).toBe('Sort: Z→A');
+    expect(document.querySelector('#sort-btn .sort-label')!.textContent).toBe('Sort: Z→A');
   });
 });

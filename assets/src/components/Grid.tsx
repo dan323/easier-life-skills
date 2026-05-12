@@ -82,8 +82,46 @@ function SkeletonGrid({ view }: { view: ViewKey }) {
   );
 }
 
-function emptyState(icon: string, msg: string) {
-  return <div class="empty"><p>{icon}</p><p>{msg}</p></div>;
+const VIEW_LABELS: Record<ViewKey, string> = {
+  plugins:    'Plugins',
+  skills:     'Skills',
+  agents:     'Agents',
+  mcpServers: 'MCP Servers',
+  commands:   'Commands',
+  hooks:      'Hooks',
+  bundles:    'Bundles',
+};
+
+function viewCounts(data: DataSets): Record<ViewKey, number> {
+  return {
+    plugins:    data.plugins.length,
+    skills:     data.skills.length,
+    agents:     data.agents.length,
+    mcpServers: data.mcpServers.length,
+    commands:   data.commands.length,
+    hooks:      data.hooks.length,
+    bundles:    data.bundles.length,
+  };
+}
+
+function viewEmpty(view: ViewKey, icon: string, label: string, allCount: number, data: DataSets) {
+  if (allCount > 0) {
+    return <div class="empty"><p>{icon}</p><p>No {label} match your search</p></div>;
+  }
+  const counts = viewCounts(data);
+  const suggestions = (Object.keys(VIEW_LABELS) as ViewKey[])
+    .filter(v => v !== view && counts[v] > 0)
+    .slice(0, 3)
+    .map(v => VIEW_LABELS[v]);
+  return (
+    <div class="empty">
+      <p>{icon}</p>
+      <p>No {label} in this marketplace yet</p>
+      {suggestions.length > 0 && (
+        <p class="empty-hint">Try the {suggestions.join(', ')} view{suggestions.length > 1 ? 's' : ''} instead</p>
+      )}
+    </div>
+  );
 }
 
 function PluginsGrid({ data, query, sort, activeRepos, activeCategories, onOpenPlugin }: Props) {
@@ -102,7 +140,7 @@ function PluginsGrid({ data, query, sort, activeRepos, activeCategories, onOpenP
       </div>
       <div id="plugins-grid" style={{ display: 'grid' }}>
         {filtered.length === 0
-          ? emptyState('🔍', 'No plugins match your search')
+          ? viewEmpty('plugins', '🔍', 'plugins', all.length, data)
           : sortedBy(filtered, sort).map(p =>
               <PluginCard key={`${p._repo}/${p.name}`} plugin={p} showSource={show} onOpen={onOpenPlugin} />)}
       </div>
@@ -128,7 +166,7 @@ function SkillsGrid({ data, query, sort, activeRepos, activeCategories, onOpenSk
       </div>
       <div id="skills-grid" style={{ display: 'grid' }}>
         {filtered.length === 0
-          ? emptyState('🔍', 'No skills match your search')
+          ? viewEmpty('skills', '🔍', 'skills', all.length, data)
           : sortedBy(filtered, sort).map(s =>
               <SkillCard key={`${s._repo}/${s.name}`} skill={s} showSource={show} showInstall onOpen={onOpenSkill} />)}
       </div>
@@ -151,7 +189,7 @@ function AgentsGrid({ data, query, sort, activeRepos, onOpenAgent }: Props) {
       </div>
       <div id="agents-grid" style={{ display: 'grid' }}>
         {filtered.length === 0
-          ? emptyState('🤖', 'No agents found')
+          ? viewEmpty('agents', '🤖', 'agents', all.length, data)
           : sortedBy(filtered, sort).map(a =>
               <AgentCard key={`${a._repo}/${a.name}`} agent={a} showSource={show} showInstall onOpen={onOpenAgent} />)}
       </div>
@@ -174,7 +212,7 @@ function McpGrid({ data, query, sort, activeRepos, onOpenMcp }: Props) {
       </div>
       <div id="mcp-grid" style={{ display: 'grid' }}>
         {filtered.length === 0
-          ? emptyState('🔌', 'No MCP servers found')
+          ? viewEmpty('mcpServers', '🔌', 'MCP servers', all.length, data)
           : sortedBy(filtered, sort).map(m =>
               <McpCard key={`${m._repo}/${m.name}`} mcp={m} showSource={show} showInstall onOpen={onOpenMcp} />)}
       </div>
@@ -197,7 +235,7 @@ function CommandsGrid({ data, query, sort, activeRepos, onOpenCommand }: Props) 
       </div>
       <div id="commands-grid" style={{ display: 'grid' }}>
         {filtered.length === 0
-          ? emptyState('⌨️', 'No commands found')
+          ? viewEmpty('commands', '⌨️', 'commands', all.length, data)
           : sortedBy(filtered, sort).map(c =>
               <CommandCard key={`${c._repo}/${c.name}`} command={c} showSource={show} showInstall onOpen={onOpenCommand} />)}
       </div>
@@ -222,7 +260,7 @@ function HooksGrid({ data, query, sort, activeRepos, onOpenHook }: Props) {
       </div>
       <div id="hooks-grid" style={{ display: 'grid' }}>
         {filtered.length === 0
-          ? emptyState('🪝', 'No hooks found')
+          ? viewEmpty('hooks', '🪝', 'hooks', all.length, data)
           : sortedBy(filtered, sort).map(h =>
               <HookCard key={`${h._repo}/${h.name}`} hook={h} showSource={show} showInstall onOpen={onOpenHook} />)}
       </div>

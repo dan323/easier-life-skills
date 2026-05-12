@@ -38,16 +38,20 @@ export function Controls({
 
   return (
     <section class="controls" aria-label="Filters and view">
-      <form role="search" style={{ display: 'contents' }}>
-        <input
-          id="search"
-          type="search"
-          placeholder="Search skills… (press / to focus)"
-          autocomplete="off"
-          aria-label="Search skills"
-          value={query}
-          onInput={e => onSearch((e.currentTarget as HTMLInputElement).value)}
-        />
+      <form role="search" class="search-form">
+        <div class="search-wrap">
+          <input
+            id="search"
+            type="search"
+            placeholder="Search skills…"
+            autocomplete="off"
+            aria-label="Search skills"
+            aria-keyshortcuts="/"
+            value={query}
+            onInput={e => onSearch((e.currentTarget as HTMLInputElement).value)}
+          />
+          <kbd class="search-kbd" aria-hidden="true">/</kbd>
+        </div>
       </form>
 
       <Filters
@@ -64,7 +68,7 @@ export function Controls({
         aria-label={sortAria}
         onClick={onToggleSort}
       >
-        {sortLabel}
+        <span class="sort-icon" aria-hidden="true">⇅</span><span class="sort-label">{sortLabel}</span>
       </button>
 
       <div class="view-toggle" role="group" aria-label="View type">
