@@ -1,5 +1,8 @@
 [
   { "owner": "dan323", "repo": "easier-life-skills", "description": "Reusable skill plugins for Claude Code — changelog generation, dead code detection, documentation, brainstorming, and more" },
   { "owner": "anthropics", "repo": "skills" },
-  { "owner": "mattpocock", "repo": "skills" }
+  { "owner": "mattpocock", "repo": "skills" },
+  { "owner": "hundong2", "repo": "my-friends-claude" },
+  { "owner": "DustyWalker", "repo": "claude-code-marketplace" },
+  { "owner": "marcusabu", "repo": "claude-code-docs-plugin" }
 ]
