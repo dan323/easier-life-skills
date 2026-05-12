@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.16.0] - 2026-05-13
 
 ### Added
 - **`scaffold` plugin** — new productivity plugin that generates a complete plugin skeleton from a single `key=value` prompt (e.g. `scaffold name=index-audit description="Audit database indexes" category=code-quality agents=index-walker`). Writes `plugins/<name>/.claude-plugin/plugin.json`, a phase-structured `skills/<name>/SKILL.md`, an `evals/evals.json` with 3 placeholder evals, plus optional `agents/<a>.md` and `references/<t>.md` files when those args are passed. Canonical template strings live in `plugins/scaffold/references/templates.md` so the single source of truth stays out of the SKILL body and can be updated independently when the plugin layout evolves. Idempotent: refuses to overwrite an existing plugin directory unless the bare `force` flag is supplied. Includes 4 evals (happy path, scaffold-with-agent, collision-error, scaffold-with-both) and an `examples/scaffolded-output/` snapshot. `docs/contributing.md` now recommends `/scaffold` as the canonical way to start a new plugin; the README and `.claude/CLAUDE.md` plugin tables are updated.

@@ -16,12 +16,12 @@ PRs), grounded in the current codebase. See [Sequencing
 recommendation](#sequencing-recommendation) at the end for the suggested
 order.
 
-| # | Feature                                                                        | Effort   | Type    |
-|---|--------------------------------------------------------------------------------|----------|---------|
-| 1 | [Skill Rating & Review System](#1-skill-rating--review-system)                 | 2–3 days | Feature |
-| 2 | [Skill Composition & Workflow Format](#2-skill-composition--workflow-format)   | 3–4 days | Feature |
-| 3 | [Usage Analytics & Insights Dashboard](#3-usage-analytics--insights-dashboard) | 3–4 days | Feature |
-| 4 | [Skill Scaffold Generator](#4-skill-scaffold-generator)                        | 2–3 days | Feature |
+| # | Feature                                                                        | Effort   | Type    | Status                  |
+|---|--------------------------------------------------------------------------------|----------|---------|-------------------------|
+| 1 | [Skill Rating & Review System](#1-skill-rating--review-system)                 | 2–3 days | Feature | Not started             |
+| 2 | [Skill Composition & Workflow Format](#2-skill-composition--workflow-format)   | 3–4 days | Feature | Not started             |
+| 3 | [Usage Analytics & Insights Dashboard](#3-usage-analytics--insights-dashboard) | 3–4 days | Feature | Not started             |
+| 4 | [Skill Scaffold Generator](#4-skill-scaffold-generator)                        | 2–3 days | Feature | **Done (v1.16.0)**      |
 
 ### 1. Skill Rating & Review System
 
@@ -336,6 +336,12 @@ opinion, telemetry is behaviour, and they reinforce each other.
 
 ### 4. Skill Scaffold Generator
 
+> **Status: Done — released in v1.16.0 (2026-05-13).** Shipped as the
+> `scaffold` plugin. See the `[1.16.0]` entry in
+> [`CHANGELOG.md`](../CHANGELOG.md) for the final scope and the section
+> below for the original design notes (kept for reference; the
+> implementation matches except where noted inline).
+
 #### Goal
 
 A `scaffold` skill that generates a complete plugin skeleton from a single
@@ -436,25 +442,39 @@ Next steps:
 #### Done when
 
 - Running the skill with valid arguments produces a plugin that passes
-  `npm run build && npm test`.
-- Re-running on an existing plugin name errors cleanly.
-- `docs/contributing.md` recommends `/scaffold` as the canonical path.
-- All four evals pass.
+  `npm run build && npm test`. ✅
+- Re-running on an existing plugin name errors cleanly. ✅ (eval 2 covers this)
+- `docs/contributing.md` recommends `/scaffold` as the canonical path. ✅
+- All four evals pass. ⏳ (evals authored; run them with the `skill-creator` skill)
+
+#### Deviations from the original design (for the next iteration)
+
+- The skill does **not** modify `CHANGELOG.md`, `README.md`, or
+  `.claude/CLAUDE.md` automatically — these are surfaced in the next-step
+  checklist for the user instead, matching the rest of the marketplace's
+  "no surprise writes" ethos. The original plan didn't take a position on
+  this; the implemented behaviour is intentionally conservative.
+- The skill does **not** invent an alternative `name` on collision — it
+  reports the conflict and asks the user to choose between renaming and
+  re-running with `force`.
+- An `examples/scaffolded-output/` snapshot was added so the eval suite (and
+  future contributors) can `diff` a real run against a stable reference.
+- Evals assume the runner executes from the repo root (the skill needs to
+  read `plugins/scaffold/references/templates.md` at the canonical path).
+  This was the simplest robust setup; a sandboxed-tmpdir runner is possible
+  later if needed.
 
 ### Sequencing recommendation
 
-If shipping serially:
+Feature 4 is shipped. Recommended next-up order:
 
-1. **Feature 4 (Scaffold)** first — small, self-contained, immediately
-   useful for everything that follows. Adding three new plugins (workflow,
-   rating ingestion, telemetry endpoint) is a great real-world test for it.
-2. **Feature 1 (Ratings)** — bounded surface area, exercises the build
+1. **Feature 1 (Ratings)** — bounded surface area, exercises the build
    pipeline's "merge external data into the index" pattern, which Feature 3
    reuses.
-3. **Feature 3 (Analytics)** — reuses the merge pattern from Feature 1 and
+2. **Feature 3 (Analytics)** — reuses the merge pattern from Feature 1 and
    benefits from the privacy/consent discussion happening before too many
    skills are written.
-4. **Feature 2 (Workflows)** last — biggest design surface, benefits from
+3. **Feature 2 (Workflows)** last — biggest design surface, benefits from
    having scaffold + telemetry already in place so authored workflows can
    inherit them.
 
