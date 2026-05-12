@@ -30,9 +30,12 @@ export function Controls({
 }: Props) {
   const sortLabel = sort === 'az' ? 'Sort: A→Z' : 'Sort: Z→A';
   const sortTitle = sort === 'az' ? 'Click to sort Z→A' : 'Click to sort A→Z';
+  // WCAG 2.5.3 (label-content-name-mismatch): the accessible name must
+  // contain the visible text. Lead the aria-label with the visible label so
+  // screen-reader users hear the same words a sighted user reads.
   const sortAria  = sort === 'az'
-    ? 'Currently sorted A to Z. Click to sort Z to A.'
-    : 'Currently sorted Z to A. Click to sort A to Z.';
+    ? 'Sort: A→Z. Click to sort Z to A.'
+    : 'Sort: Z→A. Click to sort A to Z.';
 
   const filtersVisible = view === 'plugins' || view === 'skills';
 

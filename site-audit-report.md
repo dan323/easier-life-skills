@@ -53,6 +53,18 @@
 > `flex: 0 1 340px` so the input width doesn't expand when sibling filter
 > buttons appear. Final Lighthouse: **Desktop 100/100, CLS 0.041; Mobile
 > 99/100, CLS 0.044** — both well under 0.1. Vitest 79/79.
+>
+> **Phase 7 fix applied (2026-05-12):** the sole remaining
+> `label-content-name-mismatch` (WCAG 2.5.3) violation was on `#sort-btn`,
+> whose `aria-label` was `Currently sorted A to Z…` and didn't contain the
+> visible `Sort: A→Z` text. The aria-label now leads with the visible
+> label — `Sort: A→Z. Click to sort Z to A.` — restoring agreement between
+> the visible and accessible names in both sort directions. Touch-target
+> audit was already passing for both sighted-mobile and desktop, thanks to
+> the 44×44 px enforcement in the mobile media query. Final Lighthouse
+> **a11y 100/100**; axe-cli still reports **0 violations**; vitest **80/80**
+> after adding a regression test that the `#sort-btn` aria-label starts
+> with the visible `.sort-label` text in both directions.
 
 ## Summary
 
