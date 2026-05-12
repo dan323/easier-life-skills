@@ -99,6 +99,8 @@ There is no global state singleton. Components communicate only through props (d
 
 **Marketplace source tag.** `MarketplaceBar.tsx` uses the same stretched-link pattern. The chip wrapper `<div class="source-tag">` is non-interactive; the filter toggle is a `<button class="source-toggle" aria-pressed>` containing the `.label`, and the `+` copy button is a sibling. `.source-toggle::after` makes clicks anywhere on the chip body toggle the filter; `.source-add-copy` is lifted with `z-index: 1` so it remains the only clickable element in its area. This replaced an older structure with `<div role="button" tabindex="0">` that nested the copy button inside an interactive container.
 
+**Semantic landmarks.** Every top-level page region is wrapped in a recognised landmark so assistive-tech landmark navigation reaches all content (WCAG 1.3.1, axe `region` rule). `Header.tsx` → `<header>`; `Footer.tsx` → `<footer>`; the grid lives inside `<main id="main">` in `App.tsx`; `QuickStart.tsx` uses `<section class="quickstart" aria-labelledby="quickstart-heading">` (a `<section>` only counts as a landmark when accessibly named, hence the matching `<h2 id="quickstart-heading">`); `Controls.tsx` uses `<section class="controls" aria-label="Filters and view">`; `MarketplaceBar.tsx` uses `<nav class="marketplace-bar" aria-label="Marketplaces">`. These are element-name swaps only — visible HTML, IDs, and CSS classes are unchanged, so all existing styling and selectors keep working.
+
 ### Local development
 
 ```bash

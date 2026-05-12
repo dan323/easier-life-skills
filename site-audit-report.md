@@ -17,8 +17,16 @@
 > longer `role="button"`; the filter toggle is a real
 > `<button class="source-toggle" aria-pressed>` and the copy button is a
 > sibling (not nested). Verified with axe-cli (13 → 10 violations) and a
-> Playwright smoke test (`/tmp/phase2-smoke.mjs`). The 10 remaining
-> region findings are Phase 3.
+> Playwright smoke test (`/tmp/phase2-smoke.mjs`).
+>
+> **Phase 3 fix applied (2026-05-12):** the 10 region (WCAG 1.3.1) violations
+> are resolved. Every top-level page section is now contained by a
+> recognised landmark: `QuickStart` has `aria-labelledby="quickstart-heading"`
+> so the `<section>` becomes a landmark; `Controls.tsx` is a
+> `<section aria-label="Filters and view">`; `MarketplaceBar.tsx` is a
+> `<nav aria-label="Marketplaces">`. **axe-cli now reports 0 violations**
+> (28 → 0 across Phases 1–3). Verified with a landmark smoke test
+> (`/tmp/phase3-smoke.mjs`). Vitest stays green (77/77).
 
 ## Summary
 

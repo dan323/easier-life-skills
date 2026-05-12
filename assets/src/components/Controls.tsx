@@ -37,7 +37,7 @@ export function Controls({
   const filtersVisible = view === 'plugins' || view === 'skills';
 
   return (
-    <div class="controls">
+    <section class="controls" aria-label="Filters and view">
       <form role="search" style={{ display: 'contents' }}>
         <input
           id="search"
@@ -83,6 +83,6 @@ export function Controls({
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }

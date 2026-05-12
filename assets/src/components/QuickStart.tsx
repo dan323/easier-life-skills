@@ -2,9 +2,9 @@ import { CopyButton } from './CopyButton.tsx';
 
 export function QuickStart() {
   return (
-    <section class="quickstart">
+    <section class="quickstart" aria-labelledby="quickstart-heading">
       <div class="quickstart-inner">
-        <h2>Get started in 2 steps</h2>
+        <h2 id="quickstart-heading">Get started in 2 steps</h2>
         <p class="quickstart-note">
           Run these commands inside the{' '}
           <a href="https://claude.ai/code" target="_blank" rel="noopener">Claude Code CLI</a>.

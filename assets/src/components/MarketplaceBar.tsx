@@ -14,7 +14,7 @@ interface Props {
 
 export function MarketplaceBar({ sources, activeRepos, onToggle, onCopyAdd }: Props) {
   return (
-    <div class="marketplace-bar">
+    <nav class="marketplace-bar" aria-label="Marketplaces">
       <div class="marketplace-sources" id="marketplace-sources">
         {sources.map(s => {
           const active = activeRepos.has(s.repo);
@@ -61,6 +61,6 @@ export function MarketplaceBar({ sources, activeRepos, onToggle, onCopyAdd }: Pr
       >
         Add your marketplace →
       </a>
-    </div>
+    </nav>
   );
 }
