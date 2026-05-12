@@ -35,7 +35,10 @@ export function PluginCard({ plugin, showSource, onOpen }: Props) {
           class="card-name"
           aria-label={`Open details for ${plugin.name}`}
           onClick={activate}
-        >{plugin.name}</button>
+        >
+          <span class="card-name-text">{plugin.name}</span>
+          <span class="card-name-chevron" aria-hidden="true">›</span>
+        </button>
         <div class="card-badges">
           <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>
           {showSource && <span class="badge badge-source">{plugin._repo}</span>}

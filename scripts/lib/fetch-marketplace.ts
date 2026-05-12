@@ -17,10 +17,6 @@ async function fetchText(url: string): Promise<string> {
   return res.text();
 }
 
-async function fetchJson<T>(url: string): Promise<T> {
-  return JSON.parse(await fetchText(url)) as T;
-}
-
 /** Read a file preferring local copy (when root is set), falling back to remote URL. */
 async function readFile(relativePath: string, remoteBaseUrl: string, root: string | null): Promise<string | null> {
   if (root && relativePath) {
@@ -303,6 +299,7 @@ async function parseAgent(
     name:           (frontmatter.name as string | undefined) ?? agentName,
     pluginName:     pluginEntry.name,
     description:    (frontmatter.description as string | undefined) ?? '',
+    category:       (frontmatter.category as string | undefined) ?? pluginEntry.category ?? null,
     tools:          frontmatter.tools ? String(frontmatter.tools).split(',').map(t => t.trim()) : [],
     background:     frontmatter.background === true || frontmatter.background === 'true',
     agentPath:      fullAgentPath,
@@ -322,6 +319,7 @@ function parseMcpServer(
     name:           mcpEntry.name,
     pluginName:     pluginEntry.name,
     description:    mcpEntry.description ?? pluginEntry.description ?? '',
+    category:       pluginEntry.category ?? null,
     command:        mcpEntry.command ?? '',
     args:           mcpEntry.args ?? [],
     env:            mcpEntry.env ?? {},
@@ -460,6 +458,7 @@ async function parseCommand(
     name:           cmdName,
     pluginName:     pluginEntry.name,
     description:    (frontmatter.description as string | undefined) ?? '',
+    category:       (frontmatter.category as string | undefined) ?? pluginEntry.category ?? null,
     commandPath:    fullCmdPath,
     rawCommandUrl:  `${remoteBase}/${fullCmdPath}`,
     installCommand: `/plugin install ${pluginEntry.name}@${repo}`,
@@ -527,6 +526,7 @@ async function parseHook(
     name:           (frontmatter.name as string | undefined) ?? hookName,
     pluginName:     pluginEntry.name,
     description:    (frontmatter.description as string | undefined) ?? '',
+    category:       (frontmatter.category as string | undefined) ?? pluginEntry.category ?? null,
     events,
     hookPath:       fullHookPath,
     rawHookUrl:     `${remoteBase}/${fullHookPath}`,

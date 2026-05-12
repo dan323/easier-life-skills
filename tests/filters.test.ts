@@ -47,6 +47,31 @@ describe('category filter', () => {
     search.dispatchEvent(new Event('input', { bubbles: true }));
     expect(cardNames('plugins-grid')).toEqual(['document-project']);
   });
+
+  it('narrows agents to the active category', async () => {
+    await bootApp();
+    click('#view-agents');
+    click(findFilterBtn('Automation'));
+    expect(cardNames('agents-grid')).toEqual(['copilot-fixer']);
+    expect(findFilterBtn('Automation').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('narrows MCP servers, commands, and hooks by their category', async () => {
+    await bootApp();
+    click('#view-mcp');
+    click(findFilterBtn('Automation'));
+    expect(cardNames('mcp-grid')).toEqual(['slack']);
+
+    click(findFilterBtn('Automation'));   // clear before switching view
+    click('#view-commands');
+    click(findFilterBtn('Automation'));
+    expect(cardNames('commands-grid')).toEqual(['post-slack']);
+
+    click(findFilterBtn('Automation'));
+    click('#view-hooks');
+    click(findFilterBtn('Automation'));
+    expect(cardNames('hooks-grid')).toEqual(['pre-commit-format']);
+  });
 });
 
 describe('source filter', () => {

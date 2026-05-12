@@ -27,6 +27,7 @@ export interface Agent {
   name: string;
   pluginName: string;
   description: string;
+  category: string | null;
   tools: string[];
   background: boolean;
   agentPath: string;
@@ -40,6 +41,7 @@ export interface McpServer {
   name: string;
   pluginName: string;
   description: string;
+  category: string | null;
   command: string;
   args: string[];
   env: Record<string, string>;
@@ -52,6 +54,7 @@ export interface Command {
   name: string;
   pluginName: string;
   description: string;
+  category: string | null;
   commandPath: string;
   rawCommandUrl: string;
   installCommand: string;
@@ -63,6 +66,7 @@ export interface Hook {
   name: string;
   pluginName: string;
   description: string;
+  category: string | null;
   events: string[];
   hookPath: string;
   rawHookUrl: string;

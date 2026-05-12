@@ -4,6 +4,7 @@ export interface Frontmatter {
   version?: string;
   description?: string;
   tools?: string[];
+  events?: string[] | string;
   background?: boolean | string;
   name?: string;
   [key: string]: unknown;
@@ -40,7 +41,7 @@ export function parseFrontmatter(content: string): Frontmatter {
       result[key] = children;
 
     } else {
-      result[key] = val.trim();
+      result[key] = parseScalar(val.trim());
       i++;
     }
   }
@@ -55,4 +56,24 @@ export function parseFrontmatter(content: string): Frontmatter {
   }
 
   return result as Frontmatter;
+}
+
+function parseScalar(val: string): unknown {
+  if (val.length >= 2 && val.startsWith('[') && val.endsWith(']')) {
+    const inner = val.slice(1, -1).trim();
+    if (inner === '') return [];
+    return inner.split(',').map(s => unquote(s.trim())).filter(Boolean);
+  }
+  return val;
+}
+
+function unquote(s: string): string {
+  if (s.length >= 2) {
+    const first = s[0];
+    const last  = s[s.length - 1];
+    if ((first === '"' && last === '"') || (first === "'" && last === "'")) {
+      return s.slice(1, -1);
+    }
+  }
+  return s;
 }

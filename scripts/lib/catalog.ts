@@ -1,20 +1,47 @@
-/* lib/catalog.ts — generates CATALOG.md and catalog.html content from aggregated skills, agents, MCP servers, hooks, and bundles */
+/* lib/catalog.ts — generates CATALOG.md and catalog.html content from aggregated skills, agents, MCP servers, commands, hooks, and bundles */
 
-import type { Skill, Agent, McpServer, Hook, Bundle, MarketplaceEntry } from './types.js';
+import type { Skill, Agent, McpServer, Command, Hook, Bundle, MarketplaceEntry } from './types.js';
 
 function titleCase(str: string): string {
   return str.replace(/-/g, ' ').replace(/(^|\s)(\w)/g, (_, sep, c) => sep + c.toUpperCase());
 }
 
+/**
+ * Group entities by category, returning sorted [category, items] pairs.
+ * Entities with no category land in a trailing "Uncategorized" group.
+ */
+function groupByCategory<T extends { category: string | null }>(items: T[]): Array<[string, T[]]> {
+  const buckets = new Map<string, T[]>();
+  for (const item of items) {
+    const key = item.category ?? '__uncategorized__';
+    (buckets.get(key) ?? buckets.set(key, []).get(key)!).push(item);
+  }
+  const named = [...buckets.entries()]
+    .filter(([k]) => k !== '__uncategorized__')
+    .sort(([a], [b]) => a.localeCompare(b));
+  const uncategorized = buckets.get('__uncategorized__');
+  if (uncategorized && uncategorized.length > 0) named.push(['__uncategorized__', uncategorized]);
+  return named;
+}
+
+function categoryLabel(key: string): string {
+  return key === '__uncategorized__' ? 'Uncategorized' : titleCase(key);
+}
+
+function summariseTools(tools: string[]): string {
+  return tools.slice(0, 3).join(', ') + (tools.length > 3 ? '…' : '');
+}
+
 function skillRow(skill: Skill): string {
-  const src = `${skill.source.owner}/${skill.source.repo}`;
-  const ro  = skill.readOnly ? '✓' : '';
-  return `| [\`${skill.name}\`](${skill.rawSkillUrl}) | \`${src}\` | ${skill.description} | ${ro} | \`${skill.installCommand}\` |`;
+  const src   = `${skill.source.owner}/${skill.source.repo}`;
+  const tools = summariseTools(skill.tools);
+  const ro    = skill.readOnly ? '✓' : '';
+  return `| [\`${skill.name}\`](${skill.rawSkillUrl}) | \`${src}\` | ${skill.description} | ${tools} | ${ro} | \`${skill.installCommand}\` |`;
 }
 
 function agentRow(agent: Agent): string {
   const src   = `${agent.source.owner}/${agent.source.repo}`;
-  const tools = agent.tools.slice(0, 3).join(', ') + (agent.tools.length > 3 ? '…' : '');
+  const tools = summariseTools(agent.tools);
   const bg    = agent.background ? '✓' : '';
   return `| [\`${agent.name}\`](${agent.rawAgentUrl}) | \`${src}\` | ${agent.description} | ${tools} | ${bg} | \`${agent.installCommand}\` |`;
 }
@@ -28,6 +55,11 @@ function hookRow(hook: Hook): string {
   const src    = `${hook.source.owner}/${hook.source.repo}`;
   const events = hook.events.join(', ') || '—';
   return `| [\`${hook.name}\`](${hook.rawHookUrl}) | \`${src}\` | ${hook.description} | ${events} | \`${hook.installCommand}\` |`;
+}
+
+function commandRow(cmd: Command): string {
+  const src = `${cmd.source.owner}/${cmd.source.repo}`;
+  return `| [\`${cmd.name}\`](${cmd.rawCommandUrl}) | \`${src}\` | ${cmd.description} | \`${cmd.installCommand}\` |`;
 }
 
 function bundleSection(bundle: Bundle, allSkills: Skill[]): string[] {
@@ -52,17 +84,17 @@ export function generateCatalog(
   skills: Skill[],
   agents: Agent[],
   mcpServers: McpServer[],
+  commands: Command[],
   hooks: Hook[],
   bundles: Bundle[],
   marketplaces: MarketplaceEntry[],
 ): string {
-  const date       = new Date().toISOString().slice(0, 10);
-  const categories = [...new Set(skills.map(s => s.category).filter(Boolean))].sort() as string[];
+  const date = new Date().toISOString().slice(0, 10);
 
   const lines: string[] = [
     `# Skill Catalog`,
     ``,
-    `> ${skills.length} skills · ${agents.length} agents · ${mcpServers.length} MCP servers · ${hooks.length} hooks from ${marketplaces.length} marketplace(s) · Last updated: ${date}`,
+    `> ${skills.length} skills · ${agents.length} agents · ${mcpServers.length} MCP servers · ${commands.length} commands · ${hooks.length} hooks from ${marketplaces.length} marketplace(s) · Last updated: ${date}`,
     ``,
     ...marketplaces.map(m => `- [\`${m.owner}/${m.repo}\`](https://github.com/${m.owner}/${m.repo})`),
     ``,
@@ -72,37 +104,56 @@ export function generateCatalog(
     ``,
   ];
 
-  for (const category of categories) {
-    const group = skills.filter(s => s.category === category);
-    lines.push(`### ${titleCase(category)} (${group.length})`, ``);
-    lines.push(`| Skill | Marketplace | What it does | Read-only | Install |`);
-    lines.push(`|---|---|---|---|---|`);
+  for (const [category, group] of groupByCategory(skills)) {
+    lines.push(`### ${categoryLabel(category)} (${group.length})`, ``);
+    lines.push(`| Skill | Marketplace | What it does | Tools | Read-only | Install |`);
+    lines.push(`|---|---|---|---|---|---|`);
     group.forEach(s => lines.push(skillRow(s)));
     lines.push(``);
   }
 
   if (agents.length > 0) {
-    lines.push(`---`, ``, `## Agents`, ``);
-    lines.push(`| Agent | Marketplace | What it does | Tools | Background | Install |`);
-    lines.push(`|---|---|---|---|---|---|`);
-    agents.forEach(a => lines.push(agentRow(a)));
-    lines.push(``);
+    lines.push(`---`, ``, `## Agents by Category`, ``);
+    for (const [category, group] of groupByCategory(agents)) {
+      lines.push(`### ${categoryLabel(category)} (${group.length})`, ``);
+      lines.push(`| Agent | Marketplace | What it does | Tools | Background | Install |`);
+      lines.push(`|---|---|---|---|---|---|`);
+      group.forEach(a => lines.push(agentRow(a)));
+      lines.push(``);
+    }
   }
 
   if (mcpServers.length > 0) {
-    lines.push(`---`, ``, `## MCP Servers`, ``);
-    lines.push(`| Server | Marketplace | What it does | Command | Install |`);
-    lines.push(`|---|---|---|---|---|`);
-    mcpServers.forEach(m => lines.push(mcpRow(m)));
-    lines.push(``);
+    lines.push(`---`, ``, `## MCP Servers by Category`, ``);
+    for (const [category, group] of groupByCategory(mcpServers)) {
+      lines.push(`### ${categoryLabel(category)} (${group.length})`, ``);
+      lines.push(`| Server | Marketplace | What it does | Command | Install |`);
+      lines.push(`|---|---|---|---|---|`);
+      group.forEach(m => lines.push(mcpRow(m)));
+      lines.push(``);
+    }
+  }
+
+  if (commands.length > 0) {
+    lines.push(`---`, ``, `## Commands by Category`, ``);
+    for (const [category, group] of groupByCategory(commands)) {
+      lines.push(`### ${categoryLabel(category)} (${group.length})`, ``);
+      lines.push(`| Command | Marketplace | What it does | Install |`);
+      lines.push(`|---|---|---|---|`);
+      group.forEach(c => lines.push(commandRow(c)));
+      lines.push(``);
+    }
   }
 
   if (hooks.length > 0) {
-    lines.push(`---`, ``, `## Hooks`, ``);
-    lines.push(`| Hook | Marketplace | What it does | Events | Install |`);
-    lines.push(`|---|---|---|---|---|`);
-    hooks.forEach(h => lines.push(hookRow(h)));
-    lines.push(``);
+    lines.push(`---`, ``, `## Hooks by Category`, ``);
+    for (const [category, group] of groupByCategory(hooks)) {
+      lines.push(`### ${categoryLabel(category)} (${group.length})`, ``);
+      lines.push(`| Hook | Marketplace | What it does | Events | Install |`);
+      lines.push(`|---|---|---|---|---|`);
+      group.forEach(h => lines.push(hookRow(h)));
+      lines.push(``);
+    }
   }
 
   if (bundles.length > 0) {
@@ -138,18 +189,18 @@ function skillRowHtml(skill: Skill): string[] {
     `<a href="${esc(skill.rawSkillUrl)}"><code>${esc(skill.name)}</code></a>`,
     code(`${skill.source.owner}/${skill.source.repo}`),
     esc(skill.description),
+    esc(summariseTools(skill.tools)),
     skill.readOnly ? '✓' : '',
     code(skill.installCommand),
   ];
 }
 
 function agentRowHtml(agent: Agent): string[] {
-  const tools = agent.tools.slice(0, 3).join(', ') + (agent.tools.length > 3 ? '…' : '');
   return [
     `<a href="${esc(agent.rawAgentUrl)}"><code>${esc(agent.name)}</code></a>`,
     code(`${agent.source.owner}/${agent.source.repo}`),
     esc(agent.description),
-    esc(tools),
+    esc(summariseTools(agent.tools)),
     agent.background ? '✓' : '',
     code(agent.installCommand),
   ];
@@ -175,6 +226,15 @@ function hookRowHtml(hook: Hook): string[] {
   ];
 }
 
+function commandRowHtml(cmd: Command): string[] {
+  return [
+    `<a href="${esc(cmd.rawCommandUrl)}"><code>${esc(cmd.name)}</code></a>`,
+    code(`${cmd.source.owner}/${cmd.source.repo}`),
+    esc(cmd.description),
+    code(cmd.installCommand),
+  ];
+}
+
 function bundleSectionHtml(bundle: Bundle, allSkills: Skill[]): string {
   const installs = bundle.skills.map(name => {
     const skill = allSkills.find(s => s.name === name);
@@ -192,19 +252,19 @@ export function generateCatalogHtml(
   skills: Skill[],
   agents: Agent[],
   mcpServers: McpServer[],
+  commands: Command[],
   hooks: Hook[],
   bundles: Bundle[],
   marketplaces: MarketplaceEntry[],
 ): string {
-  const date       = new Date().toISOString().slice(0, 10);
-  const categories = [...new Set(skills.map(s => s.category).filter(Boolean))].sort() as string[];
+  const date = new Date().toISOString().slice(0, 10);
 
   const sections: string[] = [];
 
   sections.push(`<header class="catalog-header">
   <div>
     <h1>Skill Catalog</h1>
-    <p class="catalog-summary">${skills.length} skills · ${agents.length} agents · ${mcpServers.length} MCP servers · ${hooks.length} hooks from ${marketplaces.length} marketplace(s) · Last updated: ${esc(date)}</p>
+    <p class="catalog-summary">${skills.length} skills · ${agents.length} agents · ${mcpServers.length} MCP servers · ${commands.length} commands · ${hooks.length} hooks from ${marketplaces.length} marketplace(s) · Last updated: ${esc(date)}</p>
   </div>
   <a class="btn-gh" href="./" aria-label="Back to marketplace">← Back to marketplace</a>
 </header>`);
@@ -216,37 +276,53 @@ ${marketplaces.map(m => `    <li><a href="https://github.com/${esc(m.owner)}/${e
   </ul>
 </section>`);
 
-  const skillsByCat: string[] = [`<section aria-labelledby="skills-heading">`, `  <h2 id="skills-heading">Skills by Category</h2>`];
-  for (const category of categories) {
-    const group = skills.filter(s => s.category === category);
-    skillsByCat.push(`  <h3>${esc(titleCase(category))} <span class="count-chip">${group.length}</span></h3>`);
-    skillsByCat.push('  ' + tableEl(
-      ['Skill', 'Marketplace', 'What it does', 'Read-only', 'Install'],
-      group.map(skillRowHtml),
-    ).replace(/\n/g, '\n  '));
+  function categorisedSection<T extends { category: string | null }>(
+    headingId: string,
+    headingText: string,
+    items: T[],
+    headers: string[],
+    rowFn: (t: T) => string[],
+  ): string {
+    const parts: string[] = [`<section aria-labelledby="${headingId}">`, `  <h2 id="${headingId}">${esc(headingText)}</h2>`];
+    for (const [category, group] of groupByCategory(items)) {
+      parts.push(`  <h3>${esc(categoryLabel(category))} <span class="count-chip">${group.length}</span></h3>`);
+      parts.push('  ' + tableEl(headers, group.map(rowFn)).replace(/\n/g, '\n  '));
+    }
+    parts.push('</section>');
+    return parts.join('\n');
   }
-  skillsByCat.push('</section>');
-  sections.push(skillsByCat.join('\n'));
+
+  sections.push(categorisedSection(
+    'skills-heading', 'Skills by Category', skills,
+    ['Skill', 'Marketplace', 'What it does', 'Tools', 'Read-only', 'Install'], skillRowHtml,
+  ));
 
   if (agents.length > 0) {
-    sections.push(`<section aria-labelledby="agents-heading">
-  <h2 id="agents-heading">Agents</h2>
-  ${tableEl(['Agent', 'Marketplace', 'What it does', 'Tools', 'Background', 'Install'], agents.map(agentRowHtml)).replace(/\n/g, '\n  ')}
-</section>`);
+    sections.push(categorisedSection(
+      'agents-heading', 'Agents by Category', agents,
+      ['Agent', 'Marketplace', 'What it does', 'Tools', 'Background', 'Install'], agentRowHtml,
+    ));
   }
 
   if (mcpServers.length > 0) {
-    sections.push(`<section aria-labelledby="mcp-heading">
-  <h2 id="mcp-heading">MCP Servers</h2>
-  ${tableEl(['Server', 'Marketplace', 'What it does', 'Command', 'Install'], mcpServers.map(mcpRowHtml)).replace(/\n/g, '\n  ')}
-</section>`);
+    sections.push(categorisedSection(
+      'mcp-heading', 'MCP Servers by Category', mcpServers,
+      ['Server', 'Marketplace', 'What it does', 'Command', 'Install'], mcpRowHtml,
+    ));
+  }
+
+  if (commands.length > 0) {
+    sections.push(categorisedSection(
+      'commands-heading', 'Commands by Category', commands,
+      ['Command', 'Marketplace', 'What it does', 'Install'], commandRowHtml,
+    ));
   }
 
   if (hooks.length > 0) {
-    sections.push(`<section aria-labelledby="hooks-heading">
-  <h2 id="hooks-heading">Hooks</h2>
-  ${tableEl(['Hook', 'Marketplace', 'What it does', 'Events', 'Install'], hooks.map(hookRowHtml)).replace(/\n/g, '\n  ')}
-</section>`);
+    sections.push(categorisedSection(
+      'hooks-heading', 'Hooks by Category', hooks,
+      ['Hook', 'Marketplace', 'What it does', 'Events', 'Install'], hookRowHtml,
+    ));
   }
 
   if (bundles.length > 0) {

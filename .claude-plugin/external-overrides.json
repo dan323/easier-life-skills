@@ -15,7 +15,7 @@
       "mcp-builder":           { "category": "development" },
       "skill-creator":         { "category": "development" },
       "web-artifacts-builder": { "category": "development" },
-      "webapp-testing":        { "category": "development" },
+      "webapp-testing":        { "category": "testing"     },
       "doc-coauthoring":       { "category": "productivity" },
       "docx":                  { "category": "documentation" },
       "internal-comms":        { "category": "productivity" },
@@ -29,7 +29,7 @@
     "skills": {
       "diagnose":                      { "category": "code-quality"  },
       "improve-codebase-architecture": { "category": "code-quality"  },
-      "tdd":                           { "category": "code-quality"  },
+      "tdd":                           { "category": "testing"       },
       "grill-with-docs":               { "category": "documentation" },
       "to-prd":                        { "category": "documentation" },
       "to-issues":                     { "category": "automation"    },
@@ -38,7 +38,47 @@
       "caveman":                       { "category": "productivity"  },
       "grill-me":                      { "category": "productivity"  },
       "zoom-out":                      { "category": "productivity"  },
+      "handoff":                       { "category": "productivity"  },
+      "prototype":                     { "category": "development"   },
       "write-a-skill":                 { "category": "development"   }
+    }
+  },
+  "DustyWalker/claude-code-marketplace": {
+    "plugins": {
+      "production-agents-suite": { "category": "mixed" }
+    },
+    "agents": {
+      "code-reviewer":                { "category": "code-quality" },
+      "security-auditor":             { "category": "security"     },
+      "test-suite-generator":         { "category": "testing"      },
+      "performance-optimizer":        { "category": "performance"  },
+      "test-automator":               { "category": "testing"      },
+      "qa-engineer":                  { "category": "testing"      },
+      "architecture-checker":         { "category": "code-quality" },
+      "refactoring-specialist":       { "category": "code-quality" },
+      "backend-typescript-architect": { "category": "development"  },
+      "frontend-developer":           { "category": "development"  },
+      "api-designer":                 { "category": "development"  },
+      "database-architect":           { "category": "development"  },
+      "deployment-engineer":          { "category": "devops"       },
+      "cicd-automation":              { "category": "devops"       },
+      "docker-specialist":            { "category": "devops"       },
+      "prompt-builder":               { "category": "productivity" }
+    },
+    "commands": {
+      "review":        { "category": "code-quality" },
+      "test":          { "category": "testing"      },
+      "security-scan": { "category": "security"     },
+      "deploy":        { "category": "devops"       },
+      "build-prompt":  { "category": "productivity" }
+    }
+  },
+  "marcusabu/claude-code-docs-plugin": {
+    "plugins": {
+      "claude-code-docs": { "category": "documentation" }
+    },
+    "skills": {
+      "claude-code": { "category": "documentation" }
     }
   }
 }

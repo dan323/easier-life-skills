@@ -91,7 +91,16 @@ export function App() {
   }, []);
 
   const categories = useMemo(() => {
-    const src = view === 'skills' ? skills : plugins;
+    const srcByView: Record<ViewKey, Array<{ category?: string | null; _repo?: string }>> = {
+      plugins,
+      skills,
+      agents,
+      mcpServers,
+      commands,
+      hooks,
+      bundles: [],
+    };
+    const src = srcByView[view] ?? [];
     const visible = activeRepos.size ? src.filter(s => activeRepos.has(s._repo ?? '')) : src;
     const cats = [...new Set(visible.map(s => s.category).filter((c): c is string => c !== null && c !== undefined))].sort();
     let updated = false;
@@ -99,7 +108,7 @@ export function App() {
     for (const c of next) if (!cats.includes(c)) { next.delete(c); updated = true; }
     if (updated) setActiveCategories(next);
     return cats;
-  }, [plugins, skills, view, activeRepos, activeCategories]);
+  }, [plugins, skills, agents, mcpServers, commands, hooks, view, activeRepos, activeCategories]);
 
   const toggleCategory = (cat: string) => {
     setActiveCategories(prev => {

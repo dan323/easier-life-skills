@@ -174,11 +174,12 @@ function SkillsGrid({ data, query, sort, activeRepos, activeCategories, onOpenSk
   );
 }
 
-function AgentsGrid({ data, query, sort, activeRepos, onOpenAgent }: Props) {
+function AgentsGrid({ data, query, sort, activeRepos, activeCategories, onOpenAgent }: Props) {
   const all = data.agents;
   const show = multiRepo(all);
   const filtered = all.filter(a => {
     if (activeRepos.size && !activeRepos.has(a._repo ?? '')) return false;
+    if (activeCategories.size && !activeCategories.has(a.category ?? '')) return false;
     if (!query) return true;
     return a.name.includes(query) || a.description.toLowerCase().includes(query);
   });
@@ -197,11 +198,12 @@ function AgentsGrid({ data, query, sort, activeRepos, onOpenAgent }: Props) {
   );
 }
 
-function McpGrid({ data, query, sort, activeRepos, onOpenMcp }: Props) {
+function McpGrid({ data, query, sort, activeRepos, activeCategories, onOpenMcp }: Props) {
   const all = data.mcpServers;
   const show = multiRepo(all);
   const filtered = all.filter(m => {
     if (activeRepos.size && !activeRepos.has(m._repo ?? '')) return false;
+    if (activeCategories.size && !activeCategories.has(m.category ?? '')) return false;
     if (!query) return true;
     return m.name.includes(query) || m.description.toLowerCase().includes(query);
   });
@@ -220,11 +222,12 @@ function McpGrid({ data, query, sort, activeRepos, onOpenMcp }: Props) {
   );
 }
 
-function CommandsGrid({ data, query, sort, activeRepos, onOpenCommand }: Props) {
+function CommandsGrid({ data, query, sort, activeRepos, activeCategories, onOpenCommand }: Props) {
   const all = data.commands;
   const show = multiRepo(all);
   const filtered = all.filter(c => {
     if (activeRepos.size && !activeRepos.has(c._repo ?? '')) return false;
+    if (activeCategories.size && !activeCategories.has(c.category ?? '')) return false;
     if (!query) return true;
     return c.name.includes(query) || c.description.toLowerCase().includes(query);
   });
@@ -243,11 +246,12 @@ function CommandsGrid({ data, query, sort, activeRepos, onOpenCommand }: Props) 
   );
 }
 
-function HooksGrid({ data, query, sort, activeRepos, onOpenHook }: Props) {
+function HooksGrid({ data, query, sort, activeRepos, activeCategories, onOpenHook }: Props) {
   const all = data.hooks;
   const show = multiRepo(all);
   const filtered = all.filter(h => {
     if (activeRepos.size && !activeRepos.has(h._repo ?? '')) return false;
+    if (activeCategories.size && !activeCategories.has(h.category ?? '')) return false;
     if (!query) return true;
     return h.name.includes(query)
         || h.description.toLowerCase().includes(query)

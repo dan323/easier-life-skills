@@ -1,3 +1,4 @@
+import { titleCase } from '../../utils.ts';
 import { CopyButton } from '../CopyButton.tsx';
 import type { Command } from '../../types.ts';
 
@@ -9,6 +10,8 @@ interface Props {
 }
 
 export function CommandCard({ command: cmd, showSource, showInstall, onOpen }: Props) {
+  const catClass = cmd.category ? 'badge-' + cmd.category : 'badge-uncategorized';
+  const catLabel = cmd.category ? titleCase(cmd.category) : 'Uncategorized';
   const activate = () => onOpen(cmd);
   return (
     <div class="skill-card">
@@ -18,9 +21,12 @@ export function CommandCard({ command: cmd, showSource, showInstall, onOpen }: P
           class="card-name"
           aria-label={`Open details for command ${cmd.name}`}
           onClick={activate}
-        >{cmd.name}</button>
+        >
+          <span class="card-name-text">{cmd.name}</span>
+          <span class="card-name-chevron" aria-hidden="true">›</span>
+        </button>
         <div class="card-badges">
-          <span class="badge badge-cat badge-automation">Command</span>
+          <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>
           {showSource && <span class="badge badge-source">{cmd._repo}</span>}
         </div>
       </div>

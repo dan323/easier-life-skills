@@ -384,7 +384,13 @@ header {
   align-items: center;
 }
 .source-toggle:focus { outline: none; }
+/* Visible keyboard focus ring (WCAG 2.4.7 / 2.4.11). Drawn on the
+ * stretched-link overlay so it traces the full chip body, not just the
+ * inline button text. */
 .source-toggle:focus-visible { outline: none; }
+.source-toggle:focus-visible::after {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+}
 .source-toggle::after {
   content: '';
   position: absolute;
@@ -486,10 +492,35 @@ main { padding: 20px 32px 80px; }
   cursor: pointer;
   min-width: 0;
   overflow-wrap: break-word;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
 }
-.card-name:hover { text-decoration: underline; }
+.card-name-text { text-decoration: inherit; }
+/* "View details" affordance: signals that activating the name opens an
+ * in-place panel, not a new page. Subtle at rest, brighter on hover/focus. */
+.card-name-chevron {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  font-size: 1em;
+  line-height: 1;
+  opacity: 0.55;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.card-name:hover .card-name-chevron,
+.card-name:focus-visible .card-name-chevron {
+  opacity: 1;
+  transform: translateX(2px);
+}
+.card-name:hover .card-name-text { text-decoration: underline; }
 .card-name:focus { outline: none; }
+/* Visible keyboard focus ring (WCAG 2.4.7 / 2.4.11). The card-name button
+ * has a stretched-link ::after that already covers the whole card body, so
+ * we paint the focus ring there to highlight the activation target. */
 .card-name:focus-visible { outline: none; }
+.card-name:focus-visible::after {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+}
 .card-name::after {
   content: '';
   position: absolute;

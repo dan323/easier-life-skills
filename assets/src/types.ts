@@ -36,6 +36,7 @@ export interface Skill {
 export interface Agent {
   name:           string;
   description:    string;
+  category:       string | null;
   tools:          string[];
   background:     boolean;
   rawAgentUrl:    string;
@@ -47,6 +48,7 @@ export interface Agent {
 export interface McpServer {
   name:           string;
   description:    string;
+  category:       string | null;
   command:        string;
   installCommand: string;
   source:         Source;
@@ -56,6 +58,7 @@ export interface McpServer {
 export interface Command {
   name:           string;
   description:    string;
+  category:       string | null;
   commandPath:    string;
   rawCommandUrl:  string;
   installCommand: string;
@@ -66,6 +69,7 @@ export interface Command {
 export interface Hook {
   name:           string;
   description:    string;
+  category:       string | null;
   events:         string[];
   rawHookUrl:     string;
   installCommand: string;

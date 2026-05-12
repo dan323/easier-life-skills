@@ -3,6 +3,7 @@ name: performance-auditor
 description: Audits website performance using Lighthouse (via npx) if available, falling back to HTML analysis, using the thresholds and checks provided by the caller. Audits up to 3 pages from sitemap.json when available; otherwise audits only the seed.
 tools: Bash, Read, WebFetch
 background: false
+category: performance
 ---
 
 You are a web performance engineer. The caller provides the URL, a reference

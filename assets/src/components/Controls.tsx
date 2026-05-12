@@ -37,11 +37,18 @@ export function Controls({
     ? 'Sort: A→Z. Click to sort Z to A.'
     : 'Sort: Z→A. Click to sort A to Z.';
 
-  const filtersVisible = view === 'plugins' || view === 'skills';
+  // Filter bar shows for every entity view (all but bundles), but only when
+  // there is at least one category to filter by — otherwise the bar would
+  // render as an empty strip.
+  const filtersVisible = view !== 'bundles' && categories.length > 0;
 
   return (
     <section class="controls" aria-label="Filters and view">
-      <form role="search" class="search-form">
+      <form
+        role="search"
+        class="search-form"
+        onSubmit={e => e.preventDefault()}
+      >
         <div class="search-wrap">
           <input
             id="search"
@@ -54,6 +61,10 @@ export function Controls({
             onInput={e => onSearch((e.currentTarget as HTMLInputElement).value)}
           />
           <kbd class="search-kbd" aria-hidden="true">/</kbd>
+          {/* WCAG 3.2.2: explicit submit control so keyboard/AT users can
+              trigger the form. Filtering happens live on input, so submit
+              is a no-op handled by the form's onSubmit. */}
+          <button type="submit" class="sr-only">Search</button>
         </div>
       </form>
 

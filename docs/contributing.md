@@ -103,7 +103,11 @@ Open a Claude Code session in a suitable test directory and run your trigger phr
 
 ### 5. Add category and rebuild
 
-Add a `"category"` field to `plugins/<your-skill-name>/.claude-plugin/plugin.json` (one of `productivity`, `documentation`, `code-quality`, `automation`), then run `npm run build` to regenerate the derived files. The script will automatically add your plugin to `.claude-plugin/marketplace.json`.
+Add a `"category"` field to `plugins/<your-skill-name>/.claude-plugin/plugin.json`, then run `npm run build` to regenerate the derived files. The script will automatically add your plugin to `.claude-plugin/marketplace.json`.
+
+The vocabulary currently in use is `productivity`, `documentation`, `code-quality`, `testing`, `security`, `performance`, `automation`, `devops`, `development`, and `design`. The build doesn't enforce this list — the field is a free-form string — but please pick the closest fit rather than coining a new label. `mixed` is reserved for plugin bundles with no single goal; do not apply it to an individual skill, agent, or command.
+
+The plugin's category also propagates to its agents, hooks, commands, and MCP servers — they appear in the same filter group in the web UI. To override a specific sub-entity, add a `category:` field to that agent/hook/command's YAML frontmatter, or list it under the matching entity type in `.claude-plugin/external-overrides.json` (for external repos).
 
 If your skill only reads files (no `Write`, `Edit`, or `NotebookEdit` in its `tools` list), it will automatically be tagged as read-only in the index — no extra marker needed.
 

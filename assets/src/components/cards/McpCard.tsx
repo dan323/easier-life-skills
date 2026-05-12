@@ -1,3 +1,4 @@
+import { titleCase } from '../../utils.ts';
 import { CopyButton } from '../CopyButton.tsx';
 import type { McpServer } from '../../types.ts';
 
@@ -9,6 +10,8 @@ interface Props {
 }
 
 export function McpCard({ mcp, showSource, showInstall, onOpen }: Props) {
+  const catClass = mcp.category ? 'badge-' + mcp.category : 'badge-uncategorized';
+  const catLabel = mcp.category ? titleCase(mcp.category) : 'Uncategorized';
   const activate = () => onOpen(mcp);
   return (
     <div class="skill-card">
@@ -18,9 +21,12 @@ export function McpCard({ mcp, showSource, showInstall, onOpen }: Props) {
           class="card-name"
           aria-label={`Open details for MCP server ${mcp.name}`}
           onClick={activate}
-        >{mcp.name}</button>
+        >
+          <span class="card-name-text">{mcp.name}</span>
+          <span class="card-name-chevron" aria-hidden="true">›</span>
+        </button>
         <div class="card-badges">
-          <span class="badge badge-cat badge-database">MCP Server</span>
+          <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>
           {showSource && <span class="badge badge-source">{mcp._repo}</span>}
         </div>
       </div>

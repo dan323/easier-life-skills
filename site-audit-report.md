@@ -1,425 +1,103 @@
-# Site Audit: http://127.0.0.1:4567/
+# Site Audit: https://dan323.github.io/easier-life-skills/
 *Generated: 2026-05-12T00:00:00Z*
-
-> Target is the local dev server (`npm run dev`, esbuild `--serve`). Some
-> performance findings are dev-only (unminified bundle, no cache headers) and
-> would resolve in the production GitHub Pages build — they are tagged inline.
-
-> **Phase 1 fix applied (2026-05-12):** the 15 nested-interactive WCAG 4.1.2
-> violations on plugin / skill / agent / MCP / command / hook cards are
-> resolved. Cards no longer use `role="button"`; the title is a real
-> `<button class="card-name">` and a CSS stretched-link overlay keeps the rest
-> of the card click-through to the title. Verified with axe-cli (28 → 13
-> violations) and a Playwright smoke test (`/tmp/phase1-smoke2.mjs`).
->
-> **Phase 2 fix applied (2026-05-12):** the 3 nested-interactive WCAG 4.1.2
-> violations on the marketplace source tag are resolved. The wrapper is no
-> longer `role="button"`; the filter toggle is a real
-> `<button class="source-toggle" aria-pressed>` and the copy button is a
-> sibling (not nested). Verified with axe-cli (13 → 10 violations) and a
-> Playwright smoke test (`/tmp/phase2-smoke.mjs`).
->
-> **Phase 3 fix applied (2026-05-12):** the 10 region (WCAG 1.3.1) violations
-> are resolved. Every top-level page section is now contained by a
-> recognised landmark: `QuickStart` has `aria-labelledby="quickstart-heading"`
-> so the `<section>` becomes a landmark; `Controls.tsx` is a
-> `<section aria-label="Filters and view">`; `MarketplaceBar.tsx` is a
-> `<nav aria-label="Marketplaces">`. **axe-cli now reports 0 violations**
-> (28 → 0 across Phases 1–3). Verified with a landmark smoke test
-> (`/tmp/phase3-smoke.mjs`). Vitest stays green (77/77).
->
-> **Phase 4 fix applied (2026-05-12):** CLS 0.149 → **0**. The grid now
-> renders 6 `.skeleton-card` placeholders while `skills_index.json` is in
-> flight, so the layout never reflows when real cards arrive. `App.tsx`
-> tracks a `loaded` boolean; `Grid.tsx` routes `!loaded` to a
-> `<SkeletonGrid>` that reserves the active view's grid container with
-> `min-height: 170px` placeholders matching real card dimensions. Pulse
-> animation respects `prefers-reduced-motion`. **Lighthouse performance
-> 93 → 99**, LCP 2.0s, FCP 1.4s, TBT 0ms, Speed Index 1.5s. Verified with
-> a throttled Playwright smoke (`/tmp/phase4-smoke.mjs`) and a real
-> Lighthouse run (`/tmp/lh-phase4.json`).
->
-> **Phase 5 + 6 fix applied (2026-05-12):** UX polish + production build
-> correctness, plus an additional CLS rescue after the catalog work added
-> three more marketplaces and reintroduced layout shift outside `<main>`.
-> Search input now carries a visible `<kbd>/</kbd>` shortcut chip (hidden
-> on focus/typing). Sort button leads with a `⇅` icon. Empty-state copy
-> distinguishes "no items in this view's dataset" (suggests other populated
-> views) from "filters dropped everything" (existing copy). `npm run build`
-> now passes `--minify` (bundle 73 KB → **44.3 KB**); `index.html` adds
-> `<link rel="modulepreload" href="assets/bundle.js" />`. CLS fixes:
-> `.marketplace-bar` and `.controls` carry `min-height` reservations, and
-> `.search-wrap` switches from `flex: 1; max-width: 340px` to
-> `flex: 0 1 340px` so the input width doesn't expand when sibling filter
-> buttons appear. Final Lighthouse: **Desktop 100/100, CLS 0.041; Mobile
-> 99/100, CLS 0.044** — both well under 0.1. Vitest 79/79.
->
-> **Phase 7 fix applied (2026-05-12):** the sole remaining
-> `label-content-name-mismatch` (WCAG 2.5.3) violation was on `#sort-btn`,
-> whose `aria-label` was `Currently sorted A to Z…` and didn't contain the
-> visible `Sort: A→Z` text. The aria-label now leads with the visible
-> label — `Sort: A→Z. Click to sort Z to A.` — restoring agreement between
-> the visible and accessible names in both sort directions. Touch-target
-> audit was already passing for both sighted-mobile and desktop, thanks to
-> the 44×44 px enforcement in the mobile media query. Final Lighthouse
-> **a11y 100/100**; axe-cli still reports **0 violations**; vitest **80/80**
-> after adding a regression test that the `#sort-btn` aria-label starts
-> with the visible `.sort-label` text in both directions.
 
 ## Summary
 
 | Category       | Critical | High | Medium | Low | Total |
 |----------------|----------|------|--------|-----|-------|
-| UX             | 0        | 0    | 4      | 3   | 7     |
-| Accessibility  | 0        | 17   | 11     | 0   | 28    |
-| Performance    | 0        | 0    | 4      | 4   | 8     |
+| UX             | 0        | 2    | 7      | 6   | 15    |
+| Accessibility  | 0        | 1    | 0      | 0   | 1     |
+| Performance    | 0        | 0    | 0      | 3   | 3     |
 | Bugs           | 0        | 0    | 0      | 0   | 0     |
-| **Total**      | **0**    | **17**| **19**| **7**| **43** |
+| **Total**      | **0**    | **3**| **7**  | **9**| **19**|
 
-> **Lighthouse performance score: 93/100**
-
-No critical issues were found. The site is functionally healthy — no console
-errors, no failed requests, no template bleed-through, sort/filter/view
-controls all behave correctly. The dominant theme is **17 nested-interactive
-WCAG violations**: every plugin card is `role="button"` while also containing
-focusable children (title link, copy button), and marketplace source tags
-do the same.
+> **Lighthouse performance score: 99/100**
 
 ---
 
 ## Critical Issues
 
-*None.*
+*No critical issues found.*
 
 ---
 
 ## UX Issues
 
+### High
+
+- **https://dan323.github.io/easier-life-skills/** (Unexpected behavior) — Clicking a plugin/skill/agent card name opens an in-page modal/panel rather than navigating; cards look like links so users expecting a deep-linkable page may be surprised, and the modal state may not be obviously shareable.
+  *Fix: Either make card names true links to a routable URL (e.g. `/#plugin/name`) and ensure the panel deep-links and can be shared, or add a visual affordance (chevron or "View details" label) that signals an in-place panel instead of navigation.*
+- **https://dan323.github.io/easier-life-skills/** (Consistency) — `.card-name:focus`/`:focus-visible` and `.source-toggle:focus`/`:focus-visible` explicitly set `outline:none`, which breaks keyboard focus visibility on the primary interactive elements.
+  *Fix: Remove the `outline:none` overrides on `.card-name` and `.source-toggle`, or replace with an equally visible custom focus indicator (e.g. a `box-shadow` ring using `--accent`) that meets WCAG 2.4.7 / 2.4.11.*
+
 ### Medium
 
-- **http://127.0.0.1:4567/** (Consistency / Unexpected behavior) — Card titles
-  for plugins from the built-in marketplace render as `<a target="_blank">` to
-  GitHub; cards from external marketplaces render the title as a plain
-  `<span>`. The two are visually identical, but clicking the title on one
-  opens GitHub in a new tab while the other does nothing extra — and in
-  both cases the surrounding card is `role="button"` that opens a detail
-  panel. Users cannot predict what clicking the title will do.
-  *Fix: render the title as a non-link inside the card and move the "Open on
-  GitHub" affordance to an explicit button inside the detail panel (or a
-  consistent small icon link on every card). See
-  `assets/src/components/cards/PluginCard.tsx` and `SkillCard.tsx`.*
-
-- **http://127.0.0.1:4567/** (Consistency) — The marketplace source tag is
-  both a filter toggle (`role="button"` on the wrapper) and contains a `+`
-  button that copies the `/plugin marketplace add …` command. The two
-  actions live in overlapping click targets distinguished only by the
-  `aria-label`. Sighted users have to discover by trial that the `+` copies
-  rather than adds a marketplace.
-  *Fix: separate the two surfaces — make the chip body the filter toggle
-  with clear visual affordance, and replace the `+` glyph with a small icon
-  + visible tooltip on hover ("Copy install command"). See `MarketplaceBar.tsx`.*
-
-- **http://127.0.0.1:4567/** (Error and empty states) — Switching the view
-  toggle to **Commands** shows `0 of 0 commands` with no further guidance.
-  Same applies to any view that happens to be empty for the current filter
-  combination. Users may think the page is broken.
-  *Fix: when the result set is empty, render a one-line message under the
-  count ("No commands in this marketplace yet — try the Skills or Agents
-  views"). See the empty branch in `Grid.tsx`.*
-
-- **http://127.0.0.1:4567/** (Mobile hints) — The controls row packs five
-  category filter buttons, three marketplace chips, a sort button, and seven
-  view-toggle buttons. On viewports narrower than ~700 CSS px this is very
-  likely to wrap awkwardly or cause horizontal scroll (could not verify
-  responsive breakpoints from the rendered HTML alone).
-  *Fix: collapse the seven view-toggle buttons into a single `<select>` on
-  narrow viewports (or a horizontally scrollable strip with snap points), and
-  wrap filter chips into a second row. Verify at 320 / 375 / 414 px.*
+- **https://dan323.github.io/easier-life-skills/** (Mobile hints) — The keyboard-shortcut chip (`.search-kbd` showing `/`) is rendered inside the search field but has no touch equivalent; on mobile it is decorative clutter that may obstruct typed text.
+  *Fix: Hide `.search-kbd` on touch/coarse-pointer devices via `@media (hover: none) and (pointer: coarse) { .search-kbd { display: none } }` or under the 640px breakpoint.*
+- **https://dan323.github.io/easier-life-skills/** (Unexpected behavior) — Switching the view type (Plugins / Skills / Agents / MCP / Commands / Hooks / Bundles) likely resets scroll and may not preserve the search/filter context; empty-state copy implies filters don't carry across views.
+  *Fix: Preserve the search term across view-type changes and announce "Now showing N skills" via the existing `aria-live` region, or explicitly indicate "Search cleared because you switched view".*
+- **https://dan323.github.io/easier-life-skills/** (Error and empty states) — When fetching a marketplace source fails, the UI shows a small `✕` badge ("could not load skills_index.json from <repo>") but offers no retry button or guidance.
+  *Fix: Add a "Retry" button next to the failing source chip and link to a short troubleshooting tip (e.g. "GitHub raw content may be rate-limited; try again in a minute").*
+- **https://dan323.github.io/easier-life-skills/** (Content clarity) — The catalog mixes seven entity types (Plugins, Skills, Agents, MCP Servers, Commands, Hooks, Bundles) without an above-the-fold explanation of how they relate. New users may not know which tab to start with.
+  *Fix: Add a one-sentence subtitle or tooltip per view-type tab explaining the relationship (e.g. "Plugins bundle Skills, Agents and MCP Servers"), and make Plugins the default with a small "What's the difference?" help link.*
+- **https://dan323.github.io/easier-life-skills/** (Consistency) — `skills_index.json` contains entries with missing descriptions, missing homepage URLs, and null `category` values; these render as blank fields or uncategorised groups, inconsistent with sibling cards.
+  *Fix: In `scripts/build-index.ts`, fall back to placeholder copy ("No description provided" / "Uncategorised"), hide empty homepage links entirely, and surface a CI warning when required metadata is missing.*
+- **https://dan323.github.io/easier-life-skills/catalog.html** (Content clarity) — The standalone catalog page shows skill descriptions in Korean (under the Customization category) without a language indicator on an otherwise English page.
+  *Fix: Translate non-English descriptions in the build step, add a `lang` attribute and a small "(Korean)" tag next to those entries, or group multilingual content under a clearly labelled section.*
+- **https://dan323.github.io/easier-life-skills/** (Forms) — The search input has only an `aria-label` and placeholder — there is no visible `<label>`. Users lose context once they start typing, and sighted users never see the field's purpose explained.
+  *Fix: Add a visible label (e.g. "Find a skill" above the input) or a persistent helper line beneath the input explaining what fields are searched (name, description, keywords).*
 
 ### Low
 
-- **http://127.0.0.1:4567/** (Forms) — The search input has no visible label,
-  only `aria-label="Search skills"` and a placeholder of "Search skills…
-  (press / to focus)". Placeholder disappears on focus, so the hint about the
-  `/` shortcut vanishes when the user is actually typing.
-  *Fix: keep the hint as helper text below the input (or convert the `/` hint
-  into a small kbd indicator inside the input that stays visible on focus).*
-
-- **http://127.0.0.1:4567/** (Loading states) — Between the static HTML shell
-  and Preact hydration the page is empty (`<div id="root"></div>`). On slow
-  connections this is a visible blank state. The fetch preload helps but does
-  not paint anything.
-  *Fix: inline a minimal skeleton (header + 6 placeholder card rectangles) in
-  `index.html` so the user sees structure immediately. Remove on first render.*
-
-- **http://127.0.0.1:4567/** (Consistency) — The sort button label "Sort:
-  A→Z" doubles as both current state and clickable affordance, but the
-  visible UI gives no separate icon indicating it's a toggle. The `aria-label`
-  helpfully says "Currently sorted A to Z. Click to sort Z to A.", but
-  sighted users have to guess.
-  *Fix: add a small ⇅ icon next to the label so the button reads as a toggle,
-  not a static badge.*
+- **https://dan323.github.io/easier-life-skills/** (Unexpected behavior) — Search filters on every keystroke without debouncing; fine today but the `aria-live` count will fire on every character and may feel janky as the index grows.
+  *Fix: Debounce the search by ~150ms before filtering and before updating the `aria-live` count.*
+- **https://dan323.github.io/easier-life-skills/** (Navigation) — No breadcrumb or path indicator when a plugin/skill detail panel is open; users arriving via a shared URL with panel state may not realise there is a marketplace behind it.
+  *Fix: Show a small "Marketplace › <plugin name>" breadcrumb at the top of the panel, and label the close button "Back to marketplace" when the panel was deep-linked.*
+- **https://dan323.github.io/easier-life-skills/** (Consistency) — The footer "Full catalog" link points to `catalog.html` (a separate standalone page) while the rest of the UI is a SPA — clicking it triggers a full page load with no visible loading indicator.
+  *Fix: Either render the full catalog as another in-app view, or annotate the link (e.g. "Full catalog (printable page)") so users understand they are leaving the SPA.*
+- **https://dan323.github.io/easier-life-skills/** (Mobile hints) — At the 640px breakpoint the marketplace bar reserves `min-height: 240px` to accommodate wrapped source chips, leaving a large blank band above the grid when only 1–2 sources are present.
+  *Fix: Drop the fixed `min-height` and let the bar size to content (or apply `min-height` only when source count > N).*
+- **https://dan323.github.io/easier-life-skills/** (Content clarity) — The header subtitle reads "N items loaded" but the meaning is ambiguous given seven coexisting entity types.
+  *Fix: Replace with view-specific copy that updates with the active view, e.g. "Showing 47 skills from 6 marketplaces".*
+- **https://dan323.github.io/easier-life-skills/** (Error and empty states) — Empty-state copy does not offer a "Clear search" shortcut, so users have to manually empty the input.
+  *Fix: Add an explicit "Clear search" button (or "Reset filters" link) inside the empty state that clears the search term and any active filters in one click.*
 
 ---
 
 ## Accessibility Issues
 
-> Source: axe-cli against the rendered page. 28 violations across two rules.
-
 ### High
 
-- **`.builtin`** (WCAG 4.1.2) — Nested interactive controls: a
-  focusable/interactive element is nested inside another interactive element
-  (card with `role=button` containing an inner button or link). Screen
-  readers may not announce both; focus order can be unpredictable.
-  *Fix: flatten the interactive structure. Either make the card non-interactive
-  (remove `role=button` and `tabindex`) and rely on the inner controls, or
-  remove the inner interactive children and expose a single keyboard target.*
-
-- **`div[data-repo="anthropics/skills"]`** (WCAG 4.1.2) — Nested interactive
-  controls inside the marketplace bar entry: an interactive child (copy
-  button) is nested inside an outer interactive container (filter toggle).
-  *Fix: stop event bubbling from inner controls and ensure the outer element
-  is not itself a button (remove `role=button`/`tabindex` from the wrapper),
-  so only one focusable control exists per region.*
-
-- **`div[data-repo="mattpocock/skills"]`** (WCAG 4.1.2) — Same nested
-  interactive issue on the marketplace bar entry.
-  *Fix: remove the outer interactive role or remove the inner focusable
-  controls; only one interactive control should occupy a given clickable
-  region.*
-
-- **`div[aria-label="Open details for brainstorm"]`** (WCAG 4.1.2) — Skill
-  card exposed as a `role="button"` contains a nested `CopyButton` and
-  external link.
-  *Fix: drop the outer `role="button"` and use a single inner button as the
-  primary affordance, or move copy + link controls into the detail panel.*
-
-- **`div[aria-label="Open details for changelog"]`** (WCAG 4.1.2) — Skill
-  card with `role=button` contains nested interactive controls.
-  *Fix: avoid putting `<button>`/`<a>` elements inside a `role=button`
-  container; lift inner controls into the detail panel or drop the outer
-  button role.*
-
-- **`div[aria-label="Open details for claude-api"]`** (WCAG 4.1.2) — Skill
-  card with `role=button` contains nested interactive controls.
-  *Fix: restructure so only one interactive element is announced per card;
-  remove the outer `role=button` or the inner buttons.*
-
-- **`div[aria-label="Open details for cost-tracker"]`** (WCAG 4.1.2) — Skill
-  card with `role=button` contains nested interactive controls.
-  *Fix: restructure so only one interactive element is announced per card;
-  remove the outer `role=button` or the inner buttons.*
-
-- **`div[aria-label="Open details for cv-linkedin"]`** (WCAG 4.1.2) — Skill
-  card with `role=button` contains nested interactive controls.
-  *Fix: restructure so only one interactive element is announced per card;
-  remove the outer `role=button` or the inner buttons.*
-
-- **`.skill-card[role="button"]:nth-child(6)` (document-project)** (WCAG 4.1.2)
-  — Skill card exposed as a button contains nested interactive controls.
-  *Fix: pick a single interactive layer for the card.*
-
-- **`.skill-card[role="button"]:nth-child(7)` (document-skills)** (WCAG 4.1.2)
-  — Skill card exposed as a button contains nested interactive controls.
-  *Fix: pick a single interactive layer for the card.*
-
-- **`.skill-card[role="button"]:nth-child(8)` (example-skills)** (WCAG 4.1.2)
-  — Skill card exposed as a button contains nested interactive controls.
-  *Fix: pick a single interactive layer for the card.*
-
-- **`.skill-card[role="button"]:nth-child(9)` (find-breaking-rest-api)** (WCAG 4.1.2)
-  — Skill card exposed as a button contains nested interactive controls.
-  *Fix: pick a single interactive layer for the card.*
-
-- **`.skill-card[role="button"]:nth-child(10)` (find-dead-code)** (WCAG 4.1.2)
-  — Skill card exposed as a button contains nested interactive controls.
-  *Fix: pick a single interactive layer for the card.*
-
-- **`div[aria-label="Open details for find-skills"]`** (WCAG 4.1.2) — Skill
-  card with `role=button` contains nested interactive controls.
-  *Fix: restructure so only one interactive element is announced per card.*
-
-- **`.skill-card[role="button"]:nth-child(12)` (improve-logging)** (WCAG 4.1.2)
-  — Skill card exposed as a button contains nested interactive controls.
-  *Fix: pick a single interactive layer for the card.*
-
-- **`.skill-card[role="button"]:nth-child(13)` (mattpocock-skills)** (WCAG 4.1.2)
-  — Skill card exposed as a button contains nested interactive controls.
-  *Fix: pick a single interactive layer for the card.*
-
-- **`div[aria-label="Open details for site-audit"]`** (WCAG 4.1.2) — Skill
-  card with `role=button` contains nested interactive controls.
-  *Fix: restructure so only one interactive element is announced per card.*
-
-- **`div[aria-label="Open details for task-agent"]`** (WCAG 4.1.2) — Skill
-  card with `role=button` contains nested interactive controls.
-  *Fix: restructure so only one interactive element is announced per card.*
-
-> **Note:** the 18 high entries above share a single root cause: the
-> `SkillCard`/`PluginCard` component wraps the entire tile in a
-> `role="button"` for the open-panel click, *and* renders a child `<a>`
-> (GitHub title link) and child `<button>` (copy). One fix in
-> `assets/src/components/cards/PluginCard.tsx` (and `SkillCard.tsx`, plus
-> `MarketplaceBar.tsx` for the two source-tag cases) resolves all of them.
-
-### Medium
-
-- **`h2`** (WCAG 1.3.1) — Page content is not contained inside a landmark
-  region; the h2 sits outside `<main>`/`<nav>`/`<header>`/`<footer>`.
-  *Fix: wrap top-level page sections in semantic landmarks (`<main>`,
-  `<nav>`, `<header>`, etc.) so assistive tech can skip between regions.*
-
-- **`.quickstart-note`** (WCAG 1.3.1) — Quickstart note content sits outside
-  any landmark.
-  *Fix: place the quickstart block inside a `<section aria-labelledby="…">`
-  or under `<main>`.*
-
-- **`.step:nth-child(1) > .step-num`** (WCAG 1.3.1) — Step 1 number is
-  rendered outside any landmark.
-  *Fix: wrap the QuickStart steps inside a `<section>` or `<main>` landmark.*
-
-- **`.step:nth-child(1) > .step-body > .step-label`** (WCAG 1.3.1) — Step 1
-  label sits outside any landmark.
-  *Fix: wrap the QuickStart in a `<section>`/`<main>` landmark.*
-
-- **`.step:nth-child(1) > .step-body > .step-cmd > code`** (WCAG 1.3.1) —
-  Step 1 command code sits outside any landmark.
-  *Fix: wrap the QuickStart in a `<section>`/`<main>` landmark.*
-
-- **`.step:nth-child(2) > .step-num`** (WCAG 1.3.1) — Step 2 number is
-  rendered outside any landmark.
-  *Fix: wrap the QuickStart in a `<section>`/`<main>` landmark.*
-
-- **`.step:nth-child(2) > .step-body > .step-label`** (WCAG 1.3.1) — Step 2
-  label sits outside any landmark.
-  *Fix: wrap the QuickStart in a `<section>`/`<main>` landmark.*
-
-- **`.step:nth-child(2) > .step-body > .step-cmd > code`** (WCAG 1.3.1) —
-  Step 2 command code sits outside any landmark.
-  *Fix: wrap the QuickStart in a `<section>`/`<main>` landmark.*
-
-- **`.view-toggle`** (WCAG 1.3.1) — View toggle control is rendered outside
-  any landmark.
-  *Fix: group the controls bar inside `<section aria-label="Filters and view">`
-  or `<nav>` so it is reachable via landmark navigation.*
-
-- **`.marketplace-add-cta`** (WCAG 1.3.1) — Marketplace add CTA sits outside
-  any landmark.
-  *Fix: place the marketplace bar inside `<nav aria-label="Marketplaces">` or
-  `<section>`.*
-
-> **Note:** the medium entries above also stem from one root cause — the
-> `.quickstart`, `.controls`, and `.marketplace-bar` blocks sit directly
-> under the React root rather than inside semantic landmarks. Adding a
-> wrapping `<section>` (or `<nav>` for the marketplace bar) and moving the
-> grid inside `<main>` (which already exists) clears every entry. See
-> `assets/src/components/App.tsx`, `QuickStart.tsx`, `Controls.tsx`,
-> `MarketplaceBar.tsx`.
+- **https://dan323.github.io/easier-life-skills/** — WCAG 3.2.2 — `#root > section:nth-child(4) > form.search-form[role="search"]` — Search form has no submit button (no `<input type="submit"/"image">` and no `<button type="submit">`), which can prevent users who rely on keyboard form submission from triggering the search.
+  *Fix: Add a visible or visually-hidden submit button inside the form (e.g. `<button type="submit" aria-label="Search">Search</button>`). Even though filtering happens live, an explicit submit control improves keyboard and AT support.*
 
 ---
 
 ## Performance Issues
 
-### Medium
-
-- **CLS (Cumulative Layout Shift)** — measured 0.149, above the 0.1 "good"
-  threshold. Single large shift on `<main id="main">` as the plugin grid
-  renders after `skills_index.json` is fetched.
-  *Fix: render skeleton/placeholder cards with `min-height` matching final
-  card size, or set `min-height` on `<main>` while loading. See the fetch-
-  driven hydration in `assets/src/components/App.tsx`.*
-
-- **Unminified JavaScript** — `assets/bundle.js` served unminified, 23.7 KiB
-  (30.6%) of potential savings. *(measured: 77,487 bytes; 23,708 wasted)*
-  *Dev-only: esbuild `--serve` emits unminified output. Verify `npm run
-  build` passes `--minify`.*
-
-- **Unused JavaScript** — ~34.8 KiB (44.8%) of `bundle.js` is unused on first
-  paint. *(measured: 34,751 wasted bytes of 77,487)*
-  *Fix: consider code-splitting heavy components (`PluginPanel`, `EntityPanel`,
-  `MarketplaceBar`) via dynamic `import()` so they load on demand. Re-measure
-  after minification in the production build.*
-
-- **Render-blocking resources** — `assets/style.css` blocks first paint with
-  ~300 ms wasted, no `media` attribute or async loading. *(measured: 21,410
-  bytes)*
-  *Fix: inline critical CSS in `<head>` and load `assets/style.css` with
-  `media="print" onload="this.media='all'"`, or split into critical /
-  non-critical sheets. Add `rel="preload" as="style"` for the file.*
+**Lighthouse score: 99/100** — all Core Web Vitals (FCP, LCP, TTI, CLS, TBT) within "good" thresholds.
 
 ### Low
 
-- **Cache lifetime** — `bundle.js` and `style.css` served with no
-  `Cache-Control` headers (~97 KiB re-downloaded per visit).
-  *Dev-only: esbuild `--serve` disables caching. In production (GitHub
-  Pages), ensure assets are content-hashed or served with long
-  `Cache-Control max-age` via Pages defaults.*
-
-- **Touch target size** — some interactive elements lack sufficient
-  size/spacing for touch (Lighthouse `target-size` audit failed).
-  *Fix: audit small buttons (`CopyButton`, filter chips, sort controls) in
-  `assets/src/components/` and ensure 44×44 CSS px minimum with adequate
-  spacing.*
-
-- **Accessible name mismatch** — elements with visible text labels do not
-  have matching accessible names (`label-content-name-mismatch`).
-  *Fix: review `aria-label` values on icon-bearing buttons (`CopyButton`,
-  panel close buttons) so the accessible name begins with or matches the
-  visible text.*
-
-- **Network dependency tree** — critical path is HTML → bundle.js →
-  skills_index.json (sequential). The `<link rel=preload as=fetch>` mitigates
-  the last step but `bundle.js` still has to download before fetch
-  initiates parsing.
-  *Fix: add `<link rel="modulepreload" href="assets/bundle.js">` to the
-  HTML shell to start the fetch earlier.*
+- **cache-insight** (`cacheLifetimeMs=600000` on bundle.js 13.4 KB and style.css 6.1 KB) — Static assets are served with a short 10-minute cache lifetime by GitHub Pages, causing repeat-visit re-downloads (~18 KiB of waste).
+  *Fix: GitHub Pages doesn't allow custom Cache-Control headers, but you can add a content-hash to asset filenames (`bundle.<hash>.js`, `style.<hash>.css`) during the build and reference them from `index.html`, so browsers can reuse cached files indefinitely and only refetch on change.*
+- **render-blocking-insight** (1 render-blocking stylesheet, ~37 ms on the critical request chain) — `assets/style.css` is loaded as a render-blocking `<link rel="stylesheet">` in `<head>` (6.1 KB transferred, 27.7 KB uncompressed).
+  *Fix: Inline the critical above-the-fold CSS in `<head>` and load the rest with `rel="preload"` + onload swap to `rel="stylesheet"`, or simply inline the entire 27 KB `style.css` since it's small enough that the saved RTT outweighs the extra HTML bytes.*
+- **speed-index** (3.5 s, score 0.88) — Speed Index is slightly above the 3.4 s "good" threshold even though FCP/LCP/TTI are all ~1.0–1.1 s — the visual completeness ramp is dominated by the Preact render after `skills_index.json` (15 KB) arrives.
+  *Fix: Render an above-the-fold skeleton (header + a few placeholder cards) directly into `index.html` so the page paints meaningful pixels before `bundle.js` executes, or inline the first 6 plugins into `index.html` and hydrate from `skills_index.json` after.*
 
 ---
 
 ## Bugs & Functional Issues
 
-*No functional bugs found.* Playwright exercised search, sort toggle,
-category filter, view toggle, marketplace filter, card click → panel open,
-Escape → panel close, and URL hash sync — all behaved correctly. No
-console errors, no failed requests, no template bleed-through, no broken
-images or links.
+*No bugs found.* The bug-hunter agent loaded the page in Playwright and observed no JS errors, no failed requests, no broken resources, no template bleed-through, no mixed content, no insecure forms, and no broken links. Card-click panel, hash routes, and skip-link target all worked. (Cosmetic note: submitting the search form appends a stray `?` to the URL because the form has no `action` — harmless.)
 
 ---
 
 ## Top 5 Recommendations
 
-1. **Fix nested interactive controls on plugin cards (single root cause for
-   ~17 high-severity a11y violations, and the UX inconsistency).** In
-   `assets/src/components/cards/PluginCard.tsx` and `SkillCard.tsx`, drop the
-   outer `role="button"` + `tabindex="0"` from `.skill-card` and instead make
-   the card name itself the primary keyboard target (a real `<button>` that
-   opens the panel, or an `<a href>` plus an explicit "Details" button).
-   This also resolves the UX issue where clicking the title navigates to
-   GitHub from some cards but not others.
-
-2. **Apply the same fix to the marketplace source tag.** In
-   `assets/src/components/MarketplaceBar.tsx`, remove `role="button"` /
-   `tabindex="0"` from the wrapper `<div>` and turn the label itself into a
-   `<button>` (filter toggle), keeping the `+` as a sibling `<button>`
-   (copy command) — so the two actions are visually and structurally
-   distinct.
-
-3. **Wrap top-level page sections in semantic landmarks (clears 10 medium
-   a11y violations).** Add `<section aria-labelledby="quickstart-h2">`
-   around QuickStart, `<nav aria-label="Marketplaces">` around
-   `MarketplaceBar`, and ensure the controls/grid live inside `<main>`.
-   One coordinated change in `App.tsx` / `QuickStart.tsx` /
-   `MarketplaceBar.tsx` / `Controls.tsx`.
-
-4. **Render placeholder skeleton cards to eliminate CLS 0.149.** Either
-   reserve a `min-height` on `<main>` during the initial fetch, or render 6
-   skeleton cards with the same dimensions as real cards. The grid is the
-   only major above-the-fold element that arrives async, so fixing this
-   single shift should push the Lighthouse perf score above 95.
-
-5. **Improve the empty state for views with zero items.** When the filtered
-   count is 0, render a one-line helper below the count (e.g. "No commands
-   in this marketplace — try Skills or Agents") inside `Grid.tsx`. Currently
-   users see "0 of 0 commands" and a blank page, which feels like a bug
-   rather than an empty bucket.
+1. **Restore visible focus indicators on `.card-name` and `.source-toggle`** — Remove the `outline:none` overrides (or replace with an `--accent` `box-shadow` ring). Affects every keyboard user on the marketplace's primary interaction; a 2-line CSS fix.
+2. **Add a submit button to the search form** — A visually-hidden `<button type="submit" aria-label="Search">` satisfies WCAG 3.2.2, fixes keyboard form submission, and removes the stray `?` in the URL on submit. Trivial change.
+3. **Decide the card-click contract and signal it** — Either make card names real links to `/#plugin/<name>` (with deep-linkable, shareable panel state) or add a "View details" chevron so users don't expect navigation. Resolves the most jarring "unexpected behavior" finding and aligns shareability with what cards look like.
+4. **Add a visible label and search-scope hint near the search input** — A persistent "Find a skill" label plus a small helper line ("Searches name, description, and keywords") clarifies an otherwise placeholder-only field and helps screen-reader users too.
+5. **Paint an above-the-fold skeleton in `index.html`** — Inline a header + placeholder card grid so the page shows meaningful pixels before `bundle.js` executes. Brings Speed Index under 3.4 s and gives a cleaner first impression with minimal build effort.

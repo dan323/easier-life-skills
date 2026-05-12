@@ -22,7 +22,10 @@ export function SkillCard({ skill, showSource, showInstall, onOpen }: Props) {
           class="card-name"
           aria-label={`Open details for skill ${skill.name}`}
           onClick={activate}
-        >{skill.name}</button>
+        >
+          <span class="card-name-text">{skill.name}</span>
+          <span class="card-name-chevron" aria-hidden="true">›</span>
+        </button>
         <div class="card-badges">
           {skill.readOnly && <span class="badge badge-readonly">read-only</span>}
           <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>

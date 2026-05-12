@@ -19,7 +19,7 @@ describe('copy buttons', () => {
   it('plugin card copy button copies the install command without opening the panel', async () => {
     const { clipboardWrites } = await bootApp();
     const card = Array.from(document.querySelectorAll<HTMLElement>('#plugins-grid .skill-card'))
-      .find(c => c.querySelector('.card-name')?.textContent === 'changelog')!;
+      .find(c => c.querySelector('.card-name .card-name-text')?.textContent === 'changelog')!;
     const btn = card.querySelector('.copy-btn') as HTMLButtonElement;
     btn.click();
     expect(clipboardWrites).toContain('/plugin install changelog@easier-life-skills');

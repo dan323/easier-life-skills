@@ -80,7 +80,20 @@ export function cardNames(gridId: string): string[] {
   const grid = document.getElementById(gridId);
   if (!grid) return [];
   return Array.from(grid.querySelectorAll<HTMLElement>('.card-name'))
-    .map(el => el.textContent ?? '');
+    .map(el => cardLabel(el));
+}
+
+/** Return the visible card name (ignores decorative chevron span). */
+export function cardLabel(btn: HTMLElement): string {
+  return btn.querySelector('.card-name-text')?.textContent ?? btn.textContent ?? '';
+}
+
+/** Find a card title button by its visible name. */
+export function cardByName(gridId: string, name: string): HTMLElement {
+  const button = Array.from(document.querySelectorAll<HTMLElement>(`#${gridId} .skill-card .card-name`))
+    .find(b => cardLabel(b) === name);
+  if (!button) throw new Error(`Card not found: ${name}`);
+  return button;
 }
 
 export function visibleGridId(): string | null {

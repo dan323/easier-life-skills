@@ -11,7 +11,7 @@ easier-life-skills/
 ├── .claude-plugin/
 │   ├── marketplace.json          Generated from plugins/ scan — committed; do not edit by hand
 │   ├── bundles.json              Bundle definitions (curated skill sets)
-│   └── external-overrides.json  Category overrides for external marketplace plugins/skills
+│   └── external-overrides.json  Category overrides per entity type (plugins/skills/agents/hooks/commands/mcpServers) for external repos
 ├── plugins/
 │   ├── changelog/
 │   │   ├── .claude-plugin/
@@ -31,7 +31,7 @@ easier-life-skills/
 │   └── lib/
 │       ├── fetch-marketplace.ts  Fetches plugins from one repo; discovers skills/agents/mcpServers
 │       ├── catalog.ts            Generates CATALOG.md (markdown) and catalog.html (styled standalone page)
-│       ├── frontmatter.ts        YAML frontmatter parser for SKILL.md files
+│       ├── frontmatter.ts        YAML frontmatter parser for SKILL.md files (scalars, inline `[a, b]` arrays, block-mapping children, `>`-folded multi-line strings)
 │       └── types.ts              Shared TypeScript types (Skill, Agent, Plugin, McpServer, Bundle…)
 ├── assets/
 │   ├── src/                 TypeScript / Preact source for the website (compiled to bundle.js by esbuild)
@@ -66,6 +66,9 @@ easier-life-skills/
 ├── installer/               npx CLI installer (@dan323/easier-life-skills)
 ├── tsconfig.json            TypeScript config for scripts/ (NodeNext modules)
 ├── tsconfig.web.json        TypeScript config for assets/src/ (bundler resolution, DOM lib, Preact JSX)
+├── assets/tsconfig.json     IDE-facing config — extends ../tsconfig.web.json so IntelliJ walking up from
+│                            assets/src/**.tsx finds JSX settings (the non-default tsconfig.web.json name
+│                            is not auto-discovered). Not used by `npm run typecheck`.
 ├── vitest.config.ts         Vitest config — @preact/preset-vite for JSX, happy-dom environment
 ├── marketplaces.json        List of { owner, repo, description? } pairs the build script aggregates
 ├── index.html               Interactive marketplace website — minimal shell; markup is rendered by Preact at runtime
@@ -97,7 +100,11 @@ There is no global state singleton. Components communicate only through props (d
 
 **Card interactivity.** Each card in `assets/src/components/cards/*` is a non-interactive `<div class="skill-card">`. The card title is the single interactive element: `<button class="card-name" onClick={openPanel}>`. A CSS "stretched link" overlay (`.card-name::after { position: absolute; inset: 0; }` over `.skill-card { position: relative; }`) makes the entire card area route clicks to the title button without nesting any focusable element inside an interactive ancestor — required for WCAG 4.1.2 (no nested-interactive). The copy button and `+N more` expand button are siblings of the title (lifted above the overlay with `position: relative; z-index: 1` on `.card-install` / `.plugin-chips` / `.card-chips`), so they remain independently clickable and keyboard-reachable. When the card needs to link out to the source repo, that link lives only inside the open panel (`panel-name` / Source section), not on the card.
 
+The card title carries a `.card-name-chevron` (`›`, `aria-hidden`) so users see at a glance that activation opens an in-page panel rather than navigating to a separate URL — without the chevron the title is indistinguishable from a regular hyperlink. Keyboard focus on `.card-name` paints a two-tone ring on the same `::after` overlay (`box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent)` on `:focus-visible`), so the focus halo traces the full card body the button activates rather than the inline title text. The same pattern applies to `.source-toggle:focus-visible::after` on marketplace chips. This satisfies WCAG 2.4.7 / 2.4.11 while keeping the stretched-link click area working.
+
 **Marketplace source tag.** `MarketplaceBar.tsx` uses the same stretched-link pattern. The chip wrapper `<div class="source-tag">` is non-interactive; the filter toggle is a `<button class="source-toggle" aria-pressed>` containing the `.label`, and the `+` copy button is a sibling. `.source-toggle::after` makes clicks anywhere on the chip body toggle the filter; `.source-add-copy` is lifted with `z-index: 1` so it remains the only clickable element in its area. This replaced an older structure with `<div role="button" tabindex="0">` that nested the copy button inside an interactive container.
+
+**Search form.** `Controls.tsx`'s `<form role="search">` filters live on every `onInput`, but the form also carries an explicit `<button type="submit" class="sr-only">Search</button>` and an `onSubmit={e => e.preventDefault()}` handler so keyboard / AT users can fire the form via Enter (WCAG 3.2.2) without the page rewriting the URL with a stray `?`.
 
 **Semantic landmarks.** Every top-level page region is wrapped in a recognised landmark so assistive-tech landmark navigation reaches all content (WCAG 1.3.1, axe `region` rule). `Header.tsx` → `<header>`; `Footer.tsx` → `<footer>`; the grid lives inside `<main id="main">` in `App.tsx`; `QuickStart.tsx` uses `<section class="quickstart" aria-labelledby="quickstart-heading">` (a `<section>` only counts as a landmark when accessibly named, hence the matching `<h2 id="quickstart-heading">`); `Controls.tsx` uses `<section class="controls" aria-label="Filters and view">`; `MarketplaceBar.tsx` uses `<nav class="marketplace-bar" aria-label="Marketplaces">`. These are element-name swaps only — visible HTML, IDs, and CSS classes are unchanged, so all existing styling and selectors keep working.
 
@@ -134,7 +141,7 @@ assets/src/app.tsx     →  esbuild (JSX)   →  assets/bundle.js               
    - If the field is a string, it is treated as a parent directory to scan (subdirs = skills, `.md` files = agents). Uses the local filesystem or the GitHub Trees API (one recursive fetch per repo) for remote repos.
    - If absent, the default directories (`skills/`, `agents/`) are scanned.
    - MCP servers can be an object keyed by server name, a string path to a JSON file, or auto-loaded from `.mcp.json` at the plugin root.
-4. **Categorise** — local plugins carry their `category` from `plugin.json`. External plugins use the category from the upstream `marketplace.json` if present; `.claude-plugin/external-overrides.json` supplements where the upstream does not declare one.
+4. **Categorise** — every entity carries a `category` field. Plugins and skills derive theirs from `plugin.json`; agents, hooks, commands, and MCP servers inherit it from their parent plugin, but agents/hooks/commands may override via a `category:` field in their YAML frontmatter. `.claude-plugin/external-overrides.json` supplements all of these per entity type (`plugins`, `skills`, `agents`, `hooks`, `commands`, `mcpServers`) when an upstream marketplace does not declare one. Resolution order, applied per entity: external override → frontmatter (where applicable) → parent plugin category → `null` ("Uncategorized").
 5. **Read-only tagging** — a skill is tagged `readOnly` when its `tools` frontmatter declares tools but none of them are `Write`, `Edit`, or `NotebookEdit`.
 6. **Bundle membership** is attached to each skill from `.claude-plugin/bundles.json`.
 7. `skills_index.json`, `CATALOG.md`, `catalog.html`, and `assets/bundle.js` are gitignored and rebuilt on every CI run; they are deployed to GitHub Pages with the static site assets.

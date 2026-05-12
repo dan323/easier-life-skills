@@ -62,14 +62,14 @@ describe('view toggle', () => {
     }
   });
 
-  it('hides the category filter bar outside plugins/skills views', async () => {
+  it('shows the category filter bar in every entity view (hidden only on bundles)', async () => {
     await bootApp();
     const filters = document.getElementById('filters')!;
-    click('#view-skills');
-    expect(filters.style.display).not.toBe('none');
-    click('#view-agents');
+    for (const id of ['#view-plugins', '#view-skills', '#view-agents', '#view-mcp', '#view-commands', '#view-hooks']) {
+      click(id);
+      expect(filters.style.display, `expected filter bar visible on ${id}`).not.toBe('none');
+    }
+    click('#view-bundles');
     expect(filters.style.display).toBe('none');
-    click('#view-plugins');
-    expect(filters.style.display).not.toBe('none');
   });
 });

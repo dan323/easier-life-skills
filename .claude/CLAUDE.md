@@ -95,7 +95,10 @@ scripts/
     frontmatter.ts          ← YAML frontmatter parser
     types.ts                ← Shared TypeScript types
 tsconfig.json               ← TypeScript config for scripts/ (NodeNext)
-tsconfig.web.json           ← TypeScript config for assets/src/ (bundler + DOM)
+tsconfig.web.json           ← TypeScript config for assets/src/ (bundler + DOM, JSX react-jsx / preact)
+assets/tsconfig.json        ← IDE-facing config that extends ../tsconfig.web.json — exists so IntelliJ
+                              walking up from assets/src/**.tsx finds JSX settings without inspecting
+                              the non-default tsconfig.web.json name; not used by the CLI typecheck
 CATALOG.md                  ← Human-readable catalog with suggested bundles (gitignored; build output)
 catalog.html                ← Standalone styled catalog page deployed to GitHub Pages (gitignored; build output)
 CHANGELOG.md                ← Version history (Keep a Changelog format)
@@ -123,7 +126,40 @@ skills_index.json           ← Generated index; rebuild with: npm run build
 }
 ```
 
-`category` must be one of `productivity`, `documentation`, `code-quality`, `automation`. The build script reads this file to generate `.claude-plugin/marketplace.json` automatically — no separate registry file needed.
+`category` is a free-form string — the build accepts any value and the web UI builds its filter bar dynamically from whatever appears in the data. The vocabulary currently in use across local plugins and `.claude-plugin/external-overrides.json` is:
+
+| Category       | Scope |
+|----------------|-------|
+| `productivity` | Thinking aids, brainstorming, prompt engineering, discovery, workflow helpers |
+| `documentation`| Narrative docs, changelogs, format-specific docs (docx/pdf/xlsx) |
+| `code-quality` | Static analysis, refactoring, review, dead-code / breaking-change detection, logging, architecture |
+| `testing`      | TDD, test generation, QA, test automation, webapp testing |
+| `security`     | Security audits and scanning |
+| `performance`  | Performance optimisation and auditing |
+| `automation`   | Task orchestration, triage, issue creation, repeat-task automation (not deployment) |
+| `devops`       | CI/CD, containers, deployment, infrastructure |
+| `development`  | Building apps / skills / APIs / databases / MCP servers |
+| `design`       | Visual art, theming, canvas, brand, frontend design |
+| `mixed`        | Reserved for plugin bundles with no single goal — a collection of unrelated entities. The build also auto-assigns this to any plugin whose skills span more than one category and that does not declare one explicitly. Do not use `mixed` for individual skills/agents/commands. |
+
+When adding a new plugin or override, pick the closest fit — keep this list short on purpose. If nothing fits, prefer leaving the entity uncategorised over inventing a one-off label. The build script reads `plugin.json` to generate `.claude-plugin/marketplace.json` automatically — no separate registry file needed.
+
+The plugin's category propagates to every agent, hook, command, and MCP server bundled with it, so all five entity types share the same filter group in the web UI and the catalog. To override a specific sub-entity, add a `category:` field to that agent/hook/command's YAML frontmatter (MCP servers don't have YAML; override them via the overrides file). For external repos, add overrides per entity type under `.claude-plugin/external-overrides.json`:
+
+```json
+{
+  "owner/repo": {
+    "plugins":    { "name": { "category": "automation" } },
+    "skills":     { "name": { "category": "code-quality" } },
+    "agents":     { "name": { "category": "automation" } },
+    "hooks":      { "name": { "category": "automation" } },
+    "commands":   { "name": { "category": "productivity" } },
+    "mcpServers": { "name": { "category": "automation" } }
+  }
+}
+```
+
+Resolution order, per entity: external override → frontmatter (where applicable) → parent plugin category → `null` ("Uncategorized" in the UI).
 
 ## Evals Format (`evals.json`)
 
@@ -166,12 +202,15 @@ Include at least 3–5 evals per plugin. Cover the happy path, idempotent re-run
 |--------------------------|---------|---------------|-----------------------------------------------------------------------------------------------------------------|
 | `brainstorm`             | 1.0.0   | Productivity  | Read the project and suggest the 5 most valuable next features or improvements                                  |
 | `changelog`              | 1.0.0   | Documentation | Generate/update CHANGELOG.md from git history (Keep a Changelog format)                                         |
+| `cost-tracker`           | 1.0.0   | Productivity  | Append token usage and estimated cost to `~/.claude/cost-log.jsonl` on every Stop event                         |
+| `cv-linkedin`            | 2.1.0   | Productivity  | Improve a CV and LinkedIn profile from the official export — stronger language, quantified achievements         |
 | `document-project`       | 1.0.0   | Documentation | Create README + `/docs` structure                                                                               |
 | `find-breaking-rest-api` | 3.0.0   | Code Quality  | Find breaking REST API changes — multi-file routers, shared schemas, auth                                       |
 | `find-dead-code`         | 1.0.0   | Code Quality  | Find unused functions, classes, imports across languages                                                        |
-| `improve-logging`        | 1.0.0   | Code Quality  | Audit logging quality and produce prioritised fix recommendations                                               |
-| `task-agent`             | 1.1.0   | Automation    | Read tasks from agent-tasks.yml, spawn agents per task, open PRs, and automatically fix Copilot review comments |
 | `find-skills`            | 1.0.0   | Productivity  | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces                 |
+| `improve-logging`        | 1.0.0   | Code Quality  | Audit logging quality and produce prioritised fix recommendations                                               |
+| `site-audit`             | 1.3.0   | Code Quality  | Audit a website for UX, accessibility, performance, and bugs — fans out to specialised sub-agents in parallel   |
+| `task-agent`             | 1.1.0   | Automation    | Read tasks from agent-tasks.yml, spawn agents per task, open PRs, and automatically fix Copilot review comments |
 
 ## Adding a New Plugin
 

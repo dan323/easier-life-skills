@@ -63,7 +63,15 @@ const BUNDLES: Bundle[] = existsSync(bundlesPath)
   : [];
 
 const overridesPath = join(ROOT, '.claude-plugin', 'external-overrides.json');
-const OVERRIDES: Record<string, { plugins?: Record<string, { category?: string }>; skills?: Record<string, { category?: string }> }> =
+type OverrideMap = Record<string, { category?: string }>;
+const OVERRIDES: Record<string, {
+  plugins?:    OverrideMap;
+  skills?:     OverrideMap;
+  agents?:     OverrideMap;
+  hooks?:      OverrideMap;
+  commands?:   OverrideMap;
+  mcpServers?: OverrideMap;
+}> =
   existsSync(overridesPath)
     ? JSON.parse(readFileSync(overridesPath, 'utf8'))
     : {};
@@ -97,6 +105,26 @@ for (const skill of allSkills) {
   const repoKey = `${skill.source.owner}/${skill.source.repo}`;
   const cat = OVERRIDES[repoKey]?.skills?.[skill.name]?.category;
   if (cat) skill.category = cat;
+}
+for (const agent of allAgents) {
+  const repoKey = `${agent.source.owner}/${agent.source.repo}`;
+  const cat = OVERRIDES[repoKey]?.agents?.[agent.name]?.category;
+  if (cat) agent.category = cat;
+}
+for (const hook of allHooks) {
+  const repoKey = `${hook.source.owner}/${hook.source.repo}`;
+  const cat = OVERRIDES[repoKey]?.hooks?.[hook.name]?.category;
+  if (cat) hook.category = cat;
+}
+for (const command of allCommands) {
+  const repoKey = `${command.source.owner}/${command.source.repo}`;
+  const cat = OVERRIDES[repoKey]?.commands?.[command.name]?.category;
+  if (cat) command.category = cat;
+}
+for (const mcp of allMcpServers) {
+  const repoKey = `${mcp.source.owner}/${mcp.source.repo}`;
+  const cat = OVERRIDES[repoKey]?.mcpServers?.[mcp.name]?.category;
+  if (cat) mcp.category = cat;
 }
 
 // Auto-assign 'mixed' to plugins whose skills span multiple categories and have no explicit category
@@ -146,8 +174,8 @@ const index = {
 writeFileSync(join(ROOT, 'skills_index.json'), JSON.stringify(index, null, 2) + '\n');
 console.log(`\n✓ skills_index.json — ${allPlugins.length} plugins, ${allSkills.length} skills, ${allAgents.length} agents, ${allMcpServers.length} MCP servers, ${allCommands.length} commands, ${allHooks.length} hooks from ${marketplaces.length} marketplace(s)`);
 
-writeFileSync(join(ROOT, 'CATALOG.md'), generateCatalog(allSkills, allAgents, allMcpServers, allHooks, BUNDLES, marketplaces));
+writeFileSync(join(ROOT, 'CATALOG.md'), generateCatalog(allSkills, allAgents, allMcpServers, allCommands, allHooks, BUNDLES, marketplaces));
 console.log(`✓ CATALOG.md`);
 
-writeFileSync(join(ROOT, 'catalog.html'), generateCatalogHtml(allSkills, allAgents, allMcpServers, allHooks, BUNDLES, marketplaces));
+writeFileSync(join(ROOT, 'catalog.html'), generateCatalogHtml(allSkills, allAgents, allMcpServers, allCommands, allHooks, BUNDLES, marketplaces));
 console.log(`✓ catalog.html`);

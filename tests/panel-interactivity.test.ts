@@ -14,14 +14,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { bootApp, click } from './harness.ts';
-
-function cardByName(gridId: string, name: string): HTMLElement {
-  const button = Array.from(document.querySelectorAll<HTMLElement>(`#${gridId} .skill-card .card-name`))
-    .find(b => b.textContent === name);
-  if (!button) throw new Error(`Card not found in #${gridId}: ${name}`);
-  return button;
-}
+import { bootApp, cardByName, click } from './harness.ts';
 
 function ancestorWithAttr(el: Element | null, attr: string, value?: string): Element | null {
   let cur: Element | null = el;

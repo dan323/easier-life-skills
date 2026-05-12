@@ -1,3 +1,4 @@
+import { titleCase } from '../../utils.ts';
 import { CopyButton } from '../CopyButton.tsx';
 import type { Hook } from '../../types.ts';
 
@@ -9,6 +10,8 @@ interface Props {
 }
 
 export function HookCard({ hook, showSource, showInstall, onOpen }: Props) {
+  const catClass = hook.category ? 'badge-' + hook.category : 'badge-uncategorized';
+  const catLabel = hook.category ? titleCase(hook.category) : 'Uncategorized';
   const activate = () => onOpen(hook);
   const events = hook.events.length ? hook.events : ['—'];
   return (
@@ -19,9 +22,12 @@ export function HookCard({ hook, showSource, showInstall, onOpen }: Props) {
           class="card-name"
           aria-label={`Open details for hook ${hook.name}`}
           onClick={activate}
-        >{hook.name}</button>
+        >
+          <span class="card-name-text">{hook.name}</span>
+          <span class="card-name-chevron" aria-hidden="true">›</span>
+        </button>
         <div class="card-badges">
-          <span class="badge badge-cat badge-automation">Hook</span>
+          <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>
           {showSource && <span class="badge badge-source">{hook._repo}</span>}
         </div>
       </div>
