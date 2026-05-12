@@ -268,7 +268,7 @@ async function parseSkill(
     name:           skillName,
     pluginName:     pluginEntry.name,
     version:        frontmatter.version ?? '1.0',
-    description:    pluginEntry.description ?? frontmatter.description ?? '',
+    description:    (frontmatter.description as string | undefined) ?? pluginEntry.description ?? '',
     category:       pluginEntry.category ?? null,
     keywords:       pluginEntry.keywords ?? [],
     tools,
