@@ -15,6 +15,12 @@ function findSourceTag(label: string): HTMLElement {
   return tag;
 }
 
+function toggleFor(tag: HTMLElement): HTMLElement {
+  const btn = tag.querySelector('.source-toggle') as HTMLElement | null;
+  if (!btn) throw new Error('Source toggle button not found inside tag');
+  return btn;
+}
+
 describe('category filter', () => {
   it('narrows plugins to the active category', async () => {
     await bootApp();
@@ -46,16 +52,16 @@ describe('category filter', () => {
 describe('source filter', () => {
   it('clicking a source tag narrows cards to that repo', async () => {
     await bootApp();
-    click(findSourceTag('external/slack-tools'));
+    click(toggleFor(findSourceTag('external/slack-tools')));
     expect(cardNames('plugins-grid')).toEqual(['slack-tools']);
-    expect(findSourceTag('external/slack-tools').getAttribute('aria-pressed')).toBe('true');
+    expect(toggleFor(findSourceTag('external/slack-tools')).getAttribute('aria-pressed')).toBe('true');
   });
 
   it('clicking again clears the source filter', async () => {
     await bootApp();
-    click(findSourceTag('external/slack-tools'));
+    click(toggleFor(findSourceTag('external/slack-tools')));
     expect(cardNames('plugins-grid').length).toBe(1);
-    click(findSourceTag('external/slack-tools'));
+    click(toggleFor(findSourceTag('external/slack-tools')));
     expect(cardNames('plugins-grid').length).toBe(5);
   });
 
@@ -64,7 +70,7 @@ describe('source filter', () => {
     const tag = findSourceTag('external/slack-tools');
     const copyBtn = tag.querySelector('.source-add-copy') as HTMLButtonElement;
     copyBtn.click();
-    expect(tag.getAttribute('aria-pressed')).toBe('false');
+    expect(toggleFor(tag).getAttribute('aria-pressed')).toBe('false');
     expect(clipboardWrites).toContain('/plugin marketplace add external/slack-tools');
   });
 });

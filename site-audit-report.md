@@ -10,9 +10,15 @@
 > resolved. Cards no longer use `role="button"`; the title is a real
 > `<button class="card-name">` and a CSS stretched-link overlay keeps the rest
 > of the card click-through to the title. Verified with axe-cli (28 → 13
-> violations) and a Playwright smoke test (`/tmp/phase1-smoke2.mjs`). The
-> 3 remaining nested-interactive entries are on the marketplace source tag
-> (Phase 2); the 10 region findings are Phase 3.
+> violations) and a Playwright smoke test (`/tmp/phase1-smoke2.mjs`).
+>
+> **Phase 2 fix applied (2026-05-12):** the 3 nested-interactive WCAG 4.1.2
+> violations on the marketplace source tag are resolved. The wrapper is no
+> longer `role="button"`; the filter toggle is a real
+> `<button class="source-toggle" aria-pressed>` and the copy button is a
+> sibling (not nested). Verified with axe-cli (13 → 10 violations) and a
+> Playwright smoke test (`/tmp/phase2-smoke.mjs`). The 10 remaining
+> region findings are Phase 3.
 
 ## Summary
 

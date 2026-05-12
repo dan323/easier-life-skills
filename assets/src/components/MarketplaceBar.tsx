@@ -28,32 +28,26 @@ export function MarketplaceBar({ sources, activeRepos, onToggle, onCopyAdd }: Pr
                 (s.error ? ' source-error' : '')
               }
               data-repo={s.repo}
-              role="button"
-              tabindex={0}
-              aria-pressed={active ? 'true' : 'false'}
               title={s.error}
-              onClick={e => {
-                if ((e.target as HTMLElement).closest('.source-add-copy')) return;
-                onToggle(s.repo);
-              }}
-              onKeyDown={e => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onToggle(s.repo);
-                }
-              }}
             >
-              <span class="label">
-                {s.error ? `${s.repo} ✕` : `${s.repo} (${s.count})`}
-              </span>
+              <button
+                type="button"
+                class="source-toggle"
+                aria-pressed={active ? 'true' : 'false'}
+                onClick={() => onToggle(s.repo)}
+              >
+                <span class="label">
+                  {s.error ? `${s.repo} ✕` : `${s.repo} (${s.count})`}
+                </span>
+              </button>
               <button
                 type="button"
                 class="source-add-copy"
                 title={`Copy "/plugin marketplace add ${s.repo}"`}
                 aria-label={`Copy marketplace add command for ${s.repo}`}
-                onClick={e => { e.stopPropagation(); onCopyAdd(s.repo); }}
+                onClick={() => onCopyAdd(s.repo)}
               >
-                +
+                <span aria-hidden="true">+</span>
               </button>
             </div>
           );
