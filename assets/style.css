@@ -26,6 +26,14 @@
   --cat-database-bg: #0d2f2a;
   --cat-development: #9f99aa;
   --cat-development-bg: #0f3335;
+  --cat-testing: #22d3ee;
+  --cat-testing-bg: #0c2a30;
+  --cat-devops: #818cf8;
+  --cat-devops-bg: #1a1b3a;
+  --cat-security: #f87171;
+  --cat-security-bg: #2d0e0e;
+  --cat-performance: #ec4899;
+  --cat-performance-bg: #2e0f1f;
   --cat-mixed: #f97316;
   --cat-mixed-bg: #2a1500;
 }
@@ -560,6 +568,10 @@ main { padding: 20px 32px 80px; }
 .badge-design     { background: var(--cat-design-bg);     color: var(--cat-design); }
 .badge-database     { background: var(--cat-database-bg);     color: var(--cat-database); }
 .badge-development     { background: var(--cat-development-bg);     color: var(--cat-development); }
+.badge-testing         { background: var(--cat-testing-bg);         color: var(--cat-testing); }
+.badge-devops          { background: var(--cat-devops-bg);          color: var(--cat-devops); }
+.badge-security        { background: var(--cat-security-bg);        color: var(--cat-security); }
+.badge-performance     { background: var(--cat-performance-bg);     color: var(--cat-performance); }
 .badge-mixed           { background: var(--cat-mixed-bg);           color: var(--cat-mixed); }
 .badge-skill           { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
 
