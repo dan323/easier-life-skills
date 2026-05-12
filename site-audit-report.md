@@ -27,6 +27,17 @@
 > `<nav aria-label="Marketplaces">`. **axe-cli now reports 0 violations**
 > (28 → 0 across Phases 1–3). Verified with a landmark smoke test
 > (`/tmp/phase3-smoke.mjs`). Vitest stays green (77/77).
+>
+> **Phase 4 fix applied (2026-05-12):** CLS 0.149 → **0**. The grid now
+> renders 6 `.skeleton-card` placeholders while `skills_index.json` is in
+> flight, so the layout never reflows when real cards arrive. `App.tsx`
+> tracks a `loaded` boolean; `Grid.tsx` routes `!loaded` to a
+> `<SkeletonGrid>` that reserves the active view's grid container with
+> `min-height: 170px` placeholders matching real card dimensions. Pulse
+> animation respects `prefers-reduced-motion`. **Lighthouse performance
+> 93 → 99**, LCP 2.0s, FCP 1.4s, TBT 0ms, Speed Index 1.5s. Verified with
+> a throttled Playwright smoke (`/tmp/phase4-smoke.mjs`) and a real
+> Lighthouse run (`/tmp/lh-phase4.json`).
 
 ## Summary
 

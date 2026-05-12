@@ -20,6 +20,7 @@ interface DataSets {
 
 interface Props {
   view:       ViewKey;
+  loaded:     boolean;
   query:      string;
   sort:       'az' | 'za';
   activeRepos: Set<string>;
@@ -33,6 +34,16 @@ interface Props {
   onOpenHook:    (h: Hook) => void;
 }
 
+const GRID_IDS: Record<ViewKey, string> = {
+  plugins:    'plugins-grid',
+  skills:     'skills-grid',
+  agents:     'agents-grid',
+  mcpServers: 'mcp-grid',
+  commands:   'commands-grid',
+  hooks:      'hooks-grid',
+  bundles:    'bundles-grid',
+};
+
 function sortedBy<T extends { name: string }>(items: T[], sort: 'az' | 'za'): T[] {
   return [...items].sort((a, b) =>
     sort === 'za' ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name),
@@ -44,7 +55,8 @@ function multiRepo<T extends { _repo?: string }>(items: T[]): boolean {
 }
 
 export function Grid(props: Props) {
-  const { view, data } = props;
+  const { view, data, loaded } = props;
+  if (!loaded) return <SkeletonGrid view={view} />;
   return (
     <>
       {view === 'plugins'    && <PluginsGrid    {...props} />}
@@ -54,6 +66,18 @@ export function Grid(props: Props) {
       {view === 'commands'   && <CommandsGrid   {...props} />}
       {view === 'hooks'      && <HooksGrid      {...props} />}
       {view === 'bundles'    && <BundlesGrid bundles={data.bundles} skills={data.skills} />}
+    </>
+  );
+}
+
+function SkeletonGrid({ view }: { view: ViewKey }) {
+  return (
+    <>
+      <div class="count" id="count" aria-live="polite" aria-atomic="true">Loading…</div>
+      <div id={GRID_IDS[view]} style={{ display: 'grid' }}>
+        {Array.from({ length: 6 }).map((_, i) =>
+          <div key={i} class="skeleton-card" aria-hidden="true" />)}
+      </div>
     </>
   );
 }

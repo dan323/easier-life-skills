@@ -40,6 +40,7 @@ export function App() {
   const [bundles,    setBundles]    = useState<Bundle[]>([]);
   const [sources,    setSources]    = useState<SourceItem[]>([{ repo: BUILTIN_REPO, count: 0, builtin: true }]);
   const [meta,       setMeta]       = useState<SkillsIndexMeta | undefined>(undefined);
+  const [loaded,     setLoaded]     = useState(false);
 
   const [openPlugin, setOpenPlugin] = useState<Plugin | null>(null);
   const [openEntity, setOpenEntity] = useState<OpenEntity | null>(null);
@@ -50,6 +51,7 @@ export function App() {
       if (cancelled) return;
       if ('error' in result) {
         setSources(prev => prev.map(s => s.repo === result.repo ? { ...s, error: result.error } : s));
+        setLoaded(true);
         return;
       }
       setPlugins(result.plugins);
@@ -61,6 +63,7 @@ export function App() {
       setBundles(result.bundles);
       setSources(result.sources);
       setMeta(result.meta);
+      setLoaded(true);
     });
     return () => { cancelled = true; };
   }, []);
@@ -149,6 +152,7 @@ export function App() {
       <main id="main">
         <Grid
           view={view}
+          loaded={loaded}
           query={lowerQuery}
           sort={sort}
           activeRepos={activeRepos}

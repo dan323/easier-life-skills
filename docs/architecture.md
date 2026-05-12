@@ -101,6 +101,8 @@ There is no global state singleton. Components communicate only through props (d
 
 **Semantic landmarks.** Every top-level page region is wrapped in a recognised landmark so assistive-tech landmark navigation reaches all content (WCAG 1.3.1, axe `region` rule). `Header.tsx` → `<header>`; `Footer.tsx` → `<footer>`; the grid lives inside `<main id="main">` in `App.tsx`; `QuickStart.tsx` uses `<section class="quickstart" aria-labelledby="quickstart-heading">` (a `<section>` only counts as a landmark when accessibly named, hence the matching `<h2 id="quickstart-heading">`); `Controls.tsx` uses `<section class="controls" aria-label="Filters and view">`; `MarketplaceBar.tsx` uses `<nav class="marketplace-bar" aria-label="Marketplaces">`. These are element-name swaps only — visible HTML, IDs, and CSS classes are unchanged, so all existing styling and selectors keep working.
 
+**Loading state and CLS.** `App.tsx` owns a `loaded: boolean` state that flips to `true` after `loadMarketplace()` resolves (success path *and* error path, so a failing fetch doesn't leave a permanent skeleton). The `Grid` component routes `!loaded` to a dedicated `<SkeletonGrid>` that renders the active view's grid container (with its real id, e.g. `#plugins-grid`) populated by 6 `.skeleton-card` placeholders. `.skeleton-card` has the same `min-height`, border-radius, border, and background as a real `.skill-card` so the grid reserves space and the layout doesn't shift when real cards arrive. The result: Lighthouse `CLS` is 0 (was 0.149) and users see structure instead of a blank `#root` during JS hydration. A `prefers-reduced-motion: reduce` rule disables the placeholder pulse.
+
 ### Local development
 
 ```bash
