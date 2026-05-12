@@ -69,6 +69,13 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/improve-logging"
     },
     {
+      "name": "scaffold",
+      "source": "./plugins/scaffold",
+      "description": "Generate a new plugin skeleton (plugin.json, SKILL.md, evals.json, optional agents/references) from a single prompt",
+      "category": "productivity",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/scaffold"
+    },
+    {
       "name": "site-audit",
       "source": "./plugins/site-audit",
       "description": "Audit a website for UX issues, bugs, accessibility problems, and unexpected behavior. site-mapper crawls once via Playwright MCP to produce sitemap.json; ux-analyst, accessibility-auditor, performance-auditor, and bug-script-runner then run in parallel against the shared artifact. bug-script-runner generates a Playwright spec on the fly using real selectors and executes it via npx playwright test.",

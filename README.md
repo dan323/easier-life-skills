@@ -35,6 +35,7 @@ Or copy the right command directly from the [marketplace browser](#marketplace-b
 | [`brainstorm`](plugins/brainstorm/skills/brainstorm/SKILL.md)                                     | Suggest the 5 most valuable features or improvements to build next                                                      |
 | [`task-agent`](plugins/task-agent/skills/task-agent/SKILL.md)                                     | Read tasks from `agent-tasks.yml`, implement each via an agent, open PRs, and fix Copilot review comments automatically |
 | [`find-skills`](plugins/find-skills/skills/find-skills/SKILL.md)                                  | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces                         |
+| [`scaffold`](plugins/scaffold/skills/scaffold/SKILL.md)                                           | Generate a complete plugin skeleton (`plugin.json`, `SKILL.md`, evals, optional agents/references) from a single prompt |
 
 ### Agents
 

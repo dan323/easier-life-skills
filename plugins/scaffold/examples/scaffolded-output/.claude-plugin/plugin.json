@@ -1,0 +1,7 @@
+{
+  "name": "index-audit",
+  "description": "Audit database indexes",
+  "author": { "name": "dan323" },
+  "category": "code-quality",
+  "skills": ["./skills/index-audit"]
+}

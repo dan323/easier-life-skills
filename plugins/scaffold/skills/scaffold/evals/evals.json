@@ -1,0 +1,117 @@
+{
+  "skill_name": "scaffold",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "scaffold name=index-audit description=\"Audit database indexes\" category=code-quality",
+      "description": "Happy path — minimum-required arguments. The skill should create a new plugin directory with .claude-plugin/plugin.json, skills/index-audit/SKILL.md, and skills/index-audit/evals/evals.json, no agents, no references. The generated tree must pass `npm run build && npm test` without modification. Setup assumes the eval runs from the easier-life-skills repo root (the scaffold reads its own templates from there).",
+      "setup": "rm -rf plugins/index-audit",
+      "expected_output": "A fresh plugin directory at plugins/index-audit/ with three files (plugin.json, SKILL.md, evals.json) — no agents/, no references/. plugin.json must have category 'code-quality' and a single skills entry. SKILL.md must have YAML frontmatter with name=index-audit and a phase-structured body (Task Tracking + at least one Phase heading). evals.json must have skill_name='index-audit' and an evals array. A 'Scaffold — Done' report must be printed with the Next steps checklist.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "plugin-json-exists",
+          "text": "The file plugins/index-audit/.claude-plugin/plugin.json exists after the scaffold runs"
+        },
+        {
+          "id": "plugin-json-has-correct-name-and-category",
+          "text": "plugins/index-audit/.claude-plugin/plugin.json contains \"name\": \"index-audit\" and \"category\": \"code-quality\""
+        },
+        {
+          "id": "skill-md-exists-with-frontmatter",
+          "text": "plugins/index-audit/skills/index-audit/SKILL.md exists, starts with YAML frontmatter (--- delimited block) containing `name: index-audit`, and has a `## Task Tracking` heading in the body"
+        },
+        {
+          "id": "evals-json-exists-with-correct-skill-name",
+          "text": "plugins/index-audit/skills/index-audit/evals/evals.json exists and contains \"skill_name\": \"index-audit\" plus an evals array with at least 3 placeholder entries"
+        },
+        {
+          "id": "no-agents-or-references-dirs",
+          "text": "plugins/index-audit/agents/ and plugins/index-audit/references/ do NOT exist (no agents or references were requested)"
+        },
+        {
+          "id": "report-printed",
+          "text": "The skill prints a 'Scaffold — Done' report containing a 'Next steps' section that mentions `npm run build && npm test`"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "scaffold name=index-audit description=\"Audit database indexes\" category=code-quality agents=index-walker",
+      "description": "Scaffold-with-agent — the agents= argument must produce an agents/<slug>.md file with proper YAML frontmatter, and plugin.json must declare the agent in its agents[] array. The `{{PARENT_NAME}}` placeholder inside the agent.md template must be substituted with the plugin name. Setup assumes the eval runs from the easier-life-skills repo root.",
+      "setup": "rm -rf plugins/index-audit",
+      "expected_output": "Same as eval 0 plus: plugins/index-audit/agents/index-walker.md exists with YAML frontmatter containing `name: index-walker`. plugin.json contains an `agents` array listing `./agents/index-walker`.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "agent-file-exists",
+          "text": "plugins/index-audit/agents/index-walker.md exists"
+        },
+        {
+          "id": "agent-frontmatter-correct",
+          "text": "plugins/index-audit/agents/index-walker.md starts with YAML frontmatter containing `name: index-walker` and a `description:` field"
+        },
+        {
+          "id": "agent-references-parent-plugin",
+          "text": "plugins/index-audit/agents/index-walker.md body references the parent plugin name (`index-audit`) somewhere — the {{PARENT_NAME}} placeholder was substituted"
+        },
+        {
+          "id": "plugin-json-lists-agent",
+          "text": "plugins/index-audit/.claude-plugin/plugin.json contains an `agents` field whose value includes `./agents/index-walker`"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "scaffold name=brainstorm description=\"Already-existing plugin name\"",
+      "description": "Collision error — `brainstorm` already exists in plugins/. Without the `force` flag, the skill must refuse to overwrite and surface a clear error explaining how to proceed. Critically, it must NOT modify any file inside plugins/brainstorm/. Setup snapshots the brainstorm directory's file hashes so the assertion can compare them post-run.",
+      "setup": "find plugins/brainstorm -type f -exec sha256sum {} \\; | sort > /tmp/eval-scaffold-2-pre.sha",
+      "expected_output": "The skill prints a COLLISION-style error message naming plugins/brainstorm as the conflicting directory, suggesting the user re-run with `force` if intentional, and ABORTS without writing anything. The SHA-256 hashes of every file under plugins/brainstorm/ must match the pre-run snapshot exactly.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "collision-error-surfaced",
+          "text": "The output contains a clear error message naming `plugins/brainstorm` as already existing and mentioning the `force` flag as the override mechanism"
+        },
+        {
+          "id": "scaffold-aborts-cleanly",
+          "text": "The skill does NOT print 'Scaffold — Done' — it stops before Phase 4"
+        },
+        {
+          "id": "existing-plugin-untouched",
+          "text": "Every file under plugins/brainstorm/ has the same SHA-256 hash as it had before the scaffold ran (no files modified, no files added, no files removed)"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "scaffold name=index-audit description=\"Audit database indexes\" category=code-quality agents=index-walker,index-fixer references=postgres,mysql",
+      "description": "Scaffold-with-both — agents and references in the same invocation. Must produce two agents/*.md files and two references/*.md files. agents must be listed in plugin.json; references are auto-discovered by Claude Code so they don't need to be in plugin.json. Setup assumes the eval runs from the easier-life-skills repo root.",
+      "setup": "rm -rf plugins/index-audit",
+      "expected_output": "plugins/index-audit/ contains: .claude-plugin/plugin.json (with agents listing both index-walker and index-fixer), skills/index-audit/SKILL.md, skills/index-audit/evals/evals.json, agents/index-walker.md, agents/index-fixer.md, references/postgres.md, references/mysql.md.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "both-agent-files-exist",
+          "text": "Both plugins/index-audit/agents/index-walker.md and plugins/index-audit/agents/index-fixer.md exist"
+        },
+        {
+          "id": "both-reference-files-exist",
+          "text": "Both plugins/index-audit/references/postgres.md and plugins/index-audit/references/mysql.md exist"
+        },
+        {
+          "id": "reference-titles-substituted",
+          "text": "plugins/index-audit/references/postgres.md contains the title `Postgres` (Title Case of the slug) somewhere in the file — the {{TOPIC_TITLE}} placeholder was substituted"
+        },
+        {
+          "id": "plugin-json-lists-both-agents",
+          "text": "plugins/index-audit/.claude-plugin/plugin.json's `agents` array contains BOTH `./agents/index-walker` and `./agents/index-fixer`"
+        },
+        {
+          "id": "no-template-placeholders-remain",
+          "text": "No file under plugins/index-audit/ contains an unsubstituted placeholder like `{{NAME}}`, `{{DESCRIPTION}}`, `{{CATEGORY}}`, `{{TITLE}}`, `{{AGENTS_BLOCK}}`, `{{AGENT_NAME}}`, `{{PARENT_NAME}}`, `{{TOPIC}}`, or `{{TOPIC_TITLE}}`"
+        }
+      ]
+    }
+  ]
+}

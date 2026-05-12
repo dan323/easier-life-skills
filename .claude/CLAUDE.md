@@ -209,6 +209,7 @@ Include at least 3–5 evals per plugin. Cover the happy path, idempotent re-run
 | `find-dead-code`         | 1.0.0   | Code Quality  | Find unused functions, classes, imports across languages                                                        |
 | `find-skills`            | 1.0.0   | Productivity  | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces                 |
 | `improve-logging`        | 1.0.0   | Code Quality  | Audit logging quality and produce prioritised fix recommendations                                               |
+| `scaffold`               | 1.0.0   | Productivity  | Generate a complete plugin skeleton (plugin.json, SKILL.md, evals, optional agents/references) from a prompt    |
 | `site-audit`             | 1.3.0   | Code Quality  | Audit a website for UX, accessibility, performance, and bugs — fans out to specialised sub-agents in parallel   |
 | `task-agent`             | 1.1.0   | Automation    | Read tasks from agent-tasks.yml, spawn agents per task, open PRs, and automatically fix Copilot review comments |
 

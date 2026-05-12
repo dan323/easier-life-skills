@@ -18,16 +18,37 @@ Then in Claude Code: `/plugin marketplace add ./`
 
 ### 1. Create the plugin directory
 
+The fastest path is the [`scaffold`](../plugins/scaffold/skills/scaffold/SKILL.md) skill — it generates the directory tree, `plugin.json`, a phase-structured `SKILL.md`, and `evals.json` with 3 placeholder cases:
+
+```text
+scaffold name=<your-skill-name> description="What this skill does" category=<category>
+```
+
+Optional flags add sub-agents or reference docs in the same pass:
+
+```text
+scaffold name=index-audit description="Audit database indexes" category=code-quality agents=index-walker,index-fixer references=postgres,mysql
+```
+
+The scaffold refuses to overwrite an existing plugin directory unless you append the bare `force` flag. After it runs, skip to step 2 and start filling in the TODOs.
+
+If you'd rather build the tree by hand, the expected structure is:
+
 ```
 plugins/<your-skill-name>/
 ├── .claude-plugin/
 │   └── plugin.json          name, description, category, skills[]
 ├── skills/
 │   └── <your-skill-name>/
-│       └── SKILL.md
-└── evals/
-    └── evals.json
+│       ├── SKILL.md
+│       └── evals/
+│           └── evals.json
 ```
+
+> The canonical template strings for both paths live in
+> [`plugins/scaffold/references/templates.md`](../plugins/scaffold/references/templates.md).
+> If you change the structure of a real plugin, update that file in the
+> same PR so newly scaffolded plugins stay in sync.
 
 ### 2. Write SKILL.md
 
