@@ -27,10 +27,10 @@ easier-life-skills/
 │   │       └── evals.json   Optional — test cases for the skill
 │   └── <other-plugins>/     (same layout)
 ├── scripts/
-│   ├── build-index.ts       Orchestrator — scans plugins/, generates marketplace.json, writes skills_index.json + CATALOG.md
+│   ├── build-index.ts       Orchestrator — scans plugins/, generates marketplace.json, writes skills_index.json + CATALOG.md + catalog.html
 │   └── lib/
 │       ├── fetch-marketplace.ts  Fetches plugins from one repo; discovers skills/agents/mcpServers
-│       ├── catalog.ts            Generates CATALOG.md content
+│       ├── catalog.ts            Generates CATALOG.md (markdown) and catalog.html (styled standalone page)
 │       ├── frontmatter.ts        YAML frontmatter parser for SKILL.md files
 │       └── types.ts              Shared TypeScript types (Skill, Agent, Plugin, McpServer, Bundle…)
 ├── assets/
@@ -69,6 +69,7 @@ easier-life-skills/
 ├── vitest.config.ts         Vitest config — @preact/preset-vite for JSX, happy-dom environment
 ├── marketplaces.json        List of { owner, repo, description? } pairs the build script aggregates
 ├── index.html               Interactive marketplace website — minimal shell; markup is rendered by Preact at runtime
+├── catalog.html             Generated standalone Skill Catalog page — gitignored, deployed to GitHub Pages
 ├── docs/
 │   ├── getting-started.md
 │   ├── architecture.md
@@ -114,6 +115,7 @@ The build pipeline runs in CI (GitHub Actions) on every push to `master` via `np
 plugins/*/plugin.json  →  build-index.ts  →  .claude-plugin/marketplace.json  (committed back)
 marketplaces.json      →  (tsx)           →  skills_index.json                 (gitignored)
                                           →  CATALOG.md                        (gitignored)
+                                          →  catalog.html                      (gitignored)
 assets/src/app.tsx     →  esbuild (JSX)   →  assets/bundle.js                  (gitignored)
 ```
 
@@ -127,8 +129,8 @@ assets/src/app.tsx     →  esbuild (JSX)   →  assets/bundle.js               
 4. **Categorise** — local plugins carry their `category` from `plugin.json`. External plugins use the category from the upstream `marketplace.json` if present; `.claude-plugin/external-overrides.json` supplements where the upstream does not declare one.
 5. **Read-only tagging** — a skill is tagged `readOnly` when its `tools` frontmatter declares tools but none of them are `Write`, `Edit`, or `NotebookEdit`.
 6. **Bundle membership** is attached to each skill from `.claude-plugin/bundles.json`.
-7. `skills_index.json`, `CATALOG.md`, and `assets/bundle.js` are gitignored and rebuilt on every CI run; they are deployed to GitHub Pages with the static site assets.
-8. The website loads `skills_index.json` at runtime. The marketplace list is fixed at build time. Active filters, view, search query, and sort direction are synced to the URL hash so filtered states are shareable.
+7. `skills_index.json`, `CATALOG.md`, `catalog.html`, and `assets/bundle.js` are gitignored and rebuilt on every CI run; they are deployed to GitHub Pages with the static site assets.
+8. The website loads `skills_index.json` at runtime. The marketplace list is fixed at build time. Active filters, view, search query, and sort direction are synced to the URL hash so filtered states are shareable. The footer's `Full catalog` link points at the in-site `./catalog.html` rendered by `scripts/lib/catalog.ts#generateCatalogHtml`.
 
 ## Plugin Schema
 

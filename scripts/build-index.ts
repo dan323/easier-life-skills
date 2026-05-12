@@ -2,13 +2,13 @@
 // scripts/build-index.ts
 // 1. Scans plugins/ to generate .claude-plugin/marketplace.json
 // 2. Reads marketplaces.json, aggregates skills, agents, and MCP servers from each repo
-// 3. Writes skills_index.json + CATALOG.md
+// 3. Writes skills_index.json + CATALOG.md + catalog.html
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
-import { join, dirname }               from 'path';
-import { fileURLToPath }               from 'url';
-import { fetchMarketplaceSkills }      from './lib/fetch-marketplace.js';
-import { generateCatalog }             from './lib/catalog.js';
+import { join, dirname }                          from 'path';
+import { fileURLToPath }                          from 'url';
+import { fetchMarketplaceSkills }                 from './lib/fetch-marketplace.js';
+import { generateCatalog, generateCatalogHtml }   from './lib/catalog.js';
 import type { MarketplaceEntry, Plugin, Skill, Bundle, Hook } from './lib/types.js';
 
 const ROOT         = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -148,3 +148,6 @@ console.log(`\n✓ skills_index.json — ${allPlugins.length} plugins, ${allSkil
 
 writeFileSync(join(ROOT, 'CATALOG.md'), generateCatalog(allSkills, allAgents, allMcpServers, allHooks, BUNDLES, marketplaces));
 console.log(`✓ CATALOG.md`);
+
+writeFileSync(join(ROOT, 'catalog.html'), generateCatalogHtml(allSkills, allAgents, allMcpServers, allHooks, BUNDLES, marketplaces));
+console.log(`✓ catalog.html`);

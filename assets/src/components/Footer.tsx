@@ -10,7 +10,7 @@ export function Footer({ generated }: Props) {
     <footer>
       <span>Updated <span id="generated" aria-live="polite">{text}</span></span>
       <span>
-        <a href="https://github.com/dan323/easier-life-skills/blob/master/CATALOG.md" target="_blank" rel="noopener" aria-label="Full catalog (opens in new tab)">Full catalog</a>{' · '}
+        <a href="./catalog.html" aria-label="Full catalog">Full catalog</a>{' · '}
         <a href="https://github.com/dan323/easier-life-skills/blob/master/docs/contributing.md" target="_blank" rel="noopener">Contribute</a>{' · '}
         <a href="https://github.com/dan323/easier-life-skills" target="_blank" rel="noopener">GitHub</a>
       </span>

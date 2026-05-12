@@ -88,15 +88,16 @@ plugins/
       evals.json            ← Alternative evals location (document-project uses this)
     run.sh                  ← Optional: non-interactive entry point (task-agent only)
 scripts/
-  build-index.ts            ← Generates skills_index.json, CATALOG.md, and marketplace.json
+  build-index.ts            ← Generates skills_index.json, CATALOG.md, catalog.html, and marketplace.json
   lib/
     fetch-marketplace.ts    ← Fetches/discovers skills, agents, MCP servers from one repo
-    catalog.ts              ← Generates CATALOG.md content
+    catalog.ts              ← Generates CATALOG.md (markdown) and catalog.html (styled standalone page)
     frontmatter.ts          ← YAML frontmatter parser
     types.ts                ← Shared TypeScript types
 tsconfig.json               ← TypeScript config for scripts/ (NodeNext)
 tsconfig.web.json           ← TypeScript config for assets/src/ (bundler + DOM)
-CATALOG.md                  ← Human-readable catalog with suggested bundles
+CATALOG.md                  ← Human-readable catalog with suggested bundles (gitignored; build output)
+catalog.html                ← Standalone styled catalog page deployed to GitHub Pages (gitignored; build output)
 CHANGELOG.md                ← Version history (Keep a Changelog format)
 README.md                   ← Project overview and quick-start
 index.html                  ← Static web UI for browsing the marketplace

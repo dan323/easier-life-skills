@@ -877,6 +877,136 @@ footer a:hover { text-decoration: underline; }
 }
 #entity-panel.open .entity-panel-content { transform: translateX(0); }
 
+/* ── Catalog page (catalog.html) ── */
+body.catalog-page footer {
+  position: static;
+  margin-top: 48px;
+}
+
+.catalog-page main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 24px;
+}
+
+.catalog-page .catalog-header {
+  border-bottom: 1px solid var(--border);
+  padding: 0 0 20px;
+  margin-bottom: 28px;
+}
+.catalog-page .catalog-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.catalog-page .catalog-summary {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+
+.catalog-page section { margin-bottom: 40px; }
+
+.catalog-page h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.catalog-page h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 22px 0 10px;
+  color: var(--text);
+}
+
+.catalog-page .count-chip {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.catalog-marketplaces {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 0;
+  margin: 0;
+}
+.catalog-marketplaces a { color: var(--accent); text-decoration: none; }
+.catalog-marketplaces a:hover { text-decoration: underline; }
+
+.catalog-page table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.85rem;
+  margin-bottom: 14px;
+  display: block;
+  overflow-x: auto;
+}
+.catalog-page thead th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+.catalog-page tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.catalog-page tbody tr:last-child td { border-bottom: none; }
+.catalog-page tbody tr:hover { background: var(--surface-hover); }
+
+.catalog-page code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82em;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--text);
+}
+.catalog-page a code { color: var(--accent); border-color: var(--accent-dim); }
+.catalog-page a { color: var(--accent); text-decoration: none; }
+.catalog-page a:hover { text-decoration: underline; }
+
+.catalog-page pre {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  margin: 8px 0 16px;
+}
+.catalog-page pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.catalog-page .bundle-desc {
+  color: var(--text-muted);
+  margin: 2px 0 8px;
+  font-size: 0.88rem;
+}
+
 .panel-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .panel-code-block {
