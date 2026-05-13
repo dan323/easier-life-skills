@@ -36,6 +36,24 @@ export async function bootApp(opts: BootOptions = {}): Promise<Booted> {
   document.documentElement.innerHTML = `<head></head><body></body>`;
   document.body.innerHTML = BODY_HTML;
 
+  // happy-dom v20 ships a no-op localStorage when no --localstorage-file path
+  // is configured (warning visible in the test logs), which silently drops
+  // setItem calls. Replace it with a working in-memory Map-backed store so
+  // tests that exercise localStorage (consent banner, …) behave like a real
+  // browser. Fresh instance per bootApp call → isolation between tests.
+  const storage = new Map<string, string>();
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem:    (key: string) => storage.get(key) ?? null,
+      setItem:    (key: string, val: string) => { storage.set(key, String(val)); },
+      removeItem: (key: string) => { storage.delete(key); },
+      clear:      () => { storage.clear(); },
+      key:        (i: number) => Array.from(storage.keys())[i] ?? null,
+      get length() { return storage.size; },
+    },
+  });
+
   if (opts.hash) location.hash = opts.hash;
   else if (location.hash) history.replaceState(null, '', location.pathname);
 

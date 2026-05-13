@@ -12,7 +12,9 @@ import { EntityPanel }    from './EntityPanel.tsx';
 import type { EntityKind } from './EntityPanel.tsx';
 import { loadMarketplace } from '../marketplace.ts';
 import { readUrlState, writeUrlState } from '../url-state.ts';
-import { track } from '../analytics.ts';
+import { track, getStoredConsent, setStoredConsent } from '../analytics.ts';
+import type { ConsentState } from '../analytics.ts';
+import { ConsentBanner } from './ConsentBanner.tsx';
 import { BUILTIN_REPO } from '../constants.ts';
 import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle, SkillsIndexMeta } from '../types.ts';
 
@@ -45,6 +47,7 @@ export function App() {
 
   const [openPlugin, setOpenPlugin] = useState<Plugin | null>(null);
   const [openEntity, setOpenEntity] = useState<OpenEntity | null>(null);
+  const [consent,    setConsent]    = useState<ConsentState>(getStoredConsent());
 
   useEffect(() => {
     let cancelled = false;
@@ -143,6 +146,16 @@ export function App() {
     setOpenEntity({ kind, entity });
   };
 
+  const handleConsentChoice = (choice: 'granted' | 'denied') => {
+    setConsent(choice);
+    setStoredConsent(choice);
+  };
+
+  const handleManageConsent = () => {
+    setConsent(null);
+    setStoredConsent(null);
+  };
+
   const lowerQuery = query.toLowerCase();
 
   return (
@@ -189,7 +202,7 @@ export function App() {
         />
       </main>
 
-      <Footer generated={meta?.generated} />
+      <Footer generated={meta?.generated} onManageConsent={handleManageConsent} />
 
       <PluginPanel
         plugin={openPlugin}
@@ -212,6 +225,8 @@ export function App() {
         bundles={bundles}
         onClose={() => setOpenEntity(null)}
       />
+
+      <ConsentBanner consent={consent} onChoice={handleConsentChoice} />
 
       <div id="sr-announce" aria-live="polite" aria-atomic="true" class="sr-only" />
     </>

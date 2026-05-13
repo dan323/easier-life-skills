@@ -287,13 +287,35 @@ safe no-op when gtag wasn't loaded, so vitest (which doesn't run
 esbuild and therefore never substitutes `GA_ID`) and unconfigured
 builds both produce zero network requests.
 
-### Privacy
+### Privacy and consent
 
-No PII is captured. Event parameters are skill/plugin names and source
-repo slugs — already publicly visible in the marketplace itself.
-`gtag.js` honours `navigator.doNotTrack` and GA's own consent /
-anonymisation defaults; we don't add a separate consent banner because
-the site stores no user-identifying state.
+The marketplace site is hosted on GitHub Pages and serves EU visitors,
+so the ePrivacy directive ("cookie law") applies: storing GA's `_ga`
+cookie requires explicit consent. We implement this via **Google
+Consent Mode v2** plus a small banner:
+
+- On every page load, `initAnalytics()` installs the GA snippet with
+  **all consent categories defaulting to `denied`** — `gtag.js` loads
+  but no `g/collect` beacon ever fires while consent is denied. This is
+  the Google-recommended pattern for EEA-compliant deployments.
+- The `<ConsentBanner>` component shows on first visit with equally-
+  prominent **Accept** and **Decline** buttons (CNIL guidance: neither
+  option may be visually emphasised over the other). The choice is
+  persisted to `localStorage` under `analytics_consent`.
+- On Accept, the app calls `gtag('consent', 'update', { analytics_storage: 'granted' })`
+  and explicitly fires a `page_view` event (the auto-`page_view` from
+  `gtag('config', …)` was suppressed by the default-denied consent, so
+  the visit would otherwise be uncounted).
+- On Decline, the choice is stored and the banner hides; no events are
+  ever sent for that visitor on this device.
+- The Footer has a **"Manage analytics consent"** button that clears
+  the stored choice and re-shows the banner, so visitors can revoke at
+  any time.
+
+Event parameters carry no PII — only skill/plugin names and source-repo
+slugs that are already publicly visible in the marketplace. Ad-related
+consent categories (`ad_storage`, `ad_user_data`, `ad_personalization`)
+are *never* granted because we don't run ads.
 
 ## Workflows
 

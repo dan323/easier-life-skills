@@ -767,6 +767,87 @@ footer {
 footer a { color: var(--accent); text-decoration: none; }
 footer a:hover { text-decoration: underline; }
 
+/* Inline button styled as a footer link — used by "Manage analytics consent". */
+.footer-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+}
+.footer-link-btn:hover { text-decoration: underline; }
+
+/* ── Consent banner ── */
+.consent-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  z-index: 100;
+  font-size: 0.85rem;
+  color: var(--text);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.consent-banner-text {
+  flex: 1;
+  min-width: 280px;
+  margin: 0;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.consent-banner-link {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.consent-banner-link:hover { text-decoration: none; }
+
+.consent-banner-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Equally-prominent Accept and Decline buttons (CNIL compliance —
+   neither option may be visually emphasised over the other). */
+.consent-banner-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  min-width: 110px;
+}
+.consent-banner-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .consent-banner {
+    padding: 14px 16px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .consent-banner-actions {
+    justify-content: flex-end;
+  }
+  .consent-banner-btn { min-height: 44px; }
+}
+
 /* ── Plugin detail panel ── */
 #plugin-panel {
   position: fixed;

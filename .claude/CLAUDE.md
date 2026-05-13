@@ -54,6 +54,7 @@ assets/
       Header.tsx, QuickStart.tsx, Footer.tsx
       Controls.tsx, Filters.tsx, MarketplaceBar.tsx, Grid.tsx
       PluginPanel.tsx, EntityPanel.tsx
+      ConsentBanner.tsx     ← GA4 consent banner (Consent Mode v2, default-denied)
       CopyButton.tsx, Expandable.tsx
       cards/                ← PluginCard, SkillCard, AgentCard, McpCard, CommandCard, HookCard, BundleCard
   bundle.js                 ← Compiled output — gitignored, built by npm run build

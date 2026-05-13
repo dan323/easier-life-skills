@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.17.1] - 2026-05-13
+
+### Added
+- **Consent banner + GA4 Consent Mode v2** — the deployed marketplace serves EEA visitors, so the `_ga` cookie set by `gtag.js` requires explicit consent under ePrivacy. `assets/src/analytics.ts` now installs the gtag snippet with all consent categories (`analytics_storage`, `ad_storage`, `ad_user_data`, `ad_personalization`) defaulting to `denied`; gtag.js loads but no `g/collect` beacons fire until the user accepts. New `assets/src/components/ConsentBanner.tsx` shows on first visit with equally-prominent Accept / Decline buttons (CNIL guidance — neither option may be visually emphasised). Choice persists in `localStorage` under `analytics_consent` and survives reloads. On Accept, the app calls `gtag('consent', 'update', { analytics_storage: 'granted' })` and explicitly fires a `page_view` event so the visit isn't lost (the auto-pageview at config time was suppressed by the default-denied consent). On Decline, the choice persists and no events ever flow on that device. New "Manage analytics consent" button in the footer lets visitors revoke / re-grant at any time. Ad-related consent categories are never granted because the site runs no ads. New `tests/consent-banner.test.ts` covers first-visit render, Accept/Decline persistence, and footer-revoke; harness gains an in-memory localStorage shim because happy-dom v20 ships a no-op localStorage when no `--localstorage-file` is configured. `docs/architecture.md` → Analytics expanded with a "Privacy and consent" subsection; README's GA mention now references the consent flow.
+
+### Fixed
+- **GA4 events never reaching the server from EEA traffic** — root cause of "everything wired, nothing in DebugView, zero `g/collect` requests in Network": GA4 defaults `analytics_storage` to `denied` in EEA when Consent Mode isn't explicitly configured, so `gtag.js` queues events to `dataLayer` but never dispatches them. Fixed by the consent flow above. After the user accepts, events flow normally.
+
 ## [1.17.0] - 2026-05-13
 
 ### Added
@@ -270,7 +278,8 @@
 - `improve-logging` skill
 - `brainstorm` skill
 
-[Unreleased]: https://github.com/dan323/easier-life-skills/compare/v1.17.0...HEAD
+[Unreleased]: https://github.com/dan323/easier-life-skills/compare/v1.17.1...HEAD
+[1.17.1]: https://github.com/dan323/easier-life-skills/compare/v1.17.0...v1.17.1
 [1.17.0]: https://github.com/dan323/easier-life-skills/compare/v1.16.0...v1.17.0
 [1.5.0]: https://github.com/dan323/skill-easy-life/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/dan323/skill-easy-life/compare/v1.3.0...v1.4.0
