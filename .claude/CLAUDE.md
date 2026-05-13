@@ -43,6 +43,7 @@ The installer lives in `installer/` and requires Node.js ≥ 18.
 assets/
   src/                      ← TypeScript / Preact source for the web UI
     app.tsx                 ← Entry point — renders <App> into #root (esbuild)
+    analytics.ts            ← Optional GA4 wiring (initAnalytics + track); gated on the GA_ID build-time define
     api.ts                  ← Fetches skills_index.json
     constants.ts            ← BUILTIN_REPO and other constants
     marketplace.ts          ← Pure data loader (returns parsed index + source counts)
@@ -212,6 +213,7 @@ Include at least 3–5 evals per plugin. Cover the happy path, idempotent re-run
 | `scaffold`               | 1.0.0   | Productivity  | Generate a complete plugin skeleton (plugin.json, SKILL.md, evals, optional agents/references) from a prompt    |
 | `site-audit`             | 1.3.0   | Code Quality  | Audit a website for UX, accessibility, performance, and bugs — fans out to specialised sub-agents in parallel   |
 | `task-agent`             | 1.1.0   | Automation    | Read tasks from agent-tasks.yml, spawn agents per task, open PRs, and automatically fix Copilot review comments |
+| `workflow`               | 1.0.0   | Automation    | Run multi-step skill workflows declared in workflow YAML — sequential execution with `${{ … }}` interpolation   |
 
 ## Adding a New Plugin
 

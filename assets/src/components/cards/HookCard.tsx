@@ -42,6 +42,10 @@ export function HookCard({ hook, showSource, showInstall, onOpen }: Props) {
             text={hook.installCommand}
             ariaLabel={`Copy install command for ${hook.name}`}
             stopPropagation
+            analyticsEvent={{
+              name:   'install_copy',
+              params: { kind: 'hook', name: hook.name, source: hook._repo ?? '', command_type: 'install' },
+            }}
           />
         </div>
       )}

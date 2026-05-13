@@ -36,6 +36,7 @@ Or copy the right command directly from the [marketplace browser](#marketplace-b
 | [`task-agent`](plugins/task-agent/skills/task-agent/SKILL.md)                                     | Read tasks from `agent-tasks.yml`, implement each via an agent, open PRs, and fix Copilot review comments automatically |
 | [`find-skills`](plugins/find-skills/skills/find-skills/SKILL.md)                                  | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces                         |
 | [`scaffold`](plugins/scaffold/skills/scaffold/SKILL.md)                                           | Generate a complete plugin skeleton (`plugin.json`, `SKILL.md`, evals, optional agents/references) from a single prompt |
+| [`workflow`](plugins/workflow/skills/workflow/SKILL.md)                                           | Run multi-step skill workflows declared in workflow YAML — sequential execution with `${{ … }}` interpolation          |
 
 ### Agents
 
@@ -58,6 +59,8 @@ Browse and search skills, agents, commands, hooks, and MCP servers from **multip
 | Click a **plugin card**          | Open a detail panel; for non-builtin sources the panel shows both the `marketplace add` and `plugin install` commands |
 
 The list of aggregated marketplaces is defined in [`marketplaces.json`](marketplaces.json); a PR adding your own marketplace there will surface it on the next build.
+
+The deployed site uses **Google Analytics 4** for aggregate engagement metrics (panel opens and install-command copies). No PII is captured and forks/local dev have it off by default — see [`docs/architecture.md` → Analytics](docs/architecture.md#analytics) for details and how to wire your own GA4 id.
 
 ## Bundles
 

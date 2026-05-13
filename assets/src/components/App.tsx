@@ -12,6 +12,7 @@ import { EntityPanel }    from './EntityPanel.tsx';
 import type { EntityKind } from './EntityPanel.tsx';
 import { loadMarketplace } from '../marketplace.ts';
 import { readUrlState, writeUrlState } from '../url-state.ts';
+import { track } from '../analytics.ts';
 import { BUILTIN_REPO } from '../constants.ts';
 import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle, SkillsIndexMeta } from '../types.ts';
 
@@ -128,6 +129,18 @@ export function App() {
 
   const copyAdd = (repo: string) => {
     navigator.clipboard.writeText(`/plugin marketplace add ${repo}`);
+    track('install_copy', { kind: 'marketplace', name: repo, source: repo, command_type: 'marketplace_add' });
+  };
+
+  const handleOpenPlugin = (p: Plugin) => {
+    track('entity_open', { kind: 'plugin', name: p.name, source: p._repo ?? '' });
+    setOpenPlugin(p);
+  };
+
+  type AnyEntity = Skill | Agent | McpServer | Command | Hook;
+  const handleOpenEntity = (kind: EntityKind, entity: AnyEntity) => {
+    track('entity_open', { kind, name: entity.name, source: entity._repo ?? '' });
+    setOpenEntity({ kind, entity });
   };
 
   const lowerQuery = query.toLowerCase();
@@ -167,12 +180,12 @@ export function App() {
           activeRepos={activeRepos}
           activeCategories={activeCategories}
           data={{ plugins, skills, agents, mcpServers, commands, hooks, bundles }}
-          onOpenPlugin={setOpenPlugin}
-          onOpenSkill={e => setOpenEntity({ kind: 'skill',     entity: e })}
-          onOpenAgent={e => setOpenEntity({ kind: 'agent',     entity: e })}
-          onOpenMcp={e   => setOpenEntity({ kind: 'mcpServer', entity: e })}
-          onOpenCommand={e => setOpenEntity({ kind: 'command', entity: e })}
-          onOpenHook={e  => setOpenEntity({ kind: 'hook',      entity: e })}
+          onOpenPlugin={handleOpenPlugin}
+          onOpenSkill={e => handleOpenEntity('skill',     e)}
+          onOpenAgent={e => handleOpenEntity('agent',     e)}
+          onOpenMcp={e   => handleOpenEntity('mcpServer', e)}
+          onOpenCommand={e => handleOpenEntity('command', e)}
+          onOpenHook={e  => handleOpenEntity('hook',      e)}
         />
       </main>
 
@@ -187,11 +200,11 @@ export function App() {
         hooks={hooks}
         bundles={bundles}
         onClose={() => setOpenPlugin(null)}
-        onOpenSkill={s => setOpenEntity({ kind: 'skill',     entity: s })}
-        onOpenAgent={a => setOpenEntity({ kind: 'agent',     entity: a })}
-        onOpenMcp={m   => setOpenEntity({ kind: 'mcpServer', entity: m })}
-        onOpenCommand={c => setOpenEntity({ kind: 'command', entity: c })}
-        onOpenHook={h  => setOpenEntity({ kind: 'hook',      entity: h })}
+        onOpenSkill={s => handleOpenEntity('skill',     s)}
+        onOpenAgent={a => handleOpenEntity('agent',     a)}
+        onOpenMcp={m   => handleOpenEntity('mcpServer', m)}
+        onOpenCommand={c => handleOpenEntity('command', c)}
+        onOpenHook={h  => handleOpenEntity('hook',      h)}
       />
 
       <EntityPanel

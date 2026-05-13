@@ -43,6 +43,9 @@ jobs:
         run: npm run build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Optional: set vars.GA_MEASUREMENT_ID (Settings → Secrets and variables → Actions → Variables)
+          # to a GA4 id like G-XXXXXXXXXX. Unset = analytics no-op (no script loaded, no events sent).
+          GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
 
       - name: Commit marketplace.json if changed
         run: |

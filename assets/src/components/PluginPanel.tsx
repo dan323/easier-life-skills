@@ -185,6 +185,10 @@ function PluginPanelBody({
             label="Copy add"
             className="panel-copy-btn"
             ariaLabel={`Copy marketplace add command for ${sourceKey}`}
+            analyticsEvent={{
+              name:   'install_copy',
+              params: { kind: 'plugin', name: plugin.name, source: sourceKey, command_type: 'marketplace_add' },
+            }}
           />
         </div>
         <div class="panel-install-row">
@@ -195,6 +199,10 @@ function PluginPanelBody({
             label="Copy install"
             className="panel-copy-btn"
             ariaLabel={`Copy install command for ${plugin.name}`}
+            analyticsEvent={{
+              name:   'install_copy',
+              params: { kind: 'plugin', name: plugin.name, source: sourceKey, command_type: 'install' },
+            }}
           />
         </div>
       </div>

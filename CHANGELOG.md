@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0] - 2026-05-13
+
+### Added
+- **Google Analytics 4 wiring on the deployed marketplace site** (Feature 3a from `docs/plan.md`, scoped down from the original telemetry plan). `assets/src/analytics.ts` injects `gtag.js` and configures it on app boot when a `GA_ID` build-time define is set. The id flows through `esbuild --define:GA_ID="\"${GA_MEASUREMENT_ID:-}\""` in `package.json` and `.github/workflows/pages.yml`'s `GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}` env. Unset = no script loaded, no events sent, so forks and local dev stay clean by default and vitest never makes a network request (the `typeof GA_ID === 'undefined'` guard short-circuits when esbuild's substitution didn't happen). Two custom events fire with high-signal-only intent: `entity_open` (any plugin/skill/agent/MCP/command/hook card opens its detail panel — params: `kind`, `name`, `source`) and `install_copy` (an install command or `marketplace add` is copied — params: `kind`, `name`, `source`, `command_type: install | marketplace_add`). Standard GA4 pageviews flow automatically; chatty events like view switches, search queries, filter toggles, and sort flips are deliberately not tracked. Wiring touches `app.tsx` (boot), `App.tsx` (`handleOpenPlugin` / `handleOpenEntity` / `copyAdd` instrumented), `CopyButton.tsx` (new optional `analyticsEvent` prop fired on click), and the five entity cards + `EntityPanel.tsx` + `PluginPanel.tsx` install/marketplace_add rows. The deferred Feature 3b (skill-execution telemetry that GA can't see) is intentionally not built — see `docs/plan.md` for the rationale. `docs/architecture.md` has a new "Analytics" section covering enable instructions, event schema, and privacy stance.
+
+- **`workflow` plugin** — declarative YAML format for chaining skills into multi-step pipelines (Feature 2 from `docs/plan.md`). New `plugins/workflow/` plugin ships a runner skill that parses `workflow.yaml`, validates inputs and step ids, resolves `${{ inputs.<name> }}` / `${{ steps.<id>.output }}` interpolation, spawns one subagent per step via the `Agent` tool, captures output from `$WORKFLOW_OUTPUT` (or stdout as a fallback), and writes a `workflow-output.json` summary. Execution is strictly sequential — if a step exits non-zero the runner halts and marks subsequent steps as skipped. The authoritative schema lives in `plugins/workflow/references/format.md`; `plugins/workflow/examples/document-and-deploy.yaml` shows a brainstorm → document → PR pipeline. Four evals cover happy path, missing required input, failing step, and idempotent re-run. v1 deliberately defers conditionals, parallelism, retries, secrets injection, and top-level outputs; the reasons are tabulated in `docs/architecture.md` and the format reference. Workflows are **plugin-internal config**, not a separate marketplace entity — the build pipeline doesn't index them, and the runner reads any YAML path the user supplies. Promoting workflows to a first-class marketplace entity is deferred until multiple external marketplaces start authoring them (originally drafted as a top-level entity, rolled back as over-engineering for a single-source, single-author surface). Documentation: `docs/architecture.md` describes the runner + future-work list; `docs/contributing.md` has a new "Authoring a Workflow" section; `.claude/CLAUDE.md` and `README.md` list the plugin in their Current Plugins / plugins tables.
+
 ## [1.16.0] - 2026-05-13
 
 ### Added
@@ -263,7 +270,8 @@
 - `improve-logging` skill
 - `brainstorm` skill
 
-[Unreleased]: https://github.com/dan323/skill-easy-life/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/dan323/easier-life-skills/compare/v1.17.0...HEAD
+[1.17.0]: https://github.com/dan323/easier-life-skills/compare/v1.16.0...v1.17.0
 [1.5.0]: https://github.com/dan323/skill-easy-life/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/dan323/skill-easy-life/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/dan323/skill-easy-life/compare/v1.2.0...v1.3.0

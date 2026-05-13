@@ -39,6 +39,10 @@ export function AgentCard({ agent, showSource, showInstall, onOpen }: Props) {
             text={agent.installCommand}
             ariaLabel={`Copy install command for ${agent.name}`}
             stopPropagation
+            analyticsEvent={{
+              name:   'install_copy',
+              params: { kind: 'agent', name: agent.name, source: agent._repo ?? '', command_type: 'install' },
+            }}
           />
         </div>
       )}

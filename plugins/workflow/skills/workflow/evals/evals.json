@@ -1,0 +1,89 @@
+{
+  "skill_name": "workflow",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "workflow /tmp/eval-workflow-0/happy-path.yaml feature_count=2",
+      "description": "Happy path — a two-step workflow where step 2 references step 1's output. Both steps are stub skills that write deterministic output.json files. The runner must execute them in order, substitute the interpolation, and write workflow-output.json with both steps marked success.",
+      "setup": "mkdir -p /tmp/eval-workflow-0 && cat > /tmp/eval-workflow-0/happy-path.yaml << 'EOF'\nname: happy-path\ndescription: Two-step demo.\ninputs:\n  - name: feature_count\n    default: 1\nsteps:\n  - id: pick\n    skill: stub-pick\n    args:\n      n: ${{ inputs.feature_count }}\n  - id: render\n    skill: stub-render\n    inputs:\n      picked: ${{ steps.pick.output }}\nEOF",
+      "expected_output": "Workflow runs to completion. `workflow-output.json` contains two `steps` entries with `status: success`. The second step receives the first step's output as its `picked` input.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "summary-success",
+          "text": "workflow-output.json has top-level `status: success`."
+        },
+        {
+          "id": "steps-order",
+          "text": "The `steps` array in workflow-output.json lists `pick` before `render`."
+        },
+        {
+          "id": "interpolation-resolved",
+          "text": "The render step's resolved `picked` argument equals the contents of pick/output.json (or its stdout fallback)."
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "workflow /tmp/eval-workflow-1/missing-input.yaml",
+      "description": "Missing required input — the workflow declares an input without a default and the caller doesn't supply one. The runner must halt before executing any step and surface a clear error.",
+      "setup": "mkdir -p /tmp/eval-workflow-1 && cat > /tmp/eval-workflow-1/missing-input.yaml << 'EOF'\nname: missing-input\ndescription: Requires `target` with no default.\ninputs:\n  - name: target\nsteps:\n  - id: only\n    skill: stub-pick\n    args:\n      t: ${{ inputs.target }}\nEOF",
+      "expected_output": "The runner reports an error like `Missing required input 'target'. Supply as target=...` and does not create any step output directories.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "error-mentions-target",
+          "text": "The output contains the string `Missing required input 'target'`."
+        },
+        {
+          "id": "no-steps-run",
+          "text": "No `output.json` files are created under any subdirectory of `.workflow-runs/missing-input-*`."
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "workflow /tmp/eval-workflow-2/failing-step.yaml",
+      "description": "A step exits non-zero — the runner must record that step as failed, mark subsequent steps as skipped, and exit non-zero overall.",
+      "setup": "mkdir -p /tmp/eval-workflow-2 && cat > /tmp/eval-workflow-2/failing-step.yaml << 'EOF'\nname: failing-step\ndescription: First step fails.\nsteps:\n  - id: boom\n    skill: stub-fail\n  - id: never\n    skill: stub-pick\nEOF",
+      "expected_output": "workflow-output.json has top-level `status: failed`. The `boom` step is `failed`; the `never` step is `skipped`. The runner prints the captured stderr for the failed step.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "status-failed",
+          "text": "workflow-output.json has `status: failed` at the top level."
+        },
+        {
+          "id": "boom-failed",
+          "text": "The `boom` step's entry has `status: failed`."
+        },
+        {
+          "id": "never-skipped",
+          "text": "The `never` step's entry has `status: skipped` and no output_path."
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "workflow /tmp/eval-workflow-3/idempotent.yaml feature_count=1",
+      "description": "Idempotent re-run — running the same workflow twice in a row produces two distinct timestamped run directories under `.workflow-runs/`. Neither run modifies the workflow file or any prior run's contents.",
+      "setup": "mkdir -p /tmp/eval-workflow-3 && cat > /tmp/eval-workflow-3/idempotent.yaml << 'EOF'\nname: idempotent\ndescription: Tiny one-step workflow.\ninputs:\n  - name: feature_count\n    default: 1\nsteps:\n  - id: only\n    skill: stub-pick\n    args:\n      n: ${{ inputs.feature_count }}\nEOF",
+      "expected_output": "After running the workflow twice, `.workflow-runs/` contains two distinct directories matching `idempotent-*`. Both have a `workflow-output.json` with `status: success`. The workflow YAML itself is byte-identical to the setup version.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "two-run-dirs",
+          "text": "`.workflow-runs/` contains exactly two directories matching `idempotent-*` after the skill runs twice."
+        },
+        {
+          "id": "workflow-untouched",
+          "text": "The workflow YAML at /tmp/eval-workflow-3/idempotent.yaml is byte-identical to the setup content."
+        },
+        {
+          "id": "both-succeed",
+          "text": "Both run directories have a workflow-output.json with `status: success`."
+        }
+      ]
+    }
+  ]
+}

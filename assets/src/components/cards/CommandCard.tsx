@@ -38,6 +38,10 @@ export function CommandCard({ command: cmd, showSource, showInstall, onOpen }: P
             text={cmd.installCommand}
             ariaLabel={`Copy install command for ${cmd.name}`}
             stopPropagation
+            analyticsEvent={{
+              name:   'install_copy',
+              params: { kind: 'command', name: cmd.name, source: cmd._repo ?? '', command_type: 'install' },
+            }}
           />
         </div>
       )}

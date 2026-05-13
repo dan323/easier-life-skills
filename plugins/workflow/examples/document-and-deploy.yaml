@@ -1,0 +1,36 @@
+# Example workflow — referenced from the README and the architecture doc.
+#
+# Chains three existing skills:
+#   1. brainstorm        — pick N high-value features from the active repo
+#   2. document-project  — generate README + docs/ scaffolding for each idea
+#   3. task-agent        — open a PR with the new docs
+#
+# See ../references/format.md for the full schema.
+
+name: document-and-deploy
+description: Brainstorm features, document the top ones, and open a PR.
+category: documentation
+
+inputs:
+  - name: feature_count
+    default: 3
+    description: How many features brainstorm should propose.
+
+steps:
+  - id: ideas
+    skill: brainstorm
+    description: Pick the highest-value features in this repo.
+    args:
+      count: ${{ inputs.feature_count }}
+
+  - id: docs
+    skill: document-project
+    description: Generate README + docs/ pages covering those features.
+    inputs:
+      ideas: ${{ steps.ideas.output }}
+
+  - id: pr
+    skill: task-agent
+    description: Open a PR adding the new docs.
+    inputs:
+      tasks: "Open a PR adding the docs produced in step `docs`."

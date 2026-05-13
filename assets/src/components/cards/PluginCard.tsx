@@ -60,6 +60,10 @@ export function PluginCard({ plugin, showSource, onOpen }: Props) {
           text={plugin.installCommand}
           ariaLabel={`Copy install command for ${plugin.name}`}
           stopPropagation
+          analyticsEvent={{
+            name:   'install_copy',
+            params: { kind: 'plugin', name: plugin.name, source: plugin._repo ?? '', command_type: 'install' },
+          }}
         />
       </div>
     </div>

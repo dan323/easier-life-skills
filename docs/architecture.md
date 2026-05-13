@@ -36,6 +36,7 @@ easier-life-skills/
 ├── assets/
 │   ├── src/                 TypeScript / Preact source for the website (compiled to bundle.js by esbuild)
 │   │   ├── app.tsx          Boot — renders the <App> component into #root (esbuild entry point)
+│   │   ├── analytics.ts     Optional GA4 wiring — gated on the GA_ID build-time define
 │   │   ├── api.ts           Fetches skills_index.json from GitHub
 │   │   ├── constants.ts     Shared constants (e.g. BUILTIN_REPO)
 │   │   ├── marketplace.ts   Pure data loader — returns { plugins, skills, agents, … , sources, meta } or an error envelope
@@ -243,6 +244,100 @@ The body is structured as numbered phases. Each phase has:
 **Read-only by default** — skills that analyse code (find-dead-code, improve-logging) produce reports only and declare no `Write` or `Edit` tools. The build pipeline detects this automatically from the `tools` frontmatter. Skills that write files (changelog, document-project) still preserve all existing content.
 
 **Framework-aware** — skills account for runtime patterns that make code appear unused (DI annotations, reflection, decorators) to avoid false positives.
+
+## Analytics
+
+The marketplace web UI uses **Google Analytics 4** for aggregate usage
+visibility on the deployed site. The wiring is opt-in via a build-time
+environment variable — when unset, `gtag.js` is never loaded and no
+events are sent, so forks and local dev stay clean by default.
+
+### Enabling
+
+Set a GitHub Actions *variable* (not a secret — measurement ids are
+public) called `GA_MEASUREMENT_ID` to your GA4 id (e.g. `G-XXXXXXXXXX`).
+`.github/workflows/pages.yml` passes it to `npm run build` as the
+`GA_MEASUREMENT_ID` env var, which `package.json` substitutes into the
+bundle via `esbuild --define:GA_ID`.
+
+Locally, `GA_MEASUREMENT_ID=G-XXX npm run dev` enables the same wiring.
+
+### Events tracked
+
+Two custom events, chosen so the signal stays high and the data stays
+readable in GA:
+
+| Event           | Fires when                                                                | Parameters                                                |
+|-----------------|---------------------------------------------------------------------------|-----------------------------------------------------------|
+| `entity_open`   | A plugin/skill/agent/MCP/command/hook card opens its detail panel         | `{ kind, name, source }`                                  |
+| `install_copy`  | An install command or `marketplace add` command is copied to clipboard    | `{ kind, name, source, command_type: install \| marketplace_add }` |
+
+Standard GA4 page views are emitted automatically by `gtag.js`. We
+deliberately do *not* track search queries, tab switches, filter
+toggles, or scroll events — they accumulate noise without changing
+maintainer decisions, and the GA UI surfaces aggregate engagement
+without per-event instrumentation.
+
+### Implementation
+
+`assets/src/analytics.ts` is the entire wiring. `initAnalytics()` runs
+once from `app.tsx` on boot; it injects `gtag.js` and configures it if
+`GA_ID` looks like a GA4 measurement id. `track(event, params)` is a
+safe no-op when gtag wasn't loaded, so vitest (which doesn't run
+esbuild and therefore never substitutes `GA_ID`) and unconfigured
+builds both produce zero network requests.
+
+### Privacy
+
+No PII is captured. Event parameters are skill/plugin names and source
+repo slugs — already publicly visible in the marketplace itself.
+`gtag.js` honours `navigator.doNotTrack` and GA's own consent /
+anonymisation defaults; we don't add a separate consent banner because
+the site stores no user-identifying state.
+
+## Workflows
+
+A **workflow** is a YAML file that chains multiple skills into a single
+multi-step pipeline. The `workflow` plugin (`plugins/workflow/`) ships a
+runner skill that consumes these files; workflows are otherwise just
+config — they are **not** a separate marketplace entity type, and the
+build pipeline does not index them.
+
+```mermaid
+flowchart LR
+    A[workflow.yaml] --> B[workflow runner skill]
+    B -->|step 1| S1[Agent: brainstorm]
+    S1 -->|output.json| B
+    B -->|step 2| S2[Agent: document-project]
+    S2 -->|output.json| B
+    B -->|step 3| S3[Agent: task-agent]
+    S3 -->|output.json| B
+    B --> O[workflow-output.json]
+```
+
+The runner parses the YAML, validates inputs and step ids, resolves
+`${{ … }}` interpolation, then spawns one subagent per step using the
+`Agent` tool. Each step's output is captured either from `$WORKFLOW_OUTPUT`
+(a per-step JSON file) or from stdout as a fallback, so older skills that
+don't write structured output still compose. Execution is **strictly
+sequential**; if a step exits non-zero the runner halts immediately and
+writes a summary marking subsequent steps as `skipped`.
+
+The authoritative schema lives in
+[`plugins/workflow/references/format.md`](../plugins/workflow/references/format.md);
+the canonical example is
+[`plugins/workflow/examples/document-and-deploy.yaml`](../plugins/workflow/examples/document-and-deploy.yaml).
+
+### Future work (deferred from v1)
+
+| Feature                 | Why deferred                                                                                              |
+|-------------------------|-----------------------------------------------------------------------------------------------------------|
+| Conditional steps (`if:`) | Adds an expression evaluator surface — defer until linear execution proves useful.                        |
+| Parallel fan-out          | Requires resolving cross-branch dependencies; sequential covers the high-value cases first.               |
+| Retries / backoff         | Encourages hiding flaky skills instead of fixing them.                                                    |
+| Secrets injection         | Needs a secrets-store contract; for v1, secrets are passed as inputs by the caller.                       |
+| Top-level `outputs:`      | A curated subset of step outputs is a v2 refinement once nested compositions exist.                       |
+| Marketplace entity        | Workflows are currently plugin-internal config. Promote to a first-class entity only when multiple external marketplaces start authoring them. |
 
 ## Sub-Agents
 

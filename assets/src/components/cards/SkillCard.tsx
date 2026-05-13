@@ -40,6 +40,10 @@ export function SkillCard({ skill, showSource, showInstall, onOpen }: Props) {
             text={skill.installCommand}
             ariaLabel={`Copy install command for ${skill.name}`}
             stopPropagation
+            analyticsEvent={{
+              name:   'install_copy',
+              params: { kind: 'skill', name: skill.name, source: skill._repo ?? '', command_type: 'install' },
+            }}
           />
         </div>
       )}

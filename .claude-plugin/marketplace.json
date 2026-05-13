@@ -88,6 +88,13 @@
       "description": "Read tasks from agent-tasks.yml, implement each via an agent, and open PRs",
       "category": "automation",
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/task-agent"
+    },
+    {
+      "name": "workflow",
+      "source": "./plugins/workflow",
+      "description": "Run multi-step skill workflows declared in workflow.yaml — sequential execution, ${{ … }} interpolation between steps, JSON-or-stdout output capture.",
+      "category": "automation",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/workflow"
     }
   ]
 }

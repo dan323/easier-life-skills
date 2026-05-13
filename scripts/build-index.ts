@@ -9,7 +9,7 @@ import { join, dirname }                          from 'path';
 import { fileURLToPath }                          from 'url';
 import { fetchMarketplaceSkills }                 from './lib/fetch-marketplace.js';
 import { generateCatalog, generateCatalogHtml }   from './lib/catalog.js';
-import type { MarketplaceEntry, Plugin, Skill, Bundle, Hook } from './lib/types.js';
+import type { Agent, Command, MarketplaceEntry, McpServer, Plugin, Skill, Bundle, Hook } from './lib/types.js';
 
 const ROOT         = join(dirname(fileURLToPath(import.meta.url)), '..');
 const marketplaces = JSON.parse(readFileSync(join(ROOT, 'marketplaces.json'), 'utf8')) as MarketplaceEntry[];
@@ -78,9 +78,9 @@ const OVERRIDES: Record<string, {
 
 const allPlugins:    Plugin[]  = [];
 const allSkills:     Skill[]   = [];
-const allAgents:     import('./lib/types.js').Agent[]     = [];
-const allMcpServers: import('./lib/types.js').McpServer[] = [];
-const allCommands:   import('./lib/types.js').Command[]   = [];
+const allAgents:     Agent[]     = [];
+const allMcpServers: McpServer[] = [];
+const allCommands:   Command[]   = [];
 const allHooks:      Hook[]    = [];
 
 for (const { owner, repo } of marketplaces) {

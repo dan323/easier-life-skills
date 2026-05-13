@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks';
+import { track } from '../analytics.ts';
 
 interface Props {
   text:     string;
@@ -7,9 +8,10 @@ interface Props {
   className?: string;
   stopPropagation?: boolean;
   id?:      string;
+  analyticsEvent?: { name: string; params: Record<string, unknown> };
 }
 
-export function CopyButton({ text, label = 'Copy', ariaLabel, className = 'copy-btn', stopPropagation, id }: Props) {
+export function CopyButton({ text, label = 'Copy', ariaLabel, className = 'copy-btn', stopPropagation, id, analyticsEvent }: Props) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -21,6 +23,7 @@ export function CopyButton({ text, label = 'Copy', ariaLabel, className = 'copy-
       data-copy={text}
       onClick={e => {
         if (stopPropagation) e.stopPropagation();
+        if (analyticsEvent) track(analyticsEvent.name, analyticsEvent.params);
         navigator.clipboard.writeText(text).then(() => {
           setCopied(true);
           const announce = document.getElementById('sr-announce');

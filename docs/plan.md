@@ -19,8 +19,8 @@ order.
 | # | Feature                                                                        | Effort   | Type    | Status                  |
 |---|--------------------------------------------------------------------------------|----------|---------|-------------------------|
 | 1 | [Skill Rating & Review System](#1-skill-rating--review-system)                 | 2–3 days | Feature | Not started             |
-| 2 | [Skill Composition & Workflow Format](#2-skill-composition--workflow-format)   | 3–4 days | Feature | Not started             |
-| 3 | [Usage Analytics & Insights Dashboard](#3-usage-analytics--insights-dashboard) | 3–4 days | Feature | Not started             |
+| 2 | [Skill Composition & Workflow Format](#2-skill-composition--workflow-format)   | 3–4 days | Feature | **Done (v1.17.0)**      |
+| 3 | [Usage Analytics & Insights Dashboard](#3-usage-analytics--insights-dashboard) | 3–4 days | Feature | **3a Done (v1.17.0) · 3b deferred** |
 | 4 | [Skill Scaffold Generator](#4-skill-scaffold-generator)                        | 2–3 days | Feature | **Done (v1.16.0)**      |
 
 ### 1. Skill Rating & Review System
@@ -113,6 +113,17 @@ Two halves:
 - `docs/architecture.md` describes the pipeline.
 
 ### 2. Skill Composition & Workflow Format
+
+> **Status: Done — shipped in v1.17.0.**
+> Implemented as the `workflow` plugin (runner SKILL.md + format reference
+> + example). Linear execution only; the deferred items in the **Risks**
+> subsection below are documented in `docs/architecture.md` as "Future
+> work". Workflows are **plugin-internal config**, not a separate
+> marketplace entity — the build pipeline does not index them. The
+> original design treated them as a first-class entity alongside skills /
+> agents / commands / hooks / MCP servers, but that surface was rolled
+> back as over-engineered for a single-source, single-author feature. See
+> the **Deviations** subsection at the end.
 
 #### Goal
 
@@ -228,12 +239,54 @@ Notes on the design:
 
 #### Done when
 
-- `plugins/workflow/` builds and appears in the marketplace.
-- The `document-and-deploy.yaml` example runs end-to-end in an eval.
-- A workflow entity is filterable in the web UI and shows its step list.
-- `npm test` passes including new fixtures.
+- `plugins/workflow/` builds and the runner skill is installable. ✅
+- The `document-and-deploy.yaml` example runs end-to-end in an eval. ⏳ (evals authored; run with the `skill-creator` skill)
+- `npm test` passes. ✅
+
+#### Deviations from the original design (for the next iteration)
+
+- **Workflows are not a marketplace entity.** The original plan called for
+  a top-level `workflow` entity surfaced alongside skill/agent/command/
+  hook/mcpServer in the build index and web UI. That was implemented and
+  then rolled back: only this repo authors workflow YAML, so the new tab
+  was effectively a single-source view, paying ~150 LoC of YAML extraction
+  + type plumbing + web wiring for one entry. Workflows are now treated
+  as plugin-internal config consumed by the `workflow` runner skill;
+  promote them to a first-class entity only when multiple external
+  marketplaces start producing them.
+- The runner writes a per-step output to
+  `$WORKFLOW_DIR/<id>/output.json`. The original plan didn't pin a
+  directory; the implemented behaviour mirrors GitHub Actions' artifact
+  layout for familiarity.
 
 ### 3. Usage Analytics & Insights Dashboard
+
+> **Status: Feature 3a Done (v1.17.0), Feature 3b deferred.** The
+> original plan assumed there was no analytics on the marketplace site;
+> in practice the maintainer already has a Google Analytics account, so
+> we scoped the work in two:
+>
+> - **Feature 3a — Wire GA4 on the deployed site (Done).** Two custom
+>   events (`entity_open`, `install_copy`) are sent from the web UI via
+>   a build-time-gated `gtag.js`. Maintainer reads the data in GA's own
+>   dashboard; no marketplace-side badges, no popularity sort. Cost:
+>   half-day, ~90 LoC across `assets/src/analytics.ts`, the entry
+>   point, `CopyButton.tsx`, the five entity cards, and the two
+>   detail panels. Documented in `docs/architecture.md` → Analytics.
+>
+> - **Feature 3b — Skill-execution telemetry (Deferred).** The big-ticket
+>   part of the original plan — an opt-in CLI, ingest endpoint, daily
+>   aggregator, privacy doc, and per-skill instrumentation that lets the
+>   site show `Used 5.2k times this month` / `98% success rate` badges
+>   — captures behaviour that GA literally cannot see (skills run on
+>   user laptops, not in browsers). Deferred until there's evidence
+>   maintainer/user trust actually benefits from these badges; for now
+>   GA's web-side engagement signals + the rating system (Feature 1) are
+>   expected to cover the trust-and-direction use cases.
+>
+> The notes below describe the original plan in full; the implemented
+> Feature 3a is a small subset (web-UI events only). The **Deviations**
+> subsection at the end summarises what changed.
 
 #### Goal
 
@@ -326,13 +379,27 @@ opinion, telemetry is behaviour, and they reinforce each other.
 
 #### Done when
 
-- `claude-skills telemetry on` records consent locally and skills emit
-  events.
-- `analytics.json` is regenerated daily.
-- The web UI shows runs / success rate / popularity badges on at least
-  three fixture skills, and tests cover the new sort + display.
-- `docs/privacy.md` exists and is linked from the README and the CLI's
-  consent prompt.
+- `claude-skills telemetry on` records consent locally and skills emit events. ⏳ (Feature 3b, deferred)
+- `analytics.json` is regenerated daily. ⏳ (Feature 3b, deferred)
+- The web UI shows runs / success rate / popularity badges on at least three fixture skills, and tests cover the new sort + display. ⏳ (Feature 3b, deferred)
+- `docs/privacy.md` exists and is linked from the README and the CLI's consent prompt. ⏳ (Feature 3b, deferred)
+- **Feature 3a** ships GA4 wiring on the deployed site with `entity_open` + `install_copy` events. ✅
+
+#### Deviations from the original design (for the next iteration)
+
+- **Maintainer already has GA**; the analytics question split into web-side
+  engagement (covered by GA4, shipped as Feature 3a) and skill-execution
+  telemetry (the opt-in CLI + ingest endpoint + aggregator that GA can't
+  see, Feature 3b). The original plan conflated the two.
+- **No marketplace-side badges in v1.** The `5.2k runs` / `98% success`
+  badges and the `Popularity` sort require execution data, not GA data —
+  they're deferred with Feature 3b. The maintainer reads engagement
+  signals in GA directly until there's a clear user-facing reason for the
+  badges. (This mirrors the workflow-entity rollback: don't surface UI
+  that produces nothing visible until the data substrate exists.)
+- **GA config via `vars` not `secrets`.** Measurement ids are publicly
+  visible anyway, so `vars.GA_MEASUREMENT_ID` is correct. The original
+  plan didn't take a position on this.
 
 ### 4. Skill Scaffold Generator
 
@@ -466,17 +533,15 @@ Next steps:
 
 ### Sequencing recommendation
 
-Feature 4 is shipped. Recommended next-up order:
+Features 2, 3a, and 4 are shipped. Recommended next-up order:
 
 1. **Feature 1 (Ratings)** — bounded surface area, exercises the build
-   pipeline's "merge external data into the index" pattern, which Feature 3
-   reuses.
-2. **Feature 3 (Analytics)** — reuses the merge pattern from Feature 1 and
-   benefits from the privacy/consent discussion happening before too many
-   skills are written.
-3. **Feature 2 (Workflows)** last — biggest design surface, benefits from
-   having scaffold + telemetry already in place so authored workflows can
-   inherit them.
+   pipeline's "merge external data into the index" pattern, which a later
+   Feature 3b rollout would also reuse.
+2. **Feature 3b (Execution telemetry)** — only when there's a concrete
+   user-facing reason for the popularity badges; until then GA (3a) +
+   ratings (1) carry the "trust and direction" signal at a fraction of
+   the cost.
 
 ---
 

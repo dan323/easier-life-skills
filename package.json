@@ -6,8 +6,8 @@
     "installer"
   ],
   "scripts": {
-    "build": "tsx scripts/build-index.ts && esbuild assets/src/app.tsx --bundle --minify --outfile=assets/bundle.js --format=esm --jsx=automatic --jsx-import-source=preact",
-    "dev": "tsx scripts/build-index.ts && esbuild assets/src/app.tsx --bundle --outfile=assets/bundle.js --format=esm --jsx=automatic --jsx-import-source=preact --servedir=. --serve=127.0.0.1:4567",
+    "build": "tsx scripts/build-index.ts && esbuild assets/src/app.tsx --bundle --minify --outfile=assets/bundle.js --format=esm --jsx=automatic --jsx-import-source=preact --define:GA_ID=\"\\\"${GA_MEASUREMENT_ID:-}\\\"\"",
+    "dev": "tsx scripts/build-index.ts && esbuild assets/src/app.tsx --bundle --outfile=assets/bundle.js --format=esm --jsx=automatic --jsx-import-source=preact --define:GA_ID=\"\\\"${GA_MEASUREMENT_ID:-}\\\"\" --servedir=. --serve=127.0.0.1:4567",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.web.json",
     "test": "vitest run",
     "test:watch": "vitest",

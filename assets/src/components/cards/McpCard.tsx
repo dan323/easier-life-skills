@@ -38,6 +38,10 @@ export function McpCard({ mcp, showSource, showInstall, onOpen }: Props) {
             text={mcp.installCommand}
             ariaLabel={`Copy install command for ${mcp.name}`}
             stopPropagation
+            analyticsEvent={{
+              name:   'install_copy',
+              params: { kind: 'mcpServer', name: mcp.name, source: mcp._repo ?? '', command_type: 'install' },
+            }}
           />
         </div>
       )}

@@ -137,6 +137,60 @@ Submit a pull request:
 - Include at least 3 evals
 - Update `CHANGELOG.md` under `## [Unreleased] > ### Added`
 
+## Authoring a Workflow
+
+A workflow chains multiple skills into a multi-step pipeline. Workflows are
+YAML files consumed by the `workflow` runner skill. They are plugin-internal
+config — not a separate marketplace entity — so authoring one is a one-step
+job: write the YAML and hand the path to the runner.
+
+### Write the YAML
+
+```yaml
+name: document-and-deploy
+description: Brainstorm features, document the top ones, and open a PR.
+
+inputs:
+  - name: feature_count
+    default: 3
+
+steps:
+  - id: ideas
+    skill: brainstorm
+    args:
+      count: ${{ inputs.feature_count }}
+
+  - id: docs
+    skill: document-project
+    inputs:
+      ideas: ${{ steps.ideas.output }}
+
+  - id: pr
+    skill: task-agent
+    inputs:
+      tasks: "Open a PR adding the docs produced in step `docs`."
+```
+
+Required fields are `name`, `description`, and a non-empty `steps:` list.
+Each step needs an `id` (kebab-case, unique) and a `skill` (the name of an
+installed skill — it does not have to come from the same plugin).
+Interpolation reads from `inputs.<name>` and `steps.<id>.output`.
+
+The full schema lives in
+[`plugins/workflow/references/format.md`](../plugins/workflow/references/format.md);
+the canonical example is
+[`plugins/workflow/examples/document-and-deploy.yaml`](../plugins/workflow/examples/document-and-deploy.yaml).
+
+### Run it
+
+```text
+workflow path/to/<name>.yaml feature_count=5
+```
+
+The runner writes step outputs and a `workflow-output.json` summary to
+`.workflow-runs/<name>-<timestamp>/`. The workflow YAML itself is never
+modified.
+
 ## Improving an Existing Skill
 
 1. Edit the relevant `plugins/<name>/skills/<name>/SKILL.md` and/or `evals/evals.json`

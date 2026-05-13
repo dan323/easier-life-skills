@@ -194,6 +194,10 @@ function EntityPanelBody({
           label="Copy add"
           className="panel-copy-btn"
           ariaLabel={`Copy marketplace add command for ${sourceKey}`}
+          analyticsEvent={{
+            name:   'install_copy',
+            params: { kind, name: entity.name, source: sourceKey, command_type: 'marketplace_add' },
+          }}
         />
       </div>
       <div class="panel-install-row">
@@ -204,6 +208,10 @@ function EntityPanelBody({
           label="Copy install"
           className="panel-copy-btn"
           ariaLabel={`Copy install command for ${entity.name}`}
+          analyticsEvent={{
+            name:   'install_copy',
+            params: { kind, name: entity.name, source: sourceKey, command_type: 'install' },
+          }}
         />
       </div>
     </>
