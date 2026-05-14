@@ -25,7 +25,7 @@ describe('category filter', () => {
   it('narrows plugins to the active category', async () => {
     await bootApp();
     click(findFilterBtn('Documentation'));
-    expect(cardNames('plugins-grid')).toEqual(['changelog', 'document-project']);
+    expect(cardNames('plugins-grid')).toEqual(['docs']);
     expect(findFilterBtn('Documentation').getAttribute('aria-pressed')).toBe('true');
     expect(findFilterBtn('Documentation').classList.contains('active')).toBe(true);
   });
@@ -33,9 +33,9 @@ describe('category filter', () => {
   it('clicking the active category again removes it', async () => {
     await bootApp();
     click(findFilterBtn('Code Quality'));
-    expect(cardNames('plugins-grid')).toEqual(['find-dead-code']);
+    expect(cardNames('plugins-grid')).toEqual(['code-audit']);
     click(findFilterBtn('Code Quality'));
-    expect(cardNames('plugins-grid').length).toBe(5);
+    expect(cardNames('plugins-grid').length).toBe(4);
     expect(findFilterBtn('Code Quality').getAttribute('aria-pressed')).toBe('false');
   });
 
@@ -45,7 +45,7 @@ describe('category filter', () => {
     const search = document.getElementById('search') as HTMLInputElement;
     search.value = 'document';
     search.dispatchEvent(new Event('input', { bubbles: true }));
-    expect(cardNames('plugins-grid')).toEqual(['document-project']);
+    expect(cardNames('plugins-grid')).toEqual(['docs']);
   });
 
   it('narrows agents to the active category', async () => {
@@ -87,7 +87,7 @@ describe('source filter', () => {
     click(toggleFor(findSourceTag('external/slack-tools')));
     expect(cardNames('plugins-grid').length).toBe(1);
     click(toggleFor(findSourceTag('external/slack-tools')));
-    expect(cardNames('plugins-grid').length).toBe(5);
+    expect(cardNames('plugins-grid').length).toBe(4);
   });
 
   it('clicking the source tag\'s copy button does not toggle the filter', async () => {

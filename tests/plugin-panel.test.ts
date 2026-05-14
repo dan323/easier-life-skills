@@ -4,24 +4,24 @@ import { bootApp, cardByName, click, pressKey } from './harness.ts';
 describe('plugin panel', () => {
   it('opens when a plugin card is clicked', async () => {
     await bootApp();
-    click(cardByName('plugins-grid', 'changelog'));
+    click(cardByName('plugins-grid', 'docs'));
     const panel = document.getElementById('plugin-panel')!;
     expect(panel.classList.contains('open')).toBe(true);
-    expect(document.getElementById('panel-name')!.textContent).toBe('changelog');
-    expect(document.getElementById('panel-desc')!.textContent).toBe('Generate a CHANGELOG from git history.');
+    expect(document.getElementById('panel-name')!.textContent).toBe('docs');
+    expect(document.getElementById('panel-desc')!.textContent).toBe('Documentation bundle — changelog and document-project skills.');
   });
 
   it('shows install command and copies it', async () => {
     const { clipboardWrites } = await bootApp();
-    click(cardByName('plugins-grid', 'changelog'));
-    expect(document.getElementById('panel-install-cmd')!.textContent).toBe('/plugin install changelog@easier-life-skills');
+    click(cardByName('plugins-grid', 'docs'));
+    expect(document.getElementById('panel-install-cmd')!.textContent).toBe('/plugin install docs@easier-life-skills');
     (document.getElementById('panel-install-copy') as HTMLButtonElement).click();
-    expect(clipboardWrites).toContain('/plugin install changelog@easier-life-skills');
+    expect(clipboardWrites).toContain('/plugin install docs@easier-life-skills');
   });
 
   it('hides the marketplace add row for builtin plugins', async () => {
     await bootApp();
-    click(cardByName('plugins-grid', 'changelog'));
+    click(cardByName('plugins-grid', 'docs'));
     expect((document.getElementById('panel-marketplace-row') as HTMLElement).hidden).toBe(true);
   });
 
@@ -54,7 +54,7 @@ describe('plugin panel', () => {
 
   it('shows bundle membership for plugins whose skills appear in a bundle', async () => {
     await bootApp();
-    click(cardByName('plugins-grid', 'changelog'));
+    click(cardByName('plugins-grid', 'docs'));
     const bundlesSection = document.getElementById('panel-bundles-section') as HTMLElement;
     expect(bundlesSection.style.display).not.toBe('none');
     expect(document.getElementById('panel-bundles-list')!.textContent).toContain('docs-bundle');
@@ -62,21 +62,21 @@ describe('plugin panel', () => {
 
   it('closes when the close button is clicked', async () => {
     await bootApp();
-    click(cardByName('plugins-grid', 'changelog'));
+    click(cardByName('plugins-grid', 'docs'));
     click('#panel-close');
     expect(document.getElementById('plugin-panel')!.classList.contains('open')).toBe(false);
   });
 
   it('closes when the overlay is clicked', async () => {
     await bootApp();
-    click(cardByName('plugins-grid', 'changelog'));
+    click(cardByName('plugins-grid', 'docs'));
     click('#panel-overlay');
     expect(document.getElementById('plugin-panel')!.classList.contains('open')).toBe(false);
   });
 
   it('closes when Escape is pressed', async () => {
     await bootApp();
-    click(cardByName('plugins-grid', 'changelog'));
+    click(cardByName('plugins-grid', 'docs'));
     pressKey(document.body, 'Escape');
     expect(document.getElementById('plugin-panel')!.classList.contains('open')).toBe(false);
   });

@@ -13,19 +13,36 @@ easier-life-skills/
 │   ├── bundles.json              Bundle definitions (curated skill sets)
 │   └── external-overrides.json  Category overrides per entity type (plugins/skills/agents/hooks/commands/mcpServers) for external repos
 ├── plugins/
-│   ├── changelog/
+│   ├── brainstorm/                    Single-skill plugin (one SKILL.md, plugin name == skill name)
 │   │   ├── .claude-plugin/
-│   │   │   └── plugin.json  Plugin manifest — name, description, category, skills[], agents[]
+│   │   │   └── plugin.json            Plugin manifest — name, description, category, skills[], agents[]
 │   │   ├── skills/
-│   │   │   └── changelog/
-│   │   │       └── SKILL.md Required — instructions the agent follows
-│   │   ├── agents/          Optional — sub-agents spawned by the skill
-│   │   │   └── <name>.md    Sub-agent definition (frontmatter + system prompt)
-│   │   ├── references/      Optional — concise reference docs read at runtime
-│   │   │   └── <topic>.md   Non-obvious, trap-prone facts (not LLM basics)
-│   │   └── evals/
-│   │       └── evals.json   Optional — test cases for the skill
-│   └── <other-plugins>/     (same layout)
+│   │   │   └── brainstorm/
+│   │   │       ├── SKILL.md           Required — instructions the agent follows
+│   │   │       └── evals/
+│   │   │           └── evals.json     Optional — test cases for the skill
+│   │   ├── agents/                    Optional — sub-agents spawned by the skill
+│   │   │   └── <name>.md              Sub-agent definition (frontmatter + system prompt)
+│   │   └── references/                Optional — concise reference docs read at runtime
+│   │       └── <topic>.md             Non-obvious, trap-prone facts (not LLM basics)
+│   ├── docs/                          Multi-skill bundle plugin — plugin.json lists every skill folder under skills/
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json            "skills": ["./skills/changelog", "./skills/document-project"]
+│   │   └── skills/
+│   │       ├── changelog/
+│   │       │   ├── SKILL.md
+│   │       │   └── evals/evals.json
+│   │       └── document-project/
+│   │           ├── SKILL.md
+│   │           └── evals/evals.json
+│   ├── code-audit/                    Another multi-skill bundle — three read-only code-quality auditors
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json            "skills": ["./skills/find-dead-code", "./skills/find-breaking-rest-api", "./skills/improve-logging"]
+│   │   └── skills/
+│   │       ├── find-dead-code/        SKILL.md + evals/
+│   │       ├── find-breaking-rest-api/
+│   │       └── improve-logging/
+│   └── <other-plugins>/               (same layout — single- or multi-skill)
 ├── scripts/
 │   ├── build-index.ts       Orchestrator — scans plugins/, generates marketplace.json, writes skills_index.json + CATALOG.md + catalog.html
 │   └── lib/

@@ -37,7 +37,7 @@ describe('URL state', () => {
     await bootApp({ hash: '#q=changelog' });
     const search = document.getElementById('search') as HTMLInputElement;
     expect(search.value).toBe('changelog');
-    expect(cardNames('plugins-grid')).toEqual(['changelog']);
+    expect(cardNames('plugins-grid')).toEqual(['docs']);
   });
 
   it('restore: applies sort=za from the hash', async () => {

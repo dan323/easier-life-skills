@@ -1,0 +1,8 @@
+{
+  "name": "docs",
+  "version": "1.0.1",
+  "description": "Documentation skills: generate or update CHANGELOG.md from git history, and create a root README.md with a linked /docs structure",
+  "author": { "name": "dan323" },
+  "category": "documentation",
+  "skills": ["./skills/changelog", "./skills/document-project"]
+}

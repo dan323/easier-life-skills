@@ -36,7 +36,7 @@ function describeEl(el: Element): string {
 describe('plugin panel interactivity', () => {
   it('does not put `inert` on any ancestor of the open panel', async () => {
     await bootApp();
-    click(cardByName('plugins-grid', 'changelog'));
+    click(cardByName('plugins-grid', 'docs'));
 
     const closeBtn = document.getElementById('panel-close')!;
     const overlay  = document.getElementById('panel-overlay')!;
@@ -56,7 +56,7 @@ describe('plugin panel interactivity', () => {
 
   it('does not put aria-hidden="true" on any ancestor of the open panel', async () => {
     await bootApp();
-    click(cardByName('plugins-grid', 'changelog'));
+    click(cardByName('plugins-grid', 'docs'));
 
     const closeBtn = document.getElementById('panel-close')!;
     const hiddenAncestor = ancestorWithAttr(closeBtn, 'aria-hidden', 'true');
@@ -74,13 +74,13 @@ describe('plugin panel interactivity', () => {
 
   it('removes aria-hidden from the panel when opened', async () => {
     await bootApp();
-    click(cardByName('plugins-grid', 'changelog'));
+    click(cardByName('plugins-grid', 'docs'));
     expect(document.getElementById('plugin-panel')!.getAttribute('aria-hidden')).toBeNull();
   });
 
   it('restores #root interactivity after closing the panel', async () => {
     await bootApp();
-    click(cardByName('plugins-grid', 'changelog'));
+    click(cardByName('plugins-grid', 'docs'));
     click('#panel-close');
 
     const root = document.getElementById('root')!;
@@ -142,7 +142,7 @@ describe('panel interactivity — both panels at once', () => {
   it('neither panel leaves stale `inert` or aria-hidden on #root after both have been opened and closed', async () => {
     await bootApp();
 
-    click(cardByName('plugins-grid', 'changelog'));
+    click(cardByName('plugins-grid', 'docs'));
     click('#panel-close');
 
     click('#view-skills');

@@ -1,7 +1,7 @@
 ---
 name: changelog
 description: Generate or update CHANGELOG.md files by reading git history. Use this skill whenever the user wants to document what changed in their project — whether they say "create a changelog", "update the changelog", "write release notes", "what's new since v1.2", "document changes for this release", "prep the changelog before we ship", or anything else about recording or summarizing code changes for a version or release. Also use it when the user asks to reformat an existing CHANGELOG to Keep a Changelog format. Works for single repos and monorepos. Always prefer this skill over improvising — it handles deduplication, categorization, and format detection correctly.
-tools: Bash, Read, Write, Edit, Glob, Grep, TaskCreate, TaskUpdate
+tools: Bash, Read, Write, Edit, Glob, Grep, TaskCreate, TaskUpdate, AskUserQuestion
 model: sonnet
 metadata:
     version: 1.0
@@ -105,14 +105,18 @@ Inspect the existing `CHANGELOG.md` (if present) and classify its format **befor
 **Decision:**
 - If the file does **not** exist yet → proceed with Keep a Changelog format, no prompt needed.
 - If the file exists and **matches** Keep a Changelog → proceed silently.
-- If the file exists and uses a **different format** → **stop and ask the user:**
+- If the file exists and uses a **different format** → **stop and ask the user via `AskUserQuestion`** before doing anything else. Use a single-select question with two options:
 
-  > "Your existing `CHANGELOG.md` uses a different format than Keep a Changelog. How would you like to proceed?
-  >
-  > 1. **Keep your current format** — I'll append new entries matching your existing style.
-  > 2. **Switch to Keep a Changelog** — I'll reformat the file and add new entries in that format.
-  >
-  > Please reply with 1 or 2."
+  ```
+  question: "Your existing CHANGELOG.md uses a different format than Keep a Changelog. How would you like to proceed?"
+  header:   "Format choice"
+  multiSelect: false
+  options:
+    - label: "Keep current format"
+      description: "Append new entries matching your existing style — no reformatting."
+    - label: "Switch to Keep a Changelog"
+      description: "Reformat the file and add new entries in Keep a Changelog format."
+  ```
 
   Wait for the answer before continuing. Apply the chosen strategy to **all** changelog files in the same run (don't ask again for each package in a monorepo).
 

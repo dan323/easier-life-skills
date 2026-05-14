@@ -31,7 +31,7 @@ describe('sort', () => {
     click('#sort-btn');
     expect(sortLabel()).toBe('Sort: Z→A');
     const names = cardNames('plugins-grid');
-    expect(names).toEqual(['slack-tools', 'hooks-pack', 'find-dead-code', 'document-project', 'changelog']);
+    expect(names).toEqual(['slack-tools', 'hooks-pack', 'docs', 'code-audit']);
   });
 
   it('toggles back to A→Z on a second click', async () => {
@@ -40,6 +40,6 @@ describe('sort', () => {
     click('#sort-btn');
     expect(sortLabel()).toBe('Sort: A→Z');
     const names = cardNames('plugins-grid');
-    expect(names[0]).toBe('changelog');
+    expect(names[0]).toBe('code-audit');
   });
 });

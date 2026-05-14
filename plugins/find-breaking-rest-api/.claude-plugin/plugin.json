@@ -1,7 +1,0 @@
-{
-  "name": "find-breaking-rest-api",
-  "description": "Find breaking changes in REST APIs by analyzing git history",
-  "author": { "name": "dan323" },
-  "category": "code-quality",
-  "skills": ["./skills/find-breaking-rest-api"]
-}

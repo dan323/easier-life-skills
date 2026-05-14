@@ -11,18 +11,18 @@ describe('copy buttons', () => {
 
   it('quick-start step 2 copies the example install command', async () => {
     const { clipboardWrites } = await bootApp();
-    const btn = document.querySelector<HTMLButtonElement>('.copy-btn[data-copy*="install changelog"]')!;
+    const btn = document.querySelector<HTMLButtonElement>('.copy-btn[data-copy*="install docs"]')!;
     btn.click();
-    expect(clipboardWrites).toContain('/plugin install changelog@easier-life-skills');
+    expect(clipboardWrites).toContain('/plugin install docs@easier-life-skills');
   });
 
   it('plugin card copy button copies the install command without opening the panel', async () => {
     const { clipboardWrites } = await bootApp();
     const card = Array.from(document.querySelectorAll<HTMLElement>('#plugins-grid .skill-card'))
-      .find(c => c.querySelector('.card-name .card-name-text')?.textContent === 'changelog')!;
+      .find(c => c.querySelector('.card-name .card-name-text')?.textContent === 'docs')!;
     const btn = card.querySelector('.copy-btn') as HTMLButtonElement;
     btn.click();
-    expect(clipboardWrites).toContain('/plugin install changelog@easier-life-skills');
+    expect(clipboardWrites).toContain('/plugin install docs@easier-life-skills');
     expect(document.getElementById('plugin-panel')!.classList.contains('open')).toBe(false);
   });
 });

@@ -8,7 +8,7 @@ A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](h
 
 ```
 /plugin marketplace add dan323/easier-life-skills
-/plugin install changelog@easier-life-skills
+/plugin install docs@easier-life-skills
 ```
 
 The marketplace browser at the bottom of this README also surfaces plugins from other Claude Code marketplaces. To install those, add each of their marketplaces alongside this one — for example:
@@ -27,11 +27,8 @@ Or copy the right command directly from the [marketplace browser](#marketplace-b
 
 | Plugin                                                                                            | What it does                                                                                                            |
 |---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
-| [`changelog`](plugins/changelog/skills/changelog/SKILL.md)                                        | Generate or update `CHANGELOG.md` from git history                                                                      |
-| [`document-project`](plugins/document-project/skills/document-project/SKILL.md)                   | Create a root `README.md` and `/docs` pages for a project                                                               |
-| [`find-dead-code`](plugins/find-dead-code/skills/find-dead-code/SKILL.md)                         | Find unused functions, classes, imports, and variables                                                                  |
-| [`improve-logging`](plugins/improve-logging/skills/improve-logging/SKILL.md)                      | Audit log quality and produce prioritised fix recommendations                                                           |
-| [`find-breaking-rest-api`](plugins/find-breaking-rest-api/skills/find-breaking-rest-api/SKILL.md) | Detect breaking changes in REST APIs by comparing git history                                                           |
+| [`docs`](plugins/docs/.claude-plugin/plugin.json)                                                  | Documentation bundle — `changelog` ([SKILL](plugins/docs/skills/changelog/SKILL.md)) and `document-project` ([SKILL](plugins/docs/skills/document-project/SKILL.md))   |
+| [`code-audit`](plugins/code-audit/.claude-plugin/plugin.json)                                      | Code-quality bundle — `find-dead-code` ([SKILL](plugins/code-audit/skills/find-dead-code/SKILL.md)), `find-breaking-rest-api` ([SKILL](plugins/code-audit/skills/find-breaking-rest-api/SKILL.md)), and `improve-logging` ([SKILL](plugins/code-audit/skills/improve-logging/SKILL.md)) |
 | [`brainstorm`](plugins/brainstorm/skills/brainstorm/SKILL.md)                                     | Suggest the 5 most valuable features or improvements to build next                                                      |
 | [`task-agent`](plugins/task-agent/skills/task-agent/SKILL.md)                                     | Read tasks from `agent-tasks.yml`, implement each via an agent, open PRs, and fix Copilot review comments automatically |
 | [`find-skills`](plugins/find-skills/skills/find-skills/SKILL.md)                                  | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces                         |
@@ -68,9 +65,9 @@ Install a curated set of skills in one go:
 
 | Bundle                 | Skills                                                                     |
 |------------------------|----------------------------------------------------------------------------|
-| Backend Developer      | `find-breaking-rest-api`, `find-dead-code`, `improve-logging`, `changelog` |
-| Open Source Maintainer | `changelog`, `document-project`, `brainstorm`, `find-skills`               |
-| Code Quality Reviewer  | `find-dead-code`, `improve-logging`, `find-breaking-rest-api`              |
+| Backend Developer      | `find-breaking-rest-api`, `find-dead-code`, `improve-logging` (all via `code-audit`), `changelog` (via `docs`) |
+| Open Source Maintainer | `changelog`, `document-project` (via `docs`), `brainstorm`, `find-skills`              |
+| Code Quality Reviewer  | `find-dead-code`, `improve-logging`, `find-breaking-rest-api` (all via `code-audit`)   |
 | Full Stack             | all skills                                                                 |
 
 ## Schema Compatibility

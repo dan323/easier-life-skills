@@ -1,0 +1,12 @@
+{
+  "name": "code-audit",
+  "version": "1.0.0",
+  "description": "Code-quality audit bundle — find unused code, find breaking REST API changes, and audit logging quality. All three skills are read-only and produce prioritised reports.",
+  "author": { "name": "dan323" },
+  "category": "code-quality",
+  "skills": [
+    "./skills/find-dead-code",
+    "./skills/find-breaking-rest-api",
+    "./skills/improve-logging"
+  ]
+}

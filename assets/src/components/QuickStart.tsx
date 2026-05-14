@@ -23,10 +23,10 @@ export function QuickStart() {
           <div class="step">
             <div class="step-num">2</div>
             <div class="step-body">
-              <div class="step-label">Install any skill — browse below, then run</div>
+              <div class="step-label">Install any plugin — browse below, then run</div>
               <div class="step-cmd">
-                <code>{'/plugin install <skill-name>@easier-life-skills'}</code>
-                <CopyButton text="/plugin install changelog@easier-life-skills" label="Copy (changelog example)" />
+                <code>{'/plugin install <plugin-name>@easier-life-skills'}</code>
+                <CopyButton text="/plugin install docs@easier-life-skills" label="Copy (docs example)" />
               </div>
             </div>
           </div>

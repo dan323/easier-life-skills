@@ -17,7 +17,7 @@ A Claude Code plugin marketplace containing reusable skill plugins for Claude Co
 Then install individual plugins:
 
 ```
-/plugin install easier-life-skills/changelog
+/plugin install easier-life-skills/docs
 /plugin install easier-life-skills/brainstorm
 ```
 
@@ -78,21 +78,19 @@ installer/
   package.json              ← @dan323/easier-life-skills NPM package
   README.md
 plugins/
-  <skill-name>/
+  <plugin-name>/
     .claude-plugin/
-      plugin.json           ← Plugin manifest (name, version, description, keywords)
+      plugin.json           ← Plugin manifest (name, version, description, category, skills[])
     skills/
-      <skill-name>/
+      <skill-name>/         ← One folder per skill the plugin ships (single-skill plugins reuse the plugin name; bundle plugins like docs/ have multiple)
         SKILL.md            ← The skill itself
         evals/
-          evals.json        ← Test cases (most plugins place evals here)
-    agents/                 ← Optional: sub-agents spawned by the skill
+          evals.json        ← Test cases (always lives next to its SKILL.md)
+    agents/                 ← Optional: sub-agents spawned by a skill
       <agent-name>.md       ← Sub-agent definition (YAML frontmatter + system prompt)
     references/             ← Optional: reference docs the skill agent reads at runtime
       <topic>.md            ← Concise, non-obvious facts for the agent (not LLM basics)
     examples/               ← Optional: sample input/output files
-    evals/
-      evals.json            ← Alternative evals location (document-project uses this)
     run.sh                  ← Optional: non-interactive entry point (task-agent only)
 scripts/
   build-index.ts            ← Generates skills_index.json, CATALOG.md, catalog.html, and marketplace.json
@@ -114,10 +112,10 @@ index.html                  ← Static web UI for browsing the marketplace
 skills_index.json           ← Generated index; rebuild with: npm run build
 ```
 
-> **Evals location note:** Most plugins place `evals.json` at
-> `skills/<name>/evals/evals.json`. `document-project` is the exception and
-> places it at the plugin root `evals/evals.json`. Follow the pattern of the
-> plugin you are modifying.
+> **Evals location:** Place `evals.json` at `skills/<name>/evals/evals.json`
+> so it lives next to its `SKILL.md`. This is the pattern every plugin in
+> this repo follows, including each skill inside the `docs` bundle plugin
+> (e.g. `plugins/docs/skills/changelog/evals/evals.json`).
 
 ## Plugin Manifest Format (`plugin.json`)
 
@@ -205,21 +203,18 @@ Include at least 3–5 evals per plugin. Cover the happy path, idempotent re-run
 
 ## Current Plugins
 
-| Plugin                   | Version | Category      | Purpose                                                                                                         |
-|--------------------------|---------|---------------|-----------------------------------------------------------------------------------------------------------------|
-| `brainstorm`             | 1.0.0   | Productivity  | Read the project and suggest the 5 most valuable next features or improvements                                  |
-| `changelog`              | 1.0.0   | Documentation | Generate/update CHANGELOG.md from git history (Keep a Changelog format)                                         |
-| `cost-tracker`           | 1.0.0   | Productivity  | Append token usage and estimated cost to `~/.claude/cost-log.jsonl` on every Stop event                         |
-| `cv-linkedin`            | 2.1.0   | Productivity  | Improve a CV and LinkedIn profile from the official export — stronger language, quantified achievements         |
-| `document-project`       | 1.0.0   | Documentation | Create README + `/docs` structure                                                                               |
-| `find-breaking-rest-api` | 3.0.0   | Code Quality  | Find breaking REST API changes — multi-file routers, shared schemas, auth                                       |
-| `find-dead-code`         | 1.0.0   | Code Quality  | Find unused functions, classes, imports across languages                                                        |
-| `find-skills`            | 1.0.0   | Productivity  | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces                 |
-| `improve-logging`        | 1.0.0   | Code Quality  | Audit logging quality and produce prioritised fix recommendations                                               |
-| `scaffold`               | 1.0.0   | Productivity  | Generate a complete plugin skeleton (plugin.json, SKILL.md, evals, optional agents/references) from a prompt    |
-| `site-audit`             | 1.3.0   | Code Quality  | Audit a website for UX, accessibility, performance, and bugs — fans out to specialised sub-agents in parallel   |
-| `task-agent`             | 1.1.0   | Automation    | Read tasks from agent-tasks.yml, spawn agents per task, open PRs, and automatically fix Copilot review comments |
-| `workflow`               | 1.0.0   | Automation    | Run multi-step skill workflows declared in workflow YAML — sequential execution with `${{ … }}` interpolation   |
+| Plugin                   | Version | Category      | Purpose                                                                                                                                                                |
+|--------------------------|---------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `brainstorm`             | 1.0.0   | Productivity  | Read the project and suggest the 5 most valuable next features or improvements                                                                                         |
+| `code-audit`             | 1.0.0   | Code Quality  | Code-quality bundle plugin — ships three read-only skills: `find-dead-code` (unused functions/classes/imports), `find-breaking-rest-api` (breaking REST changes — multi-file routers, shared schemas, auth), and `improve-logging` (prioritised log-quality fixes) |
+| `cost-tracker`           | 1.0.0   | Productivity  | Append token usage and estimated cost to `~/.claude/cost-log.jsonl` on every Stop event                                                                                |
+| `cv-linkedin`            | 2.1.0   | Productivity  | Improve a CV and LinkedIn profile from the official export — stronger language, quantified achievements                                                                |
+| `docs`                   | 1.0.0   | Documentation | Documentation bundle plugin — ships two skills: `changelog` (CHANGELOG.md from git history, Keep a Changelog) and `document-project` (root README + `/docs` structure) |
+| `find-skills`            | 1.0.0   | Productivity  | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces                                                                        |
+| `scaffold`               | 1.0.0   | Productivity  | Generate a complete plugin skeleton (plugin.json, SKILL.md, evals, optional agents/references) from a prompt                                                           |
+| `site-audit`             | 1.3.0   | Code Quality  | Audit a website for UX, accessibility, performance, and bugs — fans out to specialised sub-agents in parallel                                                          |
+| `task-agent`             | 1.1.0   | Automation    | Read tasks from agent-tasks.yml, spawn agents per task, open PRs, and automatically fix Copilot review comments                                                        |
+| `workflow`               | 1.0.0   | Automation    | Run multi-step skill workflows declared in workflow YAML — sequential execution with `${{ … }}` interpolation                                                          |
 
 ## Adding a New Plugin
 

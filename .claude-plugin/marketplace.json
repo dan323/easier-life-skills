@@ -13,11 +13,11 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/brainstorm"
     },
     {
-      "name": "changelog",
-      "source": "./plugins/changelog",
-      "description": "Generate or update CHANGELOG.md from git history",
-      "category": "documentation",
-      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/changelog"
+      "name": "code-audit",
+      "source": "./plugins/code-audit",
+      "description": "Code-quality audit bundle — find unused code, find breaking REST API changes, and audit logging quality. All three skills are read-only and produce prioritised reports.",
+      "category": "code-quality",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/code-audit"
     },
     {
       "name": "cost-tracker",
@@ -34,25 +34,11 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/cv-linkedin"
     },
     {
-      "name": "document-project",
-      "source": "./plugins/document-project",
-      "description": "Create or improve project documentation with README and /docs structure",
+      "name": "docs",
+      "source": "./plugins/docs",
+      "description": "Documentation skills: generate or update CHANGELOG.md from git history, and create a root README.md with a linked /docs structure",
       "category": "documentation",
-      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/document-project"
-    },
-    {
-      "name": "find-breaking-rest-api",
-      "source": "./plugins/find-breaking-rest-api",
-      "description": "Find breaking changes in REST APIs by analyzing git history",
-      "category": "code-quality",
-      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/find-breaking-rest-api"
-    },
-    {
-      "name": "find-dead-code",
-      "source": "./plugins/find-dead-code",
-      "description": "Find unused functions, classes, variables, and imports across languages",
-      "category": "code-quality",
-      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/find-dead-code"
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/docs"
     },
     {
       "name": "find-skills",
@@ -60,13 +46,6 @@
       "description": "Analyze the active repository and recommend relevant Claude Code skills from known marketplaces",
       "category": "productivity",
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/find-skills"
-    },
-    {
-      "name": "improve-logging",
-      "source": "./plugins/improve-logging",
-      "description": "Audit logging quality and produce prioritized fix recommendations",
-      "category": "code-quality",
-      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/improve-logging"
     },
     {
       "name": "scaffold",

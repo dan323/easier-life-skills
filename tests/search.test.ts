@@ -6,13 +6,13 @@ describe('search', () => {
     await bootApp();
     typeIntoSearch('slack');
     expect(cardNames('plugins-grid')).toEqual(['slack-tools']);
-    expect(document.getElementById('count')!.textContent).toBe('1 of 5 plugins');
+    expect(document.getElementById('count')!.textContent).toBe('1 of 4 plugins');
   });
 
   it('filters plugins by description substring', async () => {
     await bootApp();
     typeIntoSearch('unused');
-    expect(cardNames('plugins-grid')).toEqual(['find-dead-code']);
+    expect(cardNames('plugins-grid')).toEqual(['code-audit']);
   });
 
   it('shows an empty state when nothing matches', async () => {
@@ -21,7 +21,7 @@ describe('search', () => {
     const grid = document.getElementById('plugins-grid')!;
     expect(grid.querySelector('.empty')).not.toBeNull();
     expect(grid.querySelectorAll('.skill-card').length).toBe(0);
-    expect(document.getElementById('count')!.textContent).toBe('0 of 5 plugins');
+    expect(document.getElementById('count')!.textContent).toBe('0 of 4 plugins');
   });
 
   it('clearing the search restores the full list', async () => {
@@ -29,7 +29,7 @@ describe('search', () => {
     typeIntoSearch('slack');
     expect(cardNames('plugins-grid').length).toBe(1);
     typeIntoSearch('');
-    expect(cardNames('plugins-grid').length).toBe(5);
+    expect(cardNames('plugins-grid').length).toBe(4);
   });
 
   it('the slash key focuses the search field when not already typing', async () => {

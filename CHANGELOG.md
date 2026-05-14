@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.25.1] - 2026-05-14
+
+### Changed
+- **`docs/changelog` skill now uses `AskUserQuestion` for the format-mismatch prompt.** When the existing `CHANGELOG.md` does not match Keep a Changelog, the skill previously printed a prose two-option block and asked the user to "reply with 1 or 2". The same prompt is now issued via the structured `AskUserQuestion` tool — same two options ("Keep current format" / "Switch to Keep a Changelog"), same downstream behaviour, but the user gets a single-click pick instead of having to type a digit, and the choice surfaces in the transcript as a structured answer. `AskUserQuestion` is now declared in the skill's `tools:` frontmatter alongside the existing `Bash, Read, Write, Edit, Glob, Grep, TaskCreate, TaskUpdate`. No other skill or agent in the marketplace needed this — every other "ask the user" site is either free-form text input (`site-audit`'s URL prompt) or an informational message (`cv-linkedin`'s missing-CSV notice) that does not benefit from a multiple-choice picker.
+
+## [1.25.0] - 2026-05-14
+
+### Changed
+- **Merged `find-dead-code`, `find-breaking-rest-api`, and `improve-logging` into a single `code-audit` bundle plugin.** All three are read-only code-quality auditors that produce prioritised reports — they share a category, a workflow style, and an audience (anyone preparing a release or reviewing a change). A reviewer who reaches for one almost always wants the other two too, so the new `plugins/code-audit/` plugin lists `skills: ["./skills/find-dead-code", "./skills/find-breaking-rest-api", "./skills/improve-logging"]` and one `/plugin install code-audit@easier-life-skills` lands all three SKILL.md files. The skills themselves are unchanged — same names, same triggers, same behavior; only their wrapping `plugin.json` is now shared.
+
+### Removed
+- **`plugins/find-dead-code/`, `plugins/find-breaking-rest-api/`, and `plugins/improve-logging/` plugin directories.** Their `skills/<name>/` folders (with their existing `evals/` next to each `SKILL.md`) moved into `plugins/code-audit/skills/`.
+
+### Breaking
+- **Install commands renamed.** `/plugin install find-dead-code@easier-life-skills`, `/plugin install find-breaking-rest-api@easier-life-skills`, and `/plugin install improve-logging@easier-life-skills` no longer resolve — install via `/plugin install code-audit@easier-life-skills` instead. The npx installer's `--skill find-dead-code` / `--skill find-breaking-rest-api` / `--skill improve-logging` keep working because `--skill` resolves the skill name against the index and installs whichever plugin currently ships it (now `code-audit`). Anyone with the three plugins installed separately should `claude plugin uninstall` each, then install `code-audit`.
+- **Fixture and tests** updated: the fixture's old `find-dead-code` plugin (the synthetic stand-in for the code-quality plugin) becomes `code-audit`, and the few tests that asserted on the *plugin* card now expect `code-audit`. Tests that click the `find-dead-code` *skill* card (entity view) keep working because skill names are unchanged. Search-by-`unused` still resolves to the `code-audit` plugin because its description carries the keyword.
+- **Architecture doc's example tree** swapped its canonical single-skill plugin example from `find-dead-code` to `brainstorm` (still single-skill after this round), and added a `code-audit` row next to `docs` as a second bundle-plugin example. **README and `.claude/CLAUDE.md` plugin tables** collapsed three rows into one `code-audit` row.
+
+## [1.24.0] - 2026-05-14
+
+### Changed
+- **Merged `changelog` and `document-project` plugins into a single `docs` bundle plugin.** Both skills are documentation-focused and were almost always installed together (the `open-source-maintainer` bundle pulled both), so each one occupying its own top-level plugin was friction without benefit. The new `plugins/docs/` plugin declares `skills: ["./skills/changelog", "./skills/document-project"]` so its single `/plugin install docs@easier-life-skills` lands both `SKILL.md` files at once. The skills themselves are unchanged — their names (`changelog`, `document-project`), trigger phrases, and behavior all stay the same; only the wrapping `plugin.json` changed. While moving them, `document-project`'s evals were relocated from the previous plugin-root `evals/evals.json` exception to the standard `skills/<name>/evals/evals.json` next to its `SKILL.md`, so both skills inside `docs` now follow the same layout.
+
+### Removed
+- **`plugins/changelog/` and `plugins/document-project/` plugin directories.** Their contents moved into `plugins/docs/skills/changelog/` and `plugins/docs/skills/document-project/` respectively (with each skill's `evals/` folder alongside its `SKILL.md`).
+
+### Breaking
+- **Install commands renamed.** `/plugin install changelog@easier-life-skills` and `/plugin install document-project@easier-life-skills` no longer resolve — both are now installed via `/plugin install docs@easier-life-skills`. The npx installer's `--skill changelog` and `--skill document-project` keep working because `--skill` resolves the skill name against the index and installs whichever plugin currently ships it (now `docs`). Anyone who previously installed the two plugins separately should run `claude plugin uninstall changelog@easier-life-skills` and `claude plugin uninstall document-project@easier-life-skills`, then `/plugin install docs@easier-life-skills` to pick up the merged plugin.
+- **`tests/fixtures/skills_index.json` and several regression tests** updated in lockstep — the plugin grid now shows 4 plugins (was 5), the `dan323/easier-life-skills` source tag count drops from 3 to 2, and tests that previously clicked or asserted on the `changelog` *plugin* card now target `docs` instead. The `changelog` *skill* card (entity view) still exists; only its `installCommand` changed.
+- **Documentation refresh** — `README.md`, `docs/getting-started.md`, `docs/architecture.md`, `.claude/CLAUDE.md`, and the in-app QuickStart copy button all reference `docs@easier-life-skills` as the install target. The architecture doc's example tree now shows both a single-skill plugin and a multi-skill bundle plugin (`docs`) side by side, so the layout for both shapes is documented in one place.
+
 ## [1.23.1] - 2026-05-14
 
 ### Added

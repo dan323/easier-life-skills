@@ -83,6 +83,6 @@ describe('entity panel — common', () => {
     click('#view-skills');
     click(cardByName('skills-grid', 'changelog'));
     (document.getElementById('entity-panel-install-copy') as HTMLButtonElement).click();
-    expect(clipboardWrites).toContain('/plugin install changelog@easier-life-skills');
+    expect(clipboardWrites).toContain('/plugin install docs@easier-life-skills');
   });
 });

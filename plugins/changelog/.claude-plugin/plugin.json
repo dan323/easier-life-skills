@@ -1,7 +1,0 @@
-{
-  "name": "changelog",
-  "description": "Generate or update CHANGELOG.md from git history",
-  "author": { "name": "dan323" },
-  "category": "documentation",
-  "skills": ["./skills/changelog"]
-}

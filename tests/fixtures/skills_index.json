@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "generated": "2026-05-10T00:00:00.000Z",
+    "marketplaces": ["dan323/easier-life-skills"],
+    "pluginCount": 4,
+    "skillCount": 3,
+    "agentCount": 1,
+    "mcpServerCount": 1,
+    "commandCount": 1,
+    "hookCount": 1
+  },
+  "plugins": [
+    {
+      "name": "docs",
+      "description": "Documentation bundle — changelog and document-project skills.",
+      "category": "documentation",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/docs",
+      "skills": ["changelog", "document-project"],
+      "agents": [],
+      "mcpServers": [],
+      "commands": [],
+      "hooks": [],
+      "installCommand": "/plugin install docs@easier-life-skills",
+      "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" }
+    },
+    {
+      "name": "code-audit",
+      "description": "Code-quality bundle — find unused code, find breaking REST API changes, and audit logging quality.",
+      "category": "code-quality",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/code-audit",
+      "skills": ["find-dead-code"],
+      "agents": [],
+      "mcpServers": [],
+      "commands": [],
+      "hooks": [],
+      "installCommand": "/plugin install code-audit@easier-life-skills",
+      "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" }
+    },
+    {
+      "name": "slack-tools",
+      "description": "Slack MCP and helpers.",
+      "category": "automation",
+      "homepage": null,
+      "skills": [],
+      "agents": [],
+      "mcpServers": ["slack"],
+      "commands": ["post-slack"],
+      "hooks": [],
+      "installCommand": "/plugin install slack-tools@slack-tools",
+      "source": { "owner": "external", "repo": "slack-tools", "repoUrl": "https://github.com/external/slack-tools" }
+    },
+    {
+      "name": "hooks-pack",
+      "description": "",
+      "category": "automation",
+      "homepage": null,
+      "skills": [],
+      "agents": ["copilot-fixer"],
+      "mcpServers": [],
+      "commands": [],
+      "hooks": ["pre-commit-format"],
+      "installCommand": "/plugin install hooks-pack@hooks-pack",
+      "source": { "owner": "external", "repo": "hooks-pack", "repoUrl": "https://github.com/external/hooks-pack" }
+    }
+  ],
+  "skills": [
+    {
+      "name": "changelog",
+      "description": "Creates a CHANGELOG.md following Keep a Changelog.",
+      "category": "documentation",
+      "keywords": ["changelog", "keep-a-changelog"],
+      "tools": ["Read", "Write", "Bash"],
+      "readOnly": false,
+      "rawSkillUrl": "https://raw.githubusercontent.com/dan323/easier-life-skills/master/plugins/docs/skills/changelog/SKILL.md",
+      "installCommand": "/plugin install docs@easier-life-skills",
+      "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" }
+    },
+    {
+      "name": "find-dead-code",
+      "description": "Detects unused code across the repository.",
+      "category": "code-quality",
+      "keywords": ["vulture", "dead", "unused"],
+      "tools": ["Read", "Grep"],
+      "readOnly": true,
+      "rawSkillUrl": "https://raw.githubusercontent.com/dan323/easier-life-skills/master/plugins/code-audit/skills/find-dead-code/SKILL.md",
+      "installCommand": "/plugin install code-audit@easier-life-skills",
+      "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" }
+    },
+    {
+      "name": "document-project",
+      "description": "Produces a project README and docs/ layout.",
+      "category": "documentation",
+      "keywords": ["readme", "docs"],
+      "tools": ["Read", "Write"],
+      "readOnly": false,
+      "rawSkillUrl": "https://raw.githubusercontent.com/dan323/easier-life-skills/master/plugins/docs/skills/document-project/SKILL.md",
+      "installCommand": "/plugin install docs@easier-life-skills",
+      "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" }
+    }
+  ],
+  "agents": [
+    {
+      "name": "copilot-fixer",
+      "description": "Fixes Copilot review comments on open PRs.",
+      "category": "automation",
+      "tools": ["Bash", "Read", "Edit"],
+      "background": true,
+      "rawAgentUrl": "https://raw.githubusercontent.com/external/hooks-pack/master/agents/copilot-fixer.md",
+      "installCommand": "/plugin install hooks-pack@hooks-pack",
+      "source": { "owner": "external", "repo": "hooks-pack", "repoUrl": "https://github.com/external/hooks-pack" }
+    }
+  ],
+  "mcpServers": [
+    {
+      "name": "slack",
+      "description": "Send and search Slack messages.",
+      "category": "automation",
+      "command": "npx -y @slack/mcp",
+      "installCommand": "/plugin install slack-tools@slack-tools",
+      "source": { "owner": "external", "repo": "slack-tools", "repoUrl": "https://github.com/external/slack-tools" }
+    }
+  ],
+  "commands": [
+    {
+      "name": "post-slack",
+      "description": "Post a message to a Slack channel.",
+      "category": "automation",
+      "commandPath": "commands/post-slack.md",
+      "rawCommandUrl": "https://raw.githubusercontent.com/external/slack-tools/master/commands/post-slack.md",
+      "installCommand": "/plugin install slack-tools@slack-tools",
+      "source": { "owner": "external", "repo": "slack-tools", "repoUrl": "https://github.com/external/slack-tools" }
+    }
+  ],
+  "hooks": [
+    {
+      "name": "pre-commit-format",
+      "description": "Formats staged files before commit.",
+      "category": "automation",
+      "events": ["PreCommit"],
+      "rawHookUrl": "https://raw.githubusercontent.com/external/hooks-pack/master/hooks/pre-commit-format.md",
+      "installCommand": "/plugin install hooks-pack@hooks-pack",
+      "source": { "owner": "external", "repo": "hooks-pack", "repoUrl": "https://github.com/external/hooks-pack" }
+    }
+  ],
+  "bundles": [
+    {
+      "name": "docs-bundle",
+      "description": "Generate docs from scratch.",
+      "skills": ["changelog", "document-project"]
+    }
+  ]
+}

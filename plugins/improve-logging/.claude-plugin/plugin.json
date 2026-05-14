@@ -1,7 +1,0 @@
-{
-  "name": "improve-logging",
-  "description": "Audit logging quality and produce prioritized fix recommendations",
-  "author": { "name": "dan323" },
-  "category": "code-quality",
-  "skills": ["./skills/improve-logging"]
-}

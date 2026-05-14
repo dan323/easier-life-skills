@@ -6,14 +6,14 @@ describe('boot smoke', () => {
     await bootApp();
     expect(visibleGridId()).toBe('plugins-grid');
     const names = cardNames('plugins-grid');
-    expect(names.length).toBe(5);
-    expect(names).toContain('changelog');
+    expect(names.length).toBe(4);
+    expect(names).toContain('docs');
     expect(names).toContain('slack-tools');
   });
 
   it('shows the loaded plugin count in the header', async () => {
     await bootApp();
     const count = document.getElementById('skill-count')!.textContent;
-    expect(count).toBe('5');
+    expect(count).toBe('4');
   });
 });

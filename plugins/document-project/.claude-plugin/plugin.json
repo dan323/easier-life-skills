@@ -1,7 +1,0 @@
-{
-  "name": "document-project",
-  "description": "Create or improve project documentation with README and /docs structure",
-  "author": { "name": "dan323" },
-  "category": "documentation",
-  "skills": ["./skills/document-project"]
-}

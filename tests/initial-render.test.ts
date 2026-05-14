@@ -10,23 +10,23 @@ describe('initial render', () => {
     expect(pluginsBtn.getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('renders all five plugins from the fixture, sorted A→Z', async () => {
+  it('renders all four plugins from the fixture, sorted A→Z', async () => {
     await bootApp();
     const names = cardNames('plugins-grid');
-    expect(names).toEqual(['changelog', 'document-project', 'find-dead-code', 'hooks-pack', 'slack-tools']);
+    expect(names).toEqual(['code-audit', 'docs', 'hooks-pack', 'slack-tools']);
   });
 
   it('renders the plugin count', async () => {
     await bootApp();
-    expect(document.getElementById('count')!.textContent).toBe('5 of 5 plugins');
-    expect(document.getElementById('skill-count')!.textContent).toBe('5');
+    expect(document.getElementById('count')!.textContent).toBe('4 of 4 plugins');
+    expect(document.getElementById('skill-count')!.textContent).toBe('4');
   });
 
   it('renders source tags for every distinct plugin source', async () => {
     await bootApp();
     const tags = Array.from(document.querySelectorAll<HTMLElement>('#marketplace-sources .source-tag'));
     const labels = tags.map(t => t.querySelector('.label')?.textContent ?? '');
-    expect(labels).toContain('dan323/easier-life-skills (3)');
+    expect(labels).toContain('dan323/easier-life-skills (2)');
     expect(labels).toContain('external/slack-tools (1)');
     expect(labels).toContain('external/hooks-pack (1)');
   });
