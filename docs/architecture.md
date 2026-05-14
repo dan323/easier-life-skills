@@ -342,9 +342,22 @@ on the opt-in debug logger in `assets/src/analytics.ts`:
    - `track` and `setStoredConsent` calls with a `gtagPresent` flag, so
      you can tell whether the early-return killed the pipeline before
      `window.gtag` was assigned.
+   - **Every outbound network call to a GA host** — when `ga_debug` is
+     on, `initAnalytics()` also wraps `navigator.sendBeacon`,
+     `window.fetch`, and `XMLHttpRequest.send`/`open` and logs any
+     request to `google-analytics.com`, `analytics.google.com`, or
+     `googletagmanager.com` *before* it leaves the page and again with
+     its outcome (queued / HTTP status). This catches the case where
+     gtag.js loaded successfully but produces zero `/g/collect` beacons
+     — the script-tag `load` event alone can't see that, because the
+     loader is fine and the beacons go out via `sendBeacon`/`fetch`/XHR
+     from inside gtag.js itself.
 
-The logger is gated on `localStorage`/URL only — production visitors
-never see it and the build emits no extra network requests.
+The logger and interceptors are both gated on `localStorage`/URL only —
+production visitors never see them, and the wrapped transports are
+installed **only** when the flag is on at boot, so normal traffic
+passes through `fetch`/XHR/`sendBeacon` unwrapped (zero hot-path cost).
+Mid-session enabling therefore requires a reload.
 
 ## Workflows
 

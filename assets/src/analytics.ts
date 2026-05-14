@@ -56,6 +56,96 @@ function debug(...args: unknown[]): void {
   if (debugEnabled()) console.info('[ga-debug]', ...args);
 }
 
+// google-analytics.com covers /g/collect beacons (`region1.…` and `www.…`);
+// googletagmanager.com covers the gtag.js loader. We deliberately omit
+// `stats.g.doubleclick.net` because we never grant ad-storage consent and
+// gtag.js shouldn't be hitting it anyway.
+const GA_HOSTS = /(?:google-analytics\.com|analytics\.google\.com|googletagmanager\.com)/;
+
+let interceptorsInstalled = false;
+
+/**
+ * Wrap `navigator.sendBeacon`, `window.fetch`, and `XMLHttpRequest.send`
+ * so that any request to a GA-related host is logged with its outcome.
+ *
+ * Installed once at boot, only when `debugEnabled()` is true — so prod
+ * pays nothing. Mid-session enabling requires a reload (matches the
+ * existing pattern: the URL-param flag persists to localStorage on the
+ * first matching page load).
+ *
+ * This is what proves whether gtag.js actually puts beacons on the wire.
+ * The script-tag `load`/`error` events only tell us whether the loader
+ * itself downloaded; the loader can succeed and still produce zero
+ * collect beacons (e.g. consent state misread, or an in-page network
+ * shim from an extension swallowing the request after gtag's API call).
+ */
+function installNetworkInterceptors(): void {
+  if (interceptorsInstalled || typeof window === 'undefined') return;
+  interceptorsInstalled = true;
+
+  // sendBeacon — GA4's primary transport. Returns boolean (true = queued).
+  if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+    const orig = navigator.sendBeacon.bind(navigator);
+    navigator.sendBeacon = (url, data) => {
+      const u = url.toString();
+      const isGa = GA_HOSTS.test(u);
+      if (isGa) debug('sendBeacon →', { url: u, data });
+      const queued = orig(url, data);
+      if (isGa) debug('sendBeacon result', { url: u, queued });
+      return queued;
+    };
+  }
+
+  // fetch — used by gtag.js when sendBeacon is unavailable or returns false.
+  if (typeof window.fetch === 'function') {
+    const orig = window.fetch.bind(window);
+    window.fetch = (input, init) => {
+      const u = input instanceof Request ? input.url : input.toString();
+      const isGa = GA_HOSTS.test(u);
+      if (isGa) debug('fetch →', { url: u, method: init?.method ?? 'GET' });
+      const p = orig(input, init);
+      if (isGa) {
+        p.then((r) => debug('fetch result', { url: u, status: r.status, ok: r.ok }))
+         .catch((e: unknown) => debug('fetch failed', { url: u, error: String(e) }));
+      }
+      return p;
+    };
+  }
+
+  // XMLHttpRequest — legacy fallback transport. We tag the instance on
+  // `open` so `send` knows whether to log this particular request.
+  type TaggedXhr = XMLHttpRequest & { __gaDebugUrl?: string };
+  const origOpen = XMLHttpRequest.prototype.open;
+  const origSend = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (
+    this: TaggedXhr,
+    method: string,
+    url: string | URL,
+    ...rest: unknown[]
+  ): void {
+    const u = url.toString();
+    if (GA_HOSTS.test(u)) {
+      this.__gaDebugUrl = u;
+      debug('xhr.open →', { method, url: u });
+    }
+    return origOpen.apply(this, [method, url, ...rest] as Parameters<typeof origOpen>);
+  };
+  XMLHttpRequest.prototype.send = function (
+    this: TaggedXhr,
+    body?: Document | XMLHttpRequestBodyInit | null,
+  ): void {
+    const url = this.__gaDebugUrl;
+    if (url) {
+      debug('xhr.send →', { url, hasBody: body != null });
+      this.addEventListener('load',  () => debug('xhr result', { url, status: this.status }));
+      this.addEventListener('error', () => debug('xhr error',  { url }));
+    }
+    return origSend.call(this, body ?? null);
+  };
+
+  debug('network interceptors installed — gtag beacons will be logged');
+}
+
 export function getStoredConsent(): ConsentState {
   try {
     const v = localStorage.getItem(CONSENT_KEY);
@@ -104,6 +194,11 @@ let initialised = false;
 export function initAnalytics(): void {
   if (initialised) { debug('initAnalytics skipped: already initialised'); return; }
   initialised = true;
+
+  // Must install BEFORE the gtag.js script tag is appended, so gtag's
+  // very first beacons (the consent ping fired during `config`) are
+  // observable. No-op when ga_debug isn't set.
+  if (debugEnabled()) installNetworkInterceptors();
 
   const id = measurementId();
   debug('initAnalytics start', { id, idType: typeof GA_ID });
