@@ -10,7 +10,8 @@
     "noEmit": true,
     "lib": ["ES2022", "DOM"],
     "jsx": "react-jsx",
-    "jsxImportSource": "preact"
+    "jsxImportSource": "preact",
+    "types": ["gtag.js"]
   },
   "include": ["assets/src/**/*.ts", "assets/src/**/*.tsx"]
 }

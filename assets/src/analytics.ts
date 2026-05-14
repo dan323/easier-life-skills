@@ -4,24 +4,9 @@
 // never happens (vitest doesn't run esbuild, so GA_ID stays undefined there).
 declare const GA_ID: string;
 
+import type { AnalyticsEvent, AppEvents, AppEventName } from './gtag-types.ts';
+
 export type ConsentState = 'granted' | 'denied' | null;
-
-type ConsentValue = 'granted' | 'denied';
-
-type GtagArgs =
-  | ['event',   string, Record<string, unknown>?]
-  | ['config',  string, Record<string, unknown>?]
-  | ['js',      Date]
-  | ['consent', 'default' | 'update', Record<string, ConsentValue>];
-
-interface Gtag { (...args: GtagArgs): void }
-
-declare global {
-  interface Window {
-    gtag?:      Gtag;
-    dataLayer?: unknown[];
-  }
-}
 
 const CONSENT_KEY = 'analytics_consent';
 const DEBUG_KEY   = 'ga_debug';
@@ -216,11 +201,12 @@ export function initAnalytics(): void {
   debug('gtag.js script tag appended', { src: script.src });
 
   window.dataLayer = window.dataLayer || [];
-  const gtag: Gtag = function (...args: GtagArgs) {
-    window.dataLayer!.push(args);
-    debug('dataLayer.push', args);
-  };
-  window.gtag = gtag;
+  // GA4's gtag.js checks for IArguments (not a plain array) when processing
+  // dataLayer entries — rest params would push an Array and be silently ignored.
+  window.gtag = function () {
+    window.dataLayer!.push(arguments);
+    debug('dataLayer.push', Array.from(arguments));
+  } as Gtag.Gtag;
 
   const stored = getStoredConsent();
   debug('stored consent at init', stored);
@@ -240,7 +226,17 @@ export function initAnalytics(): void {
  * Events are also dropped by gtag.js when analytics_storage consent is
  * denied, which is the default until the user accepts the banner.
  */
-export function track(event: string, params?: Record<string, unknown>): void {
-  debug('track', { event, params, gtagPresent: !!window.gtag });
-  window.gtag?.('event', event, params);
+export function track(event: AnalyticsEvent): void;
+export function track<E extends AppEventName>(event: E, params: AppEvents[E]): void;
+export function track<E extends AppEventName>(
+  event: E | AnalyticsEvent,
+  params?: AppEvents[E],
+): void {
+  if (typeof event === 'object') {
+    debug('track', { event: event.name, params: event.params, gtagPresent: !!window.gtag });
+    window.gtag?.('event', event.name, event.params);
+  } else {
+    debug('track', { event, params, gtagPresent: !!window.gtag });
+    window.gtag?.('event', event, params);
+  }
 }
