@@ -113,4 +113,11 @@ export interface MarketplaceResult {
   commands: Command[];
   hooks: Hook[];
   bundles: Bundle[];
+  /**
+   * True if the source repo exposes `.claude-plugin/marketplace.json` and can be
+   * registered via `claude plugin marketplace add <owner>/<repo>`.
+   * False if it is a plugin-only repo (synthesised marketplace from `plugin.json`)
+   * — those skills need to be cloned into `~/.claude/skills/<name>/` directly.
+   */
+  isMarketplace: boolean;
 }

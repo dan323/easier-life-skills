@@ -577,6 +577,7 @@ export async function fetchMarketplaceSkills(owner: string, repo: string, root: 
   console.log(`  Fetching ${owner}/${repo}…`);
 
   let marketplaceJson: MarketplaceJson;
+  let isMarketplace = true;
   try {
     const text = await readFile('.claude-plugin/marketplace.json', baseUrl, root);
     if (!text) throw new Error('not found');
@@ -588,6 +589,7 @@ export async function fetchMarketplaceSkills(owner: string, repo: string, root: 
       if (!text2) throw new Error('not found');
       const pluginJson = JSON.parse(text2) as PluginJson;
       console.log(`  [info] No marketplace.json found — treating ${owner}/${repo} as a single plugin`);
+      isMarketplace = false;
       marketplaceJson = {
         plugins: [{
           name:        pluginJson.name ?? repo,
@@ -602,7 +604,7 @@ export async function fetchMarketplaceSkills(owner: string, repo: string, root: 
       };
     } catch (err) {
       console.warn(`  [warn] Could not fetch marketplace.json or plugin.json for ${owner}/${repo}: ${(err as Error).message}`);
-      return { skills: [], agents: [], mcpServers: [], commands: [], hooks: [], bundles: [], plugins: [] };
+      return { skills: [], agents: [], mcpServers: [], commands: [], hooks: [], bundles: [], plugins: [], isMarketplace: false };
     }
   }
 
@@ -671,5 +673,5 @@ export async function fetchMarketplaceSkills(owner: string, repo: string, root: 
   }));
 
   console.log(`  ✓ ${plugins.length} plugins, ${skills.length} skills, ${agents.length} agents, ${mcpServers.length} MCP servers, ${commands.length} commands, ${hooks.length} hooks from ${owner}/${repo}`);
-  return { plugins, skills, agents, mcpServers, commands, hooks, bundles };
+  return { plugins, skills, agents, mcpServers, commands, hooks, bundles, isMarketplace };
 }

@@ -21,6 +21,7 @@ export interface Plugin {
 
 export interface Skill {
   name:           string;
+  pluginName?:    string;
   description:    string;
   category:       string | null;
   keywords:       string[];
@@ -78,6 +79,7 @@ export interface Hook {
 }
 
 export interface Bundle {
+  id?:         string;
   name:        string;
   description: string;
   skills:      string[];
@@ -87,6 +89,7 @@ export interface Bundle {
 export interface SkillsIndexMeta {
   generated:      string;
   marketplaces:   string[];
+  sources?:       Record<string, { isMarketplace: boolean }>;
   pluginCount:    number;
   skillCount:     number;
   agentCount:     number;

@@ -82,17 +82,19 @@ const allAgents:     Agent[]     = [];
 const allMcpServers: McpServer[] = [];
 const allCommands:   Command[]   = [];
 const allHooks:      Hook[]    = [];
+const sourceInfo:    Record<string, { isMarketplace: boolean }> = {};
 
 for (const { owner, repo } of marketplaces) {
   // Pass local root only for the local repo; external marketplaces must not touch local fs
   const localRoot = (owner === LOCAL_OWNER && repo === LOCAL_REPO) ? ROOT : null;
-  const { plugins, skills, agents, mcpServers, commands, hooks } = await fetchMarketplaceSkills(owner, repo, localRoot);
+  const { plugins, skills, agents, mcpServers, commands, hooks, isMarketplace } = await fetchMarketplaceSkills(owner, repo, localRoot);
   allPlugins.push(...plugins);
   allSkills.push(...skills);
   allAgents.push(...agents);
   allMcpServers.push(...mcpServers);
   allCommands.push(...commands);
   allHooks.push(...hooks);
+  sourceInfo[`${owner}/${repo}`] = { isMarketplace };
 }
 
 // Apply external overrides for categories
@@ -155,6 +157,7 @@ const index = {
   meta: {
     generated:      new Date().toISOString(),
     marketplaces:   marketplaces.map(m => `${m.owner}/${m.repo}`),
+    sources:        sourceInfo,
     pluginCount:    allPlugins.length,
     skillCount:     allSkills.length,
     agentCount:     allAgents.length,
@@ -174,8 +177,8 @@ const index = {
 writeFileSync(join(ROOT, 'skills_index.json'), JSON.stringify(index, null, 2) + '\n');
 console.log(`\n✓ skills_index.json — ${allPlugins.length} plugins, ${allSkills.length} skills, ${allAgents.length} agents, ${allMcpServers.length} MCP servers, ${allCommands.length} commands, ${allHooks.length} hooks from ${marketplaces.length} marketplace(s)`);
 
-writeFileSync(join(ROOT, 'CATALOG.md'), generateCatalog(allSkills, allAgents, allMcpServers, allCommands, allHooks, BUNDLES, marketplaces));
+writeFileSync(join(ROOT, 'CATALOG.md'), generateCatalog(allSkills, allAgents, allMcpServers, allCommands, allHooks, BUNDLES, marketplaces, sourceInfo));
 console.log(`✓ CATALOG.md`);
 
-writeFileSync(join(ROOT, 'catalog.html'), generateCatalogHtml(allSkills, allAgents, allMcpServers, allCommands, allHooks, BUNDLES, marketplaces));
+writeFileSync(join(ROOT, 'catalog.html'), generateCatalogHtml(allSkills, allAgents, allMcpServers, allCommands, allHooks, BUNDLES, marketplaces, sourceInfo));
 console.log(`✓ catalog.html`);

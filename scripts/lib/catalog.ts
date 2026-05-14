@@ -2,6 +2,13 @@
 
 import type { Skill, Agent, McpServer, Command, Hook, Bundle, MarketplaceEntry } from './types.js';
 
+type SourceInfo = Record<string, { isMarketplace: boolean }>;
+
+function isMarketplaceSource(skill: Skill, sources: SourceInfo): boolean {
+  const key = `${skill.source.owner}/${skill.source.repo}`;
+  return sources[key]?.isMarketplace !== false;
+}
+
 function titleCase(str: string): string {
   return str.replace(/-/g, ' ').replace(/(^|\s)(\w)/g, (_, sep, c) => sep + c.toUpperCase());
 }
@@ -62,22 +69,45 @@ function commandRow(cmd: Command): string {
   return `| [\`${cmd.name}\`](${cmd.rawCommandUrl}) | \`${src}\` | ${cmd.description} | \`${cmd.installCommand}\` |`;
 }
 
-function bundleSection(bundle: Bundle, allSkills: Skill[]): string[] {
-  const lines = bundle.skills.map(name => {
-    const skill = allSkills.find(s => s.name === name);
-    const repo  = skill?.source.repo ?? bundle.source?.repo ?? 'easier-life-skills';
-    return `/plugin install ${name}@${repo}`;
-  });
-  return [
+function bundleSection(bundle: Bundle, allSkills: Skill[], sources: SourceInfo): string[] {
+  const resolved = bundle.skills
+    .map(name => allSkills.find(s => s.name === name))
+    .filter((s): s is Skill => s !== undefined);
+
+  const marketplaceCmds = [...new Set(
+    resolved.filter(s => isMarketplaceSource(s, sources)).map(s => s.installCommand)
+  )];
+  const pluginOnly = resolved.filter(s => !isMarketplaceSource(s, sources));
+  const npxLine = `npx @dan323/easier-life-skills --bundle ${bundle.id ?? bundle.name}`;
+
+  const lines = [
     `### ${bundle.name}`,
     ``,
     `_${bundle.description}_`,
     ``,
+    'Install everything (routes per source):',
     '```',
-    ...lines,
+    npxLine,
     '```',
     ``,
   ];
+
+  if (marketplaceCmds.length > 0) {
+    lines.push('Or install marketplace plugins manually in Claude Code:', '```', ...marketplaceCmds, '```', ``);
+  }
+
+  if (pluginOnly.length > 0) {
+    // Dedupe by pluginName — multiple skills from the same plugin-only repo
+    // share one shim marketplace, so list each shim once.
+    const byPlugin = new Map<string, Skill>();
+    pluginOnly.forEach(s => { if (!byPlugin.has(s.pluginName)) byPlugin.set(s.pluginName, s); });
+    const note = [...byPlugin.values()]
+      .map(s => `- \`${s.pluginName}\` (${s.source.owner}/${s.source.repo}, plugin-only repo) — the npx command above auto-creates a shim marketplace and installs via \`claude plugin install ${s.pluginName}@${s.pluginName}\``)
+      .join('\n');
+    lines.push(note, ``);
+  }
+
+  return lines;
 }
 
 export function generateCatalog(
@@ -88,6 +118,7 @@ export function generateCatalog(
   hooks: Hook[],
   bundles: Bundle[],
   marketplaces: MarketplaceEntry[],
+  sources: SourceInfo = {},
 ): string {
   const date = new Date().toISOString().slice(0, 10);
 
@@ -158,7 +189,7 @@ export function generateCatalog(
 
   if (bundles.length > 0) {
     lines.push(`---`, ``, `## By Bundle`, ``);
-    bundles.forEach(b => lines.push(...bundleSection(b, skills)));
+    bundles.forEach(b => lines.push(...bundleSection(b, skills, sources)));
   }
 
   return lines.join('\n');
@@ -235,17 +266,40 @@ function commandRowHtml(cmd: Command): string[] {
   ];
 }
 
-function bundleSectionHtml(bundle: Bundle, allSkills: Skill[]): string {
-  const installs = bundle.skills.map(name => {
-    const skill = allSkills.find(s => s.name === name);
-    const repo  = skill?.source.repo ?? bundle.source?.repo ?? 'easier-life-skills';
-    return `/plugin install ${name}@${repo}`;
-  }).join('\n');
-  return [
+function bundleSectionHtml(bundle: Bundle, allSkills: Skill[], sources: SourceInfo): string {
+  const resolved = bundle.skills
+    .map(name => allSkills.find(s => s.name === name))
+    .filter((s): s is Skill => s !== undefined);
+  const marketplaceCmds = [...new Set(
+    resolved.filter(s => isMarketplaceSource(s, sources)).map(s => s.installCommand)
+  )];
+  const pluginOnly = resolved.filter(s => !isMarketplaceSource(s, sources));
+  const npxLine = `npx @dan323/easier-life-skills --bundle ${bundle.id ?? bundle.name}`;
+
+  const parts = [
     `<h3>${esc(bundle.name)}</h3>`,
     `<p class="bundle-desc"><em>${esc(bundle.description)}</em></p>`,
-    `<pre><code>${esc(installs)}</code></pre>`,
-  ].join('\n');
+    `<p class="bundle-install-label">Install everything (routes per source):</p>`,
+    `<pre><code>${esc(npxLine)}</code></pre>`,
+  ];
+
+  if (marketplaceCmds.length > 0) {
+    parts.push(
+      `<p class="bundle-install-label">Or install marketplace plugins manually:</p>`,
+      `<pre><code>${esc(marketplaceCmds.join('\n'))}</code></pre>`,
+    );
+  }
+
+  if (pluginOnly.length > 0) {
+    const byPlugin = new Map<string, Skill>();
+    pluginOnly.forEach(s => { if (!byPlugin.has(s.pluginName)) byPlugin.set(s.pluginName, s); });
+    const items = [...byPlugin.values()]
+      .map(s => `<li><code>${esc(s.pluginName)}</code> (${esc(s.source.owner)}/${esc(s.source.repo)}, plugin-only repo) — the npx command above auto-creates a shim marketplace and installs <code>${esc(s.pluginName)}@${esc(s.pluginName)}</code></li>`)
+      .join('\n');
+    parts.push(`<ul class="bundle-plugin-only">\n${items}\n</ul>`);
+  }
+
+  return parts.join('\n');
 }
 
 export function generateCatalogHtml(
@@ -256,6 +310,7 @@ export function generateCatalogHtml(
   hooks: Hook[],
   bundles: Bundle[],
   marketplaces: MarketplaceEntry[],
+  sources: SourceInfo = {},
 ): string {
   const date = new Date().toISOString().slice(0, 10);
 
@@ -328,7 +383,7 @@ ${marketplaces.map(m => `    <li><a href="https://github.com/${esc(m.owner)}/${e
   if (bundles.length > 0) {
     sections.push(`<section aria-labelledby="bundles-heading">
   <h2 id="bundles-heading">By Bundle</h2>
-${bundles.map(b => bundleSectionHtml(b, skills)).join('\n')}
+${bundles.map(b => bundleSectionHtml(b, skills, sources)).join('\n')}
 </section>`);
   }
 

@@ -27,7 +27,12 @@ Then install individual plugins:
 npx @dan323/easier-life-skills
 ```
 
-The installer lives in `installer/` and requires Node.js ≥ 18.
+The installer lives in `installer/` and requires Node.js ≥ 18. Every install goes through `claude plugin marketplace add` + `claude plugin install`, so plugins land in `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/` and are tracked in `installed_plugins.json`. The path differs only in which marketplace gets added:
+
+- **Marketplace sources** (have `.claude-plugin/marketplace.json`) → `claude plugin marketplace add <owner>/<repo>` (cached per session) + `claude plugin install <pluginName>@<repo>` (deduped).
+- **Plugin-only sources** (no marketplace.json — currently just `mattpocock/skills`) → write a per-plugin synthetic shim at `~/.config/easier-life-skills/shims/<pluginName>/.claude-plugin/marketplace.json` whose plugin entry uses `source: { source: "url", url: "https://github.com/<owner>/<repo>" }`, then `claude plugin marketplace add <shim-path>` + `claude plugin install <pluginName>@<pluginName>`. Claude Code resolves the URL source on install — no `git` required, no `~/.claude/skills/` clone path, and `claude plugin list`/`update`/`uninstall` see the install just like any other.
+
+The split is driven by `skills_index.json`'s `meta.sources[<owner/repo>].isMarketplace` flag, populated by `scripts/lib/fetch-marketplace.ts` based on which manifest it found.
 
 ## Repository Structure
 

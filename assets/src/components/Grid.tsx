@@ -26,6 +26,7 @@ interface Props {
   activeRepos: Set<string>;
   activeCategories: Set<string>;
   data:       DataSets;
+  sources?:   Record<string, { isMarketplace: boolean }>;
   onOpenPlugin:  (p: Plugin) => void;
   onOpenSkill:   (s: Skill) => void;
   onOpenAgent:   (a: Agent) => void;
@@ -65,7 +66,7 @@ export function Grid(props: Props) {
       {view === 'mcpServers' && <McpGrid        {...props} />}
       {view === 'commands'   && <CommandsGrid   {...props} />}
       {view === 'hooks'      && <HooksGrid      {...props} />}
-      {view === 'bundles'    && <BundlesGrid bundles={data.bundles} skills={data.skills} />}
+      {view === 'bundles'    && <BundlesGrid bundles={data.bundles} skills={data.skills} sources={props.sources} />}
     </>
   );
 }
@@ -272,14 +273,18 @@ function HooksGrid({ data, query, sort, activeRepos, activeCategories, onOpenHoo
   );
 }
 
-function BundlesGrid({ bundles, skills }: { bundles: Bundle[]; skills: Skill[] }) {
+function BundlesGrid({ bundles, skills, sources }: {
+  bundles: Bundle[];
+  skills:  Skill[];
+  sources?: Record<string, { isMarketplace: boolean }>;
+}) {
   return (
     <>
       <div class="count" id="count" aria-live="polite" aria-atomic="true">
         {bundles.length} bundles
       </div>
       <div id="bundles-grid" style={{ display: 'grid' }}>
-        {bundles.map(b => <BundleCard key={b.name} bundle={b} skills={skills} />)}
+        {bundles.map(b => <BundleCard key={b.name} bundle={b} skills={skills} sources={sources} />)}
       </div>
     </>
   );

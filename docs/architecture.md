@@ -144,9 +144,10 @@ assets/src/app.tsx     →  esbuild (JSX)   →  assets/bundle.js               
    - MCP servers can be an object keyed by server name, a string path to a JSON file, or auto-loaded from `.mcp.json` at the plugin root.
 4. **Categorise** — every entity carries a `category` field. Plugins and skills derive theirs from `plugin.json`; agents, hooks, commands, and MCP servers inherit it from their parent plugin, but agents/hooks/commands may override via a `category:` field in their YAML frontmatter. `.claude-plugin/external-overrides.json` supplements all of these per entity type (`plugins`, `skills`, `agents`, `hooks`, `commands`, `mcpServers`) when an upstream marketplace does not declare one. Resolution order, applied per entity: external override → frontmatter (where applicable) → parent plugin category → `null` ("Uncategorized").
 5. **Read-only tagging** — a skill is tagged `readOnly` when its `tools` frontmatter declares tools but none of them are `Write`, `Edit`, or `NotebookEdit`.
-6. **Bundle membership** is attached to each skill from `.claude-plugin/bundles.json`.
-7. `skills_index.json`, `CATALOG.md`, `catalog.html`, and `assets/bundle.js` are gitignored and rebuilt on every CI run; they are deployed to GitHub Pages with the static site assets.
-8. The website loads `skills_index.json` at runtime. The marketplace list is fixed at build time. Active filters, view, search query, and sort direction are synced to the URL hash so filtered states are shareable. The footer's `Full catalog` link points at the in-site `./catalog.html` rendered by `scripts/lib/catalog.ts#generateCatalogHtml`.
+6. **Bundle membership** is attached to each skill from `.claude-plugin/bundles.json`. Bundles reference skills by name only — at render time each skill is resolved against the aggregated index and its `installCommand` (`/plugin install <pluginName>@<repo>`) is reused as-is. Multiple bundled skills that share a plugin (8 anthropics example-skills, 14 obra superpowers) collapse to one install line; for plugin-only sources (see step 7) the BundleCard/CATALOG emit a `git clone` hint instead of a `/plugin install` line that wouldn't resolve. A single bundle can mix skills from multiple marketplaces (e.g. the `skill-author` bundle pulls from `easier-life-skills`, `anthropics/skills`, `mattpocock/skills`, and `obra/superpowers`).
+7. **Marketplace vs plugin-only sources** — `fetch-marketplace.ts` first tries `.claude-plugin/marketplace.json` and falls back to `.claude-plugin/plugin.json` for repos that are a single plugin (currently `mattpocock/skills`). The result is recorded in `skills_index.json` under `meta.sources[<owner/repo>].isMarketplace`. The npx installer (`installer/bin/install.js`) reads this flag to route each install: marketplace sources go through `claude plugin marketplace add <owner>/<repo>` + `claude plugin install <pluginName>@<repo>`; plugin-only sources get a per-plugin **synthetic shim marketplace** written under `~/.config/easier-life-skills/shims/<pluginName>/.claude-plugin/marketplace.json` whose single plugin entry uses Claude Code's `source: { source: "url", url: ... }` resolver — the shim is registered via `claude plugin marketplace add <shim-path>` (Claude Code accepts local-path marketplaces) and the plugin is installed as `<pluginName>@<pluginName>`. Either way, the plugin lands in `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/` and is registered in `installed_plugins.json`, so `claude plugin list` / `update` / `uninstall` work uniformly. The website's BundleCard makes the same distinction, defaulting to a single `npx … --bundle <id>` line for cross-source bundles and offering the per-source install commands (or a "this needs a shim, run the npx command" hint for plugin-only sources) behind a `<details>` toggle.
+8. `skills_index.json`, `CATALOG.md`, `catalog.html`, and `assets/bundle.js` are gitignored and rebuilt on every CI run; they are deployed to GitHub Pages with the static site assets.
+9. The website loads `skills_index.json` at runtime. The marketplace list is fixed at build time. Active filters, view, search query, and sort direction are synced to the URL hash so filtered states are shareable. The footer's `Full catalog` link points at the in-site `./catalog.html` rendered by `scripts/lib/catalog.ts#generateCatalogHtml`.
 
 ## Plugin Schema
 
@@ -316,6 +317,34 @@ Event parameters carry no PII — only skill/plugin names and source-repo
 slugs that are already publicly visible in the marketplace. Ad-related
 consent categories (`ad_storage`, `ad_user_data`, `ad_personalization`)
 are *never* granted because we don't run ads.
+
+### Debugging "no requests" on the deployed site
+
+If you see no `googletagmanager.com` or `g/collect` requests in Devtools'
+Network tab and want to know whether `gtag.js` even tried to load, flip
+on the opt-in debug logger in `assets/src/analytics.ts`:
+
+1. Open the deployed page with `?ga_debug=1` appended once (the helper
+   persists the flag to `localStorage.ga_debug` for subsequent reloads).
+   Clear it with `localStorage.removeItem('ga_debug')` when finished.
+2. Watch the console — every step prints a `[ga-debug] …` line:
+   - `initAnalytics start` with the resolved `GA_ID` (empty string ⇒
+     the `--define:GA_ID` substitution lost it in the build that the
+     browser actually loaded; check for a cached old bundle).
+   - `gtag.js script tag appended` followed by either `gtag.js script
+     load` or `gtag.js script error — likely blocked by extension/CSP`.
+     The `error` event fires even when the request never reaches the
+     wire (uBlock, Brave Shields, Firefox strict, Safari ITP, etc.), so
+     "Network tab empty but `error` logged" is the signature of a
+     client-side blocker.
+   - Every `dataLayer.push` (the consent default, the `js` timestamp,
+     the `config`, and any later events).
+   - `track` and `setStoredConsent` calls with a `gtagPresent` flag, so
+     you can tell whether the early-return killed the pipeline before
+     `window.gtag` was assigned.
+
+The logger is gated on `localStorage`/URL only — production visitors
+never see it and the build emits no extra network requests.
 
 ## Workflows
 

@@ -687,6 +687,13 @@ main { padding: 20px 32px 80px; }
 .expand-btn:hover { border-color: var(--accent); color: var(--accent); }
 
 .bundle-install {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bundle-install-primary,
+.bundle-install-manual-body {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -701,7 +708,17 @@ main { padding: 20px 32px 80px; }
   white-space: pre-wrap;
   line-height: 1.7;
   padding-right: 60px;
+  margin: 0;
 }
+
+.bundle-install-manual { font-size: 0.78rem; }
+.bundle-install-manual > summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 2px 0;
+}
+.bundle-install-manual > summary:hover { color: var(--accent); }
+.bundle-install-manual[open] > summary { margin-bottom: 6px; }
 
 .bundle-copy-btn {
   position: absolute;

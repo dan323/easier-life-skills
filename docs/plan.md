@@ -566,11 +566,11 @@ For skills and plugins, show a truncated rendering of the raw SKILL.md in the de
 
 ### Installer CLI (`npx @dan323/easier-life-skills`)
 
-#### 1. `--search <query>`  ·  Hours
-Filter skills by name/description/keywords before installing. Currently the user must run `--list` and scan manually. A simple `skills.filter(s => ...)` on the already-fetched index.
+#### 1. ~~`--search <query>`~~  ·  Hours  ·  **Done (v1.18.0)**
+Filter skills by name/description/keywords before installing. Currently the user must run `--list` and scan manually. A simple `skills.filter(s => ...)` on the already-fetched index. Shipped as `npx @dan323/easier-life-skills --search <query>` — case-insensitive substring match across `name`, `description`, and `keywords`. Pure discovery; does not require `claude` on `$PATH`.
 
-#### 2. `--update`  ·  Hours
-Re-download and overwrite already-installed skills. Currently there is no way to update without manually deleting the install directory. Checks installed `plugin.json` version against the index and reports what changed.
+#### 2. ~~`--update`~~  ·  Hours  ·  **Done (v1.20.0)**
+Re-download and overwrite already-installed skills. Currently there is no way to update without manually deleting the install directory. Checks installed `plugin.json` version against the index and reports what changed. Shipped as `npx @dan323/easier-life-skills --update` (all plugins installed from `easier-life-skills`) and `npx @dan323/easier-life-skills --update <name>` (one). Implementation pivot from the original sketch: instead of writing to a private install directory, the npx installer now delegates to `claude plugin update <name>@easier-life-skills`, reading `claude plugin list --json` to find which plugins it should touch. That puts version-tracking and orphan-detection in Claude Code's hands (where the registry actually lives) and removes the parallel install path entirely. See v1.20.0 in the changelog for the full rationale and migration note.
 
 #### 3. `--uninstall <name>`  ·  Hours
 Remove an installed skill directory from `~/.claude/plugins/easier-life-skills/<name>`. Simple `rm -rf` with a confirmation prompt.

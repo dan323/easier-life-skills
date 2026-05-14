@@ -193,6 +193,7 @@ export function App() {
           activeRepos={activeRepos}
           activeCategories={activeCategories}
           data={{ plugins, skills, agents, mcpServers, commands, hooks, bundles }}
+          sources={meta?.sources}
           onOpenPlugin={handleOpenPlugin}
           onOpenSkill={e => handleOpenEntity('skill',     e)}
           onOpenAgent={e => handleOpenEntity('agent',     e)}

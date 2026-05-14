@@ -80,5 +80,26 @@
     "skills": {
       "claude-code": { "category": "documentation" }
     }
+  },
+  "obra/superpowers": {
+    "plugins": {
+      "superpowers": { "category": "mixed" }
+    },
+    "skills": {
+      "brainstorming":                  { "category": "productivity" },
+      "dispatching-parallel-agents":    { "category": "automation"   },
+      "executing-plans":                { "category": "automation"   },
+      "finishing-a-development-branch": { "category": "automation"   },
+      "receiving-code-review":          { "category": "code-quality" },
+      "requesting-code-review":         { "category": "code-quality" },
+      "subagent-driven-development":    { "category": "automation"   },
+      "systematic-debugging":           { "category": "code-quality" },
+      "test-driven-development":        { "category": "testing"      },
+      "using-git-worktrees":            { "category": "automation"   },
+      "using-superpowers":              { "category": "productivity" },
+      "verification-before-completion": { "category": "code-quality" },
+      "writing-plans":                  { "category": "productivity" },
+      "writing-skills":                 { "category": "development"  }
+    }
   }
 }
