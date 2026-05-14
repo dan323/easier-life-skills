@@ -19,10 +19,11 @@ export function PluginCard({ plugin, showSource, onOpen }: Props) {
   const description = plugin.description ?? '';
 
   const allChips: Chip[] = [
-    ...plugin.skills.map(n         => ({ cls: 'chip-skill',   text: `skill: ${n}` })),
-    ...plugin.agents.map(n         => ({ cls: 'chip-agent',   text: `agent: ${n}` })),
-    ...plugin.mcpServers.map(n     => ({ cls: 'chip-mcp',     text: `mcp: ${n}`   })),
-    ...(plugin.commands ?? []).map(n => ({ cls: 'chip-command', text: `cmd: ${n}` })),
+    ...plugin.skills.map(n           => ({ cls: 'chip-skill',   text: `skill: ${n}` })),
+    ...plugin.agents.map(n           => ({ cls: 'chip-agent',   text: `agent: ${n}` })),
+    ...(plugin.hooks ?? []).map(n    => ({ cls: 'chip-hook',    text: `hook: ${n}`  })),
+    ...plugin.mcpServers.map(n       => ({ cls: 'chip-mcp',     text: `mcp: ${n}`  })),
+    ...(plugin.commands ?? []).map(n => ({ cls: 'chip-command', text: `cmd: ${n}`  })),
   ];
 
   const activate = () => onOpen(plugin);
