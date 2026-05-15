@@ -289,6 +289,39 @@ The build also generates `.claude-plugin/marketplace.json` — a combined catalo
 - `npm run typecheck` — type-checks scripts and the web app.
 - `npm test` / `npm run test:watch` — vitest + happy-dom regression suite. When touching anything under `assets/src/`, these tests must stay green.
 
+## Roadmap & Issue Tracking
+
+Day-to-day backlog and ticket status live on the **[Roadmap board](https://github.com/users/dan323/projects/4)** (user-scoped GitHub Project, number 4 under `dan323`). Columns: `Backlog / Todo / In Progress / Done / Won't Do`. Per-item custom fields:
+
+- **Status** (single-select) — the column the card sits in.
+- **Area** (single-select) — `Prioritised`, `Web UI`, `Installer`, `Skills`, `Agents`, `Commands`, `Hooks`, `MCPs`.
+- **Effort** (single-select) — `Hours` or `Days`.
+
+The board mirrors the per-area Backlog that previously lived in `docs/plan.md` (pruned in v1.25.3); add new ideas as draft cards on the board, not as new sections in `docs/plan.md`. Only the prioritised features that warrant full design write-ups (goal / architecture / phases / risks / done-when) belong in `docs/plan.md`.
+
+Real GitHub Issues exist for the four highest-signal items (everything else lives as draft project cards):
+
+| Issue                                                         | Title                                  | Status  | Area        |
+|---------------------------------------------------------------|----------------------------------------|---------|-------------|
+| [#7](https://github.com/dan323/easier-life-skills/issues/7)   | Skill Rating & Review System           | Todo    | Prioritised |
+| [#9](https://github.com/dan323/easier-life-skills/issues/9)   | Skill-execution telemetry (Feature 3b) | Backlog | Prioritised |
+| [#10](https://github.com/dan323/easier-life-skills/issues/10) | Custom bundle builder                  | Todo    | Web UI      |
+| [#11](https://github.com/dan323/easier-life-skills/issues/11) | `security-review` skill                | Backlog | Skills      |
+
+When a draft card grows enough scope to warrant discussion or assignment, promote it to a real Issue (`gh issue create …` then `gh project item-add …`). When an idea is intentionally rejected, move the card to `Won't Do` and edit the body to record why — the draft for the `--marketplace <owner/repo>` installer flag is the existing example.
+
+**Working with the board from the CLI** (token needs the `project` scope — `gh auth refresh -s project,read:project`):
+
+- `gh project view 4 --owner dan323 --format json` — board metadata.
+- `gh project item-list 4 --owner dan323 --format json --limit 100` — all items + their `Status`.
+- `gh project field-list 4 --owner dan323 --format json` — field IDs + single-select option IDs (needed for `item-edit`).
+- `gh project item-create 4 --owner dan323 --title "…" --body "…" --format json` — new draft card; returns the project item id (`PVTI_…`).
+- `gh project item-add 4 --owner dan323 --url <issue-url> --format json` — add an existing Issue/PR.
+- `gh project item-edit --id <PVTI_…> --project-id PVT_kwHOAfQw1M4BVnzp --field-id <field-id> --single-select-option-id <opt-id>` — change status / area / effort. The project id (`PVT_kwHOAfQw1M4BVnzp`) is fixed; field and option ids come from `field-list`.
+- Editing a draft card's **body** uses a different id: pass the inner `DraftIssue.id` (`DI_…`), reachable via the GraphQL query `node(id: "PVTI_…") { ... on ProjectV2Item { content { ... on DraftIssue { id } } } }`.
+
+When making changes that should be tracked (a new skill / agent / command / hook / MCP, a behaviour change to the web UI, a new installer flag), check the board first — there is probably already a card for the work. Move it to `In Progress`, do the work, then `Done` and link the PR/commit from the card body.
+
 ## Doc Rules
 
 Every time you modify anything, fix the documentation and `CHANGELOG.md` accordingly, if needed.
