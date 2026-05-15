@@ -8,31 +8,14 @@ A Claude Code plugin marketplace containing reusable skill plugins for Claude Co
 
 ## Installation
 
-### Claude Code (recommended)
+End-user install commands live in `README.md` and `installer/README.md`. The agent-relevant detail is how installs work under the hood — relevant when modifying `installer/bin/install.js` or the build pipeline.
 
-```
-/plugin marketplace add dan323/easier-life-skills
-```
-
-Then install individual plugins:
-
-```
-/plugin install easier-life-skills/docs
-/plugin install easier-life-skills/brainstorm
-```
-
-### NPM (non-interactive)
-
-```
-npx @dan323/easier-life-skills
-```
-
-The installer lives in `installer/` and requires Node.js ≥ 18. Every install goes through `claude plugin marketplace add` + `claude plugin install`, so plugins land in `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/` and are tracked in `installed_plugins.json`. The path differs only in which marketplace gets added:
+Every install delegates to `claude plugin marketplace add` + `claude plugin install`, landing plugins in `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/` (registered in `installed_plugins.json`). The path differs only in which marketplace gets added:
 
 - **Marketplace sources** (have `.claude-plugin/marketplace.json`) → `claude plugin marketplace add <owner>/<repo>` (cached per session) + `claude plugin install <pluginName>@<repo>` (deduped).
-- **Plugin-only sources** (no marketplace.json — currently just `mattpocock/skills`) → write a per-plugin synthetic shim at `~/.config/easier-life-skills/shims/<pluginName>/.claude-plugin/marketplace.json` whose plugin entry uses `source: { source: "url", url: "https://github.com/<owner>/<repo>" }`, then `claude plugin marketplace add <shim-path>` + `claude plugin install <pluginName>@<pluginName>`. Claude Code resolves the URL source on install — no `git` required, no `~/.claude/skills/` clone path, and `claude plugin list`/`update`/`uninstall` see the install just like any other.
+- **Plugin-only sources** (no marketplace.json — currently just `mattpocock/skills`) → write a per-plugin synthetic shim at `~/.config/easier-life-skills/shims/<pluginName>/.claude-plugin/marketplace.json` whose plugin entry uses `source: { source: "url", url: "https://github.com/<owner>/<repo>" }`, then `claude plugin marketplace add <shim-path>` + `claude plugin install <pluginName>@<pluginName>`. Claude Code resolves the URL source on install — no `git` required, and `claude plugin list`/`update`/`uninstall` see the install just like any other.
 
-The split is driven by `skills_index.json`'s `meta.sources[<owner/repo>].isMarketplace` flag, populated by `scripts/lib/fetch-marketplace.ts` based on which manifest it found.
+The split is driven by `skills_index.json`'s `meta.sources[<owner/repo>].isMarketplace` flag, populated by `scripts/lib/fetch-marketplace.ts`.
 
 ## Repository Structure
 
@@ -225,55 +208,15 @@ Include at least 3–5 evals per plugin. Cover the happy path, idempotent re-run
 - **Deduplication** is required — skills that append to existing files must check for existing entries before writing.
 - Read-only skills (e.g., `find-dead-code`, `find-breaking-rest-api`, `improve-logging`, `find-skills`) must never write or modify files in the target project. A skill is auto-tagged `readOnly` by the build pipeline when its `tools` list contains no `Write`, `Edit`, or `NotebookEdit` — no explicit marker needed.
 
-## Current Plugins
-
-| Plugin                   | Version | Category      | Purpose                                                                                                                                                                |
-|--------------------------|---------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `brainstorm`             | 1.0.0   | Productivity  | Read the project and suggest the 5 most valuable next features or improvements                                                                                         |
-| `code-audit`             | 1.0.0   | Code Quality  | Code-quality bundle plugin — ships three read-only skills: `find-dead-code` (unused functions/classes/imports), `find-breaking-rest-api` (breaking REST changes — multi-file routers, shared schemas, auth), and `improve-logging` (prioritised log-quality fixes) |
-| `cost-tracker`           | 1.0.0   | Productivity  | Append token usage and estimated cost to `~/.claude/cost-log.jsonl` on every Stop event                                                                                |
-| `cv-linkedin`            | 2.1.0   | Productivity  | Improve a CV and LinkedIn profile from the official export — stronger language, quantified achievements                                                                |
-| `docs`                   | 1.0.0   | Documentation | Documentation bundle plugin — ships two skills: `changelog` (CHANGELOG.md from git history, Keep a Changelog) and `document-project` (root README + `/docs` structure) |
-| `find-skills`            | 1.0.0   | Productivity  | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces                                                                        |
-| `scaffold`               | 1.0.0   | Productivity  | Generate a complete plugin skeleton (plugin.json, SKILL.md, evals, optional agents/references) from a prompt                                                           |
-| `site-audit`             | 1.3.0   | Code Quality  | Audit a website for UX, accessibility, performance, and bugs — fans out to specialised sub-agents in parallel                                                          |
-| `task-agent`             | 1.1.0   | Automation    | Read tasks from agent-tasks.yml, spawn agents per task, open PRs, and automatically fix Copilot review comments                                                        |
-| `workflow`               | 1.0.0   | Automation    | Run multi-step skill workflows declared in workflow YAML — sequential execution with `${{ … }}` interpolation                                                          |
-
 ## Adding a New Plugin
 
-1. Create `plugins/<skill-name>/` with the structure above.
-2. Write `plugins/<skill-name>/skills/<skill-name>/SKILL.md` following the phase-based format of existing skills.
-3. Add `plugins/<skill-name>/.claude-plugin/plugin.json` with name, version, description, category, and skills[].
-4. Add `plugins/<skill-name>/skills/<skill-name>/evals/evals.json` with at least 3–5 test scenarios.
-5. Run `npm run build` — this automatically adds the plugin to `.claude-plugin/marketplace.json`.
-6. Optionally add sub-agents to `plugins/<skill-name>/agents/<agent-name>.md` — each must have valid YAML frontmatter (`name`, `description`, `tools`). Skills spawn them via the Agent tool using `subagent_type`.
-7. Optionally add reference docs to `plugins/<skill-name>/references/<topic>.md` — keep these minimal: only non-obvious, trap-prone facts the agent would otherwise get wrong. Do not document things any LLM already knows.
-8. Optionally add `plugins/<skill-name>/examples/` with sample input/output files.
+Use the [`scaffold` skill](../plugins/scaffold/skills/scaffold/SKILL.md) — `/scaffold name=<name> description="…" category=<cat>` generates the directory structure, `plugin.json`, a phase-templated `SKILL.md`, and placeholder evals. After scaffolding (or any manual plugin edit), run `npm run build` to refresh `.claude-plugin/marketplace.json` and `skills_index.json`.
+
+The current set of plugins is documented in `README.md`'s plugins table — don't duplicate that list here.
 
 ## task-agent Plugin Details
 
-`task-agent` (v1.1.0) has additional structure beyond the standard layout:
-
-```
-plugins/task-agent/
-  agents/
-    copilot-review-fixer.md   ← Background sub-agent: polls open PRs for unresolved
-                                  Copilot comments and applies fixes automatically
-  examples/
-    agent-tasks.yml           ← Sample task config format
-    agent-tasks-state.yml     ← Sample completed-task state file
-  references/                 ← Language/build-tool quick-reference docs read at runtime
-    java.md
-    javascript.md
-    typescript.md
-    maven.md
-    gradle.md
-    npm.md
-    isabelle.md               ← Isabelle theorem prover build commands, Isar proof language
-    IsarMathLib.md            ← IsarMathLib style guide (declarative Isar, naming rules)
-  run.sh                      ← Non-interactive entry point for CI/automation use
-```
+`task-agent` has extra structure beyond the standard layout: `agents/copilot-review-fixer.md` (background sub-agent that polls open PRs and applies fixes for unresolved Copilot comments), `examples/agent-tasks.yml` + `agent-tasks-state.yml` (sample task config + completed-state file), `references/` (per-language/build-tool quick-reference docs read at runtime — includes `isabelle.md` / `IsarMathLib.md` for theorem-prover work), and `run.sh` (non-interactive entry point for CI/automation use).
 
 ## Web UI and GitHub Pages
 
@@ -310,15 +253,7 @@ Real GitHub Issues exist for the four highest-signal items (everything else live
 
 When a draft card grows enough scope to warrant discussion or assignment, promote it to a real Issue (`gh issue create …` then `gh project item-add …`). When an idea is intentionally rejected, move the card to `Won't Do` and edit the body to record why — the draft for the `--marketplace <owner/repo>` installer flag is the existing example.
 
-**Working with the board from the CLI** (token needs the `project` scope — `gh auth refresh -s project,read:project`):
-
-- `gh project view 4 --owner dan323 --format json` — board metadata.
-- `gh project item-list 4 --owner dan323 --format json --limit 100` — all items + their `Status`.
-- `gh project field-list 4 --owner dan323 --format json` — field IDs + single-select option IDs (needed for `item-edit`).
-- `gh project item-create 4 --owner dan323 --title "…" --body "…" --format json` — new draft card; returns the project item id (`PVTI_…`).
-- `gh project item-add 4 --owner dan323 --url <issue-url> --format json` — add an existing Issue/PR.
-- `gh project item-edit --id <PVTI_…> --project-id PVT_kwHOAfQw1M4BVnzp --field-id <field-id> --single-select-option-id <opt-id>` — change status / area / effort. The project id (`PVT_kwHOAfQw1M4BVnzp`) is fixed; field and option ids come from `field-list`.
-- Editing a draft card's **body** uses a different id: pass the inner `DraftIssue.id` (`DI_…`), reachable via the GraphQL query `node(id: "PVTI_…") { ... on ProjectV2Item { content { ... on DraftIssue { id } } } }`.
+**Working with the board from the CLI** — `gh project --help` covers the basics; the non-obvious bits are: the token needs the `project` scope (`gh auth refresh -s project,read:project`); the project node id `PVT_kwHOAfQw1M4BVnzp` is needed by `gh project item-edit` and won't change; field and option ids come from `gh project field-list 4 --owner dan323 --format json`. **Gotcha:** editing a draft card's *body* needs the inner `DraftIssue.id` (`DI_…`), not the project item id (`PVTI_…`) — fetch it via the GraphQL query `node(id: "PVTI_…") { ... on ProjectV2Item { content { ... on DraftIssue { id } } } }`.
 
 When making changes that should be tracked (a new skill / agent / command / hook / MCP, a behaviour change to the web UI, a new installer flag), check the board first — there is probably already a card for the work. Move it to `In Progress`, do the work, then `Done` and link the PR/commit from the card body.
 
