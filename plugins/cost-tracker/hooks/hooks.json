@@ -1,0 +1,25 @@
+{
+  "description": "Appends a JSON line with token usage and estimated cost to ~/.claude/cost-log.jsonl on Stop and SubagentStop events.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.py"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.py"
+          }
+        ]
+      }
+    ]
+  }
+}

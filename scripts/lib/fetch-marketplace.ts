@@ -1,10 +1,10 @@
 /* lib/fetch-marketplace.ts — fetches skills, agents, and mcpServers from one GitHub marketplace repo */
 
 import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 'fs';
-import { join, dirname }                                                    from 'path';
+import { join, dirname, basename }                                          from 'path';
 import { fileURLToPath }                                                    from 'url';
 import { parseFrontmatter }                                                 from './frontmatter.js';
-import type { Skill, Agent, McpServer, Command, Plugin, Bundle, MarketplaceResult } from './types.js';
+import type { Skill, Agent, McpServer, Command, Plugin, Bundle, MarketplaceResult, Hook } from './types.js';
 
 const __dirname  = dirname(fileURLToPath(import.meta.url));
 const CACHE_DIR  = join(__dirname, '../../.cache/trees');
@@ -182,7 +182,7 @@ interface PluginEntry {
   agents?: string[] | string | null;
   mcpServers?: Record<string, McpConfig> | McpConfig[] | string | null;
   commands?: string[] | string | null;
-  hooks?: string[] | string | null;
+  hooks?: string[] | string | Record<string, unknown> | null;
   homepage?: string | null;
 }
 
@@ -203,7 +203,7 @@ interface PluginJson {
   agents?: string[] | string | null;
   mcpServers?: Record<string, McpConfig> | McpConfig[] | string | null;
   commands?: string[] | string | null;
-  hooks?: string[] | string | null;
+  hooks?: string[] | string | Record<string, unknown> | null;
 }
 
 function resolveSource(
@@ -504,7 +504,7 @@ async function parseHook(
   pluginEntry: PluginEntry,
   owner: string,
   repo: string,
-): Promise<import('./types.js').Hook | null> {
+): Promise<Hook | null> {
   const hookRel      = normalisePath(hookRelPath);
   const hookName     = hookRel.split('/').pop()!.replace(/\.md$/i, '');
   const hookPathBase = pluginRoot ? `${pluginRoot}/${hookRel}` : hookRel;
@@ -536,32 +536,170 @@ async function parseHook(
 }
 
 async function discoverHooks(
-  decl: string[] | string | null | undefined,
+  decl: string[] | string | Record<string, unknown> | null | undefined,
   pluginRoot: string,
   remoteBase: string,
   root: string | null,
   pluginEntry: PluginEntry,
   owner: string,
   repo: string,
-): Promise<import('./types.js').Hook[]> {
-  const results: import('./types.js').Hook[] = [];
+): Promise<Hook[]> {
+  const results: Hook[] = [];
+
+  function asHookEventMap(raw: unknown): Record<string, unknown> | null {
+    if (!raw || typeof raw !== 'object') return null;
+    const obj = raw as Record<string, unknown>;
+    if (obj['hooks'] && typeof obj['hooks'] === 'object' && !Array.isArray(obj['hooks'])) {
+      return obj['hooks'] as Record<string, unknown>;
+    }
+    return obj;
+  }
+
+  function extractEvents(raw: unknown): string[] {
+    const map = asHookEventMap(raw);
+    if (!map) return [];
+    return Object.entries(map)
+      .filter(([, value]) => Array.isArray(value) && value.length > 0)
+      .map(([event]) => event);
+  }
+
+  function extractCommandName(raw: unknown): string | null {
+    const map = asHookEventMap(raw);
+    if (!map) return null;
+    for (const value of Object.values(map)) {
+      if (!Array.isArray(value)) continue;
+      for (const matcherEntry of value) {
+        if (!matcherEntry || typeof matcherEntry !== 'object') continue;
+        const hooks = (matcherEntry as Record<string, unknown>)['hooks'];
+        if (!Array.isArray(hooks)) continue;
+        for (const h of hooks) {
+          if (!h || typeof h !== 'object') continue;
+          const cmd = (h as Record<string, unknown>)['command'];
+          if (typeof cmd !== 'string' || cmd.trim().length === 0) continue;
+          const noVars = cmd.replace(/\$\{[^}]+\}/g, '');
+          const tokens = noVars.trim().split(/\s+/);
+          const candidate = tokens[tokens.length - 1] ?? '';
+          const file = candidate.split('/').pop() ?? '';
+          const name = file.replace(/\.(py|sh|js|ts|mjs|cjs)$/i, '').replace(/_/g, '-').trim();
+          if (name.length > 0) return name;
+        }
+      }
+    }
+    return null;
+  }
+
+  function hookDescription(raw: unknown): string {
+    if (!raw || typeof raw !== 'object') return pluginEntry.description ?? '';
+    const desc = (raw as Record<string, unknown>)['description'];
+    return typeof desc === 'string' ? desc : (pluginEntry.description ?? '');
+  }
+
+  function hookName(raw: unknown, hookConfigPath: string): string {
+    const byCommand = extractCommandName(raw);
+    if (byCommand) return byCommand;
+    const file = basename(hookConfigPath).replace(/\.json$/i, '');
+    if (file && file !== 'hooks') return file;
+    return pluginEntry.name;
+  }
+
+  async function parseHookConfigFile(
+    hookConfigRelPath: string,
+  ): Promise<Hook | null> {
+    const hookRel = normalisePath(hookConfigRelPath);
+    const fullHookPath = [pluginRoot, hookRel].filter(Boolean).join('/');
+    const text = await readFile(fullHookPath, remoteBase, root);
+    if (!text) return null;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text) as unknown;
+    } catch {
+      return null;
+    }
+    const events = extractEvents(parsed);
+    if (events.length === 0) return null;
+    return {
+      name:           hookName(parsed, fullHookPath),
+      pluginName:     pluginEntry.name,
+      description:    hookDescription(parsed),
+      category:       pluginEntry.category ?? null,
+      events,
+      hookPath:       fullHookPath,
+      rawHookUrl:     `${remoteBase}/${fullHookPath}`,
+      installCommand: `/plugin install ${pluginEntry.name}@${repo}`,
+      source:         { owner, repo, repoUrl: `https://github.com/${owner}/${repo}` },
+    };
+  }
+
+  function parseInlineHooksConfig(raw: Record<string, unknown>): Hook | null {
+    const events = extractEvents(raw);
+    if (events.length === 0) return null;
+    const hookPath = [pluginRoot, '.claude-plugin', 'plugin.json'].filter(Boolean).join('/');
+    return {
+      name:           hookName(raw, hookPath),
+      pluginName:     pluginEntry.name,
+      description:    hookDescription(raw),
+      category:       pluginEntry.category ?? null,
+      events,
+      hookPath,
+      rawHookUrl:     `${remoteBase}/${hookPath}`,
+      installCommand: `/plugin install ${pluginEntry.name}@${repo}`,
+      source:         { owner, repo, repoUrl: `https://github.com/${owner}/${repo}` },
+    };
+  }
+
+  async function parseHookPathSpec(spec: string): Promise<void> {
+    const rel = normalisePath(spec);
+    if (!rel) return;
+    if (rel.endsWith('.json')) {
+      const hook = await parseHookConfigFile(rel);
+      if (hook) results.push(hook);
+      return;
+    }
+    if (rel.endsWith('.md')) {
+      const hook = await parseHook(rel, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
+      if (hook) results.push(hook);
+      return;
+    }
+
+    const jsonHook = await parseHookConfigFile(`${rel}/hooks.json`);
+    if (jsonHook) results.push(jsonHook);
+
+    const fullScanDir = [pluginRoot, rel].filter(Boolean).join('/');
+    const entries = await listDir(fullScanDir, remoteBase, root);
+    for (const entry of entries.filter(e => !e.isDir && e.name.endsWith('.md'))) {
+      const path = `${rel}/${entry.name}`;
+      const hook = await parseHook(path, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
+      if (hook) results.push(hook);
+    }
+  }
 
   if (Array.isArray(decl)) {
     for (const hp of decl) {
-      const hook = await parseHook(hp, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
-      if (hook) results.push(hook);
+      await parseHookPathSpec(hp);
     }
     return results;
   }
 
-  const scanRel     = decl != null ? normalisePath(decl) : 'hooks';
-  const fullScanDir = [pluginRoot, scanRel].filter(Boolean).join('/');
-  const entries     = await listDir(fullScanDir, remoteBase, root);
+  if (decl && typeof decl === 'object') {
+    const inlineHook = parseInlineHooksConfig(decl);
+    if (inlineHook) results.push(inlineHook);
+    return results;
+  }
+
+  if (typeof decl === 'string') {
+    await parseHookPathSpec(decl);
+    return results;
+  }
+
+  const defaultHook = await parseHookConfigFile('hooks/hooks.json');
+  if (defaultHook) results.push(defaultHook);
+
+  const entries = await listDir([pluginRoot, 'hooks'].filter(Boolean).join('/'), remoteBase, root);
   for (const entry of entries.filter(e => !e.isDir && e.name.endsWith('.md'))) {
-    const relPath = scanRel ? `${scanRel}/${entry.name}` : entry.name;
-    const hook = await parseHook(relPath, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
+    const hook = await parseHook(`hooks/${entry.name}`, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
     if (hook) results.push(hook);
   }
+
   return results;
 }
 
@@ -612,7 +750,7 @@ export async function fetchMarketplaceSkills(owner: string, repo: string, root: 
   const agents:     Agent[]     = [];
   const mcpServers: McpServer[] = [];
   const commands:   Command[]   = [];
-  const hooks:      import('./types.js').Hook[] = [];
+  const hooks:      Hook[] = [];
   const plugins:    Plugin[]    = [];
 
   for (const pluginEntry of marketplaceJson.plugins ?? []) {

@@ -1,7 +1,7 @@
 {
   "name": "cost-tracker",
   "version": "1.0.0",
-  "description": "Append token usage and estimated cost to ~/.claude/cost-log.jsonl on every Stop event",
+  "description": "Append token usage and estimated cost to ~/.claude/cost-log.jsonl on Stop and SubagentStop events",
   "author": { "name": "dan323" },
   "category": "productivity"
 }
