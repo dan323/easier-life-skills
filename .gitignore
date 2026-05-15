@@ -20,3 +20,7 @@ assets/bundle.js
 # Node
 node_modules/
 iteration-*/
+
+cv-improved.md
+*.pdf
+*.csv
