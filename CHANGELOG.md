@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.25.3] - 2026-05-14
+
+### Changed
+- **Pruned `docs/plan.md` to active design notes only.** Day-to-day backlog tracking now lives on the [GitHub Project board](https://github.com/users/dan323/projects/4) (Backlog / Todo / In Progress / Done / Won't Do, with `Area` and `Effort` fields), so `docs/plan.md` no longer duplicates the per-area Backlog tables that the board carries authoritatively. The doc now opens with a board pointer, keeps full design notes only for the two prioritised features that haven't landed (Feature 1 — Skill Rating & Review System, Feature 3b — Skill-execution telemetry), and collapses the three shipped prioritised features (`scaffold` v1.16.0, `workflow` v1.17.0, GA4/3a v1.17.0) plus the two shipped installer items (`--search` v1.18.0, `--update` v1.20.0) into a single "Previously shipped" table that links to their CHANGELOG entries. The original design notes — including each shipped feature's "Deviations from the original design" subsection — remain accessible via `docs/plan.md` at commit `ac56d2f`. `README.md`'s Roadmap link still points to the same file path; no anchor links into `docs/plan.md` exist elsewhere in the repo (only the file itself referenced its own `#sequencing-recommendation` anchor, which is preserved).
+
 ## [1.25.2] - 2026-05-14
 
 ### Fixed

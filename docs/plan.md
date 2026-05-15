@@ -2,26 +2,27 @@
 
 # Roadmap & Plans
 
-Two parts. The **Prioritised plans** section below contains the next
-features to ship, each with an actionable implementation plan. The
-**Backlog** section is a longer list of unranked ideas grouped by area,
-ranked roughly by value-to-effort within each section.
+Day-to-day backlog and ticket status live on the GitHub Project board:
+**[Roadmap board](https://github.com/users/dan323/projects/4)** — columns
+*Backlog / Todo / In Progress / Done / Won't Do*, with `Area` and `Effort`
+fields. Add new ideas as draft cards there.
+
+This document keeps the prose the board can't carry: the design notes for
+prioritised features that haven't shipped yet, plus a one-line history of
+prioritised features that have.
 
 ---
 
-## Prioritised plans
+## Active prioritised plans
 
-Four features scoped to be shippable in a single PR (or a small series of
-PRs), grounded in the current codebase. See [Sequencing
-recommendation](#sequencing-recommendation) at the end for the suggested
-order.
+The features below have full design notes — goal, architecture, file-level
+plan, phases, risks, and done-when criteria. Each one is also tracked as
+an issue on the board.
 
-| # | Feature                                                                        | Effort   | Type    | Status                  |
-|---|--------------------------------------------------------------------------------|----------|---------|-------------------------|
-| 1 | [Skill Rating & Review System](#1-skill-rating--review-system)                 | 2–3 days | Feature | Not started             |
-| 2 | [Skill Composition & Workflow Format](#2-skill-composition--workflow-format)   | 3–4 days | Feature | **Done (v1.17.0)**      |
-| 3 | [Usage Analytics & Insights Dashboard](#3-usage-analytics--insights-dashboard) | 3–4 days | Feature | **3a Done (v1.17.0) · 3b deferred** |
-| 4 | [Skill Scaffold Generator](#4-skill-scaffold-generator)                        | 2–3 days | Feature | **Done (v1.16.0)**      |
+| # | Feature                                                                             | Effort   | Status   | Issue |
+|----|-------------------------------------------------------------------------------------|----------|----------|-------|
+| 1  | [Skill Rating & Review System](#1-skill-rating--review-system)                       | 2–3 days | Todo     | [#7](https://github.com/dan323/easier-life-skills/issues/7) |
+| 3b | [Skill-execution telemetry](#3b-skill-execution-telemetry-deferred)                  | 3–4 days | Deferred | [#9](https://github.com/dan323/easier-life-skills/issues/9) |
 
 ### 1. Skill Rating & Review System
 
@@ -112,181 +113,16 @@ Two halves:
 - The detail panel shows aggregate stars and a "Rate this" link.
 - `docs/architecture.md` describes the pipeline.
 
-### 2. Skill Composition & Workflow Format
+### 3b. Skill-execution telemetry (deferred)
 
-> **Status: Done — shipped in v1.17.0.**
-> Implemented as the `workflow` plugin (runner SKILL.md + format reference
-> + example). Linear execution only; the deferred items in the **Risks**
-> subsection below are documented in `docs/architecture.md` as "Future
-> work". Workflows are **plugin-internal config**, not a separate
-> marketplace entity — the build pipeline does not index them. The
-> original design treated them as a first-class entity alongside skills /
-> agents / commands / hooks / MCP servers, but that surface was rolled
-> back as over-engineered for a single-source, single-author feature. See
-> the **Deviations** subsection at the end.
-
-#### Goal
-
-A declarative YAML format for chaining skills into multi-step workflows.
-Workflows are first-class artefacts in the marketplace — discoverable,
-shareable, and installable just like skills.
-
-#### Why now
-
-Skills are powerful in isolation but stop short of the real user goal. A user
-who wants "brainstorm 3 features, write README sections for each, open a PR"
-currently has to run three skills manually and copy intermediate output by
-hand. Workflows close that loop. `task-agent` already orchestrates multi-step
-agent execution; this generalises it into a reusable format.
-
-#### Format
-
-```yaml
-# workflow.yaml
-name: Document and Deploy
-description: Brainstorm features, document the top ones, and open a PR.
-inputs:
-  - name: feature_count
-    default: 3
-steps:
-  - id: ideas
-    skill: brainstorm
-    args:
-      count: ${{ inputs.feature_count }}
-  - id: docs
-    skill: document-project
-    inputs:
-      ideas: ${{ steps.ideas.output }}
-  - id: pr
-    skill: task-agent
-    inputs:
-      tasks: "Open a PR adding the docs from step `docs`."
-```
-
-Notes on the design:
-
-- **`${{ … }}`** interpolation — familiar from GitHub Actions, avoids a
-  custom DSL.
-- **`steps[].output`** — every skill must serialise a JSON blob to a
-  conventional path (`$WORKFLOW_DIR/<step-id>/output.json`) at the end of its
-  run. The workflow runner reads from there.
-- **No conditionals / parallelism in v1.** Linear execution only. Branching
-  and fan-out are a v2 problem.
-
-#### Architecture
-
-- A new plugin `plugins/workflow/` with a single skill that:
-  1. Parses `workflow.yaml`.
-  2. Resolves inputs and step ordering.
-  3. For each step, spawns a sub-agent via the Agent tool with the
-     corresponding skill's `subagent_type`.
-  4. Captures stdout / output file, exposes it to subsequent steps via the
-     interpolation engine.
-  5. Writes a final `workflow-output.json` summarising what each step
-     produced.
-
-- A new entity type `workflow` surfaced in the marketplace browser, sitting
-  alongside `skill`, `agent`, `command`, `hook`, `mcpServer`.
-
-#### File-level plan
-
-| File                                                 | Change                                                                 |
-|------------------------------------------------------|------------------------------------------------------------------------|
-| `plugins/workflow/.claude-plugin/plugin.json`        | New plugin manifest.                                                   |
-| `plugins/workflow/skills/workflow/SKILL.md`          | Phase-structured skill: parse → validate → execute → report.           |
-| `plugins/workflow/skills/workflow/evals/evals.json`  | ≥ 4 evals: happy path, missing input, failing step, idempotent re-run. |
-| `plugins/workflow/references/format.md`              | Authoritative spec of the YAML schema.                                 |
-| `plugins/workflow/examples/document-and-deploy.yaml` | Example workflow used in the README.                                   |
-| `scripts/lib/types.ts`                               | New `Workflow` entity type.                                            |
-| `scripts/lib/fetch-marketplace.ts`                   | Discover `workflows/*.yaml` files inside each plugin and surface them. |
-| `scripts/build-index.ts`                             | Include workflows in `skills_index.json`.                              |
-| `assets/src/components/cards/WorkflowCard.tsx` (new) | Mirrors `SkillCard` but with a list of step skills.                    |
-| `assets/src/components/Grid.tsx` / `Filters.tsx`     | Add `workflow` as a filterable entity.                                 |
-| `assets/src/components/EntityPanel.tsx`              | Render the step list for workflows.                                    |
-| `tests/fixtures/skills_index.json`                   | Add a fixture workflow.                                                |
-| `tests/filters.test.ts`                              | Filtering by workflow type.                                            |
-| `docs/architecture.md`                               | New section: "Workflows".                                              |
-| `docs/contributing.md`                               | How to author a workflow.                                              |
-| `CLAUDE.md` (project)                                | Document the workflow entity in the repository-structure section.      |
-| `README.md`                                          | Mention workflows in the plugin table.                                 |
-| `CHANGELOG.md`                                       | Unreleased entry.                                                      |
-
-#### Phases
-
-1. **Format spec** (½ day) — write `references/format.md`, define types, agree
-   on interpolation grammar and the output-file convention.
-2. **Runner** (1½ days) — implement the `workflow` skill itself: YAML parse,
-   variable substitution, sequential step execution with Agent spawns.
-   Hardest part: deciding how a parent skill marshals output to its child.
-3. **Marketplace surfacing** (1 day) — types, build script, web UI card and
-   filter.
-4. **Example + evals** (½ day) — `document-and-deploy.yaml` end-to-end, evals
-   covering the failure modes.
-5. **Docs** (¼ day) — README, architecture, contributing.
-
-#### Risks
-
-- **Output-passing contract.** Skills currently don't write structured
-  output. Mitigation: the runner provides a `$WORKFLOW_OUTPUT` env var; if a
-  step doesn't write to it, its `output` is the captured stdout. Skills that
-  want to participate "well" in workflows opt into writing JSON; older skills
-  still compose, just with stringy output.
-- **Error handling.** If step 2 fails, step 3 must not run. Mitigation:
-  agent exit codes propagate; the runner stops on first non-zero.
-- **Surface area creep.** Mitigation: explicitly defer conditionals,
-  parallelism, retries, secrets — list them in `docs/architecture.md` as
-  "Future work" with a one-line reason for deferral.
-
-#### Done when
-
-- `plugins/workflow/` builds and the runner skill is installable. ✅
-- The `document-and-deploy.yaml` example runs end-to-end in an eval. ⏳ (evals authored; run with the `skill-creator` skill)
-- `npm test` passes. ✅
-
-#### Deviations from the original design (for the next iteration)
-
-- **Workflows are not a marketplace entity.** The original plan called for
-  a top-level `workflow` entity surfaced alongside skill/agent/command/
-  hook/mcpServer in the build index and web UI. That was implemented and
-  then rolled back: only this repo authors workflow YAML, so the new tab
-  was effectively a single-source view, paying ~150 LoC of YAML extraction
-  + type plumbing + web wiring for one entry. Workflows are now treated
-  as plugin-internal config consumed by the `workflow` runner skill;
-  promote them to a first-class entity only when multiple external
-  marketplaces start producing them.
-- The runner writes a per-step output to
-  `$WORKFLOW_DIR/<id>/output.json`. The original plan didn't pin a
-  directory; the implemented behaviour mirrors GitHub Actions' artifact
-  layout for familiarity.
-
-### 3. Usage Analytics & Insights Dashboard
-
-> **Status: Feature 3a Done (v1.17.0), Feature 3b deferred.** The
-> original plan assumed there was no analytics on the marketplace site;
-> in practice the maintainer already has a Google Analytics account, so
-> we scoped the work in two:
->
-> - **Feature 3a — Wire GA4 on the deployed site (Done).** Two custom
->   events (`entity_open`, `install_copy`) are sent from the web UI via
->   a build-time-gated `gtag.js`. Maintainer reads the data in GA's own
->   dashboard; no marketplace-side badges, no popularity sort. Cost:
->   half-day, ~90 LoC across `assets/src/analytics.ts`, the entry
->   point, `CopyButton.tsx`, the five entity cards, and the two
->   detail panels. Documented in `docs/architecture.md` → Analytics.
->
-> - **Feature 3b — Skill-execution telemetry (Deferred).** The big-ticket
->   part of the original plan — an opt-in CLI, ingest endpoint, daily
->   aggregator, privacy doc, and per-skill instrumentation that lets the
->   site show `Used 5.2k times this month` / `98% success rate` badges
->   — captures behaviour that GA literally cannot see (skills run on
->   user laptops, not in browsers). Deferred until there's evidence
->   maintainer/user trust actually benefits from these badges; for now
->   GA's web-side engagement signals + the rating system (Feature 1) are
->   expected to cover the trust-and-direction use cases.
->
-> The notes below describe the original plan in full; the implemented
-> Feature 3a is a small subset (web-UI events only). The **Deviations**
-> subsection at the end summarises what changed.
+> **Deferred.** GA4 (Feature 3a) already covers web-side engagement on the
+> deployed site (shipped in v1.17.0). This plan tracks the opt-in CLI +
+> ingest endpoint + aggregator + per-skill instrumentation that captures
+> data GA literally cannot see — skills run on user laptops, not in
+> browsers. Unblock when there is concrete user-facing demand for the
+> `Used 5.2k times this month` / `98% success rate` badges; until then,
+> GA + the rating system (Feature 1) are expected to cover the
+> trust-and-direction use cases.
 
 #### Goal
 
@@ -294,13 +130,6 @@ Skills emit anonymous, opt-in telemetry. Aggregate metrics are surfaced both
 to the maintainer (which skills work, which fail, which are popular) and to
 users (`Used 5.2k times this month`, `98% success rate`) — but never expose
 PII or any per-user identifier.
-
-#### Why now
-
-You're flying blind on which skills are valuable. Aggregate usage data drives
-roadmap decisions, and visible adoption metrics drive trust the same way
-ratings do. Implementing both 1 and 3 together is intentional — ratings are
-opinion, telemetry is behaviour, and they reinforce each other.
 
 #### Privacy model
 
@@ -379,165 +208,18 @@ opinion, telemetry is behaviour, and they reinforce each other.
 
 #### Done when
 
-- `claude-skills telemetry on` records consent locally and skills emit events. ⏳ (Feature 3b, deferred)
-- `analytics.json` is regenerated daily. ⏳ (Feature 3b, deferred)
-- The web UI shows runs / success rate / popularity badges on at least three fixture skills, and tests cover the new sort + display. ⏳ (Feature 3b, deferred)
-- `docs/privacy.md` exists and is linked from the README and the CLI's consent prompt. ⏳ (Feature 3b, deferred)
-- **Feature 3a** ships GA4 wiring on the deployed site with `entity_open` + `install_copy` events. ✅
-
-#### Deviations from the original design (for the next iteration)
-
-- **Maintainer already has GA**; the analytics question split into web-side
-  engagement (covered by GA4, shipped as Feature 3a) and skill-execution
-  telemetry (the opt-in CLI + ingest endpoint + aggregator that GA can't
-  see, Feature 3b). The original plan conflated the two.
-- **No marketplace-side badges in v1.** The `5.2k runs` / `98% success`
-  badges and the `Popularity` sort require execution data, not GA data —
-  they're deferred with Feature 3b. The maintainer reads engagement
-  signals in GA directly until there's a clear user-facing reason for the
-  badges. (This mirrors the workflow-entity rollback: don't surface UI
-  that produces nothing visible until the data substrate exists.)
-- **GA config via `vars` not `secrets`.** Measurement ids are publicly
-  visible anyway, so `vars.GA_MEASUREMENT_ID` is correct. The original
-  plan didn't take a position on this.
-
-### 4. Skill Scaffold Generator
-
-> **Status: Done — released in v1.16.0 (2026-05-13).** Shipped as the
-> `scaffold` plugin. See the `[1.16.0]` entry in
-> [`CHANGELOG.md`](../CHANGELOG.md) for the final scope and the section
-> below for the original design notes (kept for reference; the
-> implementation matches except where noted inline).
-
-#### Goal
-
-A `scaffold` skill that generates a complete plugin skeleton from a single
-prompt — directory structure, `plugin.json`, a phase-structured `SKILL.md`,
-`evals.json` with three placeholder cases, and optional `agents/` and
-`references/` folders.
-
-#### Why now
-
-Adding a new plugin currently requires copying an existing one and replacing
-the relevant fields. It works, but it's a 30–45-minute task and an
-error-prone one (forgetting evals, mis-naming a directory, leaving stale
-content from the template). A scaffold reduces it to a 5-minute task and is
-the single biggest lever for contribution velocity.
-
-#### Usage
-
-```text
-/scaffold name=index-audit description="Audit database indexes" category=code-quality agents=index-walker
-```
-
-Generates:
-
-```
-plugins/index-audit/
-  .claude-plugin/
-    plugin.json                  ← Filled with the inputs
-  skills/index-audit/
-    SKILL.md                     ← Phase template with TODO markers
-    evals/
-      evals.json                 ← 3 placeholder evals
-  agents/
-    index-walker.md              ← YAML frontmatter + system-prompt template
-```
-
-The generator finishes by printing a checklist:
-
-```
-✓ Plugin scaffolded at plugins/index-audit/
-Next steps:
-  1. Fill in TODOs in skills/index-audit/SKILL.md
-  2. Replace placeholder evals in skills/index-audit/evals/evals.json
-  3. Run: npm run build && npm test
-```
-
-#### Architecture
-
-- A standard skill (not a CLI binary) so it lives in the marketplace and is
-  installable like everything else.
-- Reads inputs from the prompt arguments (parsed by the SKILL.md
-  Investigation phase using simple key=value parsing).
-- Uses the Write tool exclusively — no shell scripting required, every file
-  has a templated string in the skill body.
-- Idempotent: refuses to overwrite an existing plugin directory unless
-  `--force` is passed.
-
-#### File-level plan
-
-| File                                                | Change                                                                                                     |
-|-----------------------------------------------------|------------------------------------------------------------------------------------------------------------|
-| `plugins/scaffold/.claude-plugin/plugin.json`       | New plugin manifest (category: productivity).                                                              |
-| `plugins/scaffold/skills/scaffold/SKILL.md`         | Phase-structured skill: parse args → check collisions → write files → print next steps.                    |
-| `plugins/scaffold/skills/scaffold/evals/evals.json` | ≥ 4 evals: basic scaffold, scaffold-with-agent, collision error, scaffold-with-references.                 |
-| `plugins/scaffold/references/templates.md`          | Canonical template strings (`plugin.json`, `SKILL.md`, `evals.json`, `agent.md`) — single source of truth. |
-| `plugins/scaffold/examples/scaffolded-output/`      | Expected output of a known invocation, used by evals.                                                      |
-| `docs/contributing.md`                              | Replace the "manually copy an existing plugin" instructions with `/scaffold …`.                            |
-| `README.md`                                         | Add `scaffold` to the plugins table.                                                                       |
-| `CHANGELOG.md`                                      | Unreleased entry.                                                                                          |
-
-#### Phases
-
-1. **Template extraction** (¼ day) — copy the canonical template strings
-   from existing plugins into `references/templates.md`. This is the
-   single source of truth; the skill body composes them.
-2. **Argument parser** (¼ day) — define the prompt grammar (`name=… category=…
-   agents=a,b references=c`) and the validation rules (kebab-case name,
-   category is one of the allowed values, agents/references are optional
-   comma-separated lists).
-3. **Skill body** (½ day) — Investigation, Implementation (Write the files),
-   Verification (print the checklist) phases.
-4. **Collision behaviour** (¼ day) — refuse if the directory exists, surface
-   `--force` to override.
-5. **Evals** (½ day) — write 4 evals including the collision case and one
-   with both agents and references.
-6. **Docs** (¼ day) — rewrite the relevant section of `docs/contributing.md`.
-
-#### Risks
-
-- **Template drift.** If existing plugins change their structure, the
-  scaffold output will lag. Mitigation: `references/templates.md` is the
-  authoritative version — when changing the structure of a real plugin,
-  update the references file in the same PR. Add a checklist line to the
-  contributing guide.
-- **Args parsing edge cases.** Mitigation: keep the grammar minimal
-  (key=value, space-separated, comma-separated lists for repeated keys).
-  Reject anything ambiguous and ask the user to retry.
-
-#### Done when
-
-- Running the skill with valid arguments produces a plugin that passes
-  `npm run build && npm test`. ✅
-- Re-running on an existing plugin name errors cleanly. ✅ (eval 2 covers this)
-- `docs/contributing.md` recommends `/scaffold` as the canonical path. ✅
-- All four evals pass. ⏳ (evals authored; run them with the `skill-creator` skill)
-
-#### Deviations from the original design (for the next iteration)
-
-- The skill does **not** modify `CHANGELOG.md`, `README.md`, or
-  `.claude/CLAUDE.md` automatically — these are surfaced in the next-step
-  checklist for the user instead, matching the rest of the marketplace's
-  "no surprise writes" ethos. The original plan didn't take a position on
-  this; the implemented behaviour is intentionally conservative.
-- The skill does **not** invent an alternative `name` on collision — it
-  reports the conflict and asks the user to choose between renaming and
-  re-running with `force`.
-- An `examples/scaffolded-output/` snapshot was added so the eval suite (and
-  future contributors) can `diff` a real run against a stable reference.
-- Evals assume the runner executes from the repo root (the skill needs to
-  read `plugins/scaffold/references/templates.md` at the canonical path).
-  This was the simplest robust setup; a sandboxed-tmpdir runner is possible
-  later if needed.
+- `claude-skills telemetry on` records consent locally and skills emit events.
+- `analytics.json` is regenerated daily.
+- The web UI shows runs / success rate / popularity badges on at least three
+  fixture skills, and tests cover the new sort + display.
+- `docs/privacy.md` exists and is linked from the README and the CLI's
+  consent prompt.
 
 ### Sequencing recommendation
 
-Features 2, 3a, and 4 are shipped. Recommended next-up order:
-
 1. **Feature 1 (Ratings)** — bounded surface area, exercises the build
-   pipeline's "merge external data into the index" pattern, which a later
-   Feature 3b rollout would also reuse.
+   pipeline's "merge external data into the index" pattern, which Feature
+   3b would also reuse.
 2. **Feature 3b (Execution telemetry)** — only when there's a concrete
    user-facing reason for the popularity badges; until then GA (3a) +
    ratings (1) carry the "trust and direction" signal at a fraction of
@@ -545,116 +227,27 @@ Features 2, 3a, and 4 are shipped. Recommended next-up order:
 
 ---
 
-## Backlog
+## Previously shipped
 
-Unranked ideas grouped by area. Items are roughly ranked by value-to-effort
-within each section.
+Prioritised features whose design started here and have since landed. The
+full original design notes (including each feature's "Deviations from the
+original design" subsection) live in [`docs/plan.md` at commit
+`ac56d2f`][prior-plan]; per-version detail is in [`CHANGELOG.md`][changelog].
 
-### Web UI
+| Feature                                                       | Shipped in                                                                       |
+|---------------------------------------------------------------|----------------------------------------------------------------------------------|
+| Skill Scaffold Generator (`scaffold` plugin)                  | [v1.16.0][changelog]                                                             |
+| Skill Composition & Workflow Format (`workflow` plugin)       | [v1.17.0][changelog]                                                             |
+| Usage Analytics 3a — GA4 wiring on the deployed site          | [v1.17.0][changelog] (extended in [v1.17.1][changelog] / [v1.23.1][changelog])   |
+| Installer `--search <query>`                                  | [v1.18.0][changelog]                                                             |
+| Installer `--update [name]`                                   | [v1.20.0][changelog]                                                             |
 
-#### 1. Custom bundle builder  ·  Days
-A "Add to bundle" button on every card. A persistent drawer shows the current selection with a generated install script and a "Copy all" button. Replaces the need to browse bundles separately and serves the core use case — getting a curated set of skills installed — better than static bundles.
+Everything else — Web UI tweaks, new skills / agents / commands / hooks /
+MCPs, installer ergonomics — lives on the [Roadmap board][board].
 
-#### 2. GitHub stars on source tags  ·  Hours
-Fetch star counts from the GitHub API for each marketplace repo and display them on the source tags (e.g. `dan323/easier-life-skills ★ 42`). Makes the relative popularity of marketplaces visible at a glance.
-
-#### 3. SKILL.md preview in panel  ·  Days
-For skills and plugins, show a truncated rendering of the raw SKILL.md in the detail panel — the first 1000 chars or the first phase heading. Gives users a sense of what the skill actually does before installing it, without leaving the page.
-
-#### 4. Remaining keyboard shortcuts  ·  Hours
-`j`/`k` moves between visible cards, `Enter` opens the detail panel for the focused card. (`/` to focus search and `Escape` to close the panel are already implemented.)
-
-### Installer CLI (`npx @dan323/easier-life-skills`)
-
-#### 1. ~~`--search <query>`~~  ·  Hours  ·  **Done (v1.18.0)**
-Filter skills by name/description/keywords before installing. Currently the user must run `--list` and scan manually. A simple `skills.filter(s => ...)` on the already-fetched index. Shipped as `npx @dan323/easier-life-skills --search <query>` — case-insensitive substring match across `name`, `description`, and `keywords`. Pure discovery; does not require `claude` on `$PATH`.
-
-#### 2. ~~`--update`~~  ·  Hours  ·  **Done (v1.20.0)**
-Re-download and overwrite already-installed skills. Currently there is no way to update without manually deleting the install directory. Checks installed `plugin.json` version against the index and reports what changed. Shipped as `npx @dan323/easier-life-skills --update` (all plugins installed from `easier-life-skills`) and `npx @dan323/easier-life-skills --update <name>` (one). Implementation pivot from the original sketch: instead of writing to a private install directory, the npx installer now delegates to `claude plugin update <name>@easier-life-skills`, reading `claude plugin list --json` to find which plugins it should touch. That puts version-tracking and orphan-detection in Claude Code's hands (where the registry actually lives) and removes the parallel install path entirely. See v1.20.0 in the changelog for the full rationale and migration note.
-
-#### 3. `--uninstall <name>`  ·  Hours
-Remove an installed skill directory from `~/.claude/plugins/easier-life-skills/<name>`. Simple `rm -rf` with a confirmation prompt.
-
-#### 4. `--marketplace <owner/repo>`  ·  Days
-Pull from any compatible `skills_index.json`, not just the hardcoded `dan323` URL. Lets power users install from `mattpocock/skills` or any other marketplace directly from the terminal without touching the web UI.
-
-#### 5. Check for updates on run  ·  Hours
-When the user runs any install command, quietly compare their installed skill versions against the index and print a summary (`2 skills have updates — run --update to refresh`).
-
-#### 6. Interactive mode (no flags)  ·  Days
-When run with no flags, show a terminal UI with checkboxes to browse and select skills to install — instead of dropping to the usage text. Uses the built-in `readline` already imported.
-
-### Skills
-
-#### 1. `security-review`  ·  Days
-Scan a codebase for OWASP Top-10 vulnerabilities, hardcoded secrets, insecure dependencies, and unsafe patterns. Read-only output (report of findings ranked by severity). Complements `find-dead-code` and `improve-logging` in a "code health" bundle.
-
-#### 2. `generate-tests`  ·  Days
-Given a file or function, generate unit and integration test cases. Detects the test framework in use (Jest, Vitest, pytest, JUnit…), follows existing test conventions, and writes tests alongside the source. Idempotent — won't overwrite existing tests.
-
-#### 3. `pr-description`  ·  Hours
-Generate a pull request title and description from the current branch's diff and commit history. Follows the repo's PR template if one exists. Much faster than the `changelog` skill for the single-PR case.
-
-#### 4. `explain-codebase`  ·  Days
-Produce an onboarding guide for a new contributor: entry points, data flow, key abstractions, module map, and "where to start" for common tasks. Writes to `docs/onboarding.md` or prints to stdout.
-
-#### 5. `dependency-audit`  ·  Hours
-Check all dependencies for outdated versions and known vulnerabilities (using `npm audit`, `pip-audit`, `cargo audit`, etc. with grep fallback). Read-only report ranked by severity.
-
-#### 6. `performance-audit`  ·  Days
-Identify performance bottlenecks: N+1 queries, unindexed DB columns, unnecessary re-renders, large bundle sizes, synchronous I/O in hot paths. Language and framework aware. Read-only report.
-
-### Agents
-
-#### 1. `pr-reviewer`  ·  Days
-A background agent that polls open PRs and posts a structured code review comment: summary of changes, potential bugs, style issues, and suggested improvements. Complements the existing `copilot-review-fixer` (which fixes comments) by generating the comments in the first place.
-
-#### 2. `dependency-updater`  ·  Days
-A background agent that runs on a schedule, checks for outdated dependencies, opens a PR per package manager with the bumped version, and fills in the PR description with the changelog diff. Combines `dependency-audit` with the task-agent PR-opening pattern.
-
-#### 3. `issue-triager`  ·  Days
-Reads new GitHub issues, labels them by type (bug/feature/question), checks for duplicates, and posts a triage comment with reproduction steps requested or a pointer to existing issues. Runs as a background agent triggered by webhook or schedule.
-
-### Commands
-
-#### 1. `commit-message`  ·  Hours
-Generate a conventional commit message (`feat:`, `fix:`, `chore:`, etc.) from the current staged diff. Copies it to the clipboard or prints it. The most-used one-shot command in a developer's day.
-
-#### 2. `new-issue`  ·  Hours
-Create a GitHub issue from the current conversation context — title, description, labels, and assignee inferred from what was discussed. Wraps `gh issue create`.
-
-#### 3. `explain-error`  ·  Hours
-Paste a stack trace or compiler error; the command explains what went wrong, why, and the most likely fix in plain language. Useful as a quick lookup without context-switching.
-
-#### 4. `standup`  ·  Hours
-Summarise today's git commits and open PRs into a standup-ready paragraph. Wraps `git log --since=midnight` and `gh pr list`.
-
-### Hooks
-
-Claude Code hooks are shell commands wired to events (`PreToolUse`, `PostToolUse`, `Stop`, `SubagentStop`). The marketplace already has the `Hook` type, `events[]` field, and `hooks-grid` rendered in the UI, and the first hook plugins (`cost-tracker`, `site-audit`) are shipping. The items below are the next ones to add.
-
-#### 1. `notify-on-stop`  ·  Hours  ·  Feature
-Fire a desktop notification (or terminal bell) when Claude finishes a long task. Hooks into the `Stop` and `SubagentStop` events; shell command is `notify-send` on Linux, `osascript` on macOS, `powershell … New-BurntToastNotification` on Windows. No project dependency — works everywhere, immediately useful without configuration.
-
-#### 2. `no-main-push`  ·  Hours  ·  Feature
-`PreToolUse` hook on Bash calls containing `git push`. Inspects the command for a `main` or `master` target and exits non-zero to block it, printing a message like `"Direct push to main blocked — open a PR instead."` Simple pattern match, high safety value for any team using Claude to write and commit code.
-
-#### 3. `secret-scanner`  ·  Days  ·  Feature
-`PreToolUse` hook on `Write` and `Edit`. Reads the incoming file content from the hook's stdin JSON, runs a regex sweep for high-entropy strings, AWS/GCP/GitHub token patterns, and common secret field names (`password`, `api_key`, `secret`). Blocks the write and prints the offending line if a match is found. Prevents Claude from accidentally persisting credentials.
-
-#### 4. `auto-format`  ·  Days  ·  Feature
-`PostToolUse` hook on `Write` and `Edit`. Detects the project formatter from config files (`prettier`, `.prettierrc`, `pyproject.toml [tool.black]`, `.golangci.yml`, etc.) and runs it on the file Claude just wrote. Keeps formatting consistent without requiring the user to remember to run it — particularly valuable when Claude generates large files in a single write.
-
-### MCPs
-
-#### 1. GitHub Issues MCP  ·  Days
-An MCP server wrapping `gh` commands for creating, listing, updating, and commenting on issues and PRs. Lets skills and agents interact with GitHub Issues natively without shell commands, and makes the integration available to any Claude session.
-
-#### 2. Local search MCP  ·  Hours
-An MCP server wrapping `ripgrep` and `fd` for fast local file search. Exposes `search_content(pattern, path)` and `find_files(glob, path)` as MCP tools — faster and more capable than the built-in Glob/Grep tools for large codebases.
-
-#### 3. Secrets scanner MCP  ·  Hours
-An MCP server that scans a file or directory for secrets (API keys, tokens, credentials) using pattern matching and entropy analysis. Useful as a pre-commit gate or as a tool available to the `security-review` skill.
+[prior-plan]: https://github.com/dan323/easier-life-skills/blob/ac56d2f/docs/plan.md
+[changelog]: ../CHANGELOG.md
+[board]: https://github.com/users/dan323/projects/4
 
 ---
 
