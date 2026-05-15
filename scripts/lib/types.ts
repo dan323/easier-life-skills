@@ -90,11 +90,21 @@ export interface Plugin {
   _repo?: string;
 }
 
+/**
+ * A skill reference inside a bundle. A bare string keeps the historical
+ * "match any skill with this name across all marketplaces" behaviour. The
+ * object form lets bundle authors disambiguate when two plugins ship a
+ * skill with the same name — narrowing by source repo and/or pluginName.
+ */
+export type BundleSkillRef =
+  | string
+  | { name: string; source?: { owner: string; repo: string }; pluginName?: string };
+
 export interface Bundle {
   id?: string;
   name: string;
   description: string;
-  skills: string[];
+  skills: BundleSkillRef[];
   source?: { owner: string; repo: string; repoUrl: string };
   _repo?: string;
 }

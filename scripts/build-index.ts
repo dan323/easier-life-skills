@@ -9,6 +9,7 @@ import { join, dirname }                          from 'path';
 import { fileURLToPath }                          from 'url';
 import { fetchMarketplaceSkills }                 from './lib/fetch-marketplace.js';
 import { generateCatalog, generateCatalogHtml }   from './lib/catalog.js';
+import { refMatchesSkill }                        from './lib/bundle-resolve.js';
 import type { Agent, Command, MarketplaceEntry, McpServer, Plugin, Skill, Bundle, Hook } from './lib/types.js';
 
 const ROOT         = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -129,28 +130,34 @@ for (const mcp of allMcpServers) {
   if (cat) mcp.category = cat;
 }
 
-// Auto-assign 'mixed' to plugins whose skills span multiple categories and have no explicit category
+// Auto-assign 'mixed' to plugins whose skills span multiple categories and have no explicit category.
+// Match skills by (repo, pluginName, name) — two plugins in the same repo could ship a same-named skill.
 for (const plugin of allPlugins) {
   if (plugin.category) continue;
   const repoKey = `${plugin.source.owner}/${plugin.source.repo}`;
   const cats = new Set(
     allSkills
-      .filter(s => plugin.skills.includes(s.name) && `${s.source.owner}/${s.source.repo}` === repoKey)
+      .filter(s =>
+        `${s.source.owner}/${s.source.repo}` === repoKey
+        && s.pluginName === plugin.name
+        && plugin.skills.includes(s.name))
       .map(s => s.category)
       .filter((c): c is string => c !== null)
   );
   if (cats.size > 1) plugin.category = 'mixed';
 }
 
-// Attach bundle membership to skills
-const skillBundleMap: Record<string, string[]> = {};
-for (const bundle of BUNDLES) {
-  for (const skillName of bundle.skills) {
-    (skillBundleMap[skillName] ??= []).push(bundle.id ?? bundle.name);
-  }
-}
+// Attach bundle membership to each skill the bundle's refs actually resolve to.
+// A bare-string ref still tags every same-named skill across marketplaces;
+// an object ref narrows by source/pluginName so collisions don't get mislabeled.
 for (const skill of allSkills) {
-  skill.bundles = skillBundleMap[skill.name] ?? skill.bundles ?? [];
+  const memberships: string[] = [];
+  for (const bundle of BUNDLES) {
+    if ((bundle.skills ?? []).some(ref => refMatchesSkill(ref, skill))) {
+      memberships.push(bundle.id ?? bundle.name);
+    }
+  }
+  skill.bundles = memberships.length > 0 ? memberships : skill.bundles ?? [];
 }
 
 const index = {

@@ -1,6 +1,7 @@
 /* lib/catalog.ts — generates CATALOG.md and catalog.html content from aggregated skills, agents, MCP servers, commands, hooks, and bundles */
 
 import type { Skill, Agent, McpServer, Command, Hook, Bundle, MarketplaceEntry } from './types.js';
+import { resolveBundleSkills } from './bundle-resolve.js';
 
 type SourceInfo = Record<string, { isMarketplace: boolean }>;
 
@@ -70,9 +71,7 @@ function commandRow(cmd: Command): string {
 }
 
 function bundleSection(bundle: Bundle, allSkills: Skill[], sources: SourceInfo): string[] {
-  const resolved = bundle.skills
-    .map(name => allSkills.find(s => s.name === name))
-    .filter((s): s is Skill => s !== undefined);
+  const resolved = resolveBundleSkills(bundle, allSkills);
 
   const marketplaceCmds = [...new Set(
     resolved.filter(s => isMarketplaceSource(s, sources)).map(s => s.installCommand)
@@ -267,9 +266,7 @@ function commandRowHtml(cmd: Command): string[] {
 }
 
 function bundleSectionHtml(bundle: Bundle, allSkills: Skill[], sources: SourceInfo): string {
-  const resolved = bundle.skills
-    .map(name => allSkills.find(s => s.name === name))
-    .filter((s): s is Skill => s !== undefined);
+  const resolved = resolveBundleSkills(bundle, allSkills);
   const marketplaceCmds = [...new Set(
     resolved.filter(s => isMarketplaceSource(s, sources)).map(s => s.installCommand)
   )];

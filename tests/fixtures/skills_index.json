@@ -66,6 +66,7 @@
   "skills": [
     {
       "name": "changelog",
+      "pluginName": "docs",
       "description": "Creates a CHANGELOG.md following Keep a Changelog.",
       "category": "documentation",
       "keywords": ["changelog", "keep-a-changelog"],
@@ -77,6 +78,7 @@
     },
     {
       "name": "find-dead-code",
+      "pluginName": "code-audit",
       "description": "Detects unused code across the repository.",
       "category": "code-quality",
       "keywords": ["vulture", "dead", "unused"],
@@ -88,6 +90,7 @@
     },
     {
       "name": "document-project",
+      "pluginName": "docs",
       "description": "Produces a project README and docs/ layout.",
       "category": "documentation",
       "keywords": ["readme", "docs"],
@@ -101,6 +104,7 @@
   "agents": [
     {
       "name": "copilot-fixer",
+      "pluginName": "hooks-pack",
       "description": "Fixes Copilot review comments on open PRs.",
       "category": "automation",
       "tools": ["Bash", "Read", "Edit"],
@@ -113,6 +117,7 @@
   "mcpServers": [
     {
       "name": "slack",
+      "pluginName": "slack-tools",
       "description": "Send and search Slack messages.",
       "category": "automation",
       "command": "npx -y @slack/mcp",
@@ -123,6 +128,7 @@
   "commands": [
     {
       "name": "post-slack",
+      "pluginName": "slack-tools",
       "description": "Post a message to a Slack channel.",
       "category": "automation",
       "commandPath": "commands/post-slack.md",
@@ -134,6 +140,7 @@
   "hooks": [
     {
       "name": "pre-commit-format",
+      "pluginName": "hooks-pack",
       "description": "Formats staged files before commit.",
       "category": "automation",
       "events": ["PreCommit"],

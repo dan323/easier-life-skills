@@ -166,6 +166,30 @@ The plugin's category propagates to every agent, hook, command, and MCP server b
 
 Resolution order, per entity: external override → frontmatter (where applicable) → parent plugin category → `null` ("Uncategorized" in the UI).
 
+## Bundle Format (`.claude-plugin/bundles.json`)
+
+```json
+[
+  {
+    "id": "backend-developer",
+    "name": "Backend Developer",
+    "description": "API compatibility, code hygiene, observability, and release docs",
+    "skills": [
+      "find-breaking-rest-api",
+      "find-dead-code",
+      { "name": "changelog", "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "docs" }
+    ]
+  }
+]
+```
+
+Each entry in `skills` is one of:
+
+- **Bare string** — matches every skill with that name across all marketplaces. Use this when the skill name is unambiguous (the common case). The npx installer and the bundle's manual-install block install all matches.
+- **Object** `{ name, source?, pluginName? }` — narrows by source repo and/or `pluginName`. Use this when two plugins (in the same repo or across marketplaces) ship a skill with the same name and the bundle wants exactly one of them. Both `source` and `pluginName` are optional; if both are omitted the object is equivalent to a bare string.
+
+Skills are identified by `(source.owner, source.repo, pluginName, name)`. Lookups elsewhere in the code (PluginPanel related-entities, Grid card React keys, build-time bundle-membership tagging) use the same triplet to avoid collisions, so the same disambiguation works automatically once the bundle ref is precise.
+
 ## Evals Format (`evals.json`)
 
 ```json
@@ -268,3 +292,10 @@ The build also generates `.claude-plugin/marketplace.json` — a combined catalo
 ## Doc Rules
 
 Every time you modify anything, fix the documentation and `CHANGELOG.md` accordingly, if needed.
+
+## Workflow Rules
+
+Every time you commit, ensure that:
+- The message refers to the relevant issue(s) (e.g., "Fixes #123") if applicable.
+- The message follows the conventional commit format (e.g., "feat: add new skill for generating changelogs").
+- The commit is atomic and focused on a single change or feature.

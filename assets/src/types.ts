@@ -21,7 +21,7 @@ export interface Plugin {
 
 export interface Skill {
   name:           string;
-  pluginName?:    string;
+  pluginName:     string;
   description:    string;
   category:       string | null;
   keywords:       string[];
@@ -36,6 +36,7 @@ export interface Skill {
 
 export interface Agent {
   name:           string;
+  pluginName:     string;
   description:    string;
   category:       string | null;
   tools:          string[];
@@ -48,6 +49,7 @@ export interface Agent {
 
 export interface McpServer {
   name:           string;
+  pluginName:     string;
   description:    string;
   category:       string | null;
   command:        string;
@@ -58,6 +60,7 @@ export interface McpServer {
 
 export interface Command {
   name:           string;
+  pluginName:     string;
   description:    string;
   category:       string | null;
   commandPath:    string;
@@ -69,6 +72,7 @@ export interface Command {
 
 export interface Hook {
   name:           string;
+  pluginName:     string;
   description:    string;
   category:       string | null;
   events:         string[];
@@ -78,11 +82,21 @@ export interface Hook {
   _repo?:         string;
 }
 
+/**
+ * A skill reference inside a bundle. A bare string matches any skill with
+ * that name across all marketplaces (legacy behaviour). The object form
+ * disambiguates collisions by source repo and/or pluginName.
+ */
+export type BundleSkillRef =
+  | string
+  | { name: string; source?: { owner: string; repo: string }; pluginName?: string };
+
 export interface Bundle {
   id?:         string;
   name:        string;
   description: string;
-  skills:      string[];
+  skills:      BundleSkillRef[];
+  source?:     { owner: string; repo: string; repoUrl?: string };
   _repo?:      string;
 }
 

@@ -7,6 +7,7 @@ import { AgentCard }   from './cards/AgentCard.tsx';
 import { McpCard }     from './cards/McpCard.tsx';
 import { CommandCard } from './cards/CommandCard.tsx';
 import { HookCard }    from './cards/HookCard.tsx';
+import { refMatchesSkill } from '../bundle-resolve.ts';
 import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle } from '../types.ts';
 
 interface Props {
@@ -79,23 +80,31 @@ function PluginPanelBody({
   const pluginUrl = plugin.homepage ?? `https://github.com/${plugin.source.owner}/${plugin.source.repo}`;
   const promptText = `Explain to me what I would find in plugin ${pluginUrl} and what would it be used for`;
 
+  // Match by (repo, pluginName, name) — two plugins in the same repo could ship
+  // entities with the same name; scoping by `_repo` alone would mis-resolve them.
   const relatedSkills = plugin.skills
-    .map(n => skills.find(s => s.name === n && s._repo === plugin._repo))
+    .map(n => skills.find(s => s.name === n && s._repo === plugin._repo && s.pluginName === plugin.name))
     .filter((s): s is Skill => s !== undefined);
   const relatedAgents = plugin.agents
-    .map(n => agents.find(a => a.name === n && a._repo === plugin._repo))
+    .map(n => agents.find(a => a.name === n && a._repo === plugin._repo && a.pluginName === plugin.name))
     .filter((a): a is Agent => a !== undefined);
   const relatedMcp = plugin.mcpServers
-    .map(n => mcpServers.find(m => m.name === n && m._repo === plugin._repo))
+    .map(n => mcpServers.find(m => m.name === n && m._repo === plugin._repo && m.pluginName === plugin.name))
     .filter((m): m is McpServer => m !== undefined);
   const relatedCmds = (plugin.commands ?? [])
-    .map(n => commands.find(c => c.name === n && c._repo === plugin._repo))
+    .map(n => commands.find(c => c.name === n && c._repo === plugin._repo && c.pluginName === plugin.name))
     .filter((c): c is Command => c !== undefined);
   const relatedHooks = (plugin.hooks ?? [])
-    .map(n => hooks.find(h => h.name === n && h._repo === plugin._repo))
+    .map(n => hooks.find(h => h.name === n && h._repo === plugin._repo && h.pluginName === plugin.name))
     .filter((h): h is Hook => h !== undefined);
 
-  const memberBundles = bundles.filter(b => plugin.skills.some(s => b.skills.includes(s)));
+  // A plugin is part of a bundle only if one of the bundle's skill refs
+  // actually resolves to a skill belonging to this plugin (same repo + pluginName).
+  // Plain-string bundle refs are matched against the plugin's own skill names;
+  // object refs additionally honour their source/pluginName narrowing.
+  const memberBundles = bundles.filter(b =>
+    (b.skills ?? []).some(ref =>
+      relatedSkills.some(s => refMatchesSkill(ref, s))));
   const sourceKey = `${plugin.source.owner}/${plugin.source.repo}`;
   const isBuiltin = sourceKey === BUILTIN_REPO;
   const marketplaceCmd = `/plugin marketplace add ${sourceKey}`;
@@ -137,27 +146,27 @@ function PluginPanelBody({
       <CardSection
         id="panel-skills-section" listId="panel-skills-list" countId="panel-skills-count"
         title="Skills" items={relatedSkills}
-        render={s => <SkillCard key={`${s._repo}/${s.name}`} skill={s} showSource={false} showInstall={false} onOpen={onOpenSkill} />}
+        render={s => <SkillCard key={`${s._repo}/${s.pluginName}/${s.name}`} skill={s} showSource={false} showInstall={false} onOpen={onOpenSkill} />}
       />
       <CardSection
         id="panel-agents-section" listId="panel-agents-list" countId="panel-agents-count"
         title="Agents" items={relatedAgents}
-        render={a => <AgentCard key={`${a._repo}/${a.name}`} agent={a} showSource={false} showInstall={false} onOpen={onOpenAgent} />}
+        render={a => <AgentCard key={`${a._repo}/${a.pluginName}/${a.name}`} agent={a} showSource={false} showInstall={false} onOpen={onOpenAgent} />}
       />
       <CardSection
         id="panel-mcp-section" listId="panel-mcp-list" countId="panel-mcp-count"
         title="MCP Servers" items={relatedMcp}
-        render={m => <McpCard key={`${m._repo}/${m.name}`} mcp={m} showSource={false} showInstall={false} onOpen={onOpenMcp} />}
+        render={m => <McpCard key={`${m._repo}/${m.pluginName}/${m.name}`} mcp={m} showSource={false} showInstall={false} onOpen={onOpenMcp} />}
       />
       <CardSection
         id="panel-commands-section" listId="panel-commands-list" countId="panel-commands-count"
         title="Commands" items={relatedCmds}
-        render={c => <CommandCard key={`${c._repo}/${c.name}`} command={c} showSource={false} showInstall={false} onOpen={onOpenCommand} />}
+        render={c => <CommandCard key={`${c._repo}/${c.pluginName}/${c.name}`} command={c} showSource={false} showInstall={false} onOpen={onOpenCommand} />}
       />
       <CardSection
         id="panel-hooks-section" listId="panel-hooks-list" countId="panel-hooks-count"
         title="Hooks" items={relatedHooks}
-        render={h => <HookCard key={`${h._repo}/${h.name}`} hook={h} showSource={false} showInstall={false} onOpen={onOpenHook} />}
+        render={h => <HookCard key={`${h._repo}/${h.pluginName}/${h.name}`} hook={h} showSource={false} showInstall={false} onOpen={onOpenHook} />}
       />
 
       <div

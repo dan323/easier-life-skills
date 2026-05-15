@@ -169,7 +169,7 @@ function SkillsGrid({ data, query, sort, activeRepos, activeCategories, onOpenSk
         {filtered.length === 0
           ? viewEmpty('skills', '🔍', 'skills', all.length, data)
           : sortedBy(filtered, sort).map(s =>
-              <SkillCard key={`${s._repo}/${s.name}`} skill={s} showSource={show} showInstall onOpen={onOpenSkill} />)}
+              <SkillCard key={`${s._repo}/${s.pluginName}/${s.name}`} skill={s} showSource={show} showInstall onOpen={onOpenSkill} />)}
       </div>
     </>
   );
@@ -193,7 +193,7 @@ function AgentsGrid({ data, query, sort, activeRepos, activeCategories, onOpenAg
         {filtered.length === 0
           ? viewEmpty('agents', '🤖', 'agents', all.length, data)
           : sortedBy(filtered, sort).map(a =>
-              <AgentCard key={`${a._repo}/${a.name}`} agent={a} showSource={show} showInstall onOpen={onOpenAgent} />)}
+              <AgentCard key={`${a._repo}/${a.pluginName}/${a.name}`} agent={a} showSource={show} showInstall onOpen={onOpenAgent} />)}
       </div>
     </>
   );
@@ -217,7 +217,7 @@ function McpGrid({ data, query, sort, activeRepos, activeCategories, onOpenMcp }
         {filtered.length === 0
           ? viewEmpty('mcpServers', '🔌', 'MCP servers', all.length, data)
           : sortedBy(filtered, sort).map(m =>
-              <McpCard key={`${m._repo}/${m.name}`} mcp={m} showSource={show} showInstall onOpen={onOpenMcp} />)}
+              <McpCard key={`${m._repo}/${m.pluginName}/${m.name}`} mcp={m} showSource={show} showInstall onOpen={onOpenMcp} />)}
       </div>
     </>
   );
@@ -241,7 +241,7 @@ function CommandsGrid({ data, query, sort, activeRepos, activeCategories, onOpen
         {filtered.length === 0
           ? viewEmpty('commands', '⌨️', 'commands', all.length, data)
           : sortedBy(filtered, sort).map(c =>
-              <CommandCard key={`${c._repo}/${c.name}`} command={c} showSource={show} showInstall onOpen={onOpenCommand} />)}
+              <CommandCard key={`${c._repo}/${c.pluginName}/${c.name}`} command={c} showSource={show} showInstall onOpen={onOpenCommand} />)}
       </div>
     </>
   );
@@ -267,7 +267,7 @@ function HooksGrid({ data, query, sort, activeRepos, activeCategories, onOpenHoo
         {filtered.length === 0
           ? viewEmpty('hooks', '🪝', 'hooks', all.length, data)
           : sortedBy(filtered, sort).map(h =>
-              <HookCard key={`${h._repo}/${h.name}`} hook={h} showSource={show} showInstall onOpen={onOpenHook} />)}
+              <HookCard key={`${h._repo}/${h.pluginName}/${h.name}`} hook={h} showSource={show} showInstall onOpen={onOpenHook} />)}
       </div>
     </>
   );

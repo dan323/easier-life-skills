@@ -1,5 +1,6 @@
 import { CopyButton } from '../CopyButton.tsx';
 import { Expandable } from '../Expandable.tsx';
+import { resolveBundleSkills } from '../../bundle-resolve.ts';
 import type { Bundle, Skill } from '../../types.ts';
 
 const SKILL_LIMIT = 4;
@@ -17,9 +18,7 @@ function isMarketplaceSource(skill: Skill, sources?: Record<string, { isMarketpl
 }
 
 export function BundleCard({ bundle, skills, sources }: Props) {
-  const bundleSkills = bundle.skills
-    .map(name => skills.find(s => s.name === name))
-    .filter((s): s is Skill => s !== undefined);
+  const bundleSkills = resolveBundleSkills(bundle, skills);
 
   const marketplaceCommands = [...new Set(
     bundleSkills
