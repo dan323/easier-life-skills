@@ -664,22 +664,10 @@ async function discoverHooks(
       if (hook) results.push(hook);
       return;
     }
-    if (rel.endsWith('.md')) {
-      const hook = await parseHook(rel, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
-      if (hook) results.push(hook);
-      return;
-    }
+    if (rel.endsWith('.md')) return;
 
     const jsonHook = await parseHookConfigFile(`${rel}/hooks.json`);
     if (jsonHook) results.push(jsonHook);
-
-    const fullScanDir = [pluginRoot, rel].filter(Boolean).join('/');
-    const entries = await listDir(fullScanDir, remoteBase, root);
-    for (const entry of entries.filter(e => !e.isDir && e.name.endsWith('.md'))) {
-      const path = `${rel}/${entry.name}`;
-      const hook = await parseHook(path, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
-      if (hook) results.push(hook);
-    }
   }
 
   if (Array.isArray(decl)) {
@@ -702,12 +690,6 @@ async function discoverHooks(
 
   const defaultHook = await parseHookConfigFile('hooks/hooks.json');
   if (defaultHook) results.push(defaultHook);
-
-  const entries = await listDir([pluginRoot, 'hooks'].filter(Boolean).join('/'), remoteBase, root);
-  for (const entry of entries.filter(e => !e.isDir && e.name.endsWith('.md'))) {
-    const hook = await parseHook(`hooks/${entry.name}`, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
-    if (hook) results.push(hook);
-  }
 
   return results;
 }
