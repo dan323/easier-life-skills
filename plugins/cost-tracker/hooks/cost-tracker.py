@@ -16,7 +16,7 @@ def main() -> int:
     input_tokens = int(usage.get("input_tokens", 0) or 0)
     output_tokens = int(usage.get("output_tokens", 0) or 0)
     entry = {
-        "date": datetime.datetime.utcnow().isoformat() + "Z",
+        "date": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
         "session_id": (data.get("session_id", "") if isinstance(data, dict) else ""),
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
