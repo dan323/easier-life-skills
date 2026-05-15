@@ -546,13 +546,22 @@ async function discoverHooks(
 ): Promise<Hook[]> {
   const results: Hook[] = [];
 
+  function isWrappedHooksConfig(raw: unknown): raw is Record<string, unknown> & { hooks: Record<string, unknown> } {
+    if (!raw || typeof raw !== 'object') return false;
+    const obj = raw as Record<string, unknown>;
+    const hooks = obj['hooks'];
+    if (!hooks || typeof hooks !== 'object' || Array.isArray(hooks)) return false;
+
+    const wrapperKeys = new Set(['hooks', 'description']);
+    return Object.keys(obj).every((key) => wrapperKeys.has(key));
+  }
+
   function asHookEventMap(raw: unknown): Record<string, unknown> | null {
     if (!raw || typeof raw !== 'object') return null;
-    const obj = raw as Record<string, unknown>;
-    if (obj['hooks'] && typeof obj['hooks'] === 'object' && !Array.isArray(obj['hooks'])) {
-      return obj['hooks'] as Record<string, unknown>;
+    if (isWrappedHooksConfig(raw)) {
+      return raw.hooks;
     }
-    return obj;
+    return raw as Record<string, unknown>;
   }
 
   function extractEvents(raw: unknown): string[] {
