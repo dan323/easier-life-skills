@@ -1,0 +1,15 @@
+{
+  "description": "Appends a JSON line to ~/.claude/audit-history.jsonl on Stop when site-audit-report.md exists in the working directory.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/audit-logger.py"
+          }
+        ]
+      }
+    ]
+  }
+}

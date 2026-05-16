@@ -22,7 +22,7 @@
     {
       "name": "cost-tracker",
       "source": "./plugins/cost-tracker",
-      "description": "Append token usage and estimated cost to ~/.claude/cost-log.jsonl on every Stop event",
+      "description": "Append token usage and estimated cost to ~/.claude/cost-log.jsonl on Stop and SubagentStop events",
       "category": "productivity",
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/cost-tracker"
     },
