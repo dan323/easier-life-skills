@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.25.6] - 2026-05-16
+
+### Added
+- **`web-quality` bundle** — `audit-site` + `find-breaking-rest-api` + `changelog`: audit the live site, verify no endpoints broke, then document what shipped.
+- **`feature-factory` bundle** — `brainstorm` + `task-agent`: generate the next high-value ideas and automate their implementation across repos.
+
+### Changed
+- **`skill-author` bundle** now opens with `find-skills` — discover what already exists before scaffolding. Description updated to reflect the full lifecycle: discover → scaffold → write → verify.
+
+### Removed
+- **`full-stack` bundle** — too generic to serve a real persona and would silently go stale as new skills are added. Users who want everything should install plugins individually.
+- **`analyst` bundle** — persona too diffuse; the skills it grouped (`brainstorm`, `find-*`, `improve-logging`) are already covered by `open-source-maintainer`, `code-quality`, and `code-review-pro` with clearer intent.
+
 ## [1.25.5] - 2026-05-16
 
 ### Fixed

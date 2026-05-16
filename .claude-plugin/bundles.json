@@ -18,29 +18,28 @@
     "skills": ["find-dead-code", "improve-logging", "find-breaking-rest-api"]
   },
   {
-    "id": "analyst",
-    "name": "Analyst",
-    "description": "All read-only skills — safe to run on any repo, no file modifications",
-    "skills": ["brainstorm", "find-breaking-rest-api", "find-dead-code", "find-skills", "improve-logging"]
-  },
-  {
     "id": "automation",
     "name": "Automation",
     "description": "Automated task execution and release tracking for CI pipelines",
     "skills": ["task-agent", "changelog"]
   },
   {
+    "id": "feature-factory",
+    "name": "Feature Factory",
+    "description": "Brainstorm the next valuable features and automate their implementation across repos",
+    "skills": ["brainstorm", "task-agent"]
+  },
+  {
+    "id": "web-quality",
+    "name": "Web Quality",
+    "description": "Audit the live site, check for API breaking changes, and document what shipped",
+    "skills": ["audit-site", "find-breaking-rest-api", "changelog"]
+  },
+  {
     "id": "document-writer",
     "name": "Document Writer",
     "description": "Create project docs and changelogs, plus read/write Word, PDF, PowerPoint, and Excel files",
     "skills": ["document-project", "changelog", "docx", "pdf", "pptx", "xlsx"]
-  },
-  {
-    "id": "full-stack",
-    "name": "Full Stack",
-    "description": "All skills — for solo developers and small teams",
-    "skills": ["brainstorm", "changelog", "document-project", "find-breaking-rest-api",
-               "find-dead-code", "find-skills", "improve-logging", "task-agent"]
   },
   {
     "id": "tdd-practitioner",
@@ -57,8 +56,8 @@
   {
     "id": "skill-author",
     "name": "Skill Author",
-    "description": "Scaffold, write, and verify Claude Code skills — best-of-breed advice from four marketplaces",
-    "skills": ["scaffold", "skill-creator", "write-a-skill", "writing-skills"]
+    "description": "Discover gaps, scaffold, write, and verify Claude Code skills — best-of-breed advice from four marketplaces",
+    "skills": ["find-skills", "scaffold", "skill-creator", "write-a-skill", "writing-skills"]
   },
   {
     "id": "code-review-pro",
