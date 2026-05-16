@@ -116,19 +116,19 @@ skills_index.json           ← Generated index; rebuild with: npm run build
 
 `category` is a free-form string — the build accepts any value and the web UI builds its filter bar dynamically from whatever appears in the data. The vocabulary currently in use across local plugins and `.claude-plugin/external-overrides.json` is:
 
-| Category       | Scope |
-|----------------|-------|
-| `productivity` | Thinking aids, brainstorming, prompt engineering, discovery, workflow helpers |
-| `documentation`| Narrative docs, changelogs, format-specific docs (docx/pdf/xlsx) |
-| `code-quality` | Static analysis, refactoring, review, dead-code / breaking-change detection, logging, architecture |
-| `testing`      | TDD, test generation, QA, test automation, webapp testing |
-| `security`     | Security audits and scanning |
-| `performance`  | Performance optimisation and auditing |
-| `automation`   | Task orchestration, triage, issue creation, repeat-task automation (not deployment) |
-| `devops`       | CI/CD, containers, deployment, infrastructure |
-| `development`  | Building apps / skills / APIs / databases / MCP servers |
-| `design`       | Visual art, theming, canvas, brand, frontend design |
-| `mixed`        | Reserved for plugin bundles with no single goal — a collection of unrelated entities. The build also auto-assigns this to any plugin whose skills span more than one category and that does not declare one explicitly. Do not use `mixed` for individual skills/agents/commands. |
+| Category        | Scope                                                                                                                                                                                                                                                                             |
+|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `productivity`  | Thinking aids, brainstorming, prompt engineering, discovery, workflow helpers                                                                                                                                                                                                     |
+| `documentation` | Narrative docs, changelogs, format-specific docs (docx/pdf/xlsx)                                                                                                                                                                                                                  |
+| `code-quality`  | Static analysis, refactoring, review, dead-code / breaking-change detection, logging, architecture                                                                                                                                                                                |
+| `testing`       | TDD, test generation, QA, test automation, webapp testing                                                                                                                                                                                                                       |
+| `security`      | Security audits and scanning                                                                                                                                                                                                                                                      |
+| `performance`   | Performance optimisation and auditing                                                                                                                                                                                                                                             |
+| `automation`    | Task orchestration, triage, issue creation, repeat-task automation (not deployment)                                                                                                                                                                                               |
+| `devops`        | CI/CD, containers, deployment, infrastructure                                                                                                                                                                                                                                     |
+| `development`   | Building apps / skills / APIs / databases / MCP servers                                                                                                                                                                                                                           |
+| `design`        | Visual art, theming, canvas, brand, frontend design                                                                                                                                                                                                                               |
+| `mixed`         | Reserved for plugin bundles with no single goal — a collection of unrelated entities. The build also auto-assigns this to any plugin whose skills span more than one category and that does not declare one explicitly. Do not use `mixed` for individual skills/agents/commands. |
 
 When adding a new plugin or override, pick the closest fit — keep this list short on purpose. If nothing fits, prefer leaving the entity uncategorised over inventing a one-off label. The build script reads `plugin.json` to generate `.claude-plugin/marketplace.json` automatically — no separate registry file needed.
 
@@ -267,3 +267,4 @@ Every time you commit, ensure that:
 - The message refers to the relevant issue(s) (e.g., "Fixes #123") if applicable.
 - The message follows the conventional commit format (e.g., "feat: add new skill for generating changelogs").
 - The commit is atomic and focused on a single change or feature.
+- The plugins with semantic changes have their version numbers updated in `plugin.json` according to semver rules (patch for bug fixes, minor for new features, major for breaking changes).
