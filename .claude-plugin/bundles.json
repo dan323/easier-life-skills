@@ -3,84 +3,159 @@
     "id": "backend-developer",
     "name": "Backend Developer",
     "description": "API compatibility, code hygiene, observability, and release docs",
-    "skills": ["find-breaking-rest-api", "find-dead-code", "improve-logging", "changelog"]
+    "skills": [
+      { "name": "find-breaking-rest-api", "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "code-audit" },
+      { "name": "find-dead-code",         "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "code-audit" },
+      { "name": "improve-logging",        "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "code-audit" },
+      { "name": "changelog",              "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "docs" }
+    ]
   },
   {
     "id": "open-source-maintainer",
     "name": "Open Source Maintainer",
     "description": "Docs, release notes, roadmap decisions, and skill discovery",
-    "skills": ["changelog", "document-project", "brainstorm", "find-skills"]
+    "skills": [
+      { "name": "changelog",         "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "docs" },
+      { "name": "document-project",  "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "docs" },
+      { "name": "brainstorm",        "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "brainstorm" },
+      { "name": "find-skills",       "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "find-skills" }
+    ]
   },
   {
     "id": "code-quality",
     "name": "Code Quality Reviewer",
     "description": "Read-only analysis skills for code review and CI gating",
-    "skills": ["find-dead-code", "improve-logging", "find-breaking-rest-api"]
+    "skills": [
+      { "name": "find-dead-code",         "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "code-audit" },
+      { "name": "improve-logging",        "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "code-audit" },
+      { "name": "find-breaking-rest-api", "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "code-audit" }
+    ]
   },
   {
     "id": "automation",
     "name": "Automation",
     "description": "Automated task execution and release tracking for CI pipelines",
-    "skills": ["task-agent", "changelog"]
+    "skills": [
+      { "name": "task-agent", "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "task-agent" },
+      { "name": "changelog",  "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "docs" }
+    ]
   },
   {
     "id": "feature-factory",
     "name": "Feature Factory",
     "description": "Brainstorm the next valuable features and automate their implementation across repos",
-    "skills": ["brainstorm", "task-agent"]
+    "skills": [
+      { "name": "brainstorm",  "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "brainstorm" },
+      { "name": "task-agent",  "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "task-agent" }
+    ]
   },
   {
     "id": "web-quality",
     "name": "Web Quality",
     "description": "Audit the live site, check for API breaking changes, and document what shipped",
-    "skills": ["audit-site", "find-breaking-rest-api", "changelog"]
+    "skills": [
+      { "name": "site-audit",             "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "site-audit" },
+      { "name": "find-breaking-rest-api", "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "code-audit" },
+      { "name": "changelog",              "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "docs" }
+    ]
   },
   {
     "id": "document-writer",
     "name": "Document Writer",
     "description": "Create project docs and changelogs, plus read/write Word, PDF, PowerPoint, and Excel files",
-    "skills": ["document-project", "changelog", "docx", "pdf", "pptx", "xlsx"]
+    "skills": [
+      { "name": "document-project", "source": { "owner": "dan323",     "repo": "easier-life-skills" }, "pluginName": "docs" },
+      { "name": "changelog",        "source": { "owner": "dan323",     "repo": "easier-life-skills" }, "pluginName": "docs" },
+      { "name": "docx",             "source": { "owner": "anthropics",  "repo": "skills" },            "pluginName": "document-skills" },
+      { "name": "pdf",              "source": { "owner": "anthropics",  "repo": "skills" },            "pluginName": "document-skills" },
+      { "name": "pptx",             "source": { "owner": "anthropics",  "repo": "skills" },            "pluginName": "document-skills" },
+      { "name": "xlsx",             "source": { "owner": "anthropics",  "repo": "skills" },            "pluginName": "document-skills" }
+    ]
   },
   {
     "id": "tdd-practitioner",
     "name": "TDD Practitioner",
     "description": "End-to-end test-driven development — write the test first, verify before claiming done, keep architecture clean",
-    "skills": ["tdd", "test-driven-development", "verification-before-completion", "improve-codebase-architecture", "webapp-testing"]
+    "skills": [
+      { "name": "tdd",                          "source": { "owner": "mattpocock", "repo": "skills" }, "pluginName": "mattpocock-skills" },
+      { "name": "test-driven-development",      "source": { "owner": "obra",       "repo": "superpowers" }, "pluginName": "superpowers" },
+      { "name": "verification-before-completion","source": { "owner": "obra",       "repo": "superpowers" }, "pluginName": "superpowers" },
+      { "name": "improve-codebase-architecture","source": { "owner": "mattpocock", "repo": "skills" }, "pluginName": "mattpocock-skills" },
+      { "name": "webapp-testing",               "source": { "owner": "anthropics",  "repo": "skills" }, "pluginName": "example-skills" }
+    ]
   },
   {
     "id": "planning-and-execution",
     "name": "Planning & Execution",
     "description": "Explore intent, write a plan, then execute it with parallel sub-agents",
-    "skills": ["brainstorm", "brainstorming", "writing-plans", "executing-plans", "subagent-driven-development", "dispatching-parallel-agents"]
+    "skills": [
+      { "name": "brainstorm",               "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "brainstorm" },
+      { "name": "brainstorming",            "source": { "owner": "obra",   "repo": "superpowers" }, "pluginName": "superpowers" },
+      { "name": "writing-plans",            "source": { "owner": "obra",   "repo": "superpowers" }, "pluginName": "superpowers" },
+      { "name": "executing-plans",          "source": { "owner": "obra",   "repo": "superpowers" }, "pluginName": "superpowers" },
+      { "name": "subagent-driven-development","source": { "owner": "obra", "repo": "superpowers" }, "pluginName": "superpowers" },
+      { "name": "dispatching-parallel-agents","source": { "owner": "obra", "repo": "superpowers" }, "pluginName": "superpowers" }
+    ]
   },
   {
     "id": "skill-author",
     "name": "Skill Author",
     "description": "Discover gaps, scaffold, write, and verify Claude Code skills — best-of-breed advice from four marketplaces",
-    "skills": ["find-skills", "scaffold", "skill-creator", "write-a-skill", "writing-skills"]
+    "skills": [
+      { "name": "find-skills",    "source": { "owner": "dan323",    "repo": "easier-life-skills" }, "pluginName": "find-skills" },
+      { "name": "scaffold",       "source": { "owner": "dan323",    "repo": "easier-life-skills" }, "pluginName": "scaffold" },
+      { "name": "skill-creator",  "source": { "owner": "anthropics", "repo": "skills" },            "pluginName": "example-skills" },
+      { "name": "write-a-skill",  "source": { "owner": "mattpocock", "repo": "skills" },            "pluginName": "mattpocock-skills" },
+      { "name": "writing-skills", "source": { "owner": "obra",       "repo": "superpowers" },       "pluginName": "superpowers" }
+    ]
   },
   {
     "id": "code-review-pro",
     "name": "Code Review Pro",
     "description": "Request and respond to reviews, plus automated checks for dead code, breaking APIs, and logging",
-    "skills": ["requesting-code-review", "receiving-code-review", "find-breaking-rest-api", "find-dead-code", "improve-logging", "diagnose", "verification-before-completion"]
+    "skills": [
+      { "name": "requesting-code-review",  "source": { "owner": "obra",   "repo": "superpowers" }, "pluginName": "superpowers" },
+      { "name": "receiving-code-review",   "source": { "owner": "obra",   "repo": "superpowers" }, "pluginName": "superpowers" },
+      { "name": "find-breaking-rest-api",  "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "code-audit" },
+      { "name": "find-dead-code",          "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "code-audit" },
+      { "name": "improve-logging",         "source": { "owner": "dan323", "repo": "easier-life-skills" }, "pluginName": "code-audit" },
+      { "name": "diagnose",                "source": { "owner": "mattpocock", "repo": "skills" }, "pluginName": "mattpocock-skills" },
+      { "name": "verification-before-completion", "source": { "owner": "obra", "repo": "superpowers" }, "pluginName": "superpowers" }
+    ]
   },
   {
     "id": "frontend-designer",
     "name": "Frontend Designer",
     "description": "Design, theme, and build production-grade frontend artifacts — components, posters, and interactive art",
-    "skills": ["frontend-design", "theme-factory", "canvas-design", "web-artifacts-builder", "algorithmic-art", "brand-guidelines"]
+    "skills": [
+      { "name": "frontend-design",      "source": { "owner": "anthropics", "repo": "skills" }, "pluginName": "example-skills" },
+      { "name": "theme-factory",        "source": { "owner": "anthropics", "repo": "skills" }, "pluginName": "example-skills" },
+      { "name": "canvas-design",        "source": { "owner": "anthropics", "repo": "skills" }, "pluginName": "example-skills" },
+      { "name": "web-artifacts-builder","source": { "owner": "anthropics", "repo": "skills" }, "pluginName": "example-skills" },
+      { "name": "algorithmic-art",      "source": { "owner": "anthropics", "repo": "skills" }, "pluginName": "example-skills" },
+      { "name": "brand-guidelines",     "source": { "owner": "anthropics", "repo": "skills" }, "pluginName": "example-skills" }
+    ]
   },
   {
     "id": "debug-and-diagnose",
     "name": "Debug & Diagnose",
     "description": "Reproduce bugs, debug them systematically, and improve logging to prevent the next one",
-    "skills": ["diagnose", "systematic-debugging", "improve-logging"]
+    "skills": [
+      { "name": "diagnose",            "source": { "owner": "mattpocock", "repo": "skills" }, "pluginName": "mattpocock-skills" },
+      { "name": "systematic-debugging","source": { "owner": "obra",       "repo": "superpowers" }, "pluginName": "superpowers" },
+      { "name": "improve-logging",     "source": { "owner": "dan323",     "repo": "easier-life-skills" }, "pluginName": "code-audit" }
+    ]
   },
   {
     "id": "triage-and-issues",
     "name": "Triage & Issues",
     "description": "Triage incoming work, turn it into issues, and dispatch parallel agents to close branches",
-    "skills": ["triage", "to-issues", "task-agent", "dispatching-parallel-agents", "finishing-a-development-branch"]
+    "skills": [
+      { "name": "triage",                     "source": { "owner": "mattpocock", "repo": "skills" }, "pluginName": "mattpocock-skills" },
+      { "name": "to-issues",                  "source": { "owner": "mattpocock", "repo": "skills" }, "pluginName": "mattpocock-skills" },
+      { "name": "task-agent",                 "source": { "owner": "dan323",     "repo": "easier-life-skills" }, "pluginName": "task-agent" },
+      { "name": "dispatching-parallel-agents","source": { "owner": "obra",       "repo": "superpowers" }, "pluginName": "superpowers" },
+      { "name": "finishing-a-development-branch","source": { "owner": "obra",    "repo": "superpowers" }, "pluginName": "superpowers" }
+    ]
   }
 ]

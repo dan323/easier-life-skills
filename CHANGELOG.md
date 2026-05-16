@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.25.7] - 2026-05-16
+
+### Changed
+- **All bundle skill refs converted to object form.** Every entry in `.claude-plugin/bundles.json` now uses `{ name, source: { owner, repo }, pluginName }` instead of bare strings. Bare strings match any skill with that name across all marketplaces; object form pins each ref to the exact repo and plugin that ships it, eliminating ambiguity as the marketplace grows.
+
 ## [1.25.6] - 2026-05-16
 
 ### Added
