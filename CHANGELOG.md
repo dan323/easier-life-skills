@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.25.5] - 2026-05-16
+
+### Fixed
+- **`site-audit` hook no longer fires when other skills are used.** The `Stop` event fires after every Claude response and cannot be scoped by skill name. Previously the `audit-logger` hook fired whenever `site-audit-report.md` existed in the working directory — including sessions where a different skill ran but an old report was still present from a prior audit. The hook now checks the log file for the most recent entry matching the same report path and skips logging if the report's `mtime` has not advanced past that timestamp, so only a freshly written or updated report is recorded. `site-audit` bumped to 1.4.1.
+
 ## [1.25.4] - 2026-05-16
 
 ### Changed

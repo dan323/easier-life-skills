@@ -15,6 +15,28 @@ def parse_url_from_report(report_path: pathlib.Path) -> str:
     return first_line.replace("# Site Audit: ", "").strip()
 
 
+def already_logged(report_path: pathlib.Path, log_path: pathlib.Path) -> bool:
+    """Return True if the report has not changed since the last log entry for it."""
+    if not log_path.exists():
+        return False
+    report_mtime = report_path.stat().st_mtime
+    report_key = str(report_path.resolve())
+    try:
+        for line in reversed(log_path.read_text(encoding="utf-8").splitlines()):
+            try:
+                entry = json.loads(line)
+            except Exception:
+                continue
+            if entry.get("report") == report_key:
+                logged_at = datetime.datetime.fromisoformat(entry["date"].replace("Z", "+00:00"))
+                logged_ts = logged_at.timestamp()
+                # Skip if the report file has not been modified since it was logged.
+                return report_mtime <= logged_ts
+    except Exception:
+        pass
+    return False
+
+
 def main() -> int:
     try:
         data = json.load(sys.stdin)
@@ -25,6 +47,10 @@ def main() -> int:
     if not report.exists():
         return 0
 
+    log_path = pathlib.Path(os.path.expanduser("~/.claude/audit-history.jsonl"))
+    if already_logged(report, log_path):
+        return 0
+
     entry = {
         "date": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
         "session_id": (data.get("session_id", "") if isinstance(data, dict) else ""),
@@ -32,8 +58,7 @@ def main() -> int:
         "report": str(report.resolve()),
     }
 
-    log_path = os.path.expanduser("~/.claude/audit-history.jsonl")
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    os.makedirs(log_path.parent, exist_ok=True)
     with open(log_path, "a", encoding="utf-8") as handle:
         handle.write(json.dumps(entry) + "\n")
     return 0
