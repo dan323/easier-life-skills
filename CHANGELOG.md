@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.25.4] - 2026-05-16
+
+### Changed
+- **`cost-tracker` and `site-audit` hooks migrated to Claude's native `hooks.json` format.** Both plugins previously defined hooks in Markdown `.md` files; the hook logic is now split into a standalone Python script (`cost-tracker.py` / `audit-logger.py`) and a `hooks.json` manifest that Claude Code reads natively. The hook behaviour is unchanged — `cost-tracker` still appends a cost line to `~/.claude/cost-log.jsonl` on `Stop`/`SubagentStop`; `audit-logger` still appends to `~/.claude/audit-history.jsonl` on `Stop` when `site-audit-report.md` is present. Plugin versions bumped: `cost-tracker` 1.0.0 → 1.1.0, `site-audit` 1.3.0 → 1.4.0.
+
+### Fixed
+- **Build pipeline no longer parses Markdown files as hook definitions.** `scripts/lib/fetch-marketplace.ts` was treating any `.md` file in a plugin's `hooks/` directory as a hook entity — including non-hook files that happened to live there. Hook discovery now exclusively reads `hooks.json` files, matching the Claude-native format and eliminating spurious hook entries in `skills_index.json` and the web UI.
+
 ## [1.25.3] - 2026-05-14
 
 ### Changed

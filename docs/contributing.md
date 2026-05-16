@@ -191,6 +191,43 @@ The runner writes step outputs and a `workflow-output.json` summary to
 `.workflow-runs/<name>-<timestamp>/`. The workflow YAML itself is never
 modified.
 
+## Adding Hooks to a Plugin
+
+Hooks let a plugin run code automatically in response to Claude Code lifecycle events (e.g. `Stop`, `SubagentStop`, `PreToolUse`). The required layout is:
+
+```
+plugins/<your-plugin>/
+└── hooks/
+    ├── hooks.json          ← hook manifest (Claude-native format)
+    └── <hook-name>.py      ← script invoked by the manifest
+```
+
+### `hooks.json` format
+
+```json
+{
+  "description": "One-line description shown in /doctor and plugin listings",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/<hook-name>.py"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+`${CLAUDE_PLUGIN_ROOT}` is resolved by Claude Code to the installed plugin's root directory — use it instead of hardcoded paths so the hook works regardless of where the plugin is cached.
+
+Supported event names: `Stop`, `SubagentStop`, `PreToolUse`, `PostToolUse`, `Notification`. See the [Claude Code hooks documentation](https://docs.anthropic.com/en/docs/claude-code/hooks) for the full schema and the environment variables available to hook scripts.
+
+After adding `hooks.json`, run `npm run build` so the hook appears in `skills_index.json` and the web UI. The build discovers hooks exclusively from `hooks.json` files — do not put hook definitions in Markdown files inside `hooks/`.
+
 ## Improving an Existing Skill
 
 1. Edit the relevant `plugins/<name>/skills/<name>/SKILL.md` and/or `evals/evals.json`
