@@ -26,7 +26,7 @@ def main() -> int:
         return 0
 
     entry = {
-        "date": datetime.datetime.utcnow().isoformat() + "Z",
+        "date": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
         "session_id": (data.get("session_id", "") if isinstance(data, dict) else ""),
         "url": parse_url_from_report(report),
         "report": str(report.resolve()),

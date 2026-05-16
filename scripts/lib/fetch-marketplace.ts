@@ -575,6 +575,7 @@ async function discoverHooks(
   function extractCommandName(raw: unknown): string | null {
     const map = asHookEventMap(raw);
     if (!map) return null;
+    const names = new Set<string>();
     for (const value of Object.values(map)) {
       if (!Array.isArray(value)) continue;
       for (const matcherEntry of value) {
@@ -590,11 +591,12 @@ async function discoverHooks(
           const candidate = tokens[tokens.length - 1] ?? '';
           const file = candidate.split('/').pop() ?? '';
           const name = file.replace(/\.(py|sh|js|ts|mjs|cjs)$/i, '').replace(/_/g, '-').trim();
-          if (name.length > 0) return name;
+          if (name.length > 0) names.add(name);
         }
       }
     }
-    return null;
+    // Return a name only when all events use the same script; otherwise fall back to the file name.
+    return names.size === 1 ? [...names][0]! : null;
   }
 
   function hookDescription(raw: unknown): string {
