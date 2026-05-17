@@ -1,0 +1,8 @@
+{
+  "name": "gh-project-sync",
+  "version": "0.1.0",
+  "description": "Reconcile a GitHub Project board against a task-agent unified tasks.yml. New Todo cards become pending tasks; Won't-Do and Done cards are dropped from yml; yml entries with pr_url move their card to In Review (falling back to In Progress if the board lacks an In Review column) and post the PR link — never to Done, that stays a human decision once the PR merges. Idempotent.",
+  "author": { "name": "dan323" },
+  "category": "automation",
+  "skills": ["./skills/gh-project-sync"]
+}

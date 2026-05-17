@@ -1,0 +1,125 @@
+{
+  "skill_name": "gh-project-sync",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "gh-project-sync tasks=tasks.yml project_owner=acme project_number=7 default_repo=acme/api",
+      "description": "Happy path: one Todo card on the board has no matching yml entry. The skill should add it as `status: pending` with `external_ref` set to the card's PVTI id. Idempotence: re-running with the same board state must not produce a duplicate entry.",
+      "setup": "mkdir -p /tmp/eval-ghps-0 && cd /tmp/eval-ghps-0 && printf 'projects:\\n  - repo: acme/api\\n    tasks:\\n      - id: existing\\n        description: Already tracked\\n        status: pending\\n        external_ref: PVTI_existing\\n' > tasks.yml",
+      "assertions": [
+        {
+          "id": "new-card-added",
+          "text": "A new task entry is appended to tasks.yml with status: pending and external_ref set to the Todo card's item id"
+        },
+        {
+          "id": "existing-entry-preserved",
+          "text": "The pre-existing entry (id: existing) is left untouched, including its external_ref value"
+        },
+        {
+          "id": "idempotent-second-run",
+          "text": "Running the skill a second time with no board changes does not add a duplicate entry"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "gh-project-sync tasks=tasks.yml project_url=https://github.com/users/acme/projects/7",
+      "description": "Drop rule: a yml entry's card has been moved to 'Won't Do' on the board, and another card has been moved to 'Done'. Both yml entries must be removed. A third entry whose card is still in 'In Progress' stays.",
+      "setup": "mkdir -p /tmp/eval-ghps-1 && cd /tmp/eval-ghps-1 && printf 'projects:\\n  - repo: acme/api\\n    tasks:\\n      - id: wont\\n        description: Abandoned task\\n        status: pending\\n        external_ref: PVTI_wont\\n      - id: done\\n        description: Already done on board\\n        status: pending\\n        external_ref: PVTI_done\\n      - id: keep\\n        description: Still in progress\\n        status: pending\\n        external_ref: PVTI_keep\\n' > tasks.yml",
+      "assertions": [
+        {
+          "id": "wont-do-entry-dropped",
+          "text": "The entry with external_ref PVTI_wont is removed from tasks.yml"
+        },
+        {
+          "id": "done-entry-dropped",
+          "text": "The entry with external_ref PVTI_done is removed from tasks.yml"
+        },
+        {
+          "id": "in-progress-entry-preserved",
+          "text": "The entry with external_ref PVTI_keep stays in tasks.yml unchanged"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "gh-project-sync tasks=tasks.yml project_owner=acme project_number=7",
+      "description": "Push-to-In-Review rule: two yml entries are `status: done` with a `pr_url`. The first card is in 'Todo'; the second is in 'In Progress' (a human pulled it forward to babysit the run). Both must move to 'In Review' — the rule is permissive: it fires for any card not already in {In Review, Done, Won't Do}. The skill must NOT move either card to 'Done'. If the board has no 'In Review' column, the skill falls back to 'In Progress' automatically. Running it again must not double-post.",
+      "setup": "mkdir -p /tmp/eval-ghps-2 && cd /tmp/eval-ghps-2 && printf 'projects:\\n  - repo: acme/api\\n    tasks:\\n      - id: fromtodo\\n        description: From Todo\\n        status: done\\n        external_ref: PVTI_fromtodo\\n        pr_url: https://github.com/acme/api/pull/42\\n      - id: fromprog\\n        description: From In Progress\\n        status: done\\n        external_ref: PVTI_fromprog\\n        pr_url: https://github.com/acme/api/pull/43\\n' > tasks.yml",
+      "assertions": [
+        {
+          "id": "todo-card-moved-to-in-review",
+          "text": "gh project item-edit is invoked to move PVTI_fromtodo to the In Review option (or the In Progress fallback if the board lacks In Review) — NOT the Done option"
+        },
+        {
+          "id": "in-progress-card-also-moved-to-in-review",
+          "text": "gh project item-edit is invoked to move PVTI_fromprog (currently In Progress) to In Review as well — the rule fires for any non-terminal column, not only Todo"
+        },
+        {
+          "id": "neither-card-moved-to-done",
+          "text": "Neither card is moved to Done — that remains a human decision after the PR merges"
+        },
+        {
+          "id": "pr-link-posted",
+          "text": "Each card has its PR url posted (issue comment for linked issues, draft body update for drafts)"
+        },
+        {
+          "id": "no-double-post-on-rerun",
+          "text": "A second run does not post the PR urls again — once the cards have moved to In Review, they fall into the 'leave alone' branch"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "gh-project-sync tasks=tasks.yml project_owner=acme project_number=7",
+      "description": "Legacy mode refusal: the tasks file uses the old two-file format (bare strings, sibling tasks-state.yml). The skill must refuse and tell the user to upgrade to unified mode rather than corrupting the file.",
+      "setup": "mkdir -p /tmp/eval-ghps-3 && cd /tmp/eval-ghps-3 && printf 'projects:\\n  - repo: acme/api\\n    tasks:\\n      - A bare-string legacy task\\n' > tasks.yml && printf 'completed: []\\n' > tasks-state.yml",
+      "assertions": [
+        {
+          "id": "legacy-mode-detected",
+          "text": "The skill detects the legacy two-file format and refuses to operate"
+        },
+        {
+          "id": "upgrade-message",
+          "text": "The error message tells the user to upgrade to unified mode (entries with a status: field)"
+        },
+        {
+          "id": "no-yml-mutation",
+          "text": "tasks.yml is not modified by the failed run"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "gh-project-sync tasks=tasks.yml project_owner=acme project_number=7 todo_column=Ready in_review_column=Reviewing done_column=Shipped wont_do_column=Cancelled",
+      "description": "Custom column names: a board uses Ready/Reviewing/Shipped/Cancelled instead of Todo/In Progress/Done/Won't Do. The overrides must match those options on the Status field, and reconciliation proceeds normally. If any overridden column doesn't exist, the skill halts with a clear diagnostic.",
+      "setup": "mkdir -p /tmp/eval-ghps-4 && cd /tmp/eval-ghps-4 && printf 'projects: []\\n' > tasks.yml",
+      "assertions": [
+        {
+          "id": "custom-columns-resolved",
+          "text": "The skill matches Ready/Reviewing/Shipped/Cancelled against the board's Status options instead of the defaults"
+        },
+        {
+          "id": "missing-column-diagnostic",
+          "text": "If a configured column name does not exist on the board, the skill prints a diagnostic naming the missing role (todo/in_review/done/wont_do) and exits non-zero"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "gh-project-sync tasks=tasks.yml project_owner=acme project_number=7",
+      "description": "In Review → In Progress fallback: the board uses the default GitHub project template with columns Todo/In Progress/Done/Won't Do — no 'In Review' column exists. With no explicit `in_review_column` override, the skill must transparently fall back to 'In Progress' for PR-open cards. A board that has BOTH 'In Review' and 'In Progress' must prefer 'In Review'.",
+      "setup": "mkdir -p /tmp/eval-ghps-5 && cd /tmp/eval-ghps-5 && printf 'projects:\\n  - repo: acme/api\\n    tasks:\\n      - id: prdone\\n        description: PR open\\n        status: done\\n        external_ref: PVTI_prdone\\n        pr_url: https://github.com/acme/api/pull/9\\n' > tasks.yml",
+      "assertions": [
+        {
+          "id": "fallback-used-when-no-in-review-column",
+          "text": "On a board without an 'In Review' column, the PR-open card is moved to 'In Progress' (no error, no missing-column diagnostic)"
+        },
+        {
+          "id": "in-review-preferred-when-both-exist",
+          "text": "On a board that has both 'In Review' and 'In Progress', the skill picks 'In Review'"
+        }
+      ]
+    }
+  ]
+}
