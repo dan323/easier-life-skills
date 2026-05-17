@@ -53,6 +53,68 @@
       "installCommand": "/plugin install mattpocock-skills@mattpocock-skills"
     }
   ],
+  "plugins": [
+    {
+      "name": "code-audit",
+      "description": "Static analysis: dead code, breaking API, logging quality",
+      "category": "code-quality",
+      "source": {
+        "owner": "dan323",
+        "repo": "easier-life-skills",
+        "repoUrl": "https://github.com/dan323/easier-life-skills"
+      },
+      "skills": ["find-dead-code", "improve-logging"],
+      "agents": [],
+      "hooks": [],
+      "commands": [],
+      "mcpServers": []
+    },
+    {
+      "name": "docs",
+      "description": "Changelog and project documentation",
+      "category": "documentation",
+      "source": {
+        "owner": "dan323",
+        "repo": "easier-life-skills",
+        "repoUrl": "https://github.com/dan323/easier-life-skills"
+      },
+      "skills": ["changelog"],
+      "agents": [],
+      "hooks": [],
+      "commands": [],
+      "mcpServers": []
+    },
+    {
+      "name": "cost-tracker",
+      "description": "Append token usage and estimated cost on Stop / SubagentStop",
+      "category": "productivity",
+      "source": {
+        "owner": "dan323",
+        "repo": "easier-life-skills",
+        "repoUrl": "https://github.com/dan323/easier-life-skills"
+      },
+      "skills": [],
+      "agents": [],
+      "hooks": ["cost-tracker"],
+      "commands": [],
+      "mcpServers": []
+    },
+    {
+      "name": "mattpocock-skills",
+      "description": "TDD workflow from mattpocock/skills",
+      "category": "testing",
+      "source": {
+        "owner": "mattpocock",
+        "repo": "skills",
+        "repoUrl": "https://github.com/mattpocock/skills"
+      },
+      "skills": ["tdd"],
+      "agents": [],
+      "hooks": [],
+      "commands": [],
+      "mcpServers": []
+    }
+  ],
   "bundles": [
     {
       "id": "code-quality",
@@ -75,6 +137,7 @@
   ],
   "meta": {
     "skillCount": 4,
+    "pluginCount": 4,
     "marketplaces": ["easier-life-skills", "mattpocock-skills"],
     "sources": {
       "dan323/easier-life-skills": { "isMarketplace": true },

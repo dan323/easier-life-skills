@@ -8,11 +8,11 @@ vi.mock('../src/lib/shim.js');
 
 import * as claude from '../src/lib/claude.js';
 import * as shim from '../src/lib/shim.js';
-import { installSkillsRespectingSource } from '../src/lib/actions.js';
+import { installSkillsRespectingSource, installItemsRespectingSource } from '../src/lib/actions.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const fixture = JSON.parse(readFileSync(join(__dirname, 'fixture.json'), 'utf8'));
-const { skills, meta } = fixture;
+const { skills, plugins, meta } = fixture;
 const sources = meta.sources;
 
 beforeEach(() => {
@@ -53,7 +53,13 @@ describe('installSkillsRespectingSource — plugin-only skill', () => {
   it('writes a shim for plugin-only source repos', async () => {
     const skill = skills.find((s: any) => s.name === 'tdd');
     await installSkillsRespectingSource([skill], sources, { dryRun: true });
-    expect(shim.writeShim).toHaveBeenCalledWith(skill, expect.any(Set), true);
+    // writeShim receives the normalized Installable (pluginName + source), not
+    // the full Skill record — that's what the generalized pipeline forwards.
+    expect(shim.writeShim).toHaveBeenCalledWith(
+      { pluginName: skill.pluginName, source: skill.source },
+      expect.any(Set),
+      true,
+    );
   });
 
   it('registers the shim directory as a marketplace', async () => {
@@ -103,5 +109,27 @@ describe('installSkillsRespectingSource — error handling', () => {
     await expect(
       installSkillsRespectingSource([skill], sources),
     ).rejects.toThrow('claude');
+  });
+});
+
+// ── plugin install path ───────────────────────────────────────────────────────
+
+describe('installItemsRespectingSource — plugin input', () => {
+  it('installs a hook-only plugin (cost-tracker) via its marketplace', async () => {
+    const plugin = plugins.find((p: any) => p.name === 'cost-tracker');
+    await installItemsRespectingSource([plugin], sources, { dryRun: true });
+    expect(claude.addMarketplace).toHaveBeenCalledWith('dan323/easier-life-skills', true);
+    expect(claude.installPlugin).toHaveBeenCalledWith('cost-tracker', 'easier-life-skills', true);
+  });
+
+  it('handles a mix of skills and plugins, deduping shared marketplaces', async () => {
+    const skill = skills.find((s: any) => s.name === 'changelog');
+    const plugin = plugins.find((p: any) => p.name === 'cost-tracker');
+    await installItemsRespectingSource([skill, plugin], sources, { dryRun: true });
+    const mpCalls = vi.mocked(claude.addMarketplace).mock.calls
+      .filter(([src]) => src === 'dan323/easier-life-skills');
+    expect(mpCalls).toHaveLength(1);
+    expect(claude.installPlugin).toHaveBeenCalledWith('docs', 'easier-life-skills', true);
+    expect(claude.installPlugin).toHaveBeenCalledWith('cost-tracker', 'easier-life-skills', true);
   });
 });

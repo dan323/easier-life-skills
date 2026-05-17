@@ -16,6 +16,27 @@ export interface Skill {
   installCommand?: string;
 }
 
+export interface Plugin {
+  name: string;
+  description: string;
+  category?: string;
+  source: SkillSource;
+  skills?: string[];
+  agents?: string[];
+  hooks?: string[];
+  commands?: string[];
+  mcpServers?: string[];
+  homepage?: string;
+  installCommand?: string;
+}
+
+// Minimal shape needed to install: a plugin name + its source repo.
+// Both Skill (via pluginName) and Plugin (via name) can produce one.
+export interface Installable {
+  pluginName: string;
+  source: SkillSource;
+}
+
 export interface SourceMeta {
   isMarketplace?: boolean;
 }
@@ -45,11 +66,13 @@ export interface InstalledPlugin {
 export interface IndexMeta {
   sources?: Sources;
   skillCount: number;
+  pluginCount?: number;
   marketplaces?: string[];
 }
 
 export interface Index {
   skills: Skill[];
+  plugins?: Plugin[];
   bundles: Bundle[];
   meta: IndexMeta;
 }

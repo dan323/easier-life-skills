@@ -3,15 +3,15 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
 import {
-  filterSkills, resolveBundle,
+  filterSkills, filterPlugins, resolveBundle,
   isMarketplaceSource, describeTarget,
   computeKnownMarketplaces, filterForUpdate,
-  marketplacesForSkills,
+  marketplacesForSkills, marketplacesForItems, toInstallable,
 } from '../src/lib/logic.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const fixture = JSON.parse(readFileSync(join(__dirname, 'fixture.json'), 'utf8'));
-const { skills, bundles, meta } = fixture;
+const { skills, plugins, bundles, meta } = fixture;
 const sources = meta.sources;
 
 // ── filterSkills ──────────────────────────────────────────────────────────────
@@ -173,5 +173,78 @@ describe('filterForUpdate', () => {
     const targets = filterForUpdate(INSTALLED, known, 'docs');
     expect(targets).toHaveLength(1);
     expect(targets[0].id).toBe('docs@easier-life-skills');
+  });
+});
+
+// ── filterPlugins ─────────────────────────────────────────────────────────────
+
+describe('filterPlugins', () => {
+  it('finds by plugin name', () => {
+    const results = filterPlugins(plugins, 'cost-tracker');
+    expect(results.map((p: any) => p.name)).toContain('cost-tracker');
+  });
+
+  it('finds hook-only plugins by hook name', () => {
+    // The cost-tracker plugin ships no skills, only a hook called "cost-tracker".
+    // Searching for "cost" still surfaces the plugin via its hook entry.
+    const results = filterPlugins(plugins, 'cost');
+    expect(results.map((p: any) => p.name)).toContain('cost-tracker');
+  });
+
+  it('finds by category', () => {
+    const results = filterPlugins(plugins, 'documentation');
+    expect(results.map((p: any) => p.name)).toContain('docs');
+  });
+
+  it('returns empty array for no matches', () => {
+    expect(filterPlugins(plugins, 'xyznonexistent')).toHaveLength(0);
+  });
+});
+
+// ── toInstallable / describeTarget on plugins ────────────────────────────────
+
+describe('plugin install routing', () => {
+  it('toInstallable produces the same shape for skills and plugins', () => {
+    const skill = skills.find((s: any) => s.name === 'changelog');
+    const plugin = plugins.find((p: any) => p.name === 'docs');
+    expect(toInstallable(skill)).toEqual({ pluginName: 'docs', source: skill.source });
+    expect(toInstallable(plugin)).toEqual({ pluginName: 'docs', source: plugin.source });
+  });
+
+  it('describeTarget routes a hook-only plugin through its marketplace', () => {
+    const plugin = plugins.find((p: any) => p.name === 'cost-tracker');
+    expect(describeTarget(plugin, sources)).toBe('cost-tracker@easier-life-skills');
+  });
+
+  it('marketplacesForItems works across mixed plugin/skill inputs', () => {
+    const plugin = plugins.find((p: any) => p.name === 'cost-tracker');
+    const skill = skills.find((s: any) => s.name === 'tdd');
+    const result = marketplacesForItems([plugin, skill], sources);
+    expect(result).toHaveLength(2);
+    expect(result).toContain('dan323/easier-life-skills');
+    expect(result.some((m: string) => m.includes('mattpocock-skills') && m.includes('shim'))).toBe(true);
+  });
+});
+
+// ── computeKnownMarketplaces with plugins ─────────────────────────────────────
+
+describe('computeKnownMarketplaces with plugin input', () => {
+  it('still includes the primary and all marketplace sources', () => {
+    const known = computeKnownMarketplaces(plugins, sources, 'easier-life-skills');
+    expect(known.has('easier-life-skills')).toBe(true);
+  });
+
+  it('includes pluginName-as-shim-marketplace for plugin-only sources', () => {
+    const known = computeKnownMarketplaces(plugins, sources, 'easier-life-skills');
+    expect(known.has('mattpocock-skills')).toBe(true);
+  });
+});
+
+// ── marketplacesForSkills back-compat ────────────────────────────────────────
+
+describe('marketplacesForSkills back-compat alias', () => {
+  it('still accepts Skill[] and matches marketplacesForItems', () => {
+    const subset = skills.filter((s: any) => s.name === 'changelog' || s.name === 'tdd');
+    expect(marketplacesForSkills(subset, sources)).toEqual(marketplacesForItems(subset, sources));
   });
 });

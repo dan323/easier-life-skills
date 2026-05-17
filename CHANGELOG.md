@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.25.12] - 2026-05-17
+
+### Added
+- **`--plugin <name>` flag in the installer.** Plugins are the unit of installation in Claude Code; skills, hooks, agents, commands, and MCP servers are entities a plugin ships. The installer was previously skill-centric, which meant hook/agent-only plugins (like `cost-tracker`) were invisible to `--list`, `--search`, `--skill`, and `--update`. The installer now reads the `plugins` array that `skills_index.json` has shipped all along and supports `--plugin <name>` for direct install — including hook-only plugins.
+- **Plugin-aware `--list` and `--search`.** `--list` now opens with a PLUGINS section showing each plugin's name, entity summary (e.g. "1 hook", "3 skills"), category, and source. `--search` finds matches across both plugins and skills — searching for "cost" surfaces `cost-tracker` via either its name or its `cost-tracker` hook entry.
+- **`installItemsRespectingSource`** generalizes the install pipeline to accept a list of plugins, skills, or bare `Installable` records. `installSkillsRespectingSource` is kept as a back-compat alias.
+- **`computeKnownMarketplaces`** now accepts both plugins and skills so hook-only plugins from plugin-only sources participate in the `--update` whitelist.
+
+Installer bumped to 1.7.0. 43 unit tests pass.
+
 ## [1.25.11] - 2026-05-17
 
 ### Added
