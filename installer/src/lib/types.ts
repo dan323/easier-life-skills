@@ -16,6 +16,25 @@ export interface Skill {
   installCommand?: string;
 }
 
+// Non-skill entities that plugins ship. They share enough shape that one
+// interface covers them — the `kind` discriminator lets the CLI label matches
+// in search output.
+export type EntityKind = 'skill' | 'agent' | 'hook' | 'command' | 'mcp';
+
+export interface Entity {
+  kind: EntityKind;
+  name: string;
+  pluginName: string;
+  description?: string;
+  category?: string;
+  source: SkillSource;
+}
+
+export interface Agent extends Omit<Entity, 'kind'> {}
+export interface Hook extends Omit<Entity, 'kind'> {}
+export interface Command extends Omit<Entity, 'kind'> {}
+export interface McpServer extends Omit<Entity, 'kind'> {}
+
 export interface Plugin {
   name: string;
   description: string;
@@ -73,6 +92,10 @@ export interface IndexMeta {
 export interface Index {
   skills: Skill[];
   plugins?: Plugin[];
+  agents?: Agent[];
+  hooks?: Hook[];
+  commands?: Command[];
+  mcpServers?: McpServer[];
   bundles: Bundle[];
   meta: IndexMeta;
 }

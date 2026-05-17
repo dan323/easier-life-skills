@@ -115,6 +115,58 @@
       "mcpServers": []
     }
   ],
+  "agents": [
+    {
+      "name": "review-agent",
+      "pluginName": "code-audit",
+      "description": "Reviews diffs for quality issues",
+      "category": "code-quality",
+      "source": {
+        "owner": "dan323",
+        "repo": "easier-life-skills",
+        "repoUrl": "https://github.com/dan323/easier-life-skills"
+      }
+    }
+  ],
+  "hooks": [
+    {
+      "name": "cost-tracker",
+      "pluginName": "cost-tracker",
+      "description": "Logs token usage on Stop and SubagentStop events",
+      "category": "productivity",
+      "source": {
+        "owner": "dan323",
+        "repo": "easier-life-skills",
+        "repoUrl": "https://github.com/dan323/easier-life-skills"
+      }
+    }
+  ],
+  "commands": [
+    {
+      "name": "lint-fix",
+      "pluginName": "code-audit",
+      "description": "Run linter and apply autofixes",
+      "category": "code-quality",
+      "source": {
+        "owner": "dan323",
+        "repo": "easier-life-skills",
+        "repoUrl": "https://github.com/dan323/easier-life-skills"
+      }
+    }
+  ],
+  "mcpServers": [
+    {
+      "name": "browser",
+      "pluginName": "site-audit",
+      "description": "Headless browser MCP",
+      "category": "code-quality",
+      "source": {
+        "owner": "dan323",
+        "repo": "easier-life-skills",
+        "repoUrl": "https://github.com/dan323/easier-life-skills"
+      }
+    }
+  ],
   "bundles": [
     {
       "id": "code-quality",

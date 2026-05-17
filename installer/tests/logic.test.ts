@@ -7,6 +7,7 @@ import {
   isMarketplaceSource, describeTarget,
   computeKnownMarketplaces, filterForUpdate,
   marketplacesForSkills, marketplacesForItems, toInstallable,
+  searchAll, resolveInstallTarget,
 } from '../src/lib/logic.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -246,5 +247,99 @@ describe('marketplacesForSkills back-compat alias', () => {
   it('still accepts Skill[] and matches marketplacesForItems', () => {
     const subset = skills.filter((s: any) => s.name === 'changelog' || s.name === 'tdd');
     expect(marketplacesForSkills(subset, sources)).toEqual(marketplacesForItems(subset, sources));
+  });
+});
+
+// ── searchAll ─────────────────────────────────────────────────────────────────
+
+describe('searchAll', () => {
+  it('returns matches across every entity type', () => {
+    const r = searchAll(fixture, 'cost');
+    // cost-tracker matches as both plugin AND hook.
+    expect(r.plugins.map((p: any) => p.name)).toContain('cost-tracker');
+    expect(r.hooks.map((h: any) => h.name)).toContain('cost-tracker');
+  });
+
+  it('finds an agent by name', () => {
+    const r = searchAll(fixture, 'review');
+    expect(r.agents.map((a: any) => a.name)).toContain('review-agent');
+  });
+
+  it('finds a command by name', () => {
+    const r = searchAll(fixture, 'lint');
+    expect(r.commands.map((c: any) => c.name)).toContain('lint-fix');
+  });
+
+  it('finds an mcp by name', () => {
+    const r = searchAll(fixture, 'browser');
+    expect(r.mcpServers.map((m: any) => m.name)).toContain('browser');
+  });
+
+  it('returns all empty arrays when nothing matches', () => {
+    const r = searchAll(fixture, 'xyznonexistent');
+    expect(r.plugins).toHaveLength(0);
+    expect(r.skills).toHaveLength(0);
+    expect(r.agents).toHaveLength(0);
+    expect(r.hooks).toHaveLength(0);
+    expect(r.commands).toHaveLength(0);
+    expect(r.mcpServers).toHaveLength(0);
+  });
+});
+
+// ── resolveInstallTarget ──────────────────────────────────────────────────────
+
+describe('resolveInstallTarget', () => {
+  it('resolves a plugin name directly', () => {
+    const r = resolveInstallTarget('docs', fixture);
+    expect(r).not.toBeNull();
+    expect('plugin' in r!).toBe(true);
+    if (r && 'plugin' in r) expect(r.plugin.name).toBe('docs');
+  });
+
+  it('resolves a skill name to its parent plugin', () => {
+    const r = resolveInstallTarget('changelog', fixture);
+    expect(r).not.toBeNull();
+    if (r && 'plugin' in r) expect(r.plugin.name).toBe('docs');
+  });
+
+  it('resolves an agent name to its parent plugin', () => {
+    const r = resolveInstallTarget('review-agent', fixture);
+    expect(r).not.toBeNull();
+    if (r && 'plugin' in r) expect(r.plugin.name).toBe('code-audit');
+  });
+
+  it('resolves a hook name to its parent plugin', () => {
+    const r = resolveInstallTarget('cost-tracker', fixture);
+    // Plugin name and hook name collide → direct plugin match wins.
+    expect(r).not.toBeNull();
+    if (r && 'plugin' in r) expect(r.plugin.name).toBe('cost-tracker');
+  });
+
+  it('resolves a command name to its parent plugin', () => {
+    const r = resolveInstallTarget('lint-fix', fixture);
+    if (r && 'plugin' in r) expect(r.plugin.name).toBe('code-audit');
+  });
+
+  it('returns null when nothing matches', () => {
+    expect(resolveInstallTarget('no-such-thing', fixture)).toBeNull();
+  });
+
+  it('returns candidates when an entity name resolves to multiple plugins', () => {
+    // Synthesise a clash: two skills named "shared" living in different plugins.
+    const index = {
+      ...fixture,
+      skills: [
+        ...fixture.skills,
+        { name: 'shared', pluginName: 'docs',       source: fixture.skills[2].source },
+        { name: 'shared', pluginName: 'code-audit', source: fixture.skills[0].source },
+      ],
+    };
+    const r = resolveInstallTarget('shared', index);
+    expect(r).not.toBeNull();
+    if (r && 'candidates' in r) {
+      expect(r.candidates.map((c) => c.pluginName).sort()).toEqual(['code-audit', 'docs']);
+    } else {
+      throw new Error('expected candidates branch');
+    }
   });
 });

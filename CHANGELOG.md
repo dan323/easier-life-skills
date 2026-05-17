@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.25.13] - 2026-05-17
+
+### Added
+- **Installer search and list now cover every entity type.** `--list` shows PLUGINS, SKILLS, AGENTS, HOOKS, COMMANDS, MCP SERVERS, and BUNDLES sections (skipping any that are empty). `--search <query>` matches across all six entity arrays in `skills_index.json`, with every match annotated by its parent plugin so it is clear what `--install` will pull in.
+- **`--install <name>` flag.** Accepts a plugin name OR any entity name (skill, agent, hook, command, MCP server) and routes to the parent plugin. If a name resolves to multiple plugins (an entity-name collision across plugins) the installer prints a disambiguation list and exits 1 — users can then pick with `--plugin <pluginName>`.
+- **`searchAll(index, query)` and `resolveInstallTarget(name, index)`** helpers in `logic.ts`. The resolver dedupes matches by `(source.owner/repo, pluginName)` so multiple entities from the same plugin don't trigger "ambiguous" output.
+
+`--plugin <name>` and `--skill <name>` stay as explicit access for users who already know what they want. Installer bumped to 1.8.0. 55 unit tests pass.
+
 ## [1.25.12] - 2026-05-17
 
 ### Added

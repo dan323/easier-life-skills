@@ -28,8 +28,9 @@
 
 import { createInterface } from 'readline';
 import {
-  filterSkills, filterPlugins, resolveBundle, describeTarget,
+  resolveBundle, describeTarget,
   computeKnownMarketplaces, filterForUpdate, marketplacesForItems,
+  searchAll, resolveInstallTarget,
 } from '../lib/logic.js';
 import { claudeAvailable, listInstalledPlugins, pluginUpdate } from '../lib/claude.js';
 import { installItemsRespectingSource } from '../lib/actions.js';
@@ -47,6 +48,7 @@ const flagVal = (name: string): string | null => {
   return i !== -1 ? (args[i + 1] ?? null) : null;
 };
 
+const installName = flagVal('--install');
 const pluginName = flagVal('--plugin');
 const skillName  = flagVal('--skill');
 const bundleId   = flagVal('--bundle');
@@ -107,14 +109,23 @@ function entitySummary(p: Plugin): string {
 
   const { skills, bundles, meta } = index;
   const plugins = index.plugins ?? [];
+  const agents = index.agents ?? [];
+  const hooks = index.hooks ?? [];
+  const commands = index.commands ?? [];
+  const mcpServers = index.mcpServers ?? [];
   const sources = meta?.sources ?? {};
 
   // ── --list ────────────────────────────────────────────────────────────────
   if (listOnly) {
-    const header = plugins.length
-      ? `${plugins.length} plugins, ${meta.skillCount} skills across ${meta.marketplaces?.length ?? 1} marketplace(s)`
-      : `${meta.skillCount} skills across ${meta.marketplaces?.length ?? 1} marketplace(s)`;
-    console.log(`\n═══ easier-life-skills (${header}) ═══\n`);
+    const counts = [
+      `${plugins.length} plugins`,
+      `${skills.length} skills`,
+      agents.length ? `${agents.length} agents` : null,
+      hooks.length ? `${hooks.length} hooks` : null,
+      commands.length ? `${commands.length} commands` : null,
+      mcpServers.length ? `${mcpServers.length} MCP servers` : null,
+    ].filter(Boolean).join(', ');
+    console.log(`\n═══ easier-life-skills (${counts}; ${meta.marketplaces?.length ?? 1} marketplace(s)) ═══\n`);
 
     if (plugins.length) {
       console.log('PLUGINS\n');
@@ -131,49 +142,82 @@ function entitySummary(p: Plugin): string {
       const src = `${s.source.owner}/${s.source.repo}`;
       console.log(`  ${s.name.padEnd(28)} ${s.description.slice(0, 45).padEnd(46)} ${src}${ro}`);
     });
+
+    const printEntities = (label: string, list: Array<{ name: string; pluginName: string; description?: string; source: { owner: string; repo: string } }>) => {
+      if (!list.length) return;
+      console.log(`\n${label}\n`);
+      list.forEach((e) => {
+        const src = `${e.source.owner}/${e.source.repo}`;
+        const desc = (e.description ?? '').slice(0, 45).padEnd(46);
+        console.log(`  ${e.name.padEnd(28)} ${desc} ${`(plugin: ${e.pluginName})`.padEnd(34)} ${src}`);
+      });
+    };
+    printEntities('AGENTS', agents);
+    printEntities('HOOKS', hooks);
+    printEntities('COMMANDS', commands);
+    printEntities('MCP SERVERS', mcpServers);
+
     console.log('\nBUNDLES\n');
     bundles.forEach((b) => {
       const skillNames = b.skills.map((r) => (typeof r === 'string' ? r : r.name)).join(', ');
       console.log(`  ${(b.id ?? b.name).padEnd(28)} ${skillNames}`);
     });
-    console.log(`\nInstall: npx @dan323/easier-life-skills --plugin <name>`);
-    console.log(`         npx @dan323/easier-life-skills --skill <name>     (resolves to parent plugin)`);
+    console.log(`\nInstall: npx @dan323/easier-life-skills --install <name>   (plugin or any entity name; routes to plugin)`);
+    console.log(`         npx @dan323/easier-life-skills --plugin <name>    (explicit plugin)`);
     console.log(`         npx @dan323/easier-life-skills --bundle <id>\n`);
     return;
   }
 
   // ── --search ──────────────────────────────────────────────────────────────
   if (searchTerm) {
-    const skillMatches = filterSkills(skills, searchTerm);
-    const pluginMatches = filterPlugins(plugins, searchTerm);
+    const results = searchAll(index, searchTerm);
+    const total = results.plugins.length + results.skills.length
+      + results.agents.length + results.hooks.length
+      + results.commands.length + results.mcpServers.length;
 
-    if (skillMatches.length === 0 && pluginMatches.length === 0) {
-      console.log(`\nNo plugins or skills match "${searchTerm}". Run --list to see everything available.\n`);
+    if (total === 0) {
+      console.log(`\nNo plugins, skills, agents, hooks, commands, or MCP servers match "${searchTerm}". Run --list to see everything available.\n`);
       return;
     }
 
     console.log(`\n═══ matches for "${searchTerm}" ═══\n`);
 
-    if (pluginMatches.length) {
-      console.log(`PLUGINS (${pluginMatches.length})\n`);
-      pluginMatches.forEach((p) => {
+    if (results.plugins.length) {
+      console.log(`PLUGINS (${results.plugins.length})\n`);
+      results.plugins.forEach((p) => {
         const src = `${p.source.owner}/${p.source.repo}`;
         console.log(`  ${p.name.padEnd(28)} ${entitySummary(p).padEnd(28)} ${(p.category ?? '').padEnd(14)} ${src}`);
       });
       console.log();
     }
 
-    if (skillMatches.length) {
-      console.log(`SKILLS (${skillMatches.length})\n`);
-      skillMatches.forEach((s) => {
+    if (results.skills.length) {
+      console.log(`SKILLS (${results.skills.length})\n`);
+      results.skills.forEach((s) => {
         const ro = s.readOnly ? ' [read-only]' : '';
         const src = `${s.source.owner}/${s.source.repo}`;
-        console.log(`  ${s.name.padEnd(28)} ${s.description.slice(0, 45).padEnd(46)} ${src}${ro}`);
+        console.log(`  ${s.name.padEnd(28)} ${(s.description ?? '').slice(0, 45).padEnd(46)} ${`(plugin: ${s.pluginName})`.padEnd(34)} ${src}${ro}`);
       });
       console.log();
     }
 
-    console.log(`Install: npx @dan323/easier-life-skills --plugin <name>\n`);
+    const printMatches = (label: string, list: Array<{ name: string; pluginName: string; description?: string; source: { owner: string; repo: string } }>) => {
+      if (!list.length) return;
+      console.log(`${label} (${list.length})\n`);
+      list.forEach((e) => {
+        const src = `${e.source.owner}/${e.source.repo}`;
+        const desc = (e.description ?? '').slice(0, 45).padEnd(46);
+        console.log(`  ${e.name.padEnd(28)} ${desc} ${`(plugin: ${e.pluginName})`.padEnd(34)} ${src}`);
+      });
+      console.log();
+    };
+    printMatches('AGENTS', results.agents);
+    printMatches('HOOKS', results.hooks);
+    printMatches('COMMANDS', results.commands);
+    printMatches('MCP SERVERS', results.mcpServers);
+
+    console.log(`Install (any entity name routes to its parent plugin):`);
+    console.log(`  npx @dan323/easier-life-skills --install <name>\n`);
     return;
   }
 
@@ -218,6 +262,51 @@ function entitySummary(p: Plugin): string {
 
     if (!dryRun) {
       console.log(`\nDone! Restart Claude Code to load the updated plugin${targets.length === 1 ? '' : 's'}.\n`);
+    }
+    return;
+  }
+
+  // ── --install ─────────────────────────────────────────────────────────────
+  // Accepts a plugin name OR any entity name (skill / agent / hook / command /
+  // mcp). Routes to the parent plugin; errors with a disambiguation list if
+  // the same entity name appears across multiple plugins.
+  if (installName) {
+    const resolved = resolveInstallTarget(installName, index);
+    if (!resolved) {
+      console.error(`\n"${installName}" is not a plugin or any indexed entity. Run --search ${installName} or --list.\n`);
+      process.exit(1);
+    }
+    if ('candidates' in resolved) {
+      console.error(`\n"${installName}" is ambiguous — multiple plugins ship something by that name:`);
+      resolved.candidates.forEach((c) => {
+        console.error(`  • plugin "${c.pluginName}" (${c.source.owner}/${c.source.repo}) — via ${c.via}`);
+      });
+      console.error(`\nDisambiguate with --plugin <pluginName>.\n`);
+      process.exit(1);
+    }
+
+    const plugin: Plugin = resolved.plugin;
+    const marketplaces = marketplacesForItems([plugin], sources);
+    console.log(`\nWill register marketplace: ${marketplaces[0]}`);
+    console.log(`Will install: ${describeTarget(plugin, sources)}`);
+    const summary = entitySummary(plugin);
+    if (summary !== '—') console.log(`Provides: ${summary}`);
+    console.log();
+
+    if (!dryRun) {
+      const ok = await confirm('Install?');
+      if (!ok) { console.log('Cancelled.'); return; }
+    }
+
+    try {
+      await installItemsRespectingSource([plugin], sources, { dryRun });
+    } catch (err) {
+      console.error(`\nError: ${(err as Error).message}\n`);
+      process.exit(1);
+    }
+
+    if (!dryRun) {
+      console.log(`\nDone! Restart Claude Code to activate ${plugin.name}.\n`);
     }
     return;
   }
@@ -346,8 +435,8 @@ generates a per-plugin shim marketplace under
 Claude Code, then installs the plugin normally.
 
 Plugins are the unit of installation. Skills, agents, hooks, commands, and
-MCP servers are entities that plugins ship; \`--skill <name>\` is a
-convenience that resolves to its parent plugin.
+MCP servers are entities a plugin ships. Use \`--install <name>\` and name
+either a plugin or any entity — the installer figures out the right plugin.
 
 Requires:
   • \`claude\` on \$PATH for install / update operations
@@ -355,19 +444,21 @@ Requires:
 Usage:
   npx @dan323/easier-life-skills --list
   npx @dan323/easier-life-skills --search <query>
+  npx @dan323/easier-life-skills --install <name>
   npx @dan323/easier-life-skills --plugin <name>
   npx @dan323/easier-life-skills --skill <name>
   npx @dan323/easier-life-skills --bundle <id>
   npx @dan323/easier-life-skills --update
   npx @dan323/easier-life-skills --update <name>
-  npx @dan323/easier-life-skills --plugin <name> --dry-run
-  npx @dan323/easier-life-skills --plugin <name> --yes
+  npx @dan323/easier-life-skills --install <name> --dry-run
+  npx @dan323/easier-life-skills --install <name> --yes
 
 Flags:
-  --list            Show all available plugins, skills, and bundles (no claude required)
-  --search <query>  Filter plugins and skills by name, description, category, or entity (no claude required)
-  --plugin <name>   Install a plugin (including hook/agent-only plugins like cost-tracker)
-  --skill <name>    Install the plugin that ships this skill
+  --list            Show all plugins, skills, agents, hooks, commands, MCP servers, bundles (no claude required)
+  --search <query>  Filter every kind of entity by name / description / category (no claude required)
+  --install <name>  Install by plugin name or any entity name (resolves to parent plugin; errors on ambiguity)
+  --plugin <name>   Explicit plugin install (errors if name is not a plugin)
+  --skill <name>    Explicit skill resolution — installs the plugin that ships this skill
   --bundle <id>     Install every plugin referenced by a bundle, routed by source
   --update [name]   Update installed plugins from any of the indexed marketplaces
   --dry-run         Print what would happen, don't execute
