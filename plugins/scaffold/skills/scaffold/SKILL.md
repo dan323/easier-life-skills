@@ -10,7 +10,7 @@ description: >
   a key=value grammar — see the Investigation phase for the full
   syntax. The generator is idempotent: it refuses to overwrite an
   existing plugin directory unless the `force` flag is passed.
-tools: Bash, Read, Write, Glob, Grep, TaskCreate, TaskUpdate
+tools: Bash, PowerShell, Read, Write, Glob, Grep, TaskCreate, TaskUpdate
 ---
 
 # Scaffold

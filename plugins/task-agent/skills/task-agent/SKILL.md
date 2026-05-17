@@ -3,7 +3,7 @@ name: task-agent
 description: >
   Reads a list of tasks in a yaml to be done in certain github repos. Agents clone the repo, do the task,
   commit the changes and create a PR. Not to be called automatically by Claude by any means.
-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, TaskCreate, TaskUpdate, mcp__github__search_repositories, mcp__github__create_pull_request, mcp__github__pull_request_read
+tools: Bash, PowerShell, Read, Write, Edit, Glob, Grep, Agent, TaskCreate, TaskUpdate, mcp__github__search_repositories, mcp__github__create_pull_request
 model: opus
 ---
 

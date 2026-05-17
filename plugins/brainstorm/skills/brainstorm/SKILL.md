@@ -8,7 +8,7 @@ description: >
   the user seems stuck or is asking for direction on their project.
   TRIGGER this skill whenever the user asks for ideas, suggestions, or "what next" guidance
   about their own codebase — even if they don't say "brainstorm" explicitly.
-tools: Bash, Read, Glob, Grep, TaskCreate, TaskUpdate
+tools: Bash, PowerShell, Read, Glob, Grep, TaskCreate, TaskUpdate
 model: haiku
 ---
 

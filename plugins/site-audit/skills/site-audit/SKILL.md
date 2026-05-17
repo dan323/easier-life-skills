@@ -6,7 +6,7 @@ description: >
   "check this URL", "review this website", "find issues on", "test this page",
   "what's wrong with", or anything about evaluating a live website for quality.
   Writes a site-audit-report.md with findings grouped by severity.
-tools: WebFetch, Bash, Agent, Write, Read, TaskCreate, TaskUpdate
+tools: WebFetch, Bash, PowerShell, Agent, Write, Read, TaskCreate, TaskUpdate
 version: 1.1
 ---
 
@@ -49,14 +49,26 @@ Normalize:
 - Add `https://` if no scheme is present
 - Strip trailing slash
 
-Compute the host (e.g. `example.com`) and the working directory:
-`/tmp/site-audit-<host>/`. Create the directory:
+Compute the host (e.g. `example.com`) and the working directory.
+Detect the OS first, then create the directory using the appropriate shell:
 
 ```bash
-mkdir -p /tmp/site-audit-<host>
+uname -s 2>/dev/null || echo Windows
 ```
 
-The `sitemap.json` artifact will live at `/tmp/site-audit-<host>/sitemap.json`.
+- **Linux/macOS**: working directory is `/tmp/site-audit-<host>/`
+  ```bash
+  mkdir -p /tmp/site-audit-<host>
+  ```
+- **Windows** (output contains `MINGW`, `MSYS`, `CYGWIN`, or `Windows`): working directory is `$env:TEMP\site-audit-<host>\`
+  ```powershell
+  New-Item -ItemType Directory -Force "$env:TEMP\site-audit-<host>"
+  ```
+
+The `sitemap.json` artifact will live at `<working-directory>/sitemap.json`.
+
+Store the resolved path as `WORK_DIR`. Use it wherever subsequent agent prompts
+show `/tmp/site-audit-<host>/` — substitute the OS-appropriate path throughout.
 
 ---
 

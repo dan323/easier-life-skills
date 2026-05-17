@@ -1,5 +1,6 @@
 {
   "name": "brainstorm",
+  "version": "1.0.0",
   "description": "Suggest the 5 most valuable next features or improvements for a project",
   "author": { "name": "dan323" },
   "category": "productivity",

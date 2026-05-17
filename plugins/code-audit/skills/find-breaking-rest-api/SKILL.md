@@ -9,7 +9,7 @@ description: >
   changes, and path prefix changes. Reads git history — no external tools required.
   TRIGGER this skill whenever the user mentions REST APIs, endpoints, routes, or API versioning
   alongside words like "breaking", "changed", "removed", "compatible", or "diff".
-tools: Bash, Read, Glob, Grep, TaskCreate, TaskUpdate
+tools: Bash, PowerShell, Read, Glob, Grep, TaskCreate, TaskUpdate
 model: sonnet
 metadata:
   version: 3.0

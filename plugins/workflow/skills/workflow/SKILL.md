@@ -10,7 +10,7 @@ description: >
   `key=value` pairs are workflow inputs. The runner executes steps
   strictly in order, halts on the first non-zero exit, and writes a
   summary JSON to the workflow directory.
-tools: Bash, Read, Write, Glob, Grep, Agent, TaskCreate, TaskUpdate
+tools: Bash, PowerShell, Read, Write, Glob, Grep, Agent, TaskCreate, TaskUpdate
 ---
 
 # Workflow Runner

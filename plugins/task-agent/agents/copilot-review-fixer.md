@@ -1,7 +1,7 @@
 ---
 name: copilot-review-fixer
 description: Reads unresolved Copilot review comments on a pull request and applies code fixes for actionable ones. Spawned by task-agent after opening a PR to automatically address review feedback.
-tools: Bash, Read, Edit, Glob, Grep, mcp__github__pull_request_read
+tools: Bash, PowerShell, Read, Edit, Glob, Grep, mcp__github__pull_request_read
 background: true
 ---
 

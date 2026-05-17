@@ -1,7 +1,7 @@
 ---
 name: accessibility-auditor
 description: Checks WCAG 2.1 compliance using axe-cli or pa11y (via npx) with AI HTML analysis as fallback, using the checklist provided by the caller. Audits every URL in sitemap.json when available; otherwise audits only the seed.
-tools: Bash, Read, WebFetch
+tools: Bash, PowerShell, Read, WebFetch
 background: false
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: performance-auditor
 description: Audits website performance using Lighthouse (via npx) if available, falling back to HTML analysis, using the thresholds and checks provided by the caller. Audits up to 3 pages from sitemap.json when available; otherwise audits only the seed.
-tools: Bash, Read, WebFetch
+tools: Bash, PowerShell, Read, WebFetch
 background: false
 category: performance
 ---
@@ -22,14 +22,32 @@ single segment (`/about`, `/products`), and one with a deeper path.
 If no sitemap path was provided or the file is missing, audit only the seed
 URL.
 
+## Step 0: Detect OS
+
+```bash
+uname -s 2>/dev/null || echo Windows
+```
+
+If the output contains `MINGW`, `MSYS`, `CYGWIN`, or `Windows`, use the
+**Windows path** (PowerShell) for Steps 2. Otherwise use the **Unix path** (Bash).
+
 ## Step 2: Run Lighthouse per URL
 
 For each URL in the audit set:
 
+**Unix/macOS (Bash):**
 ```bash
 npx --yes lighthouse "<URL>" --output json --output-path /tmp/lh-site-audit-<n>.json \
   --chrome-flags="--headless --no-sandbox --disable-gpu" --quiet 2>/dev/null
 cat /tmp/lh-site-audit-<n>.json 2>/dev/null | head -c 60000
+```
+
+**Windows (PowerShell):**
+```powershell
+$tmpFile = "$env:TEMP\lh-site-audit-<n>.json"
+npx --yes lighthouse "<URL>" --output json --output-path $tmpFile `
+  --chrome-flags="--headless --no-sandbox --disable-gpu" --quiet 2>$null
+Get-Content $tmpFile -ErrorAction SilentlyContinue -TotalCount 1000
 ```
 
 If successful for that URL, extract scores and failing audits using the
