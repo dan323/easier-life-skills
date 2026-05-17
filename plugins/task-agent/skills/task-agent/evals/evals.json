@@ -1,34 +1,53 @@
 {
-  "skill_name": "multi-repo-tasks",
+  "skill_name": "task-agent",
   "evals": [
     {
       "id": 1,
       "prompt": "Run today's task from agent-tasks.yml.",
-      "expected_output": "Skill reads config and state, picks the first uncompleted task, forks/syncs the repo, spawns an agent to implement it, opens a PR, updates agent-tasks-state.yml, and prints a summary with progress and next-up.",
+      "description": "Default-path legacy mode happy path.",
+      "expected_output": "Skill auto-detects legacy mode (no status fields), reads agent-tasks.yml and the sibling agent-tasks-state.yml, picks the first task whose (repo, text) is not in state.completed, completes it, removes it from agent-tasks.yml, appends a completed entry to agent-tasks-state.yml, and prints a summary with progress and next-up.",
       "files": []
     },
     {
       "id": 2,
       "prompt": "Run agent-tasks — no state file yet, this is the first day.",
-      "expected_output": "Skill detects no state file, treats all tasks as pending, picks the very first task in the config, completes it, creates agent-tasks-state.yml with that entry.",
+      "description": "Legacy mode, missing state file.",
+      "expected_output": "Skill detects legacy mode, treats missing agent-tasks-state.yml as empty, picks the very first task in the config, completes it, creates agent-tasks-state.yml with that entry.",
       "files": []
     },
     {
       "id": 3,
-      "prompt": "Do the next repo task. The repo isn't forked yet.",
-      "expected_output": "Skill forks the repo, clones it, branches, spawns agent, opens PR, records in state.",
+      "prompt": "Run task-agent tasks=tasks.yml — this file uses the unified format.",
+      "description": "Unified mode with explicit tasks= argument and no state file. Validates id-based picking, in-place status rewrite, and unknown-key preservation.",
+      "expected_output": "Skill reads tasks.yml, auto-detects unified mode (status fields present), picks the first task whose status is pending, executes it, then rewrites tasks.yml flipping that one task's status to done and appending branch/pr_url/date - without dropping any other tasks' unknown keys (e.g. external_ref, labels). No state file is created.",
       "files": []
     },
     {
       "id": 4,
-      "prompt": "Run agent-tasks.yml. All tasks are already in the state file.",
-      "expected_output": "Skill detects all tasks are completed and tells the user — nothing left to do.",
+      "prompt": "Run task-agent tasks=board.yml. The file has tasks with external_ref keys.",
+      "description": "Passthrough metadata preservation - the contract the gh-project-sync skill depends on.",
+      "expected_output": "After completion, the rewritten board.yml retains every task's external_ref (and any other unknown keys) exactly as they were. Only the completed task's status flips and completion metadata is added to that same entry.",
       "files": []
     },
     {
       "id": 5,
-      "prompt": "Process the next item in my agent-tasks queue. Show me what's left after.",
-      "expected_output": "Skill completes one task and prints a progress line (e.g. '3 of 7 tasks completed') plus a 'Next up' line showing the following pending task.",
+      "prompt": "Run agent-tasks.yml. All tasks are already done.",
+      "description": "Terminal state, both modes.",
+      "expected_output": "Skill detects no pending tasks (no entry with status=pending in unified mode; everything matches state.completed in legacy mode) and tells the user - nothing left to do. No files modified.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Process the next item in my task queue. Show me what's left after.",
+      "description": "Progress reporting.",
+      "expected_output": "Skill completes one task and prints a progress line (e.g. '3 of 7 tasks completed') plus a 'Next up' line showing the following pending task. Counts include done/failed/skipped against total.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "Run task-agent on tasks.yml. The first pending task targets a repo that no longer exists.",
+      "description": "Failure / skip handling - verifies status=failed or status=skipped is used instead of leaving the task pending or pretending it's done.",
+      "expected_output": "Skill detects the repo is gone, records the task with status=failed (and an error field) or status=skipped (and a reason field), then moves on. The task does NOT remain pending and is not retried on the next run.",
       "files": []
     }
   ]

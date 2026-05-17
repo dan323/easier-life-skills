@@ -1,0 +1,41 @@
+# Unified-mode example.
+#
+# Run with:   task-agent tasks=tasks.yml
+#
+# Each task entry is an object with an `id`, a `description`, and a `status`.
+# task-agent flips status to `done` (or `failed` / `skipped`) in place on
+# completion, and writes the resulting `branch`, `pr_url`, and `date` onto
+# the same entry. There is NO separate state file in this mode.
+#
+# Unknown keys (e.g. `external_ref`, `labels`, `priority`) are preserved
+# verbatim across rewrites, so external sync tools can attach metadata
+# without task-agent caring.
+projects:
+  - repo: SKolodynski/IsarMathLib
+    tasks:
+      - id: 84ea03
+        description: >
+          Where better suited, define locally-regular topological spaces if
+          they are not already.
+        status: done
+        branch: task/where-better-suited-define-locally-regular-to-84ea03
+        pr_url: https://github.com/SKolodynski/IsarMathLib/pull/44
+        date: "2026-03-28"
+      - id: a1b2c3
+        description: >
+          Show that a regular topological space to which we double a point
+          is locally-regular, but not regular.
+        status: pending
+        # Free-form metadata is preserved across rewrites.
+        external_ref: PVTI_kwDOA_example
+        labels: [topology, math]
+
+  - repo: dan323/functional-by-annotation
+    tasks:
+      - id: f00d01
+        description: Update dependencies in java
+        status: pending
+      - id: f00d02
+        description: Update docs if needed
+        status: pending
+        external_ref: PVTI_kwDOA_other

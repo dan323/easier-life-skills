@@ -64,7 +64,7 @@
     {
       "name": "task-agent",
       "source": "./plugins/task-agent",
-      "description": "Read tasks from agent-tasks.yml, implement each via an agent, and open PRs",
+      "description": "Read tasks from a YAML file (unified or legacy two-file format), implement one per run via an agent, and open a PR",
       "category": "automation",
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/task-agent"
     },

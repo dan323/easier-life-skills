@@ -78,7 +78,6 @@ plugins/
     references/             ← Optional: reference docs the skill agent reads at runtime
       <topic>.md            ← Concise, non-obvious facts for the agent (not LLM basics)
     examples/               ← Optional: sample input/output files
-    run.sh                  ← Optional: non-interactive entry point (task-agent only)
 scripts/
   build-index.ts            ← Generates skills_index.json, CATALOG.md, catalog.html, and marketplace.json
   lib/
@@ -220,7 +219,7 @@ The current set of plugins is documented in `README.md`'s plugins table — don'
 
 ## task-agent Plugin Details
 
-`task-agent` has extra structure beyond the standard layout: `agents/copilot-review-fixer.md` (background sub-agent that polls open PRs and applies fixes for unresolved Copilot comments), `examples/agent-tasks.yml` + `agent-tasks-state.yml` (sample task config + completed-state file), `references/` (per-language/build-tool quick-reference docs read at runtime — includes `isabelle.md` / `IsarMathLib.md` for theorem-prover work), and `run.sh` (non-interactive entry point for CI/automation use).
+`task-agent` has extra structure beyond the standard layout: `agents/copilot-review-fixer.md` (background sub-agent that polls open PRs and applies fixes for unresolved Copilot comments), `examples/tasks.yml` (unified-mode sample) plus `examples/agent-tasks.yml` + `agent-tasks-state.yml` (legacy two-file sample), and `references/` (per-language/build-tool quick-reference docs read at runtime — includes `isabelle.md` / `IsarMathLib.md` for theorem-prover work).
 
 ## Web UI and GitHub Pages
 

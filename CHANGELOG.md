@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.26.0] - 2026-05-17
+
+### Added
+- **`task-agent` unified tasks file.** Tasks can now live as objects with `id`, `description`, and `status` (`pending` | `done` | `failed` | `skipped`) in a single file — task-agent flips the status in place on completion, so no separate `*-state.yml` is needed. Stable per-task ids (auto-generated MD5 prefix of `repo + description`, or user-supplied) survive description edits, so external sync tools (GitHub Projects, Linear, …) have a durable binding key. Unknown keys on task entries (e.g. `external_ref`, `labels`, `priority`) are preserved verbatim across rewrites. New `examples/tasks.yml` illustrates the format.
+- **`task-agent` custom filenames and explicit modes.** New `tasks=<path>` and `state=<path>` arguments. The skill auto-detects unified mode when any task has a `status:` field; otherwise it falls back to legacy mode (looking for a sibling `<stem>-state.yml` or the explicit `state=` path). Existing legacy setups continue to work unchanged.
+- **`task-agent` explicit failure / skip states.** A run that cannot complete a task now records `status: failed` (with `error:`) or `status: skipped` (with `reason:`) so the next run steps past it instead of retrying forever.
+
+`task-agent` bumped to 1.1.0. Evals expanded from 5 to 7 cases covering unified mode, passthrough metadata, and failure handling.
+
+### Changed
+- **`task-agent` extracted its YAML I/O into `scripts/tasks_io.py`.** The Phase 1 normalizer and Phase 4 writeback used to live as inline `python3 - <<EOF` heredocs inside `SKILL.md`. They're now one tested script with `load` / `record` / `self-test` subcommands; SKILL.md just describes the contract and invokes it. Running `python3 plugins/task-agent/scripts/tasks_io.py self-test` exercises mode detection, id synthesis, passthrough preservation, and both writeback paths.
+- **`task-agent` workdir is now cross-platform.** Local clones used to live under hard-coded `/tmp/multi-repo-tasks/`, which doesn't exist on Windows. The skill now derives the base directory via `tempfile.gettempdir()` (so it's `/tmp/task-agent` on Linux/macOS and `%TEMP%\task-agent` on Windows) and respects `TASK_AGENT_WORKDIR` for explicit overrides.
+- **`task-agent` branch creation is idempotent.** Phase 3.2 switched from `git checkout -b` to `git checkout -B`, so an interrupted prior run that left a stale local branch no longer wedges the next attempt.
+- **`references/format.md`** added — full schema for both modes, status enum, and the passthrough-metadata contract that the upcoming `gh-project-sync` skill depends on.
+
+### Removed
+- **`task-agent/run.sh`** — the non-interactive shell wrapper around `claude --skill … --print` no longer matches any real workflow. Users invoke the skill from a Claude session; scheduled / cron runs go through the `schedule` skill or `multi-repo-tasks`. `CLAUDE.md`'s plugin layout map drops the `run.sh ← Optional` line accordingly.
+
 ## [1.25.13] - 2026-05-17
 
 ### Added

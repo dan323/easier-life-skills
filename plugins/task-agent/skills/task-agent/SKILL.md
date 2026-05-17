@@ -9,9 +9,19 @@ model: opus
 
 # Task Agent
 
-Each invocation does **exactly one task**: the next pending item from `agent-tasks.yml`.
-State is persisted in `agent-tasks-state.yml` in the same directory, so reruns always
-pick up where the previous run left off.
+Each invocation does **exactly one task**: the next pending item from the tasks file.
+The same file (or a sibling state file, in legacy mode) tracks completion, so reruns
+always pick up where the previous run left off.
+
+**Arguments** (all optional, `key=value` form):
+- `tasks=<path>` — path to the tasks file. Default: `agent-tasks.yml` or `agent-tasks.yaml` in cwd.
+- `state=<path>` — path to a separate state file. Forces legacy mode. Default: auto-derived (`<stem>-state.yml`) and only used if the tasks file is in legacy format.
+
+**Two file formats are supported:**
+- **Unified** (preferred): one file holds tasks *and* their completion status. Each task has an `id`, a `description`, and a `status` (`pending` | `done` | `failed` | `skipped`). On completion the same entry gains `branch`, `pr_url`, `date`. Unknown keys (e.g. `external_ref`, `labels`, `priority`) are preserved verbatim across rewrites so external sync tools can attach metadata.
+- **Legacy**: two files — a tasks file with bare-string tasks and a separate `*-state.yml` listing completed entries. Auto-detected when the tasks file has no `status:` field. Existing setups keep working unchanged.
+
+See [`../../references/format.md`](../../references/format.md) for the full schema, the status enum, and the passthrough-metadata contract.
 
 **Prereqs:** `python3`, `git`.
 
@@ -30,76 +40,52 @@ Before doing any work, call `TaskCreate` for each phase below. Call `TaskUpdate`
 
 ## Phase 1 — Load config and state
 
-### 1.1 Find and parse the config
+### 1.1 Resolve file paths from arguments
 
-Look for `agent-tasks.yml` (or `agent-tasks.yaml`) in the current directory, or use the
-path the user specified. Stop and show the expected format if not found.
+Parse `tasks=<path>` and `state=<path>` from the invocation arguments. If `tasks=` is not
+given, search the current directory for `agent-tasks.yml` then `agent-tasks.yaml`. Stop and
+show the expected format if no file is found.
 
-```bash
-python3 - <<'EOF'
-import yaml, json, os
-for name in ['agent-tasks.yml', 'agent-tasks.yaml']:
-    if os.path.exists(name):
-        with open(name) as f:
-            print(json.dumps(yaml.safe_load(f), indent=2))
-        break
-else:
-    print("NOT_FOUND")
-EOF
-```
+### 1.2 Parse the tasks file and auto-detect the mode
 
-**Expected config format:**
-```yaml
-projects:
-  - repo: "owner/repo-name"
-    tasks:
-      - "Add unit tests for the authentication module"
-      - "Fix the typo in README.md"
-  - repo: "another-owner/another-repo"
-    tasks:
-      - "Refactor the API layer to use async/await"
-```
+All YAML reading and writing goes through the helper script
+`${CLAUDE_PLUGIN_ROOT}/scripts/tasks_io.py`, which guarantees that unknown keys on task
+entries (e.g. `external_ref`, `labels`) survive every round-trip. The script's contract:
 
-### 1.2 Load state
+- **Unified mode** — auto-detected when any task in the file is an object carrying a
+  `status:` field. The tasks file is the single source of truth; no state file is read.
+- **Legacy mode** — every other shape (bare strings, dicts without `status`). The script
+  reads the state file from the explicit `state=<path>` argument if given, else from
+  `<tasks-stem>-state.yml` next to the tasks file. A missing state file is treated as empty.
+- **Normalization** — every task is returned as `{repo, id, description, status, ...}`.
+  Missing ids are synthesized as `md5(repo + "\n" + description)[:6]`; missing statuses
+  default to `done` (legacy task whose `(repo, description)` is in `state.completed`) or
+  `pending`.
 
-Read `agent-tasks-state.yml` if it exists; treat it as empty if it doesn't.
+Invoke it and capture the JSON:
 
 ```bash
-python3 - <<'EOF'
-import yaml, json, os
-if os.path.exists('agent-tasks-state.yml'):
-    with open('agent-tasks-state.yml') as f:
-        print(json.dumps(yaml.safe_load(f) or {}, indent=2))
-else:
-    print("{}")
-EOF
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/tasks_io.py" load "$TASKS_PATH" \
+  ${STATE_PATH:+--state "$STATE_PATH"}
 ```
 
-The state file records every task that has been completed:
-
-```yaml
-# agent-tasks-state.yml — managed automatically, do not edit by hand
-completed:
-  - repo: "owner/repo-name"
-    task: "Add unit tests for the authentication module"
-    branch: "task/add-unit-tests-abc123"
-    pr_url: "https://github.com/owner/repo-name/pull/42"
-    date: "2026-03-20"
-```
+Remember the `mode` field from the output — Phase 4 needs it to write back in the same
+format.
 
 ### 1.3 Pick the next pending task
 
-Walk the config in order (project by project, task by task) and find the first task that
-does NOT appear in `state.completed` (matched by `repo` + `task` text). That is today's
-task.
+Walk the normalized list in order and pick the first task whose `status == 'pending'`.
+Tasks with `status` of `done`, `failed`, or `skipped` are passed over silently (failures
+and skips were intentional outcomes of earlier runs).
 
-If every task is already completed, tell the user — all done, nothing left to do.
+If nothing is pending, tell the user — all done, nothing left to do.
 
 Print the chosen task clearly before proceeding:
 ```
 Today's task:
-  Repo: owner/repo-name
-  Task: "Add unit tests for the authentication module"
+  Repo:  owner/repo-name
+  ID:    abc123
+  Task:  "Add unit tests for the authentication module"
 ```
 
 ---
@@ -107,8 +93,15 @@ Today's task:
 ## Phase 2 — Prepare the repo
 
 Only clone the **one repo** containing today's task if not already cloned locally.
-Each repo should be worked on in `/tmp/multi-repo-tasks/REPO_NAME` so the local clone
-is reused across runs.
+Each repo lives under a `task-agent` directory in the OS temp dir (so the local clone
+is reused across runs and Windows/Linux/macOS all work). The exact base directory is:
+
+```bash
+WORKDIR="${TASK_AGENT_WORKDIR:-$(python3 -c 'import os,tempfile;print(os.path.join(tempfile.gettempdir(),"task-agent"))')}"
+```
+
+Override with the `TASK_AGENT_WORKDIR` env var if you need a different location (e.g. a
+persistent disk on a build agent).
 
 Spawn a new agent to do this phase.
 
@@ -120,14 +113,14 @@ Call `mcp__github__search_repositories` with `query: "repo:OWNER/REPO_NAME"` and
 ### 2.2 Clone or update the repo locally
 
 ```bash
-LOCAL_PATH="/tmp/multi-repo-tasks/REPO_NAME"
+LOCAL_PATH="$WORKDIR/REPO_NAME"
 
 if [ -d "$LOCAL_PATH/.git" ]; then
   git -C "$LOCAL_PATH" fetch origin
   git -C "$LOCAL_PATH" checkout DEFAULT_BRANCH
   git -C "$LOCAL_PATH" reset --hard origin/DEFAULT_BRANCH
 else
-  mkdir -p /tmp/multi-repo-tasks
+  mkdir -p "$WORKDIR"
   git clone "https://github.com/OWNER/REPO_NAME.git" "$LOCAL_PATH"
 fi
 ```
@@ -153,7 +146,9 @@ BRANCH="task/${SLUG}-${HASH}"
 
 ```bash
 git -C "$LOCAL_PATH" checkout DEFAULT_BRANCH
-git -C "$LOCAL_PATH" checkout -b "$BRANCH"
+# -B is idempotent: creates the branch, or resets it to the current commit if a stale
+# copy was left behind by an interrupted prior run.
+git -C "$LOCAL_PATH" checkout -B "$BRANCH"
 ```
 
 ### 3.3 Spawn a new subagent to implement the task
@@ -215,43 +210,44 @@ Then continue to Phase 4 without waiting for Phase 5 to finish.
 
 ## Phase 4 — Update state and report
 
-### 4.1 Remove task from agent-tasks.yml
+The write path branches on the mode detected in Phase 1. Both branches must preserve every
+key the user (or an external sync tool) put on the task — never drop unknown fields.
 
-Remove the completed task entry from `agent-tasks.yml` using python3 so the file stays
-valid YAML. If a project's task list becomes empty after removal, remove that project
-entry too.
+### 4.1 Determine the outcome status
+
+Pick one of:
+- `done` — the agent committed changes and a PR was opened (or the task was already done
+  and there was nothing to commit). Always sets `branch`, `date`. Sets `pr_url` when a PR
+  was opened.
+- `failed` — the agent could not complete the task. Sets `error: "<short reason>"`.
+- `skipped` — the task is no longer applicable (e.g. repo gone). Sets `reason: "<why>"`.
+
+### 4.2 Write back via tasks_io.py
+
+The same helper script does the writeback, picking the right strategy based on the mode
+detected in Phase 1:
+
+- **Unified mode** — the task entry's `status` flips in place and the completion keys
+  (`branch`, `pr_url`, `date`, or `error` / `reason`) are merged onto it. Unknown keys on
+  the entry are preserved.
+- **Legacy mode** — the task is removed from the tasks file (the project is dropped if its
+  task list becomes empty) and a new entry with the same metadata is appended under
+  `completed:` in the state file.
 
 ```bash
-python3 - <<'EOF'
-import yaml
-
-with open('agent-tasks.yml') as f:
-    config = yaml.safe_load(f)
-
-for project in config['projects']:
-    if project['repo'] == 'OWNER/REPO_NAME':
-        project['tasks'] = [t for t in project['tasks'] if t != 'TASK_DESCRIPTION']
-
-config['projects'] = [p for p in config['projects'] if p.get('tasks')]
-
-with open('agent-tasks.yml', 'w') as f:
-    yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
-EOF
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/tasks_io.py" record "$TASKS_PATH" \
+  --mode "$MODE" \
+  --task-id "$TASK_ID" \
+  --repo "$REPO" \
+  --description "$TASK_DESCRIPTION" \
+  --status "$NEW_STATUS" \
+  ${STATE_PATH:+--state "$STATE_PATH"} \
+  --completion-json "$COMPLETION_JSON"
 ```
 
-### 4.2 Append to state file
-
-Add the completed task to `agent-tasks-state.yml`. Use `Edit` if the file exists, `Write`
-if creating it fresh. Never overwrite existing entries — only append.
-
-```yaml
-# New entry to append under `completed:`
-- repo: "OWNER/REPO_NAME"
-  task: "TASK_DESCRIPTION"
-  branch: "BRANCH_NAME"
-  pr_url: "PR_URL_OR_none"
-  date: "TODAY_ISO_DATE"
-```
+`COMPLETION_JSON` is a JSON object — for `status=done` use
+`{"branch": "...", "pr_url": "...", "date": "YYYY-MM-DD"}`; for `failed` use
+`{"error": "<short reason>"}`; for `skipped` use `{"reason": "<why>"}`.
 
 ### 4.3 Print the summary
 
@@ -296,11 +292,11 @@ Spawn a background agent using the Agent tool with:
 
 ## Phase 6 — Remove all temporary files
 
-After all tasks are done, spawn an agent to clean up the local clones in `/tmp/multi-repo-tasks/` to free up disk space.
-This can be a simple bash command:
+After all tasks are done, spawn an agent to clean up the local clones in `$WORKDIR` to
+free up disk space:
 
 ```bash
-rm -rf /tmp/multi-repo-tasks
+rm -rf "$WORKDIR"
 ```
 
 ---
