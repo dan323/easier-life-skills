@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.25.11] - 2026-05-17
+
+### Added
+- **Installer preview now lists marketplaces explicitly.** Before the confirmation prompt, `--skill <name>` and `--bundle <id>` now print a `Will register marketplace(s):` block above the install targets, with one entry per distinct source (deduped). Plugin-only sources are surfaced as `<pluginName> (auto-generated shim → <owner>/<repo>)` so users see where the synthetic marketplace comes from. Backed by a new `marketplacesForSkills` helper in `installer/src/lib/logic.ts` with four unit tests. Installer bumped to 1.6.0.
+
+## [1.25.10] - 2026-05-17
+
+### Fixed
+- **Installer default index URL pointed at a 404.** `skills_index.json` stopped being tracked on `master` (commit `df6226e`), but the installer still defaulted to `https://raw.githubusercontent.com/dan323/easier-life-skills/master/skills_index.json`. Changed the default to the GitHub Pages URL where the file is actually deployed (`https://dan323.github.io/easier-life-skills/skills_index.json`). The `EASIER_LIFE_SKILLS_INDEX_URL` env var still overrides. Installer bumped to 1.5.2.
+
+## [1.25.9] - 2026-05-17
+
+### Changed
+- **Installer migrated to TypeScript.** Sources moved from `installer/bin/install.js` + `installer/lib/*.js` to `installer/src/bin/install.ts` + `installer/src/lib/*.ts` (strict NodeNext config). `tsc -p installer` emits to `installer/dist/`; the published `bin` now points at `./dist/bin/install.js` and `prepublishOnly` runs the build. No runtime behavior change — `npx @dan323/easier-life-skills` ships plain JS as before. Test suite (27 tests) unchanged. Installer bumped to 1.5.1.
+
+## [1.25.8] - 2026-05-17
+
+### Fixed
+- **`cost-tracker` hook always logged zero tokens / zero cost.** The script read `usage` from the hook's stdin payload, but `Stop` and `SubagentStop` events do not include token usage — they only deliver `session_id`, `transcript_path`, `hook_event_name`, and `stop_hook_active`. The script now reads the JSONL transcript at `transcript_path`, sums `usage` fields across assistant messages (input, output, cache-creation, cache-read tokens), and logs the delta since the last entry for the same session. Each line now also records cumulative session usage and a `cumulative_usd` total. Pricing can be overridden via `COST_TRACKER_PRICING=<input>,<output>,<cache_write>,<cache_read>` (per-million USD). `cost-tracker` bumped to 1.2.0.
+
 ## [1.25.7] - 2026-05-16
 
 ### Changed

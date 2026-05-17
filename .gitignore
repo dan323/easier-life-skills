@@ -13,6 +13,7 @@ trigger-*.html
 /CATALOG.md
 /catalog.html
 assets/bundle.js
+installer/dist/
 
 # Build cache
 .cache/

@@ -1,0 +1,84 @@
+{
+  "skills": [
+    {
+      "name": "find-dead-code",
+      "pluginName": "code-audit",
+      "description": "Find unused code in your project",
+      "keywords": ["dead", "unused"],
+      "readOnly": true,
+      "source": {
+        "owner": "dan323",
+        "repo": "easier-life-skills",
+        "repoUrl": "https://github.com/dan323/easier-life-skills"
+      },
+      "installCommand": "/plugin install code-audit@easier-life-skills"
+    },
+    {
+      "name": "improve-logging",
+      "pluginName": "code-audit",
+      "description": "Audit and improve logging quality across a codebase",
+      "keywords": ["logging", "logs"],
+      "readOnly": true,
+      "source": {
+        "owner": "dan323",
+        "repo": "easier-life-skills",
+        "repoUrl": "https://github.com/dan323/easier-life-skills"
+      },
+      "installCommand": "/plugin install code-audit@easier-life-skills"
+    },
+    {
+      "name": "changelog",
+      "pluginName": "docs",
+      "description": "Generate or update CHANGELOG.md from git history",
+      "keywords": ["changelog", "release", "docs"],
+      "readOnly": false,
+      "source": {
+        "owner": "dan323",
+        "repo": "easier-life-skills",
+        "repoUrl": "https://github.com/dan323/easier-life-skills"
+      },
+      "installCommand": "/plugin install docs@easier-life-skills"
+    },
+    {
+      "name": "tdd",
+      "pluginName": "mattpocock-skills",
+      "description": "Test-driven development workflow",
+      "keywords": ["tdd", "testing", "test"],
+      "readOnly": false,
+      "source": {
+        "owner": "mattpocock",
+        "repo": "skills",
+        "repoUrl": "https://github.com/mattpocock/skills"
+      },
+      "installCommand": "/plugin install mattpocock-skills@mattpocock-skills"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "code-quality",
+      "name": "Code Quality",
+      "description": "Read-only analysis for CI gating",
+      "skills": [
+        { "name": "find-dead-code",  "source": { "owner": "dan323",    "repo": "easier-life-skills" }, "pluginName": "code-audit" },
+        { "name": "improve-logging", "source": { "owner": "dan323",    "repo": "easier-life-skills" }, "pluginName": "code-audit" }
+      ]
+    },
+    {
+      "id": "mixed",
+      "name": "Mixed Bundle",
+      "description": "One marketplace skill and one plugin-only skill",
+      "skills": [
+        { "name": "changelog", "source": { "owner": "dan323",    "repo": "easier-life-skills" }, "pluginName": "docs" },
+        { "name": "tdd",       "source": { "owner": "mattpocock", "repo": "skills" },            "pluginName": "mattpocock-skills" }
+      ]
+    }
+  ],
+  "meta": {
+    "skillCount": 4,
+    "marketplaces": ["easier-life-skills", "mattpocock-skills"],
+    "sources": {
+      "dan323/easier-life-skills": { "isMarketplace": true },
+      "mattpocock/skills":         { "isMarketplace": false }
+    }
+  }
+}

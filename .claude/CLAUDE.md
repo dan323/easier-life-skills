@@ -8,7 +8,7 @@ A Claude Code plugin marketplace containing reusable skill plugins for Claude Co
 
 ## Installation
 
-End-user install commands live in `README.md` and `installer/README.md`. The agent-relevant detail is how installs work under the hood — relevant when modifying `installer/bin/install.js` or the build pipeline.
+End-user install commands live in `README.md` and `installer/README.md`. The agent-relevant detail is how installs work under the hood — relevant when modifying `installer/src/bin/install.ts` or the build pipeline.
 
 Every install delegates to `claude plugin marketplace add` + `claude plugin install`, landing plugins in `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/` (registered in `installed_plugins.json`). The path differs only in which marketplace gets added:
 
@@ -57,8 +57,12 @@ docs/
   contributing.md           ← Guide for adding new plugins
   getting-started.md
 installer/
-  bin/install.js            ← NPM installer script
-  package.json              ← @dan323/easier-life-skills NPM package
+  src/
+    bin/install.ts          ← NPM installer CLI entry (TypeScript)
+    lib/                    ← actions.ts, claude.ts, logic.ts, shim.ts, types.ts
+  tests/                    ← Vitest suite (logic, actions, fixtures)
+  tsconfig.json             ← strict NodeNext, emits to installer/dist/
+  package.json              ← @dan323/easier-life-skills NPM package (bin → dist/bin/install.js)
   README.md
 plugins/
   <plugin-name>/

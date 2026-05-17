@@ -166,7 +166,7 @@ PII or any per-user identifier.
 | `telemetry/ingest.ts` (new)                       | Serverless function — validates payload shape, drops anything with extra fields, appends to the gist.               |
 | `telemetry/aggregate.ts` (new)                    | Pulls gist, computes monthly rollups, writes `analytics.json`.                                                      |
 | `.github/workflows/aggregate-telemetry.yml` (new) | Daily cron.                                                                                                         |
-| `installer/bin/install.js`                        | New subcommands `telemetry on` / `off` / `status` writing `~/.claude/easier-life-skills/telemetry.json`.            |
+| `installer/src/bin/install.ts`                    | New subcommands `telemetry on` / `off` / `status` writing `~/.claude/easier-life-skills/telemetry.json`.            |
 | Each `plugins/*/skills/*/SKILL.md`                | Add a "Telemetry" phase at the end that conditionally calls the helper.                                             |
 | `scripts/lib/types.ts`                            | Add `analytics?: { runs: number; success_rate: number; p50_ms: number }` to entity types.                           |
 | `scripts/build-index.ts`                          | Merge `analytics.json` into `skills_index.json`.                                                                    |

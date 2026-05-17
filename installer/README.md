@@ -46,29 +46,29 @@ npx @dan323/easier-life-skills --skill changelog --yes
 
 ## What each flag does
 
-| Flag                     | Delegates to                                                                                                       |
-|--------------------------|--------------------------------------------------------------------------------------------------------------------|
-| `--list`                 | No claude calls (reads `skills_index.json` only).                                                                  |
-| `--search <query>`       | No claude calls.                                                                                                   |
-| `--skill <name>`         | If the skill's source has marketplace.json: `claude plugin marketplace add <owner>/<repo>` (if missing) + `claude plugin install <pluginName>@<repo>`. If plugin-only: writes a shim marketplace.json under `~/.config/easier-life-skills/shims/<pluginName>/`, registers it via `claude plugin marketplace add <shim-path>`, then `claude plugin install <pluginName>@<pluginName>`. |
-| `--bundle <id>`          | Same as `--skill` but looped over every skill in the bundle. Marketplace registrations and plugin installs are cached per session (8 skills from one plugin → one install). Shim marketplaces are written / registered once per plugin-only repo. |
-| `--update`               | `claude plugin list --json` to find plugins from any of the marketplaces this index knows about (real upstream marketplaces *plus* the synthetic shim marketplaces this installer registered), then `claude plugin update <pluginName>@<marketplace>` for each. |
-| `--update <name>`        | Same, but only one plugin (errors with exit 1 if `<name>` isn't installed from one of the marketplaces this index covers). |
-| `--dry-run`              | Prints the claude commands and shim writes that *would* run, doesn't execute them.                                  |
-| `--yes`                  | Skips the confirmation prompt before any install/update.                                                           |
+| Flag               | Delegates to                                                                                                                                                                                                                                                                                                                                                                          |
+|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--list`           | No claude calls (reads `skills_index.json` only).                                                                                                                                                                                                                                                                                                                                     |
+| `--search <query>` | No claude calls.                                                                                                                                                                                                                                                                                                                                                                      |
+| `--skill <name>`   | If the skill's source has marketplace.json: `claude plugin marketplace add <owner>/<repo>` (if missing) + `claude plugin install <pluginName>@<repo>`. If plugin-only: writes a shim marketplace.json under `~/.config/easier-life-skills/shims/<pluginName>/`, registers it via `claude plugin marketplace add <shim-path>`, then `claude plugin install <pluginName>@<pluginName>`. |
+| `--bundle <id>`    | Same as `--skill` but looped over every skill in the bundle. Marketplace registrations and plugin installs are cached per session (8 skills from one plugin → one install). Shim marketplaces are written / registered once per plugin-only repo.                                                                                                                                     |
+| `--update`         | `claude plugin list --json` to find plugins from any of the marketplaces this index knows about (real upstream marketplaces *plus* the synthetic shim marketplaces this installer registered), then `claude plugin update <pluginName>@<marketplace>` for each.                                                                                                                       |
+| `--update <name>`  | Same, but only one plugin (errors with exit 1 if `<name>` isn't installed from one of the marketplaces this index covers).                                                                                                                                                                                                                                                            |
+| `--dry-run`        | Prints the claude commands and shim writes that *would* run, doesn't execute them.                                                                                                                                                                                                                                                                                                    |
+| `--yes`            | Skips the confirmation prompt before any install/update.                                                                                                                                                                                                                                                                                                                              |
 
 ## Bundles
 
 Run `npx @dan323/easier-life-skills --list` to see the up-to-date set. Highlights:
 
-| Bundle                   | Mix of sources                                                                |
-|--------------------------|-------------------------------------------------------------------------------|
-| `backend-developer`      | dan323/easier-life-skills only                                                |
-| `open-source-maintainer` | dan323/easier-life-skills only                                                |
-| `tdd-practitioner`       | mattpocock/skills (plugin-only, cloned) + obra/superpowers + anthropics/skills |
-| `planning-and-execution` | dan323/easier-life-skills + obra/superpowers                                  |
+| Bundle                   | Mix of sources                                                                       |
+|--------------------------|--------------------------------------------------------------------------------------|
+| `backend-developer`      | dan323/easier-life-skills only                                                       |
+| `open-source-maintainer` | dan323/easier-life-skills only                                                       |
+| `tdd-practitioner`       | mattpocock/skills (plugin-only, cloned) + obra/superpowers + anthropics/skills       |
+| `planning-and-execution` | dan323/easier-life-skills + obra/superpowers                                         |
 | `skill-author`           | dan323/easier-life-skills + anthropics/skills + mattpocock/skills + obra/superpowers |
-| `frontend-designer`      | anthropics/skills only                                                        |
+| `frontend-designer`      | anthropics/skills only                                                               |
 
 ## Requirements
 

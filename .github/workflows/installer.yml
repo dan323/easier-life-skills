@@ -1,0 +1,67 @@
+name: Installer
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'installer/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vitest.installer.config.ts'
+      - '.github/workflows/installer.yml'
+
+jobs:
+  test:
+    name: Typecheck & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test:installer
+      - run: npm run build --workspace installer
+
+  publish:
+    name: Publish to npm
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - name: Check whether installer version is already published
+        id: check
+        run: |
+          name=$(node -p "require('./installer/package.json').name")
+          version=$(node -p "require('./installer/package.json').version")
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if npm view "$name@$version" version >/dev/null 2>&1; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$name@$version already on npm — skipping publish"
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish
+        if: steps.check.outputs.already_published == 'false'
+        run: npm run publish:installer
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Tag release
+        if: steps.check.outputs.already_published == 'false'
+        run: |
+          tag="installer-v${{ steps.check.outputs.version }}"
+          git tag "$tag"
+          git push origin "$tag"
