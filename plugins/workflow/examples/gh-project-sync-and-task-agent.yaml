@@ -9,7 +9,7 @@
 # Pipeline:
 #
 #   1. gh-project-sync  — reconcile the GitHub Project (v2) board into the
-#                         tasks-agent unified `tasks.yml`. New Todo cards land
+#                         task-agent unified `tasks.yml`. New Todo cards land
 #                         as `status: pending`; stale Done / Won't Do entries
 #                         are dropped.
 #   2. task-agent       — pick the first pending task in `tasks.yml`
