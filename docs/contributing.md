@@ -180,6 +180,11 @@ The full schema lives in
 [`plugins/workflow/references/format.md`](../plugins/workflow/references/format.md);
 the canonical example is
 [`plugins/workflow/examples/document-and-deploy.yaml`](../plugins/workflow/examples/document-and-deploy.yaml).
+A second illustrative example —
+[`plugins/workflow/examples/gh-project-sync-and-task-agent.yaml`](../plugins/workflow/examples/gh-project-sync-and-task-agent.yaml) —
+shows the three-step "sync-in → work → sync-out" pattern chaining
+`gh-project-sync` with `task-agent` (the same composition the
+`auto-board-task` plugin packages into a single skill).
 
 ### Run it
 
