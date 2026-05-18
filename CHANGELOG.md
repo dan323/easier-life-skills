@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.28.1] - 2026-05-18
+
+### Fixed
+- **`auto-board-task` now invokes `workflow` via the `Skill` tool instead of spawning a sub-agent with `Agent`.** v1.28.0's SKILL.md spawned one `general-purpose` sub-agent and asked it to run the workflow; in practice the sub-agent came up with a restricted tool set (no `Bash`, among other things), every workflow phase that needs a shell — Phase 1 YAML parse, Phase 2 validation, Phase 3 plan resolution, Phase 4 step loop — failed inside it, and the parent agent ended up redoing the workflow itself. That defeated the point of the wrapper and burned a full sub-agent's worth of context with nothing to show for it. The new version expands `${CLAUDE_PLUGIN_ROOT}` to an absolute path for the bundled `workflows/auto-board-task.yaml`, then calls `Skill(skill="workflow", args="<absolute path> <user args verbatim>")` — running `workflow` inside the same agent context so the tools list declared in `plugins/workflow/skills/workflow/SKILL.md` (`Bash`, `Read`, `Write`, `Glob`, `Grep`, `Agent`, `TaskCreate`, `TaskUpdate`) is the one in effect. Each of the workflow's three steps still spawns its own subagent (via `workflow`'s own `Agent` invocation), but each of those subagent prompts triggers a single skill (`gh-project-sync` or `task-agent`) whose declared tools light up correctly — the failure mode v1.28.0 hit was specific to running the multi-tool workflow runner itself inside a generic subagent. Tools list on `auto-board-task` reduced to just `Bash` (no longer declares `Agent`). The "Do not" section explicitly forbids the `Agent`-based pattern and explains why. Evals updated: assertions now check that the `Skill` tool is called with `skill=workflow` and that no `Agent` tool call happens.
+
 ## [1.28.0] - 2026-05-18
 
 ### Added

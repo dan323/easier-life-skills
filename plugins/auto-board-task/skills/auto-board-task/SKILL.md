@@ -9,16 +9,23 @@ description: >
   next card". Composes `gh-project-sync` → `task-agent` →
   `gh-project-sync` via the `workflow` skill against the fixed YAML
   at `${CLAUDE_PLUGIN_ROOT}/workflows/auto-board-task.yaml`. All
-  arguments are forwarded verbatim to the workflow runner; validation
-  happens there and inside the composed sub-skills.
-tools: Bash, Agent
+  arguments are forwarded verbatim to the workflow runner;
+  validation happens there and inside the composed sub-skills.
+tools: Bash
 ---
 
 # Auto Board Task
 
-Spawn one sub-agent that runs the `workflow` skill against the YAML
-at [`workflows/auto-board-task.yaml`](../../workflows/auto-board-task.yaml),
-forwarding the user's `key=value` arguments unchanged.
+Invoke the `workflow` skill **in the current conversation** on the
+bundled
+[`workflows/auto-board-task.yaml`](../../workflows/auto-board-task.yaml),
+forwarding the user's `key=value` arguments verbatim.
+
+The workflow chains:
+
+1. `gh-project-sync` — reconcile the board into `tasks.yml`.
+2. `task-agent` — open a PR for the top pending task.
+3. `gh-project-sync` — sync the PR back to its card.
 
 This SKILL does no parsing and no validation of its own. The workflow
 runner validates against the YAML's `inputs:` declarations and the
@@ -26,22 +33,47 @@ composed sub-skills validate their own argument grammar.
 
 ## What to do
 
-Spawn exactly one sub-agent via the `Agent` tool
-(`subagent_type=claude`) with a prompt that triggers the `workflow`
-skill on that path and appends the user's `key=value` arguments:
+Expand `${CLAUDE_PLUGIN_ROOT}` to an absolute path for the workflow
+YAML (relative paths won't survive the move into the workflow runner's
+working directory):
 
-```text
-Run the workflow at the file auto-board-task.yaml with these inputs: <user args verbatim>
+```bash
+WORKFLOW_PATH="${CLAUDE_PLUGIN_ROOT}/workflows/auto-board-task.yaml"
+echo "$WORKFLOW_PATH"
 ```
 
-Surface the sub-agent's report. The `workflow` runner already prints
-a per-step status block — relay it as-is.
+Then invoke the `workflow` skill with the **`Skill` tool — not the
+`Agent` tool**:
+
+```
+Skill(skill="workflow", args="<absolute WORKFLOW_PATH> <user args verbatim>")
+```
+
+### Why `Skill` and not `Agent`
+
+The `workflow` runner needs `Bash`, `Read`, `Write`, `Glob`, `Grep`,
+`Agent`, and `TaskCreate`/`TaskUpdate` to parse the YAML, resolve
+`${{ … }}` interpolation, write per-step output, and spawn one
+subagent per step. A sub-agent spawned via the `Agent` tool comes up
+with a different (more restricted) tool set, can't execute those
+phases, and the parent agent ends up redoing the work — wasting a
+full subagent's worth of context for no benefit. Invoking via `Skill`
+runs `workflow` inside this same agent context, so the tool list
+declared in `plugins/workflow/skills/workflow/SKILL.md` is honoured
+and the runner can do its job.
+
+The workflow runner prints its own per-step status block — relay it
+as-is once the `Skill` invocation returns.
 
 ## Do not:
 
-- Reparse or re-validate the user's arguments here. The workflow
-  runner and the composed sub-skills (`gh-project-sync`, `task-agent`)
-  own validation; duplicating it drifts.
+- Use the `Agent` tool to spawn a sub-agent for the workflow. That
+  was the previous iteration and it doesn't work — the sub-agent's
+  tools are restricted, the workflow's shell phases fail in it, and
+  the parent retries the work anyway. Use `Skill` instead.
+- Re-parse or re-validate the user's arguments here. The workflow
+  runner and the composed sub-skills (`gh-project-sync`,
+  `task-agent`) own validation; duplicating it drifts.
 - Call `gh-project-sync` or `task-agent` directly. The composition
   is the point — bypass defeats it.
 - Modify the workflow YAML at runtime. Users who want a different
