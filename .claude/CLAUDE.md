@@ -264,6 +264,21 @@ When making changes that should be tracked (a new skill / agent / command / hook
 
 Every time you modify anything, fix the documentation and `CHANGELOG.md` accordingly, if needed.
 
+## Architecture Decision Records (ADRs)
+
+Design rationale that doesn't change runtime behaviour but matters for future maintainers — *why we chose X over Y*, *why the previous approach failed*, non-obvious trade-offs — belongs in an **ADR**, not inside `SKILL.md` (which is fed to the agent on every invocation and pays the context cost) and not buried in `CHANGELOG.md` (a release log, not a decision log).
+
+ADRs follow the classic Michael Nygard format: **Status, Date, Context, Decision, Consequences** (plus optional **Supersedes** / **Notes**). File names are numbered: `NNNN-kebab-slug.md`. ADRs are **immutable**: when a decision is reversed, write a new ADR and set the old one's `Status: Superseded by NNNN` — don't edit historic ADRs in place, that defeats the immutability that makes them useful.
+
+Location depends on scope:
+
+- **Skill-specific decisions** — `plugins/<plugin>/skills/<skill>/adr/NNNN-slug.md`. Decisions about how a specific skill works (e.g., *"this skill invokes `workflow` via `Skill`, not `Agent`"*). The build pipeline reads `SKILL.md` only, so files under `adr/` cost zero runtime tokens. The ADR should not be referenced from `SKILL.md`.
+- **Repo / web-UI / marketplace decisions** — `adr/NNNN-slug.md` at the **repo root**. Decisions that span multiple plugins or affect the marketplace, installer, or web UI (e.g., *"the installer resolves plugin-only sources via synthetic shims"*, *"the bundle skill ref uses `{name, source, pluginName}` for disambiguation"*, *"web UI state lives in top-level `<App>` `useState` with no global store"*). These form a project-wide decision log.
+
+The first ADR in this repo is [`plugins/auto-board-task/skills/auto-board-task/adr/0001-invoke-workflow-via-skill-not-agent.md`](../plugins/auto-board-task/skills/auto-board-task/adr/0001-invoke-workflow-via-skill-not-agent.md) — use it as a template.
+
+When making the kind of change that warrants an ADR (a behaviour-shaping design choice, not a routine code update), write the ADR in the same commit as the code change so the rationale lands with the change.
+
 ## Workflow Rules
 
 Every time you commit, ensure that:

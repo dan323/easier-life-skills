@@ -49,29 +49,15 @@ Then invoke the `workflow` skill with the **`Skill` tool — not the
 Skill(skill="workflow", args="<absolute WORKFLOW_PATH> <user args verbatim>")
 ```
 
-### Why `Skill` and not `Agent`
-
-The `workflow` runner needs `Bash`, `Read`, `Write`, `Glob`, `Grep`,
-`Agent`, and `TaskCreate`/`TaskUpdate` to parse the YAML, resolve
-`${{ … }}` interpolation, write per-step output, and spawn one
-subagent per step. A sub-agent spawned via the `Agent` tool comes up
-with a different (more restricted) tool set, can't execute those
-phases, and the parent agent ends up redoing the work — wasting a
-full subagent's worth of context for no benefit. Invoking via `Skill`
-runs `workflow` inside this same agent context, so the tool list
-declared in `plugins/workflow/skills/workflow/SKILL.md` is honoured
-and the runner can do its job.
-
 The workflow runner prints its own per-step status block — relay it
 as-is once the `Skill` invocation returns.
 
 ## Do not:
 
-- Use the `Agent` tool to spawn a sub-agent for the workflow. That
-  was the previous iteration and it doesn't work — the sub-agent's
-  tools are restricted, the workflow's shell phases fail in it, and
-  the parent retries the work anyway. Use `Skill` instead.
-- Re-parse or re-validate the user's arguments here. The workflow
+- Use the `Agent` tool to invoke the workflow. It looks like the
+  natural choice but the sub-agent's tool list comes up wrong for
+  the runner — `workflow` only works when it runs inline via `Skill`.
+- Reparse or re-validate the user's arguments here. The workflow
   runner and the composed sub-skills (`gh-project-sync`,
   `task-agent`) own validation; duplicating it drifts.
 - Call `gh-project-sync` or `task-agent` directly. The composition

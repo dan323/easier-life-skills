@@ -242,6 +242,15 @@ After adding `hooks.json`, run `npm run build` so the hook appears in `skills_in
 3. Test the change manually, then run evals
 4. Add a `### Changed` entry to `CHANGELOG.md`
 
+## Architecture Decision Records (ADRs)
+
+If your change involves a non-obvious design choice — "why this and not the natural alternative", a trade-off whose rationale isn't visible in the diff, or recovery from a previous approach that didn't work — capture it in an ADR rather than burying it in `SKILL.md` (which is loaded into the agent context on every invocation) or in a `CHANGELOG.md` paragraph (which is a release log, not a decision log).
+
+- **Skill-specific decisions**: `plugins/<plugin>/skills/<skill>/adr/NNNN-slug.md`
+- **Repo / web-UI / marketplace decisions**: `adr/NNNN-slug.md` at the repo root
+
+Use the classic Michael Nygard format (Status, Date, Context, Decision, Consequences) and number files sequentially. ADRs are immutable — supersede them with a new ADR rather than editing in place. The first ADR in this repo, [`plugins/auto-board-task/skills/auto-board-task/adr/0001-invoke-workflow-via-skill-not-agent.md`](../plugins/auto-board-task/skills/auto-board-task/adr/0001-invoke-workflow-via-skill-not-agent.md), is the working template. The full convention is documented in [`.claude/CLAUDE.md`](../.claude/CLAUDE.md#architecture-decision-records-adrs).
+
 ---
 
 ## See Also
