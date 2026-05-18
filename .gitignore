@@ -22,6 +22,10 @@ installer/dist/
 node_modules/
 iteration-*/
 
+# Workflow runner outputs and task-agent state
+.workflow-runs
+tasks.yml
+
 cv-improved.md
 *.pdf
 *.csv
