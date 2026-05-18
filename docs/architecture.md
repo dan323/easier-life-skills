@@ -410,8 +410,10 @@ the canonical example is
 [`plugins/workflow/examples/document-and-deploy.yaml`](../plugins/workflow/examples/document-and-deploy.yaml),
 and
 [`plugins/workflow/examples/gh-project-sync-and-task-agent.yaml`](../plugins/workflow/examples/gh-project-sync-and-task-agent.yaml)
-demonstrates the sync-in → task-agent → sync-out chain that
-`auto-board-task` packages as a single skill.
+covers the rest of the surface in one file — defaulted, required, and
+optional `inputs:`, the same skill invoked under two different step
+`id`s, and `${{ inputs.* }}` interpolation threaded through every
+step without any output-to-input passing.
 
 ### Future work (deferred from v1)
 

@@ -1,10 +1,19 @@
-# Example workflow — chains gh-project-sync with task-agent.
+# Example workflow — demonstrates the `workflow` plugin.
 #
-# This is the canonical illustration of the three-step "sync-in → work →
-# sync-out" pattern that the auto-board-task plugin packages into a single
-# skill. Spelling it out here keeps the workflow plugin's examples directory
-# self-contained for contributors who want to compose the same two skills
-# without taking on auto-board-task as a dependency.
+# The point of this example is the *workflow*, not the specific skills
+# it happens to chain. It's the canonical reference for several workflow
+# features worth seeing together in one file:
+#
+#   - Multiple `inputs:` with a mix of *defaulted*, *required*, and
+#     *optional* values. `tasks` has a default; the project-ref inputs
+#     have no default and must be supplied at invocation time; the
+#     downstream skill treats `default_repo` as optional.
+#   - The *same* skill invoked twice in one workflow (`gh-project-sync`
+#     runs as both `sync-in` and `sync-out`), proving that steps are
+#     keyed by `id`, not by skill name.
+#   - Pure `${{ inputs.* }}` interpolation forwarded into every step —
+#     a workflow that composes independent skills without needing one
+#     step to consume another step's output.
 #
 # Pipeline:
 #
@@ -16,11 +25,11 @@
 #                         (i.e. the top of the Todo column after step 1),
 #                         clone the repo, do the work, open a PR, and mark
 #                         the entry `status: done` with a `pr_url`.
-#   3. gh-project-sync  — reconcile again. Rule 4 fires for the entry
-#                         freshly marked `done + pr_url`: the card moves to
-#                         In Review (falling back to In Progress for boards
-#                         without an In Review column) and the PR link is
-#                         posted as a comment on the card.
+#   3. gh-project-sync  — reconcile again. The entry freshly marked
+#                         `done + pr_url` triggers the rule that moves
+#                         its card to In Review (falling back to In
+#                         Progress on boards without an In Review column)
+#                         and posts the PR link as a card comment.
 #
 # Run it with, e.g.:
 #

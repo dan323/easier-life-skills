@@ -182,9 +182,11 @@ the canonical example is
 [`plugins/workflow/examples/document-and-deploy.yaml`](../plugins/workflow/examples/document-and-deploy.yaml).
 A second illustrative example —
 [`plugins/workflow/examples/gh-project-sync-and-task-agent.yaml`](../plugins/workflow/examples/gh-project-sync-and-task-agent.yaml) —
-shows the three-step "sync-in → work → sync-out" pattern chaining
-`gh-project-sync` with `task-agent` (the same composition the
-`auto-board-task` plugin packages into a single skill).
+exercises a mix of *defaulted*, *required*, and *optional* `inputs:`,
+invokes the same skill twice under different step `id`s, and threads
+`${{ inputs.* }}` interpolation through every step without relying on
+any step's output. Use it as a template when writing workflows that
+compose independent skills.
 
 ### Run it
 

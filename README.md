@@ -34,8 +34,7 @@ Or copy the right command directly from the [marketplace browser](#marketplace-b
 | [`find-skills`](plugins/find-skills/skills/find-skills/SKILL.md)                                  | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces                         |
 | [`scaffold`](plugins/scaffold/skills/scaffold/SKILL.md)                                           | Generate a complete plugin skeleton (`plugin.json`, `SKILL.md`, evals, optional agents/references) from a single prompt |
 | [`workflow`](plugins/workflow/skills/workflow/SKILL.md)                                           | Run multi-step skill workflows declared in workflow YAML — sequential execution with `${{ … }}` interpolation          |
-| [`gh-project-sync`](plugins/gh-project-sync/skills/gh-project-sync/SKILL.md)                      | Reconcile a GitHub Project (v2) board with a task-agent unified `tasks.yml` — pulls new Todo cards in, drops Won't-Do / Done cards, moves cards with an open PR to **In Review** (fallback **In Progress**; never to Done — that stays a human decision). Idempotent. |
-| [`auto-board-task`](plugins/auto-board-task/skills/auto-board-task/SKILL.md)                      | Process the top Todo card on a GitHub Project end-to-end — chains `gh-project-sync` → `task-agent` → `gh-project-sync` via the `workflow` skill so one invocation pulls the board into `tasks.yml`, opens a PR for the top pending task, and syncs the card to **In Review** with the PR link |
+| [`auto-board-task`](plugins/auto-board-task/skills/auto-board-task/SKILL.md)                      | Process the top Todo card on a GitHub Project end-to-end — bundles the `gh-project-sync` board ⇄ `tasks.yml` reconciler and chains it with `task-agent` via the `workflow` skill so one invocation pulls the board into `tasks.yml`, opens a PR for the top pending task, and syncs the card to **In Review** with the PR link |
 
 ### Agents
 

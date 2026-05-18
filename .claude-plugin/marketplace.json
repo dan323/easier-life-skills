@@ -8,7 +8,7 @@
     {
       "name": "auto-board-task",
       "source": "./plugins/auto-board-task",
-      "description": "Process the top Todo card on a GitHub Project (v2) board end-to-end: pull the board into a task-agent tasks.yml, run task-agent against the top pending task to open a PR, then sync the PR back so the card moves to In Review. Composes `gh-project-sync` → `task-agent` → `gh-project-sync` via the `workflow` skill — all three must be installed.",
+      "description": "Process the top Todo card on a GitHub Project (v2) board end-to-end: pull the board into a task-agent tasks.yml, run task-agent against the top pending task to open a PR, then sync the PR back so the card moves to In Review. Bundles the `gh-project-sync` reconciler skill (used twice in the chain) and composes it with `task-agent` via the `workflow` skill — both `task-agent` and `workflow` must also be installed.",
       "category": "automation",
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/auto-board-task"
     },
@@ -53,13 +53,6 @@
       "description": "Analyze the active repository and recommend relevant Claude Code skills from known marketplaces",
       "category": "productivity",
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/find-skills"
-    },
-    {
-      "name": "gh-project-sync",
-      "source": "./plugins/gh-project-sync",
-      "description": "Reconcile a GitHub Project board against a task-agent unified tasks.yml. New Todo cards become pending tasks; Won't-Do and Done cards are dropped from yml; yml entries with pr_url move their card to In Review (falling back to In Progress if the board lacks an In Review column) and post the PR link — never to Done, that stays a human decision once the PR merges. Idempotent.",
-      "category": "automation",
-      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/gh-project-sync"
     },
     {
       "name": "scaffold",
