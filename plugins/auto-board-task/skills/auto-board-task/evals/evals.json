@@ -1,0 +1,79 @@
+{
+  "skill_name": "auto-board-task",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "auto-board-task tasks=tasks.yml project_url=https://github.com/users/acme/projects/7",
+      "description": "Pure pass-through. The skill resolves the workflow YAML to an absolute path (expanding `${CLAUDE_PLUGIN_ROOT}` because the sub-agent's CLAUDE_PLUGIN_ROOT points at the `workflow` plugin, not this one) and spawns exactly one sub-agent whose prompt names that path and forwards the user's `key=value` args verbatim. The skill itself does no parsing — every input the user typed must appear in the sub-agent prompt unchanged.",
+      "setup": "mkdir -p /tmp/eval-abt-0 && cd /tmp/eval-abt-0 && printf 'projects:\\n  - repo: acme/api\\n    tasks: []\\n' > tasks.yml",
+      "expected_output": "One Agent tool call. Its prompt contains an absolute path ending in `plugins/auto-board-task/workflows/auto-board-task.yaml` and the substring `tasks=tasks.yml project_url=https://github.com/users/acme/projects/7` (or the same args in some order).",
+      "files": [],
+      "assertions": [
+        {
+          "id": "exactly-one-agent-spawn",
+          "text": "Exactly one sub-agent is spawned via the Agent tool"
+        },
+        {
+          "id": "workflow-trigger-in-prompt",
+          "text": "The sub-agent prompt contains a workflow-skill trigger phrase such as `Run the workflow at`"
+        },
+        {
+          "id": "absolute-yaml-path",
+          "text": "The prompt names the workflow YAML by absolute path (the parent's `${CLAUDE_PLUGIN_ROOT}` has been expanded — the literal string `${CLAUDE_PLUGIN_ROOT}` must not appear)"
+        },
+        {
+          "id": "user-args-forwarded-verbatim",
+          "text": "Both `tasks=tasks.yml` and `project_url=https://github.com/users/acme/projects/7` appear in the sub-agent prompt unchanged"
+        },
+        {
+          "id": "no-direct-subskill-calls",
+          "text": "The skill does NOT invoke `gh-project-sync` or `task-agent` directly — they are reached only through the workflow runner sub-agent"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "auto-board-task tasks=tasks.yml project_owner=acme project_number=7 default_repo=acme/api",
+      "description": "Alternate project-ref form plus the optional `default_repo`. All three extras must thread through to the sub-agent prompt verbatim. The skill must not silently coerce them into `project_url` or drop the unused `project_url` placeholder.",
+      "setup": "mkdir -p /tmp/eval-abt-1 && cd /tmp/eval-abt-1 && printf 'projects:\\n  - repo: acme/api\\n    tasks: []\\n' > tasks.yml",
+      "expected_output": "Sub-agent prompt contains the three extra args verbatim.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "project-owner-number-forwarded",
+          "text": "Both `project_owner=acme` and `project_number=7` appear verbatim in the sub-agent prompt"
+        },
+        {
+          "id": "default-repo-forwarded",
+          "text": "`default_repo=acme/api` appears verbatim in the sub-agent prompt"
+        },
+        {
+          "id": "no-injected-project-url",
+          "text": "The skill does not inject a `project_url=` argument that the user didn't supply"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "auto-board-task tasks=tasks.yml",
+      "description": "Validation happens downstream, not here. Even though the workflow YAML declares `project_url` / `project_owner` / `project_number` as inputs that `gh-project-sync` ultimately needs, this skill does not re-check them. It still spawns the sub-agent; the workflow runner (or `gh-project-sync` itself) is responsible for surfacing the missing-project-ref error.",
+      "setup": "mkdir -p /tmp/eval-abt-2 && cd /tmp/eval-abt-2 && printf 'projects:\\n  - repo: acme/api\\n    tasks: []\\n' > tasks.yml",
+      "expected_output": "Sub-agent is still spawned with only `tasks=tasks.yml` forwarded; the failure (if any) is reported by the workflow runner or the sub-skill in its own report.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "still-spawns-sub-agent",
+          "text": "A sub-agent is spawned even though required inputs for `gh-project-sync` are missing — validation is delegated downstream"
+        },
+        {
+          "id": "tasks-arg-forwarded",
+          "text": "`tasks=tasks.yml` appears in the sub-agent prompt"
+        },
+        {
+          "id": "no-self-validation-error",
+          "text": "The skill does not itself print a parsing/validation error about missing `project_url` or `project_owner`/`project_number`"
+        }
+      ]
+    }
+  ]
+}

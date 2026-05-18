@@ -6,6 +6,13 @@
   },
   "plugins": [
     {
+      "name": "auto-board-task",
+      "source": "./plugins/auto-board-task",
+      "description": "Process the top Todo card on a GitHub Project (v2) board end-to-end: pull the board into a task-agent tasks.yml, run task-agent against the top pending task to open a PR, then sync the PR back so the card moves to In Review. Composes `gh-project-sync` → `task-agent` → `gh-project-sync` via the `workflow` skill — all three must be installed.",
+      "category": "automation",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/auto-board-task"
+    },
+    {
       "name": "brainstorm",
       "source": "./plugins/brainstorm",
       "description": "Suggest the 5 most valuable next features or improvements for a project",
