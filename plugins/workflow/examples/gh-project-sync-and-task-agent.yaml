@@ -1,0 +1,74 @@
+# Example workflow — chains gh-project-sync with task-agent.
+#
+# This is the canonical illustration of the three-step "sync-in → work →
+# sync-out" pattern that the auto-board-task plugin packages into a single
+# skill. Spelling it out here keeps the workflow plugin's examples directory
+# self-contained for contributors who want to compose the same two skills
+# without taking on auto-board-task as a dependency.
+#
+# Pipeline:
+#
+#   1. gh-project-sync  — reconcile the GitHub Project (v2) board into the
+#                         tasks-agent unified `tasks.yml`. New Todo cards land
+#                         as `status: pending`; stale Done / Won't Do entries
+#                         are dropped.
+#   2. task-agent       — pick the first pending task in `tasks.yml`
+#                         (i.e. the top of the Todo column after step 1),
+#                         clone the repo, do the work, open a PR, and mark
+#                         the entry `status: done` with a `pr_url`.
+#   3. gh-project-sync  — reconcile again. Rule 4 fires for the entry
+#                         freshly marked `done + pr_url`: the card moves to
+#                         In Review (falling back to In Progress for boards
+#                         without an In Review column) and the PR link is
+#                         posted as a comment on the card.
+#
+# Run it with, e.g.:
+#
+#   workflow plugins/workflow/examples/gh-project-sync-and-task-agent.yaml \
+#     project_url=https://github.com/users/<you>/projects/<n>
+#
+# See ../references/format.md for the full schema.
+
+name: gh-project-sync-and-task-agent
+description: Pull Todo cards from a GitHub Project, run task-agent, then push completed entries back to the board.
+category: automation
+
+inputs:
+  - name: tasks
+    default: "tasks.yml"
+    description: Path to the unified task-agent tasks.yml file.
+  - name: project_url
+    description: GitHub Project v2 URL (e.g. https://github.com/users/<owner>/projects/<n>). Alternative to project_owner + project_number.
+  - name: project_owner
+    description: GitHub user or org that owns the project. Use together with project_number when project_url is empty.
+  - name: project_number
+    description: Project number as shown in the URL. Use together with project_owner when project_url is empty.
+  - name: default_repo
+    description: owner/repo for draft cards that aren't linked to an issue. Optional.
+
+steps:
+  - id: sync-in
+    skill: gh-project-sync
+    description: Reconcile the board into tasks.yml — pulls Todo cards in, drops Done / Won't Do entries.
+    args:
+      tasks: ${{ inputs.tasks }}
+      project_url: ${{ inputs.project_url }}
+      project_owner: ${{ inputs.project_owner }}
+      project_number: ${{ inputs.project_number }}
+      default_repo: ${{ inputs.default_repo }}
+
+  - id: run-task
+    skill: task-agent
+    description: Pick up the next pending task and open a PR.
+    args:
+      tasks: ${{ inputs.tasks }}
+
+  - id: sync-out
+    skill: gh-project-sync
+    description: Reconcile again — moves the freshly-done card to In Review and posts the PR link.
+    args:
+      tasks: ${{ inputs.tasks }}
+      project_url: ${{ inputs.project_url }}
+      project_owner: ${{ inputs.project_owner }}
+      project_number: ${{ inputs.project_number }}
+      default_repo: ${{ inputs.default_repo }}
