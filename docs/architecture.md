@@ -407,7 +407,11 @@ writes a summary marking subsequent steps as `skipped`.
 The authoritative schema lives in
 [`plugins/workflow/references/format.md`](../plugins/workflow/references/format.md);
 the canonical example is
-[`plugins/workflow/examples/document-and-deploy.yaml`](../plugins/workflow/examples/document-and-deploy.yaml).
+[`plugins/workflow/examples/document-and-deploy.yaml`](../plugins/workflow/examples/document-and-deploy.yaml),
+and
+[`plugins/workflow/examples/gh-project-sync-and-task-agent.yaml`](../plugins/workflow/examples/gh-project-sync-and-task-agent.yaml)
+demonstrates the sync-in → task-agent → sync-out chain that
+`auto-board-task` packages as a single skill.
 
 ### Future work (deferred from v1)
 

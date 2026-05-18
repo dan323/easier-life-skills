@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.28.1] - 2026-05-18
+
+### Added
+- **`workflow` plugin example — `gh-project-sync-and-task-agent.yaml`.** Second canonical example in `plugins/workflow/examples/`, demonstrating the three-step "sync-in → work → sync-out" pattern that chains `gh-project-sync` with `task-agent`. This is the same composition the `auto-board-task` plugin packages into a single skill, but spelled out as a standalone workflow YAML so contributors who want to compose those two skills directly have a reference they can copy without taking on `auto-board-task` as a dependency. Inputs match `auto-board-task.yaml` (`tasks`, `project_url` OR `project_owner` + `project_number`, optional `default_repo`) and the runner halt-on-failure semantics, `.workflow-runs/<name>-<timestamp>/` output capture, and `${{ inputs.* }}` interpolation all flow through unchanged. `docs/contributing.md` and `docs/architecture.md` updated to point at the new example alongside `document-and-deploy.yaml`. Workflow plugin bumped to 1.1.0.
+
 ## [1.28.0] - 2026-05-18
 
 ### Added
