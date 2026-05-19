@@ -3,18 +3,20 @@ import { CopyButton } from '../CopyButton.tsx';
 import type { Command } from '../../types.ts';
 
 interface Props {
-  command:     Command;
-  showSource:  boolean;
-  showInstall: boolean;
-  onOpen:      (c: Command) => void;
+  command:         Command;
+  showSource:      boolean;
+  showInstall:     boolean;
+  onOpen:          (c: Command) => void;
+  bundled?:        boolean;
+  onToggleBundle?: (c: Command) => void;
 }
 
-export function CommandCard({ command: cmd, showSource, showInstall, onOpen }: Props) {
+export function CommandCard({ command: cmd, showSource, showInstall, onOpen, bundled, onToggleBundle }: Props) {
   const catClass = cmd.category ? 'badge-' + cmd.category : 'badge-uncategorized';
   const catLabel = cmd.category ? titleCase(cmd.category) : 'Uncategorized';
   const activate = () => onOpen(cmd);
   return (
-    <div class="skill-card">
+    <div class={`skill-card${bundled ? ' skill-card--bundled' : ''}`}>
       <div class="card-header">
         <button
           type="button"
@@ -31,20 +33,33 @@ export function CommandCard({ command: cmd, showSource, showInstall, onOpen }: P
         </div>
       </div>
       <p class="card-desc">{cmd.description || '—'}</p>
-      {showInstall && (
-        <div class="card-install">
-          <code>{cmd.installCommand}</code>
-          <CopyButton
-            text={cmd.installCommand}
-            ariaLabel={`Copy install command for ${cmd.name}`}
-            stopPropagation
-            analyticsEvent={{
-              name:   'install_copy',
-              params: { kind: 'command', name: cmd.name, source: cmd._repo ?? '', command_type: 'install' },
-            }}
-          />
-        </div>
-      )}
+      <div class="card-actions">
+        {showInstall && (
+          <div class="card-install">
+            <code>{cmd.installCommand}</code>
+            <CopyButton
+              text={cmd.installCommand}
+              ariaLabel={`Copy install command for ${cmd.name}`}
+              stopPropagation
+              analyticsEvent={{
+                name:   'install_copy',
+                params: { kind: 'command', name: cmd.name, source: cmd._repo ?? '', command_type: 'install' },
+              }}
+            />
+          </div>
+        )}
+        {onToggleBundle && (
+          <button
+            type="button"
+            class={`bundle-add-btn${bundled ? ' bundle-add-btn--active' : ''}`}
+            aria-label={bundled ? `Remove ${cmd.name} from bundle` : `Add ${cmd.name} to bundle`}
+            aria-pressed={bundled}
+            onClick={e => { e.stopPropagation(); onToggleBundle(cmd); }}
+          >
+            {bundled ? '✓ Bundled' : '+ Bundle'}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -5,8 +5,8 @@ declare global {
   }
 }
 
-type EntityKind  = 'marketplace' | 'plugin' | 'skill' | 'agent' | 'mcpServer' | 'command' | 'hook';
-type CommandType = 'marketplace_add' | 'install';
+type EntityKind  = 'marketplace' | 'plugin' | 'skill' | 'agent' | 'mcpServer' | 'command' | 'hook' | 'bundle';
+type CommandType = 'marketplace_add' | 'install' | 'bundle_copy';
 
 export interface InstallCopyParams {
   kind:         EntityKind;

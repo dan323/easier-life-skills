@@ -27,12 +27,19 @@ interface Props {
   activeCategories: Set<string>;
   data:       DataSets;
   sources?:   Record<string, { isMarketplace: boolean }>;
-  onOpenPlugin:  (p: Plugin) => void;
-  onOpenSkill:   (s: Skill) => void;
-  onOpenAgent:   (a: Agent) => void;
-  onOpenMcp:     (m: McpServer) => void;
-  onOpenCommand: (c: Command) => void;
-  onOpenHook:    (h: Hook) => void;
+  bundledIds: Set<string>;
+  onOpenPlugin:    (p: Plugin) => void;
+  onOpenSkill:     (s: Skill) => void;
+  onOpenAgent:     (a: Agent) => void;
+  onOpenMcp:       (m: McpServer) => void;
+  onOpenCommand:   (c: Command) => void;
+  onOpenHook:      (h: Hook) => void;
+  onToggleBundlePlugin:  (p: Plugin) => void;
+  onToggleBundleSkill:   (s: Skill) => void;
+  onToggleBundleAgent:   (a: Agent) => void;
+  onToggleBundleMcp:     (m: McpServer) => void;
+  onToggleBundleCommand: (c: Command) => void;
+  onToggleBundleHook:    (h: Hook) => void;
 }
 
 const GRID_IDS: Record<ViewKey, string> = {
@@ -125,7 +132,7 @@ function viewEmpty(view: ViewKey, icon: string, label: string, allCount: number,
   );
 }
 
-function PluginsGrid({ data, query, sort, activeRepos, activeCategories, onOpenPlugin }: Props) {
+function PluginsGrid({ data, query, sort, activeRepos, activeCategories, onOpenPlugin, bundledIds, onToggleBundlePlugin }: Props) {
   const all = data.plugins;
   const show = multiRepo(all);
   const filtered = all.filter(p => {
@@ -143,13 +150,20 @@ function PluginsGrid({ data, query, sort, activeRepos, activeCategories, onOpenP
         {filtered.length === 0
           ? viewEmpty('plugins', '🔍', 'plugins', all.length, data)
           : sortedBy(filtered, sort).map(p =>
-              <PluginCard key={`${p._repo}/${p.name}`} plugin={p} showSource={show} onOpen={onOpenPlugin} />)}
+              <PluginCard
+                key={`${p._repo}/${p.name}`}
+                plugin={p}
+                showSource={show}
+                onOpen={onOpenPlugin}
+                bundled={bundledIds.has(`plugin/${p.name}`)}
+                onToggleBundle={onToggleBundlePlugin}
+              />)}
       </div>
     </>
   );
 }
 
-function SkillsGrid({ data, query, sort, activeRepos, activeCategories, onOpenSkill }: Props) {
+function SkillsGrid({ data, query, sort, activeRepos, activeCategories, onOpenSkill, bundledIds, onToggleBundleSkill }: Props) {
   const all = data.skills;
   const show = multiRepo(all);
   const filtered = all.filter(s => {
@@ -169,13 +183,21 @@ function SkillsGrid({ data, query, sort, activeRepos, activeCategories, onOpenSk
         {filtered.length === 0
           ? viewEmpty('skills', '🔍', 'skills', all.length, data)
           : sortedBy(filtered, sort).map(s =>
-              <SkillCard key={`${s._repo}/${s.pluginName}/${s.name}`} skill={s} showSource={show} showInstall onOpen={onOpenSkill} />)}
+              <SkillCard
+                key={`${s._repo}/${s.pluginName}/${s.name}`}
+                skill={s}
+                showSource={show}
+                showInstall
+                onOpen={onOpenSkill}
+                bundled={bundledIds.has(`skill/${s.name}`)}
+                onToggleBundle={onToggleBundleSkill}
+              />)}
       </div>
     </>
   );
 }
 
-function AgentsGrid({ data, query, sort, activeRepos, activeCategories, onOpenAgent }: Props) {
+function AgentsGrid({ data, query, sort, activeRepos, activeCategories, onOpenAgent, bundledIds, onToggleBundleAgent }: Props) {
   const all = data.agents;
   const show = multiRepo(all);
   const filtered = all.filter(a => {
@@ -193,13 +215,21 @@ function AgentsGrid({ data, query, sort, activeRepos, activeCategories, onOpenAg
         {filtered.length === 0
           ? viewEmpty('agents', '🤖', 'agents', all.length, data)
           : sortedBy(filtered, sort).map(a =>
-              <AgentCard key={`${a._repo}/${a.pluginName}/${a.name}`} agent={a} showSource={show} showInstall onOpen={onOpenAgent} />)}
+              <AgentCard
+                key={`${a._repo}/${a.pluginName}/${a.name}`}
+                agent={a}
+                showSource={show}
+                showInstall
+                onOpen={onOpenAgent}
+                bundled={bundledIds.has(`agent/${a.name}`)}
+                onToggleBundle={onToggleBundleAgent}
+              />)}
       </div>
     </>
   );
 }
 
-function McpGrid({ data, query, sort, activeRepos, activeCategories, onOpenMcp }: Props) {
+function McpGrid({ data, query, sort, activeRepos, activeCategories, onOpenMcp, bundledIds, onToggleBundleMcp }: Props) {
   const all = data.mcpServers;
   const show = multiRepo(all);
   const filtered = all.filter(m => {
@@ -217,13 +247,21 @@ function McpGrid({ data, query, sort, activeRepos, activeCategories, onOpenMcp }
         {filtered.length === 0
           ? viewEmpty('mcpServers', '🔌', 'MCP servers', all.length, data)
           : sortedBy(filtered, sort).map(m =>
-              <McpCard key={`${m._repo}/${m.pluginName}/${m.name}`} mcp={m} showSource={show} showInstall onOpen={onOpenMcp} />)}
+              <McpCard
+                key={`${m._repo}/${m.pluginName}/${m.name}`}
+                mcp={m}
+                showSource={show}
+                showInstall
+                onOpen={onOpenMcp}
+                bundled={bundledIds.has(`mcpServer/${m.name}`)}
+                onToggleBundle={onToggleBundleMcp}
+              />)}
       </div>
     </>
   );
 }
 
-function CommandsGrid({ data, query, sort, activeRepos, activeCategories, onOpenCommand }: Props) {
+function CommandsGrid({ data, query, sort, activeRepos, activeCategories, onOpenCommand, bundledIds, onToggleBundleCommand }: Props) {
   const all = data.commands;
   const show = multiRepo(all);
   const filtered = all.filter(c => {
@@ -241,13 +279,21 @@ function CommandsGrid({ data, query, sort, activeRepos, activeCategories, onOpen
         {filtered.length === 0
           ? viewEmpty('commands', '⌨️', 'commands', all.length, data)
           : sortedBy(filtered, sort).map(c =>
-              <CommandCard key={`${c._repo}/${c.pluginName}/${c.name}`} command={c} showSource={show} showInstall onOpen={onOpenCommand} />)}
+              <CommandCard
+                key={`${c._repo}/${c.pluginName}/${c.name}`}
+                command={c}
+                showSource={show}
+                showInstall
+                onOpen={onOpenCommand}
+                bundled={bundledIds.has(`command/${c.name}`)}
+                onToggleBundle={onToggleBundleCommand}
+              />)}
       </div>
     </>
   );
 }
 
-function HooksGrid({ data, query, sort, activeRepos, activeCategories, onOpenHook }: Props) {
+function HooksGrid({ data, query, sort, activeRepos, activeCategories, onOpenHook, bundledIds, onToggleBundleHook }: Props) {
   const all = data.hooks;
   const show = multiRepo(all);
   const filtered = all.filter(h => {
@@ -267,7 +313,15 @@ function HooksGrid({ data, query, sort, activeRepos, activeCategories, onOpenHoo
         {filtered.length === 0
           ? viewEmpty('hooks', '🪝', 'hooks', all.length, data)
           : sortedBy(filtered, sort).map(h =>
-              <HookCard key={`${h._repo}/${h.pluginName}/${h.name}`} hook={h} showSource={show} showInstall onOpen={onOpenHook} />)}
+              <HookCard
+                key={`${h._repo}/${h.pluginName}/${h.name}`}
+                hook={h}
+                showSource={show}
+                showInstall
+                onOpen={onOpenHook}
+                bundled={bundledIds.has(`hook/${h.name}`)}
+                onToggleBundle={onToggleBundleHook}
+              />)}
       </div>
     </>
   );

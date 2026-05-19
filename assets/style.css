@@ -1233,6 +1233,196 @@ body.catalog-page footer {
 .panel-section[hidden] { display: none; }
 
 
+/* ── Bundle add button (on cards) ── */
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+.card-actions .card-install {
+  flex: 1;
+  min-width: 0;
+}
+
+.bundle-add-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.bundle-add-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+.bundle-add-btn--active {
+  color: var(--green);
+  border-color: var(--green);
+  background: var(--green-dim);
+}
+.bundle-add-btn--active:hover {
+  color: #f85149;
+  border-color: #f85149;
+  background: rgba(248,81,73,0.1);
+}
+
+/* Highlight cards that are in the current bundle */
+.skill-card--bundled {
+  border-color: var(--green);
+}
+.skill-card--bundled:hover {
+  border-color: var(--green);
+}
+
+/* ── Bundle Drawer ── */
+.bundle-drawer {
+  position: fixed;
+  bottom: 48px;   /* sit above footer */
+  right: 24px;
+  width: min(380px, calc(100vw - 32px));
+  max-height: calc(100vh - 120px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Hidden by default — shown when items are present */
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.bundle-drawer--open {
+  pointer-events: all;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.bundle-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.bundle-drawer-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.bundle-drawer-clear {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.bundle-drawer-clear:hover { color: #f85149; border-color: #f85149; }
+
+.bundle-drawer-list {
+  list-style: none;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  padding: 8px 0;
+  margin: 0;
+  max-height: 220px;
+}
+
+.bundle-drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 16px;
+  font-size: 0.8rem;
+}
+.bundle-drawer-item:hover { background: var(--surface-hover); }
+
+.bundle-drawer-item-kind {
+  font-size: 0.65rem;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 1px 5px;
+  flex-shrink: 0;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.bundle-drawer-item-name {
+  flex: 1;
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bundle-drawer-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.bundle-drawer-remove:hover { color: #f85149; }
+
+.bundle-drawer-script {
+  position: relative;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  padding: 12px 16px;
+  background: var(--bg);
+}
+.bundle-drawer-script pre {
+  font-size: 0.72rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  word-break: break-all;
+  padding-right: 54px;
+  margin: 0;
+  line-height: 1.6;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.bundle-drawer-copy {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.bundle-drawer-copy:hover { color: var(--accent); border-color: var(--accent); }
+.bundle-drawer-copy.copied { color: var(--green); border-color: var(--green); }
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
   header, .quickstart, .controls, .marketplace-bar, main, footer { padding-left: 16px; padding-right: 16px; }
@@ -1249,11 +1439,18 @@ body.catalog-page footer {
 
   /* 44×44px minimum touch target */
   .filter-btn, .sort-btn, .view-btn, .copy-btn, .expand-btn,
-  .bundle-copy-btn, .panel-close-btn, .panel-copy-btn, #panel-install-copy {
+  .bundle-copy-btn, .panel-close-btn, .panel-copy-btn, #panel-install-copy,
+  .bundle-add-btn, .bundle-drawer-clear, .bundle-drawer-remove {
     min-height: 44px;
     min-width: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .bundle-drawer {
+    right: 8px;
+    bottom: 56px;
+    width: calc(100vw - 16px);
   }
 }

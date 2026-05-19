@@ -8,12 +8,14 @@ const CHIP_LIMIT = 5;
 interface Chip { cls: string; text: string; }
 
 interface Props {
-  plugin:     Plugin;
-  showSource: boolean;
-  onOpen:     (plugin: Plugin) => void;
+  plugin:          Plugin;
+  showSource:      boolean;
+  onOpen:          (plugin: Plugin) => void;
+  bundled?:        boolean;
+  onToggleBundle?: (plugin: Plugin) => void;
 }
 
-export function PluginCard({ plugin, showSource, onOpen }: Props) {
+export function PluginCard({ plugin, showSource, onOpen, bundled, onToggleBundle }: Props) {
   const catClass = plugin.category ? 'badge-' + plugin.category : 'badge-uncategorized';
   const catLabel = plugin.category ? titleCase(plugin.category) : 'Uncategorized';
   const description = plugin.description ?? '';
@@ -29,7 +31,7 @@ export function PluginCard({ plugin, showSource, onOpen }: Props) {
   const activate = () => onOpen(plugin);
 
   return (
-    <div class="skill-card">
+    <div class={`skill-card${bundled ? ' skill-card--bundled' : ''}`}>
       <div class="card-header">
         <button
           type="button"
@@ -55,17 +57,30 @@ export function PluginCard({ plugin, showSource, onOpen }: Props) {
           renderItem={({ cls, text }) => <span class={`chip ${cls}`}>{text}</span>}
         />
       )}
-      <div class="card-install">
-        <code>{plugin.installCommand}</code>
-        <CopyButton
-          text={plugin.installCommand}
-          ariaLabel={`Copy install command for ${plugin.name}`}
-          stopPropagation
-          analyticsEvent={{
-            name:   'install_copy',
-            params: { kind: 'plugin', name: plugin.name, source: plugin._repo ?? '', command_type: 'install' },
-          }}
-        />
+      <div class="card-actions">
+        <div class="card-install">
+          <code>{plugin.installCommand}</code>
+          <CopyButton
+            text={plugin.installCommand}
+            ariaLabel={`Copy install command for ${plugin.name}`}
+            stopPropagation
+            analyticsEvent={{
+              name:   'install_copy',
+              params: { kind: 'plugin', name: plugin.name, source: plugin._repo ?? '', command_type: 'install' },
+            }}
+          />
+        </div>
+        {onToggleBundle && (
+          <button
+            type="button"
+            class={`bundle-add-btn${bundled ? ' bundle-add-btn--active' : ''}`}
+            aria-label={bundled ? `Remove ${plugin.name} from bundle` : `Add ${plugin.name} to bundle`}
+            aria-pressed={bundled}
+            onClick={e => { e.stopPropagation(); onToggleBundle(plugin); }}
+          >
+            {bundled ? '✓ Bundled' : '+ Bundle'}
+          </button>
+        )}
       </div>
     </div>
   );
