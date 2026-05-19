@@ -2,6 +2,11 @@
   "meta": {
     "generated": "2026-05-10T00:00:00.000Z",
     "marketplaces": ["dan323/easier-life-skills"],
+    "sources": {
+      "dan323/easier-life-skills": { "isMarketplace": true },
+      "external/slack-tools":      { "isMarketplace": false },
+      "external/hooks-pack":       { "isMarketplace": false }
+    },
     "pluginCount": 4,
     "skillCount": 3,
     "agentCount": 1,

@@ -1,13 +1,16 @@
-import { useLayoutEffect, useRef } from 'preact/hooks';
+import { useLayoutEffect, useMemo, useRef } from 'preact/hooks';
 import { CopyButton } from './CopyButton.tsx';
-import { buildInstallScript } from '../bundle-state.ts';
+import { buildInstallScript, findContainingBundle } from '../bundle-state.ts';
 import type { BundleItem } from '../bundle-state.ts';
+import type { Bundle } from '../types.ts';
 
 interface Props {
-  items:    BundleItem[];
-  sources:  Record<string, { isMarketplace: boolean }>;
-  onRemove: (id: string) => void;
-  onClear:  () => void;
+  items:          BundleItem[];
+  sources:        Record<string, { isMarketplace: boolean }>;
+  bundles:        Bundle[];
+  onRemove:       (id: string) => void;
+  onClear:        () => void;
+  onGotoBundle:   () => void;
 }
 
 const KIND_LABEL: Record<string, string> = {
@@ -19,9 +22,10 @@ const KIND_LABEL: Record<string, string> = {
   plugin:    'plugin',
 };
 
-export function BundleDrawer({ items, sources, onRemove, onClear }: Props) {
+export function BundleDrawer({ items, sources, bundles, onRemove, onClear, onGotoBundle }: Props) {
   const open = items.length > 0;
   const script = buildInstallScript(items, sources);
+  const containingBundle = useMemo(() => findContainingBundle(items, bundles), [items, bundles]);
   const drawerRef = useRef<HTMLDivElement>(null);
 
   // Move initial focus into the drawer when it opens (accessibility)
@@ -84,6 +88,15 @@ export function BundleDrawer({ items, sources, onRemove, onClear }: Props) {
               </li>
             ))}
           </ul>
+
+          {containingBundle && (
+            <div class="bundle-drawer-suggestion">
+              Everything here is in the <strong>{containingBundle.name}</strong> bundle.{' '}
+              <button type="button" class="bundle-drawer-goto" onClick={onGotoBundle}>
+                Go to bundle →
+              </button>
+            </div>
+          )}
 
           {script && (
             <div class="bundle-drawer-script">

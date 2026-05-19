@@ -71,10 +71,15 @@ export interface BundleSkillRefObject {
 export type BundleSkillRef = string | BundleSkillRefObject;
 
 export interface Bundle {
-  id?: string;
-  name: string;
+  id?:         string;
+  name:        string;
   description?: string;
-  skills: BundleSkillRef[];
+  skills?:     BundleSkillRef[];
+  agents?:     BundleSkillRef[];
+  hooks?:      BundleSkillRef[];
+  commands?:   BundleSkillRef[];
+  mcpServers?: BundleSkillRef[];
+  plugins?:    BundleSkillRef[];
 }
 
 export interface InstalledPlugin {

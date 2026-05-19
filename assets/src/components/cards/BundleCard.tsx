@@ -1,50 +1,67 @@
 import { CopyButton } from '../CopyButton.tsx';
 import { Expandable } from '../Expandable.tsx';
-import { resolveBundleSkills } from '../../bundle-resolve.ts';
-import type { Bundle, Skill } from '../../types.ts';
+import { resolveBundleEntityArray, resolveBundlePlugins } from '../../bundle-resolve.ts';
+import type { Bundle, Skill, Agent, Hook, Command, McpServer, Plugin } from '../../types.ts';
 
-const SKILL_LIMIT = 4;
+const ITEM_LIMIT = 4;
 
 interface Props {
-  bundle: Bundle;
-  skills: Skill[];
-  sources?: Record<string, { isMarketplace: boolean }>;
+  bundle:     Bundle;
+  skills:     Skill[];
+  agents:     Agent[];
+  hooks:      Hook[];
+  commands:   Command[];
+  mcpServers: McpServer[];
+  plugins:    Plugin[];
+  sources?:   Record<string, { isMarketplace: boolean }>;
 }
 
-function isMarketplaceSource(skill: Skill, sources?: Record<string, { isMarketplace: boolean }>): boolean {
+type BundleEntry = { name: string; kind: string; installCommand: string; source: { owner: string; repo: string }; pluginName?: string };
+
+const KIND_LABEL: Record<string, string> = {
+  skill:     'skill',
+  agent:     'agent',
+  hook:      'hook',
+  command:   'cmd',
+  mcpServer: 'mcp',
+  plugin:    'plugin',
+};
+
+function isMarketplaceSource(item: { source: { owner: string; repo: string } }, sources?: Record<string, { isMarketplace: boolean }>): boolean {
   if (!sources) return true;
-  const key = `${skill.source.owner}/${skill.source.repo}`;
+  const key = `${item.source.owner}/${item.source.repo}`;
   return sources[key]?.isMarketplace !== false;
 }
 
-export function BundleCard({ bundle, skills, sources }: Props) {
-  const bundleSkills = resolveBundleSkills(bundle, skills);
+export function BundleCard({ bundle, skills, agents, hooks, commands, mcpServers, plugins, sources }: Props) {
+  const allItems: BundleEntry[] = [
+    ...resolveBundleEntityArray(bundle.skills,     skills).map(e => ({ name: e.name, kind: 'skill',     installCommand: e.installCommand, source: e.source, pluginName: e.pluginName })),
+    ...resolveBundleEntityArray(bundle.agents,     agents).map(e => ({ name: e.name, kind: 'agent',     installCommand: e.installCommand, source: e.source, pluginName: e.pluginName })),
+    ...resolveBundleEntityArray(bundle.hooks,      hooks).map(e  => ({ name: e.name, kind: 'hook',      installCommand: e.installCommand, source: e.source, pluginName: e.pluginName })),
+    ...resolveBundleEntityArray(bundle.commands,   commands).map(e => ({ name: e.name, kind: 'command',  installCommand: e.installCommand, source: e.source, pluginName: e.pluginName })),
+    ...resolveBundleEntityArray(bundle.mcpServers, mcpServers).map(e => ({ name: e.name, kind: 'mcpServer', installCommand: e.installCommand, source: e.source, pluginName: e.pluginName })),
+    ...resolveBundlePlugins(    bundle.plugins,    plugins).map(e => ({ name: e.name, kind: 'plugin',   installCommand: e.installCommand, source: e.source, pluginName: e.name })),
+  ];
 
   const marketplaceCommands = [...new Set(
-    bundleSkills
-      .filter(s => isMarketplaceSource(s, sources))
-      .map(s => s.installCommand)
+    allItems
+      .filter(e => isMarketplaceSource(e, sources))
+      .map(e => e.installCommand)
   )];
-  const pluginOnlySkills = bundleSkills.filter(s => !isMarketplaceSource(s, sources));
-  const hasPluginOnly = pluginOnlySkills.length > 0;
+  const pluginOnlyItems = allItems.filter(e => !isMarketplaceSource(e, sources));
+  const hasPluginOnly = pluginOnlyItems.length > 0;
 
-  // Always-works one-liner — the npx CLI routes per source automatically
   const npxCommand = `npx @dan323/easier-life-skills --bundle ${bundle.id ?? bundle.name}`;
 
-  // What goes inside the <pre>: the manual-install alternative for users who
-  // prefer pasting into Claude Code directly. For plugin-only sources we point
-  // back at the npx command (which auto-generates a shim marketplace) since
-  // the manual equivalent is a multi-step shell recipe rather than a single
-  // pasteable `/plugin install …` line.
   const shimHints = hasPluginOnly
     ? Array.from(
-        pluginOnlySkills.reduce((acc, s) => {
-          const pluginName = s.pluginName ?? s.name;
-          if (!acc.has(pluginName)) acc.set(pluginName, s);
+        pluginOnlyItems.reduce((acc, e) => {
+          const pluginName = e.kind === 'plugin' ? e.name : (e.pluginName ?? e.name);
+          if (!acc.has(pluginName)) acc.set(pluginName, e);
           return acc;
-        }, new Map<string, Skill>())
-      ).map(([pluginName, s]) =>
-        `# Plugin-only repo ${s.source.owner}/${s.source.repo} — use the npx command above.\n` +
+        }, new Map<string, BundleEntry>())
+      ).map(([pluginName, e]) =>
+        `# Plugin-only repo ${e.source.owner}/${e.source.repo} — use the npx command above.\n` +
         `# (auto-creates a shim marketplace at ~/.config/easier-life-skills/shims/${pluginName}/\n` +
         `#  then runs: claude plugin install ${pluginName}@${pluginName})`
       )
@@ -63,9 +80,14 @@ export function BundleCard({ bundle, skills, sources }: Props) {
       </div>
       <Expandable
         className="bundle-skills"
-        items={bundleSkills}
-        limit={SKILL_LIMIT}
-        renderItem={s => <div class="bundle-skill-item">{s.name}</div>}
+        items={allItems}
+        limit={ITEM_LIMIT}
+        renderItem={e => (
+          <div class="bundle-skill-item">
+            <span class="bundle-item-kind">{KIND_LABEL[e.kind] ?? e.kind}</span>
+            {e.name}
+          </div>
+        )}
       />
       <div class="bundle-install">
         <div class="bundle-install-primary">

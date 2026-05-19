@@ -67,6 +67,50 @@ export function decodeItem(token: string): BundleItem | null {
   };
 }
 
+type BundleRef = string | { name: string };
+interface BundleShape {
+  id?:         string;
+  name:        string;
+  skills?:     BundleRef[];
+  agents?:     BundleRef[];
+  hooks?:      BundleRef[];
+  commands?:   BundleRef[];
+  mcpServers?: BundleRef[];
+  plugins?:    BundleRef[];
+}
+
+/**
+ * If every item in the custom bundle is covered by a single named bundle,
+ * return that bundle (so the UI can suggest it). Each item is matched against
+ * the bundle's array for its kind.
+ * Returns null if items is empty or spans multiple bundles / matches none.
+ */
+export function findContainingBundle(
+  items:   BundleItem[],
+  bundles: BundleShape[],
+): { id?: string; name: string } | null {
+  if (items.length === 0) return null;
+
+  const refNames = (refs: BundleRef[] | undefined) =>
+    new Set((refs ?? []).map(r => typeof r === 'string' ? r : r.name));
+
+  for (const bundle of bundles) {
+    const covered = items.every(item => {
+      switch (item.kind) {
+        case 'skill':     return refNames(bundle.skills).has(item.name);
+        case 'agent':     return refNames(bundle.agents).has(item.name);
+        case 'hook':      return refNames(bundle.hooks).has(item.name);
+        case 'command':   return refNames(bundle.commands).has(item.name);
+        case 'mcpServer': return refNames(bundle.mcpServers).has(item.name);
+        case 'plugin':    return refNames(bundle.plugins).has(item.name);
+        default:          return false;
+      }
+    });
+    if (covered) return bundle;
+  }
+  return null;
+}
+
 /**
  * Build the install script for a set of bundle items.
  *
@@ -92,23 +136,34 @@ export function buildInstallScript(
 
   const lines: string[] = [];
 
-  // Deduplicate install commands (same plugin may cover multiple skills)
-  const seen = new Set<string>();
+  // Emit marketplace-add commands first (one per unique repo), then install commands
+  const seenRepos = new Set<string>();
+  const seenCmds  = new Set<string>();
+
   for (const item of marketplace) {
-    if (!seen.has(item.installCommand)) {
+    if (!seenRepos.has(item.repo)) {
+      lines.push(`/plugin marketplace add ${item.repo}`);
+      seenRepos.add(item.repo);
+    }
+  }
+  if (seenRepos.size > 0) lines.push('');
+  for (const item of marketplace) {
+    if (!seenCmds.has(item.installCommand)) {
       lines.push(item.installCommand);
-      seen.add(item.installCommand);
+      seenCmds.add(item.installCommand);
     }
   }
 
   if (pluginOnly.length > 0) {
     if (lines.length > 0) lines.push('');
-    const pluginNames = [...new Set(pluginOnly.map(i => i.name))];
-    lines.push(
-      `# The following items come from plugin-only repos — install via npx:`,
-      `# npx @dan323/easier-life-skills --bundle <bundle-name>`,
-      ...pluginNames.map(n => `# (includes: ${n})`),
-    );
+    // Plugin-only repos require the npx installer to create a shim marketplace.
+    // Deduplicate by plugin name (skills/agents/etc. share their parent plugin).
+    const pluginNames = [...new Set(pluginOnly.map(i =>
+      i.kind === 'plugin' ? i.name : (i.pluginName ?? i.name)
+    ))];
+    for (const name of pluginNames) {
+      lines.push(`npx @dan323/easier-life-skills --plugin ${name}`);
+    }
   }
 
   return lines.join('\n');

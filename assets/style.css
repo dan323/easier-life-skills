@@ -665,6 +665,14 @@ main { padding: 20px 32px 80px; }
   gap: 6px;
 }
 .bundle-skill-item::before { content: '▸'; color: var(--accent); font-size: 0.65rem; }
+.bundle-item-kind {
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg-subtle, var(--border));
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
 
 .plugin-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 2px; min-width: 0; }
 .chip { font-size: 0.73rem; padding: 2px 8px; border-radius: 10px; max-width: 100%; word-break: break-word; }
@@ -1386,6 +1394,24 @@ body.catalog-page footer {
   transition: color 0.15s;
 }
 .bundle-drawer-remove:hover { color: #f85149; }
+
+.bundle-drawer-suggestion {
+  border-top: 1px solid var(--border);
+  padding: 10px 16px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: var(--bg-subtle, var(--bg));
+}
+.bundle-drawer-goto {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: inherit;
+  text-decoration: underline;
+}
+.bundle-drawer-goto:hover { opacity: 0.8; }
 
 .bundle-drawer-script {
   position: relative;

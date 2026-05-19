@@ -9,7 +9,7 @@ import { join, dirname }                          from 'path';
 import { fileURLToPath }                          from 'url';
 import { fetchMarketplaceSkills }                 from './lib/fetch-marketplace.js';
 import { generateCatalog, generateCatalogHtml }   from './lib/catalog.js';
-import { refMatchesSkill }                        from './lib/bundle-resolve.js';
+import { refMatchesEntity }                        from './lib/bundle-resolve.js';
 import { mergeRatings, type RatingsFile }         from './lib/merge-ratings.js';
 import type { Agent, Command, MarketplaceEntry, McpServer, Plugin, Skill, Bundle, Hook } from './lib/types.js';
 
@@ -148,18 +148,29 @@ for (const plugin of allPlugins) {
   if (cats.size > 1) plugin.category = 'mixed';
 }
 
-// Attach bundle membership to each skill the bundle's refs actually resolve to.
-// A bare-string ref still tags every same-named skill across marketplaces;
+// Attach bundle membership to each entity the bundle's refs resolve to.
+// A bare-string ref tags every same-named entity across marketplaces;
 // an object ref narrows by source/pluginName so collisions don't get mislabeled.
-for (const skill of allSkills) {
-  const memberships: string[] = [];
-  for (const bundle of BUNDLES) {
-    if ((bundle.skills ?? []).some(ref => refMatchesSkill(ref, skill))) {
-      memberships.push(bundle.id ?? bundle.name);
+function tagBundleMembership<T extends { name: string; source: { owner: string; repo: string }; pluginName?: string; bundles?: string[] }>(
+  entities: T[],
+  arrayKey: 'skills' | 'agents' | 'hooks' | 'commands' | 'mcpServers',
+): void {
+  for (const entity of entities) {
+    const memberships: string[] = [];
+    for (const bundle of BUNDLES) {
+      if ((bundle[arrayKey] ?? []).some(ref => refMatchesEntity(ref, entity))) {
+        memberships.push(bundle.id ?? bundle.name);
+      }
     }
+    entity.bundles = memberships.length > 0 ? memberships : (entity.bundles ?? []);
   }
-  skill.bundles = memberships.length > 0 ? memberships : skill.bundles ?? [];
 }
+
+tagBundleMembership(allSkills,     'skills');
+tagBundleMembership(allAgents,     'agents');
+tagBundleMembership(allHooks,      'hooks');
+tagBundleMembership(allCommands,   'commands');
+tagBundleMembership(allMcpServers, 'mcpServers');
 
 // --- Step 2.5: Merge ratings.json into local-marketplace skills ---
 //
@@ -209,8 +220,8 @@ const index = {
 writeFileSync(join(ROOT, 'skills_index.json'), JSON.stringify(index, null, 2) + '\n');
 console.log(`\n✓ skills_index.json — ${allPlugins.length} plugins, ${allSkills.length} skills, ${allAgents.length} agents, ${allMcpServers.length} MCP servers, ${allCommands.length} commands, ${allHooks.length} hooks from ${marketplaces.length} marketplace(s)`);
 
-writeFileSync(join(ROOT, 'CATALOG.md'), generateCatalog(allSkills, allAgents, allMcpServers, allCommands, allHooks, BUNDLES, marketplaces, sourceInfo));
+writeFileSync(join(ROOT, 'CATALOG.md'), generateCatalog(allSkills, allAgents, allMcpServers, allCommands, allHooks, allPlugins, BUNDLES, marketplaces, sourceInfo));
 console.log(`✓ CATALOG.md`);
 
-writeFileSync(join(ROOT, 'catalog.html'), generateCatalogHtml(allSkills, allAgents, allMcpServers, allCommands, allHooks, BUNDLES, marketplaces, sourceInfo));
+writeFileSync(join(ROOT, 'catalog.html'), generateCatalogHtml(allSkills, allAgents, allMcpServers, allCommands, allHooks, allPlugins, BUNDLES, marketplaces, sourceInfo));
 console.log(`✓ catalog.html`);

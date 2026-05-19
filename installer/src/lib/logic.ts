@@ -210,18 +210,68 @@ export function resolveInstallTarget(
 
 // ── Bundle resolution ─────────────────────────────────────────────────────────
 
-export function resolveBundle(bundle: Bundle, skills: Skill[]): Skill[] {
-  return bundle.skills
-    .map((ref: BundleSkillRef): Skill | undefined => {
-      if (typeof ref === 'string') return skills.find((s) => s.name === ref);
-      return skills.find((s) =>
-        s.name === ref.name &&
-        s.source.owner === ref.source?.owner &&
-        s.source.repo === ref.source?.repo &&
-        (ref.pluginName == null || s.pluginName === ref.pluginName)
-      );
-    })
-    .filter((s): s is Skill => s !== undefined);
+type NamedInstallable = { name: string; source: { owner: string; repo: string }; pluginName?: string };
+
+function matchRef(ref: BundleSkillRef, e: NamedInstallable): boolean {
+  if (typeof ref === 'string') return e.name === ref;
+  return e.name === ref.name
+    && (ref.source == null || (e.source.owner === ref.source.owner && e.source.repo === ref.source.repo))
+    && (ref.pluginName == null || e.pluginName === ref.pluginName);
+}
+
+function resolveRefs<T extends NamedInstallable>(
+  refs: BundleSkillRef[] | undefined,
+  all: T[],
+): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const ref of refs ?? []) {
+    const match = all.find((e) => matchRef(ref, e));
+    if (!match) continue;
+    const key = `${match.source.owner}/${match.source.repo}::${match.pluginName ?? ''}::${match.name}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(match);
+  }
+  return out;
+}
+
+export function resolveBundle(
+  bundle: Bundle,
+  skills: Skill[],
+  others?: {
+    agents?:     Agent[];
+    hooks?:      Hook[];
+    commands?:   Command[];
+    mcpServers?: McpServer[];
+    plugins?:    Plugin[];
+  },
+): Array<Skill | Agent | Hook | Command | McpServer | Plugin> {
+  const pluginRefs = bundle.plugins ?? [];
+  const resolvedPlugins: Plugin[] = [];
+  const seenPlugins = new Set<string>();
+  for (const ref of pluginRefs) {
+    const name = typeof ref === 'string' ? ref : ref.name;
+    const src  = typeof ref === 'string' ? null : (ref.source ?? null);
+    const match = (others?.plugins ?? []).find((p) =>
+      p.name === name &&
+      (src == null || (p.source.owner === src.owner && p.source.repo === src.repo))
+    );
+    if (!match) continue;
+    const key = `${match.source.owner}/${match.source.repo}::${match.name}`;
+    if (seenPlugins.has(key)) continue;
+    seenPlugins.add(key);
+    resolvedPlugins.push(match);
+  }
+
+  return [
+    ...resolveRefs(bundle.skills,     skills),
+    ...resolveRefs(bundle.agents,     others?.agents     ?? []),
+    ...resolveRefs(bundle.hooks,      others?.hooks      ?? []),
+    ...resolveRefs(bundle.commands,   others?.commands   ?? []),
+    ...resolveRefs(bundle.mcpServers, others?.mcpServers ?? []),
+    ...resolvedPlugins,
+  ];
 }
 
 // ── Update helpers ────────────────────────────────────────────────────────────

@@ -72,12 +72,16 @@ export function App() {
   const [meta,       setMeta]       = useState<SkillsIndexMeta | undefined>(undefined);
   const [loaded,     setLoaded]     = useState(false);
 
-  // Map from "owner/repo" → { isMarketplace } for BundleDrawer
+  // Map from "owner/repo" → { isMarketplace } for BundleDrawer.
+  // meta.sources is the authoritative source — it records isMarketplace per repo
+  // as determined at build time. Fall back to treating everything as a marketplace
+  // when meta hasn't loaded yet.
   const sourcesMap = useMemo<Record<string, { isMarketplace: boolean }>>(() => {
+    if (meta?.sources) return meta.sources;
     const map: Record<string, { isMarketplace: boolean }> = {};
-    for (const s of sources) map[s.repo] = { isMarketplace: !s.builtin || true };
+    for (const s of sources) map[s.repo] = { isMarketplace: true };
     return map;
-  }, [sources]);
+  }, [sources, meta]);
 
   const [openPlugin, setOpenPlugin] = useState<Plugin | null>(null);
   const [openEntity, setOpenEntity] = useState<OpenEntity | null>(null);
@@ -292,8 +296,10 @@ export function App() {
       <BundleDrawer
         items={bundleItems}
         sources={sourcesMap}
+        bundles={bundles}
         onRemove={handleRemoveFromBundle}
         onClear={handleClearBundle}
+        onGotoBundle={() => setView('bundles')}
       />
 
       <ConsentBanner consent={consent} onChoice={handleConsentChoice} />

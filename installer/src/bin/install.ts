@@ -383,34 +383,34 @@ function entitySummary(p: Plugin): string {
       process.exit(1);
     }
 
-    const bundleSkills = resolveBundle(bundle, skills);
-    if (bundleSkills.length === 0) {
-      console.error(`\nBundle "${bundleId}" has no resolvable skills in the current index.\n`);
+    const bundleItems = resolveBundle(bundle, skills, { agents, hooks, commands, mcpServers, plugins });
+    if (bundleItems.length === 0) {
+      console.error(`\nBundle "${bundleId}" has no resolvable items in the current index.\n`);
       process.exit(1);
     }
 
     console.log(`\nBundle: ${bundle.name}`);
     console.log(`${bundle.description}\n`);
 
-    const marketplaces = marketplacesForItems(bundleSkills, sources);
+    const marketplaces = marketplacesForItems(bundleItems, sources);
     console.log(`Will register ${marketplaces.length} marketplace${marketplaces.length === 1 ? '' : 's'}:`);
     marketplaces.forEach((m) => console.log(`  • ${m}`));
     console.log();
 
-    console.log(`Will install ${bundleSkills.length} skill${bundleSkills.length === 1 ? '' : 's'}:`);
-    bundleSkills.forEach((s) => {
-      const src = `${s.source.owner}/${s.source.repo}`;
-      console.log(`  • ${s.name.padEnd(36)} → ${describeTarget(s, sources).padEnd(60)} (${src})`);
+    console.log(`Will install ${bundleItems.length} item${bundleItems.length === 1 ? '' : 's'}:`);
+    bundleItems.forEach((e) => {
+      const src = `${e.source.owner}/${e.source.repo}`;
+      console.log(`  • ${e.name.padEnd(36)} → ${describeTarget(e, sources).padEnd(60)} (${src})`);
     });
     console.log();
 
     if (!dryRun) {
-      const ok = await confirm(`Install ${bundleSkills.length} plugin${bundleSkills.length === 1 ? '' : 's'}?`);
+      const ok = await confirm(`Install ${bundleItems.length} item${bundleItems.length === 1 ? '' : 's'}?`);
       if (!ok) { console.log('Cancelled.'); return; }
     }
 
     try {
-      await installItemsRespectingSource(bundleSkills, sources, { dryRun });
+      await installItemsRespectingSource(bundleItems, sources, { dryRun });
     } catch (err) {
       console.error(`\nError: ${(err as Error).message}\n`);
       process.exit(1);

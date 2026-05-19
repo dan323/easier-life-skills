@@ -69,6 +69,7 @@ export interface Agent {
   rawAgentUrl:    string;
   installCommand: string;
   source:         Source;
+  bundles?:       string[];
   _repo?:         string;
 }
 
@@ -80,6 +81,7 @@ export interface McpServer {
   command:        string;
   installCommand: string;
   source:         Source;
+  bundles?:       string[];
   _repo?:         string;
 }
 
@@ -92,6 +94,7 @@ export interface Command {
   rawCommandUrl:  string;
   installCommand: string;
   source:         Source;
+  bundles?:       string[];
   _repo?:         string;
 }
 
@@ -104,6 +107,7 @@ export interface Hook {
   rawHookUrl:     string;
   installCommand: string;
   source:         Source;
+  bundles?:       string[];
   _repo?:         string;
 }
 
@@ -120,7 +124,12 @@ export interface Bundle {
   id?:         string;
   name:        string;
   description: string;
-  skills:      BundleSkillRef[];
+  skills?:     BundleSkillRef[];
+  agents?:     BundleSkillRef[];
+  hooks?:      BundleSkillRef[];
+  commands?:   BundleSkillRef[];
+  mcpServers?: BundleSkillRef[];
+  plugins?:    BundleSkillRef[];
   source?:     { owner: string; repo: string; repoUrl?: string };
   _repo?:      string;
 }

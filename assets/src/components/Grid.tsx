@@ -74,7 +74,7 @@ export function Grid(props: Props) {
       {view === 'mcpServers' && <McpGrid        {...props} />}
       {view === 'commands'   && <CommandsGrid   {...props} />}
       {view === 'hooks'      && <HooksGrid      {...props} />}
-      {view === 'bundles'    && <BundlesGrid bundles={data.bundles} skills={data.skills} sources={props.sources} />}
+      {view === 'bundles'    && <BundlesGrid bundles={data.bundles} skills={data.skills} agents={data.agents} hooks={data.hooks} commands={data.commands} mcpServers={data.mcpServers} plugins={data.plugins} sources={props.sources} />}
     </>
   );
 }
@@ -328,10 +328,15 @@ function HooksGrid({ data, query, sort, activeRepos, activeCategories, onOpenHoo
   );
 }
 
-function BundlesGrid({ bundles, skills, sources }: {
-  bundles: Bundle[];
-  skills:  Skill[];
-  sources?: Record<string, { isMarketplace: boolean }>;
+function BundlesGrid({ bundles, skills, agents, hooks, commands, mcpServers, plugins, sources }: {
+  bundles:    Bundle[];
+  skills:     Skill[];
+  agents:     Agent[];
+  hooks:      Hook[];
+  commands:   Command[];
+  mcpServers: McpServer[];
+  plugins:    Plugin[];
+  sources?:   Record<string, { isMarketplace: boolean }>;
 }) {
   return (
     <>
@@ -339,7 +344,19 @@ function BundlesGrid({ bundles, skills, sources }: {
         {bundles.length} bundles
       </div>
       <div id="bundles-grid" style={{ display: 'grid' }}>
-        {bundles.map(b => <BundleCard key={b.name} bundle={b} skills={skills} sources={sources} />)}
+        {bundles.map(b => (
+          <BundleCard
+            key={b.name}
+            bundle={b}
+            skills={skills}
+            agents={agents}
+            hooks={hooks}
+            commands={commands}
+            mcpServers={mcpServers}
+            plugins={plugins}
+            sources={sources}
+          />
+        ))}
       </div>
     </>
   );
