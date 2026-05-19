@@ -1,5 +1,6 @@
 {
   "name": "scaffold",
+  "version": "1.0.1",
   "description": "Generate a new plugin skeleton (plugin.json, SKILL.md, evals.json, optional agents/references) from a single prompt",
   "author": { "name": "dan323" },
   "category": "productivity",

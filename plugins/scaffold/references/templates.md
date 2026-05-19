@@ -85,9 +85,7 @@ Before doing any work, call `TaskCreate` for each phase below. Call
 TODO: replace with the first investigation step. Include the bash commands
 the agent should run — don't ask it to guess.
 
-```bash
-# TODO: example data-gathering command
-```
+    # TODO: example data-gathering command
 
 ---
 
@@ -104,9 +102,7 @@ explicitly — show a concrete example below.
 
 ### Output format
 
-```
-TODO: concrete example of what the report or file should look like.
-```
+    TODO: concrete example of what the report or file should look like.
 ```
 
 ---
@@ -203,11 +199,9 @@ TODO: second action.
 
 Print a brief summary:
 
-```
-## {{AGENT_NAME}} — Done
+    ## {{AGENT_NAME}} — Done
 
-TODO: bullet points the parent skill can parse or surface to the user.
-```
+    TODO: bullet points the parent skill can parse or surface to the user.
 ```
 
 ---
