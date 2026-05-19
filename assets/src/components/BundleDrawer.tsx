@@ -24,7 +24,7 @@ export function BundleDrawer({ items, sources, onRemove, onClear }: Props) {
   const script = buildInstallScript(items, sources);
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  // Trap focus inside the drawer when open (accessibility)
+  // Move initial focus into the drawer when it opens (accessibility)
   useLayoutEffect(() => {
     if (!open) return;
     const el = drawerRef.current;
