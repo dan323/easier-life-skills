@@ -69,6 +69,13 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/site-audit"
     },
     {
+      "name": "state-machine-invariants",
+      "source": "./plugins/state-machine-invariants",
+      "description": "Static analyser for state machines (XState v5 createMachine() in TS/JS, or a small flat YAML schema). Reports unreachable states, sink/deadlock states, dead transitions (literal-false guards), overlapping guards under XState's first-match rule, and unused events declared but never consumed. Use when asked to audit, verify, model-check, or find bugs in a state machine.",
+      "category": "code-quality",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/state-machine-invariants"
+    },
+    {
       "name": "task-agent",
       "source": "./plugins/task-agent",
       "description": "Read tasks from a YAML file (unified or legacy two-file format), implement one per run via an agent, and open a PR",

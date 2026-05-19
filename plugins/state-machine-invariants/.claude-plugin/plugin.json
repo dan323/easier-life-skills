@@ -1,0 +1,8 @@
+{
+  "name": "state-machine-invariants",
+  "version": "1.0.0",
+  "description": "Static analyser for state machines (XState v5 createMachine() in TS/JS, or a small flat YAML schema). Reports unreachable states, sink/deadlock states, dead transitions (literal-false guards), overlapping guards under XState's first-match rule, and unused events declared but never consumed. Use when asked to audit, verify, model-check, or find bugs in a state machine.",
+  "author": { "name": "dan323" },
+  "category": "code-quality",
+  "skills": ["./skills/state-machine-invariants"]
+}

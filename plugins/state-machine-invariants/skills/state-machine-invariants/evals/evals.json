@@ -1,0 +1,131 @@
+{
+  "skill_name": "state-machine-invariants",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Audit the state machines under /tmp/eval-state-machine-invariants-0/ and tell me whether any bugs were found.",
+      "description": "Happy path: one clean YAML state machine in the working directory. The skill should discover it, parse and flatten through the pipeline, run the five checks, and report zero findings.",
+      "setup": "mkdir -p /tmp/eval-state-machine-invariants-0 && cd /tmp/eval-state-machine-invariants-0 && printf '%s\\n' 'id: order' 'initial: pending' 'final: [delivered, cancelled]' 'events: [pay, ship, deliver, cancel]' 'transitions:' '  - {from: pending, event: pay,     to: paid}' '  - {from: paid,    event: ship,    to: shipped}' '  - {from: shipped, event: deliver, to: delivered}' '  - {from: pending, event: cancel,  to: cancelled}' '  - {from: paid,    event: cancel,  to: cancelled}' > order.fsm.yaml && git init -q && git add . && git commit -q -m init",
+      "expected_output": "The skill discovers `order.fsm.yaml`, normalises it through `normalize_yaml.py`, flattens through `flatten.py` (no-op for a flat machine), runs the five invariant checks via `check_invariants.py`, and produces a markdown report summarising zero findings across one analysed spec. A `state-machine-invariants-report.json` sidecar is written to the working directory; an `order.fsm.ir.json` sidecar is written next to the input YAML.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "report-summary-zero-findings",
+          "text": "The markdown report contains 'Analysed 1 spec(s).' and 'Findings: 0'."
+        },
+        {
+          "id": "clean-spec-tick",
+          "text": "The markdown report contains a line for `order.fsm.yaml` marked with ✓ and the text 'no findings'."
+        },
+        {
+          "id": "ir-sidecar-written",
+          "text": "A file `/tmp/eval-state-machine-invariants-0/order.fsm.ir.json` exists after the run."
+        },
+        {
+          "id": "report-sidecar-written",
+          "text": "A file `state-machine-invariants-report.json` exists in the working directory after the run, and its `analyzed` array contains the order.fsm.yaml path."
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Find bugs in the state machine under /tmp/eval-state-machine-invariants-1/ and include the categorial / algebraic interpretation of each finding.",
+      "description": "All five v1 invariants fire on a single buggy YAML: an unreachable state, a deadlock, a literally-false guard, two identical `expr` guards on the same (state, event), and a declared-but-unused event. The skill should report exactly five findings — one per invariant — and surface the math one-liners under `--with-math`.",
+      "setup": "mkdir -p /tmp/eval-state-machine-invariants-1 && cd /tmp/eval-state-machine-invariants-1 && printf '%s\\n' 'id: order' 'initial: pending' 'final: [delivered, cancelled]' 'states: [pending, paid, shipped, delivered, cancelled, abandoned]' 'events: [pay, ship, deliver, cancel, refund]' 'transitions:' '  - {from: pending, event: pay,     to: paid}' '  - {from: paid,    event: ship,    to: shipped}' '  - {from: shipped, event: deliver, to: delivered}' '  - {from: pending, event: cancel,  to: cancelled}' '  - {from: paid,    event: cancel,  to: cancelled, guard: \"ctx.allow\"}' '  - {from: paid,    event: cancel,  to: cancelled, guard: \"ctx.allow\"}' '  - {from: paid,    event: cancel,  to: cancelled, guard: false}' > order.fsm.yaml && git init -q && git add . && git commit -q -m init",
+      "expected_output": "The report enumerates five distinct findings — one reachability, one deadlock, one dead-transition, one overlapping-guards, one unused-event — and each finding includes a `[Math: …]` line in categorial / algebraic vocabulary (orbit, sink, image of a projection, non-functional relation).",
+      "files": [],
+      "assertions": [
+        {
+          "id": "reachability-abandoned",
+          "text": "The markdown report contains an unreachable-state finding mentioning `abandoned`."
+        },
+        {
+          "id": "deadlock-abandoned",
+          "text": "The markdown report contains a deadlock finding mentioning `abandoned`."
+        },
+        {
+          "id": "dead-transition-literal-false",
+          "text": "The markdown report contains a dead-transition finding referencing the `cancel` event on `paid` with a `false` guard."
+        },
+        {
+          "id": "overlapping-guards-ctx-allow",
+          "text": "The markdown report contains an overlapping-guards finding on `(paid, cancel)` whose detail mentions identical `ctx.allow` guards."
+        },
+        {
+          "id": "unused-event-refund",
+          "text": "The markdown report contains an unused-event finding for `refund`."
+        },
+        {
+          "id": "math-lines-rendered",
+          "text": "Every finding in the markdown report is followed by a line beginning with '[Math:'."
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run the state-machine-invariants audit on /tmp/eval-state-machine-invariants-2/. Then run it again. Confirm both runs produced the same findings and that the source YAML was not modified.",
+      "description": "Idempotent re-run: the skill must produce the same findings on a second invocation against the same input, and must not mutate the user's source YAML between runs (only the IR sidecar and the report JSON are written).",
+      "setup": "mkdir -p /tmp/eval-state-machine-invariants-2 && cd /tmp/eval-state-machine-invariants-2 && printf '%s\\n' 'id: small' 'initial: a' 'events: [X, Y]' 'transitions:' '  - {from: a, event: X, to: b}' '  - {from: b, event: X, to: a}' > small.fsm.yaml && cp small.fsm.yaml small.fsm.yaml.expected && git init -q && git add . && git commit -q -m init",
+      "expected_output": "Two reports are produced. The set of findings (each finding's `invariant`, `summary`, and `location` fields) is identical between the two runs. The source file `small.fsm.yaml` is byte-identical to `small.fsm.yaml.expected` after both runs; the IR sidecar `small.fsm.ir.json` and the report JSON may be rewritten but their *content* is stable.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "source-yaml-unchanged",
+          "text": "After both runs, `/tmp/eval-state-machine-invariants-2/small.fsm.yaml` is byte-identical to the `small.fsm.yaml.expected` snapshot taken before the first run."
+        },
+        {
+          "id": "findings-stable-across-runs",
+          "text": "The set of findings (by `invariant` and `summary`) is the same between the first and second run."
+        },
+        {
+          "id": "ir-sidecar-stable",
+          "text": "The contents of `/tmp/eval-state-machine-invariants-2/small.fsm.ir.json` after the second run match the contents after the first run."
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Check the XState machine at /tmp/eval-state-machine-invariants-3/auth.ts for unreachable states or overlapping guards.",
+      "description": "XState input path: the skill must use `extract-xstate.cjs` (or the Python fallback if Node is unavailable) to lift the `createMachine(...)` config into the IR, then run the five checks. The fixture has two identical guards on `(loggedOut, SUBMIT)` so the overlap check fires.",
+      "setup": "mkdir -p /tmp/eval-state-machine-invariants-3 && cd /tmp/eval-state-machine-invariants-3 && printf '%s\\n' \"import { createMachine } from 'xstate';\" \"export const m = createMachine({\" \"  id: 'auth',\" \"  initial: 'loggedOut',\" \"  states: {\" \"    loggedOut: {\" \"      on: {\" \"        SUBMIT: [\" \"          { target: 'adminFlow',    cond: 'isAdmin' },\" \"          { target: 'standardFlow', cond: 'isAdmin' }\" \"        ]\" \"      }\" \"    },\" \"    adminFlow:    { type: 'final' },\" \"    standardFlow: { type: 'final' }\" \"  }\" \"});\" > auth.ts && git init -q && git add . && git commit -q -m init",
+      "expected_output": "The skill recognises `auth.ts` as an XState file, invokes `extract-xstate.cjs`, writes `auth.fsm.ir.json` next to the source, runs the checks, and reports at least one overlapping-guards finding citing `isAdmin` as the shared guard.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "ir-sidecar-from-xstate",
+          "text": "A file `/tmp/eval-state-machine-invariants-3/auth.fsm.ir.json` exists after the run and was produced by the XState extractor (the IR's `id` field is `auth`)."
+        },
+        {
+          "id": "overlap-finding-isadmin",
+          "text": "The markdown report contains an overlapping-guards finding on `(loggedOut, SUBMIT)` whose detail mentions `isAdmin`."
+        },
+        {
+          "id": "spec-path-points-at-source",
+          "text": "Findings in the report and JSON sidecar reference `auth.ts` (not the `.fsm.ir.json` sidecar) as the spec path."
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Audit the state machines under /tmp/eval-state-machine-invariants-4/ and tell me which ones could not be analysed and why.",
+      "description": "Mixed result: one analysable YAML alongside a malformed one (missing required `initial` and `transitions`). The skill must analyse the valid one, record the malformed one as skipped with a reason, and surface the skip in the report's 'skipped' section.",
+      "setup": "mkdir -p /tmp/eval-state-machine-invariants-4 && cd /tmp/eval-state-machine-invariants-4 && printf '%s\\n' 'id: good' 'initial: a' 'events: [X]' 'transitions:' '  - {from: a, event: X, to: b}' '  - {from: b, event: X, to: a}' > good.fsm.yaml && printf '%s\\n' 'id: broken' 'states: [a, b]' > broken.fsm.yaml && git init -q && git add . && git commit -q -m init",
+      "expected_output": "The report shows `good.fsm.yaml` analysed (with whatever findings the checks produce — at minimum, the deadlock check is satisfied trivially since the machine has no final states declared) and lists `broken.fsm.yaml` under the skipped section with a reason mentioning missing required keys.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "good-spec-analysed",
+          "text": "The markdown report lists `good.fsm.yaml` as analysed (either with ✓ no findings or with one or more findings, but not under the skipped section)."
+        },
+        {
+          "id": "broken-spec-skipped",
+          "text": "The markdown report contains a `⚠ skipped` entry for `broken.fsm.yaml`, and the reason mentions a missing required key (e.g. `initial` or `transitions`)."
+        },
+        {
+          "id": "summary-counts-skipped",
+          "text": "The report's summary line shows `Skipped: 1 spec(s).`"
+        }
+      ]
+    }
+  ]
+}

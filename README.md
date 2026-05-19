@@ -35,6 +35,7 @@ Or copy the right command directly from the [marketplace browser](#marketplace-b
 | [`scaffold`](plugins/scaffold/skills/scaffold/SKILL.md)                                           | Generate a complete plugin skeleton (`plugin.json`, `SKILL.md`, evals, optional agents/references) from a single prompt |
 | [`workflow`](plugins/workflow/skills/workflow/SKILL.md)                                           | Run multi-step skill workflows declared in workflow YAML — sequential execution with `${{ … }}` interpolation          |
 | [`auto-board-task`](plugins/auto-board-task/skills/auto-board-task/SKILL.md)                      | Process the top Todo card on a GitHub Project end-to-end — bundles the `gh-project-sync` board ⇄ `tasks.yml` reconciler and chains it with `task-agent` via the `workflow` skill so one invocation pulls the board into `tasks.yml`, opens a PR for the top pending task, and syncs the card to **In Review** with the PR link |
+| [`state-machine-invariants`](plugins/state-machine-invariants/skills/state-machine-invariants/SKILL.md) | Static analyser for state machines authored in XState v5 (`createMachine(...)` in TS/JS) or a small flat YAML schema (`*.fsm.yaml`) — reports **unreachable states**, **sink/deadlock states**, **dead transitions** (`literalFalse` guards), **overlapping guards** under XState's first-match rule, and **unused events** declared but never consumed. Read-only on user source. Optional `with_math` flag surfaces a one-line categorial restatement per finding |
 
 ### Agents
 

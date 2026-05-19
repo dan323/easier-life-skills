@@ -1,0 +1,20 @@
+# Canonical example for the .fsm.yaml format. See
+# ../references/fsm-yaml.md for the spec.
+#
+# This machine is clean — the analyser reports zero findings on it.
+# To see what a finding looks like, edit it: add `refund` to `events`
+# (the unused-event check fires), drop the `paid → cancelled` transition
+# and re-add it with `guard: false` (the dead-transition check fires),
+# or duplicate the `pending → paid` row (the overlapping-guards check
+# fires).
+
+id: order
+initial: pending
+final: [delivered, cancelled]
+events: [pay, ship, deliver, cancel]
+transitions:
+  - {from: pending, event: pay,     to: paid}
+  - {from: paid,    event: ship,    to: shipped}
+  - {from: shipped, event: deliver, to: delivered}
+  - {from: pending, event: cancel,  to: cancelled}
+  - {from: paid,    event: cancel,  to: cancelled}

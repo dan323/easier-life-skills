@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dan323/easier-life-skills/plugins/state-machine-invariants/references/fsm-yaml.schema.json",
+  "title": "state-machine-invariants .fsm.yaml",
+  "description": "User-authored flat state machine consumed by the state-machine-invariants skill. See fsm-yaml.md for prose explanations of each constraint.",
+  "type": "object",
+  "required": ["id", "initial", "transitions"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier for this machine."
+    },
+    "initial": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the initial state q₀. Must be a member of Q (the resolved state set)."
+    },
+    "states": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "description": "Optional: explicit declaration of Q. If omitted, derived from {initial} ∪ {t.from} ∪ {t.to} over transitions. Declare explicitly to surface states with no transitions to the reachability / deadlock checks."
+    },
+    "final": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "default": [],
+      "description": "Optional: list of final state names. Members must be in Q."
+    },
+    "events": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "description": "Optional: declared event alphabet Σ. If omitted, derived from transitions. Declare explicitly to surface unused-event findings."
+    },
+    "transitions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/transition" }
+    }
+  },
+  "$defs": {
+    "transition": {
+      "type": "object",
+      "required": ["from", "event", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "from":  { "type": "string", "minLength": 1, "description": "Source state. Must be in Q." },
+        "event": { "type": "string", "minLength": 1, "description": "Event in Σ that triggers the transition." },
+        "to":    { "type": "string", "minLength": 1, "description": "Destination state. Must be in Q." },
+        "guard": {
+          "description": "Optional. Omitted / null / true → always. false → literal-false (flagged as dead). String → opaque expression text, compared by character equality for overlap detection.",
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "null" },
+            { "type": "string" }
+          ]
+        }
+      }
+    }
+  }
+}
