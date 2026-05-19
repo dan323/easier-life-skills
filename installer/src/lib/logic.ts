@@ -26,12 +26,14 @@ export function isMarketplaceSource(item: { source: SkillSource }, sources: Sour
   return sources[key]?.isMarketplace !== false;
 }
 
-export function toInstallable(item: Skill | Plugin): Installable {
+type AnyInstallable = Skill | Agent | Hook | Command | McpServer | Plugin;
+
+export function toInstallable(item: AnyInstallable): Installable {
   if ('pluginName' in item) return { pluginName: item.pluginName, source: item.source };
   return { pluginName: item.name, source: item.source };
 }
 
-export function describeTarget(item: Skill | Plugin, sources: Sources): string {
+export function describeTarget(item: AnyInstallable, sources: Sources): string {
   const inst = toInstallable(item);
   if (isMarketplaceSource(inst, sources)) return `${inst.pluginName}@${inst.source.repo}`;
   return `${inst.pluginName}@${inst.pluginName} (shim → ${inst.source.repoUrl})`;
@@ -41,7 +43,7 @@ export function describeTarget(item: Skill | Plugin, sources: Sources): string {
 // are registered) for the given items. Marketplace sources surface as
 // `<owner>/<repo>`; plugin-only sources surface as a shim hint so users see
 // where the synthetic marketplace comes from.
-export function marketplacesForItems(items: Array<Skill | Plugin>, sources: Sources): string[] {
+export function marketplacesForItems(items: Array<AnyInstallable>, sources: Sources): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const item of items) {

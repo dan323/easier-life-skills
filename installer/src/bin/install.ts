@@ -159,7 +159,7 @@ function entitySummary(p: Plugin): string {
 
     console.log('\nBUNDLES\n');
     bundles.forEach((b) => {
-      const skillNames = b.skills.map((r) => (typeof r === 'string' ? r : r.name)).join(', ');
+      const skillNames = (b.skills ?? []).map((r) => (typeof r === 'string' ? r : r.name)).join(', ');
       console.log(`  ${(b.id ?? b.name).padEnd(28)} ${skillNames}`);
     });
     console.log(`\nInstall: npx @dan323/easier-life-skills --install <name>   (plugin or any entity name; routes to plugin)`);

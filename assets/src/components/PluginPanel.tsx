@@ -35,8 +35,9 @@ export function PluginPanel(props: Props) {
     if (!plugin) return;
     lastFocusedRef.current = document.activeElement as HTMLElement;
     document.body.style.overflow = 'hidden';
-    requestAnimationFrame(() => closeBtnRef.current?.focus());
+    const rafId = requestAnimationFrame(() => closeBtnRef.current?.focus());
     return () => {
+      cancelAnimationFrame(rafId);
       document.body.style.overflow = '';
       const prev = lastFocusedRef.current;
       if (prev && document.body.contains(prev)) prev.focus();

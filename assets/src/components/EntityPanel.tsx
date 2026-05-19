@@ -95,7 +95,7 @@ function EntityPanelBody({
   const mcpCommand = kind === 'mcpServer' ? (entity as McpServer).command : '';
 
   const skillBundles = kind === 'skill'
-    ? bundles.filter(b => b.skills.includes(entity.name))
+    ? bundles.filter(b => (b.skills ?? []).includes(entity.name))
     : [];
 
   return (

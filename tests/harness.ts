@@ -86,6 +86,7 @@ export async function bootApp(opts: BootOptions = {}): Promise<Booted> {
 
   await flush();
   await flush();
+  await flush();
 
   return { clipboardWrites };
 }

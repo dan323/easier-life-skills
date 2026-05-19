@@ -1,7 +1,7 @@
 import * as claude from './claude.js';
 import { writeShim } from './shim.js';
 import { isMarketplaceSource, toInstallable } from './logic.js';
-import type { Installable, Plugin, Skill, Sources } from './types.js';
+import type { Agent, Command, Hook, Installable, McpServer, Plugin, Skill, Sources } from './types.js';
 
 interface InstallOptions {
   dryRun?: boolean;
@@ -13,7 +13,7 @@ interface InstallOptions {
 // <pluginName>@<repo>`; plugin-only sources get a per-plugin shim marketplace.
 // Marketplace registrations and plugin installs are deduped per run.
 export async function installItemsRespectingSource(
-  items: Array<Skill | Plugin | Installable>,
+  items: Array<Skill | Agent | Hook | Command | McpServer | Plugin | Installable>,
   sources: Sources,
   { dryRun = false }: InstallOptions = {},
 ): Promise<void> {
