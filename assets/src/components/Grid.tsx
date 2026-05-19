@@ -7,6 +7,7 @@ import { HookCard }    from './cards/HookCard.tsx';
 import { BundleCard }  from './cards/BundleCard.tsx';
 import type { ViewKey } from './Controls.tsx';
 import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle } from '../types.ts';
+import { buildBundleItemId } from '../bundle-state.ts';
 
 interface DataSets {
   plugins:    Plugin[];
@@ -155,7 +156,7 @@ function PluginsGrid({ data, query, sort, activeRepos, activeCategories, onOpenP
                 plugin={p}
                 showSource={show}
                 onOpen={onOpenPlugin}
-                bundled={bundledIds.has(`plugin/${p.name}`)}
+                bundled={bundledIds.has(buildBundleItemId('plugin', p.name, p._repo ?? ''))}
                 onToggleBundle={onToggleBundlePlugin}
               />)}
       </div>
@@ -189,7 +190,7 @@ function SkillsGrid({ data, query, sort, activeRepos, activeCategories, onOpenSk
                 showSource={show}
                 showInstall
                 onOpen={onOpenSkill}
-                bundled={bundledIds.has(`skill/${s.name}`)}
+                bundled={bundledIds.has(buildBundleItemId('skill', s.name, s._repo ?? '', s.pluginName))}
                 onToggleBundle={onToggleBundleSkill}
               />)}
       </div>
@@ -221,7 +222,7 @@ function AgentsGrid({ data, query, sort, activeRepos, activeCategories, onOpenAg
                 showSource={show}
                 showInstall
                 onOpen={onOpenAgent}
-                bundled={bundledIds.has(`agent/${a.name}`)}
+                bundled={bundledIds.has(buildBundleItemId('agent', a.name, a._repo ?? '', a.pluginName))}
                 onToggleBundle={onToggleBundleAgent}
               />)}
       </div>
@@ -253,7 +254,7 @@ function McpGrid({ data, query, sort, activeRepos, activeCategories, onOpenMcp, 
                 showSource={show}
                 showInstall
                 onOpen={onOpenMcp}
-                bundled={bundledIds.has(`mcpServer/${m.name}`)}
+                bundled={bundledIds.has(buildBundleItemId('mcpServer', m.name, m._repo ?? '', m.pluginName))}
                 onToggleBundle={onToggleBundleMcp}
               />)}
       </div>
@@ -285,7 +286,7 @@ function CommandsGrid({ data, query, sort, activeRepos, activeCategories, onOpen
                 showSource={show}
                 showInstall
                 onOpen={onOpenCommand}
-                bundled={bundledIds.has(`command/${c.name}`)}
+                bundled={bundledIds.has(buildBundleItemId('command', c.name, c._repo ?? '', c.pluginName))}
                 onToggleBundle={onToggleBundleCommand}
               />)}
       </div>
@@ -319,7 +320,7 @@ function HooksGrid({ data, query, sort, activeRepos, activeCategories, onOpenHoo
                 showSource={show}
                 showInstall
                 onOpen={onOpenHook}
-                bundled={bundledIds.has(`hook/${h.name}`)}
+                bundled={bundledIds.has(buildBundleItemId('hook', h.name, h._repo ?? '', h.pluginName))}
                 onToggleBundle={onToggleBundleHook}
               />)}
       </div>

@@ -17,7 +17,7 @@ import { track, getStoredConsent, setStoredConsent } from '../analytics.ts';
 import type { ConsentState } from '../analytics.ts';
 import { ConsentBanner } from './ConsentBanner.tsx';
 import { BUILTIN_REPO } from '../constants.ts';
-import { encodeItem, decodeItem } from '../bundle-state.ts';
+import { encodeItem, decodeItem, buildBundleItemId } from '../bundle-state.ts';
 import type { BundleItem, BundleItemKind } from '../bundle-state.ts';
 import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle, SkillsIndexMeta } from '../types.ts';
 
@@ -34,13 +34,15 @@ function makeItem(
   kind: BundleItemKind,
   installCommand: string,
   repo: string,
+  pluginName = '',
 ): BundleItem {
   return {
-    id:             `${kind}/${name}`,
+    id:             buildBundleItemId(kind, name, repo, pluginName),
     name,
     kind,
     installCommand,
     repo,
+    pluginName:     pluginName || undefined,
     isMarketplace:  true,   // refined later by buildInstallScript against live sources
   };
 }
@@ -200,7 +202,7 @@ export function App() {
     });
   };
 
-  // bundledIds maps entity id ("kind/name") → true for O(1) card lookups
+  // bundledIds maps entity id ("kind/repo/plugin?/name") → true for O(1) card lookups
   const bundledIds = useMemo(() => new Set(bundleItems.map(i => i.id)), [bundleItems]);
 
   const handleRemoveFromBundle = (id: string) => {
@@ -255,11 +257,11 @@ export function App() {
           onOpenCommand={e => handleOpenEntity('command', e)}
           onOpenHook={e  => handleOpenEntity('hook',      e)}
           onToggleBundlePlugin={p  => toggleBundle(makeItem(p.name,  'plugin',    p.installCommand, p._repo ?? ''))}
-          onToggleBundleSkill={s   => toggleBundle(makeItem(s.name,  'skill',     s.installCommand, s._repo ?? ''))}
-          onToggleBundleAgent={a   => toggleBundle(makeItem(a.name,  'agent',     a.installCommand, a._repo ?? ''))}
-          onToggleBundleMcp={m     => toggleBundle(makeItem(m.name,  'mcpServer', m.installCommand, m._repo ?? ''))}
-          onToggleBundleCommand={c => toggleBundle(makeItem(c.name,  'command',   c.installCommand, c._repo ?? ''))}
-          onToggleBundleHook={h    => toggleBundle(makeItem(h.name,  'hook',      h.installCommand, h._repo ?? ''))}
+          onToggleBundleSkill={s   => toggleBundle(makeItem(s.name,  'skill',     s.installCommand, s._repo ?? '', s.pluginName))}
+          onToggleBundleAgent={a   => toggleBundle(makeItem(a.name,  'agent',     a.installCommand, a._repo ?? '', a.pluginName))}
+          onToggleBundleMcp={m     => toggleBundle(makeItem(m.name,  'mcpServer', m.installCommand, m._repo ?? '', m.pluginName))}
+          onToggleBundleCommand={c => toggleBundle(makeItem(c.name,  'command',   c.installCommand, c._repo ?? '', c.pluginName))}
+          onToggleBundleHook={h    => toggleBundle(makeItem(h.name,  'hook',      h.installCommand, h._repo ?? '', h.pluginName))}
         />
       </main>
 

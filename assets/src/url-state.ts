@@ -4,7 +4,7 @@ export interface UrlState {
   sort:   'az' | 'za';
   repos:  string[];
   cats:   string[];
-  bundle: string[];   // encoded as "name|installCommand" pairs
+  bundle: string[];   // encoded bundle item tokens (see bundle-state.ts)
 }
 
 export function readUrlState(): UrlState {
