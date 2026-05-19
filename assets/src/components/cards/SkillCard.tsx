@@ -3,19 +3,21 @@ import { CopyButton } from '../CopyButton.tsx';
 import type { Skill } from '../../types.ts';
 
 interface Props {
-  skill:       Skill;
-  showSource:  boolean;
-  showInstall: boolean;
-  onOpen:      (skill: Skill) => void;
+  skill:        Skill;
+  showSource:   boolean;
+  showInstall:  boolean;
+  onOpen:       (skill: Skill) => void;
+  bundled?:     boolean;
+  onToggleBundle?: (skill: Skill) => void;
 }
 
-export function SkillCard({ skill, showSource, showInstall, onOpen }: Props) {
+export function SkillCard({ skill, showSource, showInstall, onOpen, bundled, onToggleBundle }: Props) {
   const catClass = skill.category ? 'badge-' + skill.category : 'badge-uncategorized';
   const catLabel = skill.category ? titleCase(skill.category) : 'Uncategorized';
   const activate = () => onOpen(skill);
 
   return (
-    <div class="skill-card">
+    <div class={`skill-card${bundled ? ' skill-card--bundled' : ''}`}>
       <div class="card-header">
         <button
           type="button"
@@ -33,20 +35,33 @@ export function SkillCard({ skill, showSource, showInstall, onOpen }: Props) {
         </div>
       </div>
       <p class="card-desc">{skill.description}</p>
-      {showInstall && (
-        <div class="card-install">
-          <code>{skill.installCommand}</code>
-          <CopyButton
-            text={skill.installCommand}
-            ariaLabel={`Copy install command for ${skill.name}`}
-            stopPropagation
-            analyticsEvent={{
-              name:   'install_copy',
-              params: { kind: 'skill', name: skill.name, source: skill._repo ?? '', command_type: 'install' },
-            }}
-          />
-        </div>
-      )}
+      <div class="card-actions">
+        {showInstall && (
+          <div class="card-install">
+            <code>{skill.installCommand}</code>
+            <CopyButton
+              text={skill.installCommand}
+              ariaLabel={`Copy install command for ${skill.name}`}
+              stopPropagation
+              analyticsEvent={{
+                name:   'install_copy',
+                params: { kind: 'skill', name: skill.name, source: skill._repo ?? '', command_type: 'install' },
+              }}
+            />
+          </div>
+        )}
+        {onToggleBundle && (
+          <button
+            type="button"
+            class={`bundle-add-btn${bundled ? ' bundle-add-btn--active' : ''}`}
+            aria-label={bundled ? `Remove ${skill.name} from bundle` : `Add ${skill.name} to bundle`}
+            aria-pressed={bundled}
+            onClick={e => { e.stopPropagation(); onToggleBundle(skill); }}
+          >
+            {bundled ? '✓ Bundled' : '+ Bundle'}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -188,4 +188,19 @@ describe('same-name skills across plugins', () => {
     bundleSection = document.getElementById('panel-bundles-section');
     expect(bundleSection?.style.display).toBe('none');
   });
+
+  it('bundling one same-name skill does not mark the others as bundled', async () => {
+    await bootApp({ fixture: FIXTURE });
+    click('#view-skills');
+    await flush();
+
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('#skills-grid .skill-card'));
+    const docsCard = cards.find(card => card.querySelector('.card-desc')?.textContent === 'CHANGELOG.md (docs flavour)');
+    docsCard?.querySelector<HTMLButtonElement>('.bundle-add-btn')?.click();
+    await flush();
+
+    const bundledButtons = Array.from(document.querySelectorAll<HTMLElement>('#skills-grid .bundle-add-btn'))
+      .filter(btn => (btn.textContent ?? '').includes('Bundled'));
+    expect(bundledButtons).toHaveLength(1);
+  });
 });

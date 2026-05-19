@@ -10,12 +10,15 @@ import { Grid }           from './Grid.tsx';
 import { PluginPanel }    from './PluginPanel.tsx';
 import { EntityPanel }    from './EntityPanel.tsx';
 import type { EntityKind } from './EntityPanel.tsx';
+import { BundleDrawer }   from './BundleDrawer.tsx';
 import { loadMarketplace } from '../marketplace.ts';
 import { readUrlState, writeUrlState } from '../url-state.ts';
 import { track, getStoredConsent, setStoredConsent } from '../analytics.ts';
 import type { ConsentState } from '../analytics.ts';
 import { ConsentBanner } from './ConsentBanner.tsx';
 import { BUILTIN_REPO } from '../constants.ts';
+import { encodeItem, decodeItem, buildBundleItemId } from '../bundle-state.ts';
+import type { BundleItem, BundleItemKind } from '../bundle-state.ts';
 import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle, SkillsIndexMeta } from '../types.ts';
 
 const VALID_VIEWS: ViewKey[] = ['plugins', 'skills', 'agents', 'mcpServers', 'commands', 'hooks', 'bundles'];
@@ -23,6 +26,25 @@ const VALID_VIEWS: ViewKey[] = ['plugins', 'skills', 'agents', 'mcpServers', 'co
 interface OpenEntity {
   kind:   EntityKind;
   entity: Skill | Agent | McpServer | Command | Hook;
+}
+
+/** Build a BundleItem from a card entity. */
+function makeItem(
+  name: string,
+  kind: BundleItemKind,
+  installCommand: string,
+  repo: string,
+  pluginName = '',
+): BundleItem {
+  return {
+    id:             buildBundleItemId(kind, name, repo, pluginName),
+    name,
+    kind,
+    installCommand,
+    repo,
+    pluginName:     pluginName || undefined,
+    isMarketplace:  true,   // refined later by buildInstallScript against live sources
+  };
 }
 
 export function App() {
@@ -34,6 +56,11 @@ export function App() {
   const [activeRepos,      setActiveRepos]      = useState<Set<string>>(new Set(initial.repos));
   const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set(initial.cats));
 
+  // Bundle state: ordered array of selected items, keyed by installCommand
+  const [bundleItems, setBundleItems] = useState<BundleItem[]>(() =>
+    initial.bundle.map(decodeItem).filter((x): x is BundleItem => x !== null)
+  );
+
   const [plugins,    setPlugins]    = useState<Plugin[]>([]);
   const [skills,     setSkills]     = useState<Skill[]>([]);
   const [agents,     setAgents]     = useState<Agent[]>([]);
@@ -44,6 +71,13 @@ export function App() {
   const [sources,    setSources]    = useState<SourceItem[]>([{ repo: BUILTIN_REPO, count: 0, builtin: true }]);
   const [meta,       setMeta]       = useState<SkillsIndexMeta | undefined>(undefined);
   const [loaded,     setLoaded]     = useState(false);
+
+  // Map from "owner/repo" → { isMarketplace } for BundleDrawer
+  const sourcesMap = useMemo<Record<string, { isMarketplace: boolean }>>(() => {
+    const map: Record<string, { isMarketplace: boolean }> = {};
+    for (const s of sources) map[s.repo] = { isMarketplace: !s.builtin || true };
+    return map;
+  }, [sources]);
 
   const [openPlugin, setOpenPlugin] = useState<Plugin | null>(null);
   const [openEntity, setOpenEntity] = useState<OpenEntity | null>(null);
@@ -72,13 +106,15 @@ export function App() {
     return () => { cancelled = true; };
   }, []);
 
+  // Sync all app state → URL hash
   useLayoutEffect(() => {
     writeUrlState({
       view, query: query.toLowerCase(), sort,
-      repos: [...activeRepos],
-      cats:  [...activeCategories],
+      repos:  [...activeRepos],
+      cats:   [...activeCategories],
+      bundle: bundleItems.map(encodeItem),
     });
-  }, [view, query, sort, activeRepos, activeCategories]);
+  }, [view, query, sort, activeRepos, activeCategories, bundleItems]);
 
   useLayoutEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -156,6 +192,25 @@ export function App() {
     setStoredConsent(null);
   };
 
+  // --- Bundle toggle helpers ---
+  const toggleBundle = (item: BundleItem) => {
+    setBundleItems(prev => {
+      if (prev.some(i => i.id === item.id)) {
+        return prev.filter(i => i.id !== item.id);
+      }
+      return [...prev, item];
+    });
+  };
+
+  // bundledIds maps entity id ("kind/repo/plugin?/name") → true for O(1) card lookups
+  const bundledIds = useMemo(() => new Set(bundleItems.map(i => i.id)), [bundleItems]);
+
+  const handleRemoveFromBundle = (id: string) => {
+    setBundleItems(prev => prev.filter(i => i.id !== id));
+  };
+
+  const handleClearBundle = () => setBundleItems([]);
+
   const lowerQuery = query.toLowerCase();
 
   return (
@@ -194,12 +249,19 @@ export function App() {
           activeCategories={activeCategories}
           data={{ plugins, skills, agents, mcpServers, commands, hooks, bundles }}
           sources={meta?.sources}
+          bundledIds={bundledIds}
           onOpenPlugin={handleOpenPlugin}
           onOpenSkill={e => handleOpenEntity('skill',     e)}
           onOpenAgent={e => handleOpenEntity('agent',     e)}
           onOpenMcp={e   => handleOpenEntity('mcpServer', e)}
           onOpenCommand={e => handleOpenEntity('command', e)}
           onOpenHook={e  => handleOpenEntity('hook',      e)}
+          onToggleBundlePlugin={p  => toggleBundle(makeItem(p.name,  'plugin',    p.installCommand, p._repo ?? ''))}
+          onToggleBundleSkill={s   => toggleBundle(makeItem(s.name,  'skill',     s.installCommand, s._repo ?? '', s.pluginName))}
+          onToggleBundleAgent={a   => toggleBundle(makeItem(a.name,  'agent',     a.installCommand, a._repo ?? '', a.pluginName))}
+          onToggleBundleMcp={m     => toggleBundle(makeItem(m.name,  'mcpServer', m.installCommand, m._repo ?? '', m.pluginName))}
+          onToggleBundleCommand={c => toggleBundle(makeItem(c.name,  'command',   c.installCommand, c._repo ?? '', c.pluginName))}
+          onToggleBundleHook={h    => toggleBundle(makeItem(h.name,  'hook',      h.installCommand, h._repo ?? '', h.pluginName))}
         />
       </main>
 
@@ -225,6 +287,13 @@ export function App() {
         open={openEntity}
         bundles={bundles}
         onClose={() => setOpenEntity(null)}
+      />
+
+      <BundleDrawer
+        items={bundleItems}
+        sources={sourcesMap}
+        onRemove={handleRemoveFromBundle}
+        onClear={handleClearBundle}
       />
 
       <ConsentBanner consent={consent} onChoice={handleConsentChoice} />

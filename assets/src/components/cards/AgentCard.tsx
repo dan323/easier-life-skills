@@ -3,18 +3,20 @@ import { CopyButton } from '../CopyButton.tsx';
 import type { Agent } from '../../types.ts';
 
 interface Props {
-  agent:       Agent;
-  showSource:  boolean;
-  showInstall: boolean;
-  onOpen:      (a: Agent) => void;
+  agent:           Agent;
+  showSource:      boolean;
+  showInstall:     boolean;
+  onOpen:          (a: Agent) => void;
+  bundled?:        boolean;
+  onToggleBundle?: (a: Agent) => void;
 }
 
-export function AgentCard({ agent, showSource, showInstall, onOpen }: Props) {
+export function AgentCard({ agent, showSource, showInstall, onOpen, bundled, onToggleBundle }: Props) {
   const catClass = agent.category ? 'badge-' + agent.category : 'badge-uncategorized';
   const catLabel = agent.category ? titleCase(agent.category) : 'Uncategorized';
   const activate = () => onOpen(agent);
   return (
-    <div class="skill-card">
+    <div class={`skill-card${bundled ? ' skill-card--bundled' : ''}`}>
       <div class="card-header">
         <button
           type="button"
@@ -32,20 +34,33 @@ export function AgentCard({ agent, showSource, showInstall, onOpen }: Props) {
         </div>
       </div>
       <p class="card-desc">{agent.description}</p>
-      {showInstall && (
-        <div class="card-install">
-          <code>{agent.installCommand}</code>
-          <CopyButton
-            text={agent.installCommand}
-            ariaLabel={`Copy install command for ${agent.name}`}
-            stopPropagation
-            analyticsEvent={{
-              name:   'install_copy',
-              params: { kind: 'agent', name: agent.name, source: agent._repo ?? '', command_type: 'install' },
-            }}
-          />
-        </div>
-      )}
+      <div class="card-actions">
+        {showInstall && (
+          <div class="card-install">
+            <code>{agent.installCommand}</code>
+            <CopyButton
+              text={agent.installCommand}
+              ariaLabel={`Copy install command for ${agent.name}`}
+              stopPropagation
+              analyticsEvent={{
+                name:   'install_copy',
+                params: { kind: 'agent', name: agent.name, source: agent._repo ?? '', command_type: 'install' },
+              }}
+            />
+          </div>
+        )}
+        {onToggleBundle && (
+          <button
+            type="button"
+            class={`bundle-add-btn${bundled ? ' bundle-add-btn--active' : ''}`}
+            aria-label={bundled ? `Remove ${agent.name} from bundle` : `Add ${agent.name} to bundle`}
+            aria-pressed={bundled}
+            onClick={e => { e.stopPropagation(); onToggleBundle(agent); }}
+          >
+            {bundled ? '✓ Bundled' : '+ Bundle'}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
