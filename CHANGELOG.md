@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **`ratings.json` schema + build merge — foundation of the Skill Rating & Review System (issue #7, Phase 1+4 of the design in `docs/plan.md`).** New `ratings.json` at the repo root is the static source of truth for per-skill ratings; the file is keyed by `<pluginName>/<skillName>` and each entry is `{ avg: number, count: number, reviews: { stars, body, author, date }[] }`. `scripts/lib/types.ts` gains `Review` and `Rating` interfaces and `Skill.rating?: Rating`; `assets/src/types.ts` mirrors the same shape for the web UI so future PRs can render the badge without a type round-trip. The build merge lives in `scripts/lib/merge-ratings.ts` (pure, fail-soft) and is wired into `scripts/build-index.ts` after bundle membership is attached: it only merges onto **local-marketplace** skills (`source.owner === LOCAL_OWNER && source.repo === LOCAL_REPO`), warns and skips malformed entries instead of throwing, and uses `pluginName/skillName` as the lookup key so two plugins shipping a same-named skill in the same repo don't collide. The test fixture `tests/fixtures/skills_index.json` gains a rating on the `changelog` skill so any web-UI test crossing that card exercises the path where the optional field is present. New unit suite `tests/merge-ratings.test.ts` covers the happy path, the external-skill no-op, the missing-entry no-op, the `pluginName/skillName` disambiguation, the malformed-entry warn-and-skip path, idempotence under double-merge, and the empty-map no-op. `docs/architecture.md` gains a "Ratings & Reviews" section describing the static-data flow (Discussions → ingest workflow → `ratings.json` → build merge → `skills_index.json` → web UI) and explicitly notes that v1 only rates local skills. The UI rendering, `Rating` sort option, and the scheduled ingestion workflow (Phases 2/3/5 of the design) are explicit follow-ups in subsequent PRs — splitting them keeps each diff reviewable.
+
 ## [1.29.1] - 2026-05-18
 
 ### Added

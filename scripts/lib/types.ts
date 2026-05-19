@@ -6,6 +6,33 @@ export interface PluginSource {
   repoUrl: string;
 }
 
+/**
+ * One user-submitted review of a skill. The shape mirrors the structured
+ * Discussions reply parsed by `scripts/ingest-ratings.ts` (Phase 5 of the
+ * Skill Rating & Review System, see docs/architecture.md → Ratings &
+ * Reviews). `stars` is 1-5 inclusive; `body` is the free-form review text.
+ */
+export interface Review {
+  stars: number;
+  body: string;
+  /** GitHub login of the reviewer (no email, no other PII). */
+  author: string;
+  /** ISO 8601 timestamp of the original Discussions reply. */
+  date: string;
+}
+
+/**
+ * Aggregate rating for one skill. `avg` is the mean of `reviews[].stars`,
+ * rounded to one decimal; `count` is `reviews.length`. Both are stored even
+ * though they are derivable from `reviews`, so the web UI can render the
+ * badge without scanning the reviews array.
+ */
+export interface Rating {
+  avg: number;
+  count: number;
+  reviews: Review[];
+}
+
 export interface Skill {
   name: string;
   pluginName: string;
@@ -20,6 +47,12 @@ export interface Skill {
   installCommand: string;
   source: PluginSource;
   bundles?: string[];
+  /**
+   * Optional aggregate rating. Present only for local-marketplace skills
+   * that have at least one review in `ratings.json`. External-marketplace
+   * skills do not carry ratings in v1.
+   */
+  rating?: Rating;
   _repo?: string;
 }
 

@@ -10,6 +10,7 @@ import { fileURLToPath }                          from 'url';
 import { fetchMarketplaceSkills }                 from './lib/fetch-marketplace.js';
 import { generateCatalog, generateCatalogHtml }   from './lib/catalog.js';
 import { refMatchesSkill }                        from './lib/bundle-resolve.js';
+import { mergeRatings, type RatingsFile }         from './lib/merge-ratings.js';
 import type { Agent, Command, MarketplaceEntry, McpServer, Plugin, Skill, Bundle, Hook } from './lib/types.js';
 
 const ROOT         = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -159,6 +160,30 @@ for (const skill of allSkills) {
   }
   skill.bundles = memberships.length > 0 ? memberships : skill.bundles ?? [];
 }
+
+// --- Step 2.5: Merge ratings.json into local-marketplace skills ---
+//
+// See docs/architecture.md → Ratings & Reviews. Pure-logic merge lives in
+// scripts/lib/merge-ratings.ts (unit-tested separately); this block only
+// handles the I/O — reading the file off disk and reporting the count.
+// Fail-soft: a missing or malformed `ratings.json` warns rather than
+// breaking the build, because the file is rewritten by a separate
+// scheduled workflow (Phase 5 of the design) we don't want to deploy-block.
+const ratingsPath = join(ROOT, 'ratings.json');
+let ratingsFile: RatingsFile = {};
+if (existsSync(ratingsPath)) {
+  try {
+    ratingsFile = JSON.parse(readFileSync(ratingsPath, 'utf8')) as RatingsFile;
+  } catch (err) {
+    console.warn(`⚠ ratings.json present but unparseable, skipping: ${(err as Error).message}`);
+  }
+}
+const ratingsResult = mergeRatings(allSkills, ratingsFile.ratings ?? {}, {
+  localOwner: LOCAL_OWNER,
+  localRepo:  LOCAL_REPO,
+});
+console.log(`✓ ratings.json — ${ratingsResult.merged} skill rating(s) merged` +
+  (ratingsResult.skipped > 0 ? ` (${ratingsResult.skipped} skipped)` : ''));
 
 const index = {
   meta: {

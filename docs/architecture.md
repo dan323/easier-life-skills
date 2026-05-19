@@ -203,6 +203,30 @@ The `category` field is the source of truth for categorisation. The build scans 
 
 This file is committed to the repo (not gitignored) and kept up to date by CI on every push.
 
+## Ratings & Reviews
+
+The marketplace browser surfaces a per-skill star rating and short reviews so users can pick between superficially-similar skills without trying each one. The data flow is intentionally static — no backend, no third-party API at page load, no anonymous form submissions:
+
+```
+GitHub Discussions  →  scripts/ingest-ratings.ts (scheduled)  →  ratings.json (committed)
+ratings.json        →  scripts/build-index.ts (build time)    →  skills_index.json[skills[*].rating]
+skills_index.json   →  assets/src/components/cards/SkillCard.tsx + EntityPanel.tsx (runtime)
+```
+
+1. **Submit** — Users open a "Rate this skill" link from the detail panel that takes them to a per-skill GitHub Discussions thread (one thread per skill, auto-created on first rating). They reply in a structured format (`★★★★☆ — body text…`).
+2. **Ingest** — A scheduled GitHub Action runs `scripts/ingest-ratings.ts` (Phase 5 of the design, not yet shipped). It walks `Ratings: *` threads via `gh api`, parses each reply, applies an anti-spam filter (reviewer must have ≥ 1 public commit), and writes `ratings.json` at the repo root. The file is keyed by `<pluginName>/<skillName>`; the value is `{ avg, count, reviews[] }`.
+3. **Merge** — On every build, `scripts/build-index.ts` reads `ratings.json` and attaches each matching entry to the corresponding skill via the pure-logic helper `scripts/lib/merge-ratings.ts`. Only **local-marketplace** skills (i.e. `source.owner === LOCAL_OWNER && source.repo === LOCAL_REPO`) are merged; external-marketplace skills are unrated in v1 because the Discussions thread lives in this repo. The merge is fail-soft: a missing or malformed `ratings.json` warns but does not deploy-block the site.
+4. **Render** — `SkillCard.tsx` shows a compact `★ 4.3 (12)` badge when `skill.rating` is present; `EntityPanel.tsx` shows the aggregate stars plus individual reviews and a "Rate this skill" link. The `Rating` sort option in `Controls.tsx` orders skills by `avg` descending with `count = 0` last.
+
+The shape lives in two parallel TypeScript modules, kept in sync by review (one file is small, the duplication is intentional — the script-side and web-side type trees do not share imports):
+
+- `scripts/lib/types.ts` defines `Review`, `Rating`, and adds `rating?: Rating` to `Skill`.
+- `assets/src/types.ts` mirrors the same shape for the web UI.
+
+The "skip if not local + skip if malformed" rules are unit-tested in `tests/merge-ratings.test.ts`. The fixture at `tests/fixtures/skills_index.json` carries a rating on the `changelog` skill so any UI test that hits that card exercises the path where the optional field is present.
+
+The phased rollout intentionally lands the data model and the build merge first (this PR) so subsequent UI / sort / ingestion PRs can be reviewed in isolation. See [issue #7](https://github.com/dan323/easier-life-skills/issues/7) for the full plan.
+
 ## How Skills Work
 
 When a skill is installed, the AI agent loads its `SKILL.md` into context whenever it recognises a matching user request. The agent then follows the phases defined in that file, using only the tools listed in the frontmatter.
