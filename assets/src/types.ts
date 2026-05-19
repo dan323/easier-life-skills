@@ -19,6 +19,30 @@ export interface Plugin {
   _repo?:         string;
 }
 
+/**
+ * One user-submitted review of a skill, mirroring the server-side `Review`
+ * type in `scripts/lib/types.ts`. The web UI is read-only — reviews are
+ * authored via the linked GitHub Discussions thread, not by client code.
+ */
+export interface Review {
+  stars:  number;
+  body:   string;
+  author: string;
+  date:   string;
+}
+
+/**
+ * Aggregate rating for one skill. `avg` is the mean of `reviews[].stars`,
+ * rounded to one decimal; `count` is `reviews.length`. Optional on `Skill`
+ * because external-marketplace skills are unrated in v1 and the build script
+ * only attaches it for skills with at least one review in `ratings.json`.
+ */
+export interface Rating {
+  avg:     number;
+  count:   number;
+  reviews: Review[];
+}
+
 export interface Skill {
   name:           string;
   pluginName:     string;
@@ -31,6 +55,7 @@ export interface Skill {
   installCommand: string;
   source:         Source;
   bundles?:       string[];
+  rating?:        Rating;
   _repo?:         string;
 }
 

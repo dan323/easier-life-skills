@@ -1,0 +1,19 @@
+{
+  "_comment": "Source of truth for Skill Rating & Review System (issue #7). Keyed by skill triplet 'pluginName/skillName' for local-marketplace skills. The build merges this into skills_index.json; the ingest pipeline (Phase 5) will rewrite this file from Discussions. Until the pipeline ships, this file is hand-maintained and only carries seed/sample entries.",
+  "_schema": {
+    "key": "pluginName/skillName",
+    "value": {
+      "avg": "number — mean of reviews[].stars, rounded to one decimal",
+      "count": "number — reviews.length",
+      "reviews": [
+        {
+          "stars": "1-5",
+          "body": "free-form review text",
+          "author": "github login",
+          "date": "ISO 8601 timestamp"
+        }
+      ]
+    }
+  },
+  "ratings": {}
+}

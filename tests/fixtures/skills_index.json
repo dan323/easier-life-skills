@@ -74,7 +74,15 @@
       "readOnly": false,
       "rawSkillUrl": "https://raw.githubusercontent.com/dan323/easier-life-skills/master/plugins/docs/skills/changelog/SKILL.md",
       "installCommand": "/plugin install docs@easier-life-skills",
-      "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" }
+      "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" },
+      "rating": {
+        "avg": 4.5,
+        "count": 2,
+        "reviews": [
+          { "stars": 5, "body": "Saved me a lot of time on release notes.", "author": "octocat", "date": "2026-05-10T12:00:00Z" },
+          { "stars": 4, "body": "Wish it auto-bumped the version too.", "author": "hubot", "date": "2026-05-12T09:30:00Z" }
+        ]
+      }
     },
     {
       "name": "find-dead-code",
