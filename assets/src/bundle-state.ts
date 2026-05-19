@@ -70,12 +70,10 @@ export function decodeItem(token: string): BundleItem | null {
 /**
  * Build the install script for a set of bundle items.
  *
- * For marketplace sources the script uses `/plugin install …` commands.
+ * For marketplace sources the script emits deduplicated install commands
+ * (multiple items from the same plugin may share one command).
  * For plugin-only shims the npx installer is referenced in a comment since
  * the manual path is too involved for a copyable one-liner.
- *
- * The script is grouped by repo so that a single
- * `claude plugin marketplace add` precedes every install from that repo.
  */
 export function buildInstallScript(
   items:   BundleItem[],
