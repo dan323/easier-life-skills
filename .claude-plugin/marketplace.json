@@ -76,6 +76,13 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/task-agent"
     },
     {
+      "name": "test-flakiness-triage",
+      "source": "./plugins/test-flakiness-triage",
+      "description": "Triages a test corpus to separate genuinely broken tests from flakes, isolating environment-specific failures, seed sensitivity, fuzz-input dependence, and drift across time. Use when asked to find flaky tests, audit test reliability, diagnose CI instability, or explain why a test fails sometimes.",
+      "category": "testing",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/test-flakiness-triage"
+    },
+    {
       "name": "workflow",
       "source": "./plugins/workflow",
       "description": "Run multi-step skill workflows declared in workflow.yaml — sequential execution, ${{ … }} interpolation between steps, JSON-or-stdout output capture.",

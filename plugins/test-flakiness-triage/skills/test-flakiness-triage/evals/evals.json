@@ -1,0 +1,133 @@
+{
+  "skill_name": "test-flakiness-triage",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Triage the test history under junit/ and tell me which tests are actually broken vs. just flaky.",
+      "description": "Happy path against the bundled fixture. The synthetic corpus contains one of each classification (stable-pass, stable-fail, flaky, stratum-sensitive on os=macos, drifting at run #12), so the report should distinguish all five.",
+      "setup": "mkdir -p /tmp/eval-test-flakiness-triage-0 && cd /tmp/eval-test-flakiness-triage-0 && python3 ${CLAUDE_PLUGIN_ROOT}/plugins/test-flakiness-triage/examples/generate-fixture.py --out .",
+      "expected_output": "A `test-flakiness-report.md` (and `.json` sidecar) in the CWD. The Markdown report has at minimum a 'Critical' section containing `pkg.SuiteA::test_always_fails`, a 'High — environment-specific failure' section containing `pkg.SuiteB::test_platform_specific` with a diagnosis mentioning `os=linux` and `os=macos`, and a section about `pkg.SuiteB::test_drifting` that mentions a change at or near run #10–12. `pkg.SuiteA::test_always_passes` is either omitted from per-test enumeration or appears under a stable/Info section. The report never uses the words 'ultrafilter', 'density', 'cylinder', or 'standard part' (with_math was not passed).",
+      "files": [],
+      "assertions": [
+        {
+          "id": "report-files-exist",
+          "text": "Both ./test-flakiness-report.md and ./test-flakiness-report.json exist in /tmp/eval-test-flakiness-triage-0/ after the skill runs."
+        },
+        {
+          "id": "stable-fail-detected",
+          "text": "test-flakiness-report.json contains an entry for `pkg.SuiteA::test_always_fails` with classification `stable-fail`."
+        },
+        {
+          "id": "stratum-sensitive-detected",
+          "text": "test-flakiness-report.json contains an entry for `pkg.SuiteB::test_platform_specific` with classification `stratum-sensitive` and `details.stratum == 'os'`."
+        },
+        {
+          "id": "drifting-detected",
+          "text": "test-flakiness-report.json contains an entry for `pkg.SuiteB::test_drifting` with classification `drifting` and a `details.change_point` value in the range 8–14 (the synthetic break is at run #12 but the detector resolution is coarse on n=20)."
+        },
+        {
+          "id": "no-math-leak",
+          "text": "test-flakiness-report.md does NOT contain the words 'ultrafilter', 'standard part', or 'cylinder'."
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Same fixture, but please include the mathematical justification this time.",
+      "description": "Validates the `with_math=true` opt-in path. The report should produce the same classifications as eval 0 but additionally include an appendix that references Pettitt's test, the formula for d(T), and the cylinder/density framing.",
+      "setup": "mkdir -p /tmp/eval-test-flakiness-triage-1 && cd /tmp/eval-test-flakiness-triage-1 && python3 ${CLAUDE_PLUGIN_ROOT}/plugins/test-flakiness-triage/examples/generate-fixture.py --out .",
+      "expected_output": "Same `.md` and `.json` outputs as eval 0, plus a 'Appendix — mathematical framing' section in the Markdown that defines `d(T)`, cylinder densities `d(T | s = v)`, references Pettitt's change-point test, and notes that branch/commit are deliberately excluded from cylinder coordinates.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "appendix-present",
+          "text": "test-flakiness-report.md contains an 'Appendix' section header."
+        },
+        {
+          "id": "math-terms-present",
+          "text": "test-flakiness-report.md contains 'd(T' and 'Pettitt' somewhere in the appendix."
+        },
+        {
+          "id": "branch-exclusion-explained",
+          "text": "test-flakiness-report.md explicitly states that branch / commit are not used as stratum coordinates."
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run test-flakiness-triage twice in a row on the same fixture. Confirm the second run preserves any keep-blocks I added between runs.",
+      "description": "Validates idempotent re-runs: the second invocation overwrites the report but preserves `<!-- keep: id=... -->...<!-- /keep -->` annotations inserted by the user between runs. This is the same idempotence pattern as state-machine-invariants.",
+      "setup": "mkdir -p /tmp/eval-test-flakiness-triage-2 && cd /tmp/eval-test-flakiness-triage-2 && python3 ${CLAUDE_PLUGIN_ROOT}/plugins/test-flakiness-triage/examples/generate-fixture.py --out .",
+      "expected_output": "After the agent runs the skill once, edits the report to add `<!-- keep: id=pkg.SuiteA::test_flaky -->Quarantined per PR-9999<!-- /keep -->` somewhere in the test_flaky entry, and runs the skill again, the second-run report still contains the string `Quarantined per PR-9999` next to the test_flaky entry. The remaining classifications are unchanged across the two runs.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "keep-annotation-preserved",
+          "text": "After the second skill run, /tmp/eval-test-flakiness-triage-2/test-flakiness-report.md still contains 'Quarantined per PR-9999'."
+        },
+        {
+          "id": "classifications-stable",
+          "text": "The JSON `classifications[].classification` values for each `test_id` are identical between the first-run and second-run reports."
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I only have a 5-run JUnit history — can you triage that?",
+      "description": "Below the default min_runs threshold (10), every test should be classified as `insufficient-data` with a clear suggestion to gather more runs. This is the degenerate-corpus corner case; the skill must refuse to make strong claims rather than over-fit.",
+      "setup": "mkdir -p /tmp/eval-test-flakiness-triage-3/junit && cd /tmp/eval-test-flakiness-triage-3 && python3 -c \"import sys; sys.path.insert(0, '${CLAUDE_PLUGIN_ROOT}/plugins/test-flakiness-triage/examples'); from importlib import import_module; mod = import_module('generate-fixture' if False else 'generate_fixture' if False else None) if False else __import__('importlib.util').util.spec_from_file_location('gf', '${CLAUDE_PLUGIN_ROOT}/plugins/test-flakiness-triage/examples/generate-fixture.py')\" 2>/dev/null || true && python3 -c \"\nimport datetime, pathlib\nbase = datetime.datetime(2026, 5, 1, 9, 0, 0)\np = pathlib.Path('/tmp/eval-test-flakiness-triage-3/junit')\np.mkdir(exist_ok=True)\nfor i in range(5):\n  ts = (base + datetime.timedelta(hours=i*3)).strftime('%Y-%m-%dT%H:%M:%S')\n  (p / f'junit-{i:04d}.xml').write_text(f'''<?xml version=\\\"1.0\\\"?>\n<testsuite name=\\\"pkg\\\" tests=\\\"1\\\" timestamp=\\\"{ts}\\\">\n  <properties><property name=\\\"os\\\" value=\\\"linux\\\"/></properties>\n  <testcase classname=\\\"pkg.SuiteA\\\" name=\\\"test_one\\\"/>\n</testsuite>\n''')\n\"",
+      "expected_output": "The report classifies `pkg.SuiteA::test_one` as `insufficient-data` with a diagnosis like 'Only 5 runs observed; need ≥ 10.' No test is labelled `stable-pass` or `stable-fail` despite the underlying data being a pure pass streak.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "insufficient-data-detected",
+          "text": "test-flakiness-report.json contains exactly one classification entry with `classification == 'insufficient-data'` for `pkg.SuiteA::test_one`."
+        },
+        {
+          "id": "no-overclaim",
+          "text": "No entry in test-flakiness-report.json has `classification == 'stable-pass'` or `classification == 'stable-fail'`."
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "We track test history in a CSV — triage that instead of JUnit.",
+      "description": "Validates the CSV path-of-least-resistance. The skill normalizes the same five test patterns from a CSV file and produces an equivalent classification distribution to eval 0.",
+      "setup": "mkdir -p /tmp/eval-test-flakiness-triage-4 && cd /tmp/eval-test-flakiness-triage-4 && python3 -c \"\nimport csv, datetime, random\nbase = datetime.datetime(2026, 5, 1, 9, 0, 0)\nrows = []\nfor i in range(20):\n    os_v = 'linux' if i % 2 == 0 else 'macos'\n    ts = (base + datetime.timedelta(hours=i*3)).isoformat() + 'Z'\n    rows.append((str(i), 'pkg.SuiteA::test_always_passes', 'pass', ts, os_v))\n    rows.append((str(i), 'pkg.SuiteA::test_always_fails', 'fail', ts, os_v))\n    rng = random.Random(0xC0FFEE + i)\n    rows.append((str(i), 'pkg.SuiteA::test_flaky', 'pass' if rng.random() < 0.7 else 'fail', ts, os_v))\n    rows.append((str(i), 'pkg.SuiteB::test_platform_specific', 'pass' if os_v == 'linux' else 'fail', ts, os_v))\n    rows.append((str(i), 'pkg.SuiteB::test_drifting', 'pass' if i < 12 else 'fail', ts, os_v))\nwith open('/tmp/eval-test-flakiness-triage-4/history.csv', 'w', newline='') as fh:\n    w = csv.writer(fh)\n    w.writerow(['run_id', 'test_id', 'status', 'ts', 'os'])\n    w.writerows(rows)\nprint('wrote', len(rows), 'rows')\n\"",
+      "expected_output": "Invoking the skill with `source=csv path=history.csv` produces the same set of classifications as eval 0: `pkg.SuiteA::test_always_fails` → stable-fail, `pkg.SuiteB::test_platform_specific` → stratum-sensitive on os, `pkg.SuiteB::test_drifting` → drifting (or stratum-sensitive on os if the detector merges them — this is the one classification that's genuinely ambiguous in the CSV form depending on whether timestamps survive the round-trip).",
+      "files": [],
+      "assertions": [
+        {
+          "id": "csv-parsed",
+          "text": "test-flakiness-report.json exists and contains five classification entries."
+        },
+        {
+          "id": "csv-os-stratum",
+          "text": "The entry for `pkg.SuiteB::test_platform_specific` has classification `stratum-sensitive` and `details.stratum == 'os'`."
+        },
+        {
+          "id": "csv-stable-fail",
+          "text": "The entry for `pkg.SuiteA::test_always_fails` has classification `stable-fail`."
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Run the triage but exit non-zero if anything's worse than stable-pass — I want to wire this into CI.",
+      "description": "Validates the `fail_on_findings` flag for CI integration. With a corpus that has any non-stable-pass classification, the skill should exit 1; the report and JSON are still written so the CI can surface them as artefacts.",
+      "setup": "mkdir -p /tmp/eval-test-flakiness-triage-5 && cd /tmp/eval-test-flakiness-triage-5 && python3 ${CLAUDE_PLUGIN_ROOT}/plugins/test-flakiness-triage/examples/generate-fixture.py --out .",
+      "expected_output": "When the skill is invoked with `fail_on_findings=true` against the fixture, the agent surfaces a non-zero exit code from the report step. The Markdown and JSON reports are nonetheless present in the CWD. With a clean corpus (no non-stable findings), the same flag would exit 0.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "fail-on-findings-exit-1",
+          "text": "The report step (or the skill as a whole) exited with a non-zero status when fail_on_findings was set and the fixture contains non-stable-pass tests."
+        },
+        {
+          "id": "report-still-written",
+          "text": "test-flakiness-report.md and test-flakiness-report.json exist in /tmp/eval-test-flakiness-triage-5/ regardless of the non-zero exit."
+        }
+      ]
+    }
+  ]
+}

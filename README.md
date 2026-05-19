@@ -35,6 +35,7 @@ Or copy the right command directly from the [marketplace browser](#marketplace-b
 | [`scaffold`](plugins/scaffold/skills/scaffold/SKILL.md)                                           | Generate a complete plugin skeleton (`plugin.json`, `SKILL.md`, evals, optional agents/references) from a single prompt |
 | [`workflow`](plugins/workflow/skills/workflow/SKILL.md)                                           | Run multi-step skill workflows declared in workflow YAML — sequential execution with `${{ … }}` interpolation          |
 | [`auto-board-task`](plugins/auto-board-task/skills/auto-board-task/SKILL.md)                      | Process the top Todo card on a GitHub Project end-to-end — bundles the `gh-project-sync` board ⇄ `tasks.yml` reconciler and chains it with `task-agent` via the `workflow` skill so one invocation pulls the board into `tasks.yml`, opens a PR for the top pending task, and syncs the card to **In Review** with the PR link |
+| [`test-flakiness-triage`](plugins/test-flakiness-triage/skills/test-flakiness-triage/SKILL.md)    | Triage a test corpus to separate genuinely broken tests from flakes — classifies each test as stable-pass, stable-fail, flaky, stratum-sensitive (passes/fails only on a specific OS / runner / arch / seed / fuzz input), or drifting (changed at a detectable run boundary), from JUnit XML, GitHub Actions / GitLab CI history, or a CSV |
 
 ### Agents
 

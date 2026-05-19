@@ -18,6 +18,10 @@ installer/dist/
 # Build cache
 .cache/
 
+# Python
+__pycache__/
+*.pyc
+
 # Node
 node_modules/
 iteration-*/

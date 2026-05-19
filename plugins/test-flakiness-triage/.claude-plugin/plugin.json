@@ -1,0 +1,8 @@
+{
+  "name": "test-flakiness-triage",
+  "version": "0.1.0",
+  "description": "Triages a test corpus to separate genuinely broken tests from flakes, isolating environment-specific failures, seed sensitivity, fuzz-input dependence, and drift across time. Use when asked to find flaky tests, audit test reliability, diagnose CI instability, or explain why a test fails sometimes.",
+  "author": { "name": "dan323" },
+  "category": "testing",
+  "skills": ["./skills/test-flakiness-triage"]
+}
