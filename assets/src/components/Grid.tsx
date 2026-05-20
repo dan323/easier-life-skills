@@ -7,6 +7,7 @@ import { HookCard }    from './cards/HookCard.tsx';
 import { BundleCard }  from './cards/BundleCard.tsx';
 import type { ViewKey } from './Controls.tsx';
 import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle } from '../types.ts';
+import type { SortKey } from '../url-state.ts';
 import { buildBundleItemId } from '../bundle-state.ts';
 
 interface DataSets {
@@ -23,7 +24,7 @@ interface Props {
   view:       ViewKey;
   loaded:     boolean;
   query:      string;
-  sort:       'az' | 'za';
+  sort:       SortKey;
   activeRepos: Set<string>;
   activeCategories: Set<string>;
   data:       DataSets;
@@ -53,10 +54,20 @@ const GRID_IDS: Record<ViewKey, string> = {
   bundles:    'bundles-grid',
 };
 
-function sortedBy<T extends { name: string }>(items: T[], sort: 'az' | 'za'): T[] {
+function sortedBy<T extends { name: string }>(items: T[], sort: SortKey): T[] {
   return [...items].sort((a, b) =>
     sort === 'za' ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name),
   );
+}
+
+function sortedByRating(items: Skill[], sort: SortKey): Skill[] {
+  if (sort !== 'rating') return sortedBy(items, sort);
+  return [...items].sort((a, b) => {
+    const aAvg = a.rating?.avg ?? -1;
+    const bAvg = b.rating?.avg ?? -1;
+    if (bAvg !== aAvg) return bAvg - aAvg;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 function multiRepo<T extends { _repo?: string }>(items: T[]): boolean {
@@ -183,7 +194,7 @@ function SkillsGrid({ data, query, sort, activeRepos, activeCategories, onOpenSk
       <div id="skills-grid" style={{ display: 'grid' }}>
         {filtered.length === 0
           ? viewEmpty('skills', '🔍', 'skills', all.length, data)
-          : sortedBy(filtered, sort).map(s =>
+          : sortedByRating(filtered, sort).map(s =>
               <SkillCard
                 key={`${s._repo}/${s.pluginName}/${s.name}`}
                 skill={s}

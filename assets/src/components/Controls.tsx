@@ -1,11 +1,12 @@
 import { Filters } from './Filters.tsx';
+import type { SortKey } from '../url-state.ts';
 
 export type ViewKey = 'plugins' | 'skills' | 'agents' | 'mcpServers' | 'commands' | 'hooks' | 'bundles';
 
 interface Props {
   query:            string;
   onSearch:         (q: string) => void;
-  sort:             'az' | 'za';
+  sort:             SortKey;
   onToggleSort:     () => void;
   view:             ViewKey;
   onSwitchView:     (v: ViewKey) => void;
@@ -28,14 +29,16 @@ export function Controls({
   query, onSearch, sort, onToggleSort, view, onSwitchView,
   categories, activeCategories, onToggleCategory,
 }: Props) {
-  const sortLabel = sort === 'az' ? 'Sort: A→Z' : 'Sort: Z→A';
-  const sortTitle = sort === 'az' ? 'Click to sort Z→A' : 'Click to sort A→Z';
+  const sortLabel = sort === 'az' ? 'Sort: A→Z' : sort === 'za' ? 'Sort: Z→A' : 'Sort: Rating';
+  const sortTitle = sort === 'az' ? 'Click to sort Z→A' : sort === 'za' ? 'Click to sort by Rating' : 'Click to sort A→Z';
   // WCAG 2.5.3 (label-content-name-mismatch): the accessible name must
   // contain the visible text. Lead the aria-label with the visible label so
   // screen-reader users hear the same words a sighted user reads.
   const sortAria  = sort === 'az'
     ? 'Sort: A→Z. Click to sort Z to A.'
-    : 'Sort: Z→A. Click to sort A to Z.';
+    : sort === 'za'
+      ? 'Sort: Z→A. Click to sort by Rating.'
+      : 'Sort: Rating. Click to sort A to Z.';
 
   // Filter bar shows for every entity view (all but bundles), but only when
   // there is at least one category to filter by — otherwise the bar would

@@ -1,18 +1,23 @@
+export type SortKey = 'az' | 'za' | 'rating';
+
 export interface UrlState {
   view:   string;
   query:  string;
-  sort:   'az' | 'za';
+  sort:   SortKey;
   repos:  string[];
   cats:   string[];
   bundle: string[];   // encoded bundle item tokens (see bundle-state.ts)
 }
 
+const VALID_SORTS = new Set<string>(['az', 'za', 'rating']);
+
 export function readUrlState(): UrlState {
   const params = new URLSearchParams(location.hash.slice(1));
+  const rawSort = params.get('sort') ?? 'az';
   return {
     view:   params.get('view') ?? 'plugins',
     query:  params.get('q')    ?? '',
-    sort:   (params.get('sort') ?? 'az') as 'az' | 'za',
+    sort:   (VALID_SORTS.has(rawSort) ? rawSort : 'az') as SortKey,
     repos:  params.getAll('repo'),
     cats:   params.getAll('cat'),
     bundle: params.getAll('b'),

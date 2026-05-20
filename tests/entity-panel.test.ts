@@ -13,6 +13,36 @@ describe('entity panel — skill', () => {
     expect(document.getElementById('entity-panel-category')!.textContent).toBe('Code Quality');
   });
 
+  it('shows reviews section with rating summary for rated skill', async () => {
+    await bootApp();
+    click('#view-skills');
+    click(cardByName('skills-grid', 'changelog'));
+    const summary = document.getElementById('entity-panel-rating-summary');
+    expect(summary).not.toBeNull();
+    expect(summary!.textContent).toContain('4.5');
+    expect(summary!.textContent).toContain('2');
+    const reviews = document.querySelectorAll('#entity-panel-reviews-list .panel-review');
+    expect(reviews.length).toBe(2);
+  });
+
+  it('shows no-reviews message for unrated skill', async () => {
+    await bootApp();
+    click('#view-skills');
+    click(cardByName('skills-grid', 'find-dead-code'));
+    const noReviews = document.getElementById('entity-panel-no-reviews');
+    expect(noReviews).not.toBeNull();
+    expect(noReviews!.textContent).toBe('No reviews yet.');
+  });
+
+  it('shows Rate this link in reviews section', async () => {
+    await bootApp();
+    click('#view-skills');
+    click(cardByName('skills-grid', 'changelog'));
+    const link = document.getElementById('entity-panel-rate-link') as HTMLAnchorElement | null;
+    expect(link).not.toBeNull();
+    expect(link!.href).toContain('discussions');
+  });
+
   it('shows tools and keywords for skills', async () => {
     await bootApp();
     click('#view-skills');

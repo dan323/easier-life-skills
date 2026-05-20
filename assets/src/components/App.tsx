@@ -13,6 +13,7 @@ import type { EntityKind } from './EntityPanel.tsx';
 import { BundleDrawer }   from './BundleDrawer.tsx';
 import { loadMarketplace } from '../marketplace.ts';
 import { readUrlState, writeUrlState } from '../url-state.ts';
+import type { SortKey } from '../url-state.ts';
 import { track, getStoredConsent, setStoredConsent } from '../analytics.ts';
 import type { ConsentState } from '../analytics.ts';
 import { ConsentBanner } from './ConsentBanner.tsx';
@@ -51,7 +52,7 @@ export function App() {
   const initial = readUrlState();
 
   const [query, setQuery] = useState(initial.query);
-  const [sort,  setSort]  = useState<'az' | 'za'>(initial.sort);
+  const [sort,  setSort]  = useState<SortKey>(initial.sort);
   const [view,  setView]  = useState<ViewKey>(VALID_VIEWS.includes(initial.view as ViewKey) ? (initial.view as ViewKey) : 'plugins');
   const [activeRepos,      setActiveRepos]      = useState<Set<string>>(new Set(initial.repos));
   const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set(initial.cats));
@@ -228,7 +229,7 @@ export function App() {
         query={query}
         onSearch={setQuery}
         sort={sort}
-        onToggleSort={() => setSort(s => s === 'az' ? 'za' : 'az')}
+        onToggleSort={() => setSort(s => s === 'az' ? 'za' : s === 'za' ? 'rating' : 'az')}
         view={view}
         onSwitchView={setView}
         categories={categories}

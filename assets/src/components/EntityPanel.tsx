@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import { titleCase } from '../utils.ts';
 import { BUILTIN_REPO } from '../constants.ts';
 import { CopyButton } from './CopyButton.tsx';
-import type { Skill, Agent, McpServer, Command, Hook, Bundle } from '../types.ts';
+import type { Skill, Agent, McpServer, Command, Hook, Bundle, Rating, Review } from '../types.ts';
 
 export type EntityKind = 'skill' | 'agent' | 'mcpServer' | 'command' | 'hook';
 
@@ -162,6 +162,8 @@ function EntityPanelBody({
         chipCls="chip-command"
       />
 
+      <RatingsSection kind={kind} entity={entity} />
+
       <div id="entity-panel-bundles-section" class="panel-section" hidden={!skillBundles.length}>
         <h3 class="panel-section-title">Part of bundles</h3>
         <div id="entity-panel-bundles-list" class="panel-items">
@@ -215,6 +217,62 @@ function EntityPanelBody({
         />
       </div>
     </>
+  );
+}
+
+function StarRow({ avg, count }: { avg: number; count: number }) {
+  const filled  = Math.round(avg);
+  const stars   = Array.from({ length: 5 }, (_, i) => i < filled ? '★' : '☆').join('');
+  return (
+    <div id="entity-panel-rating-summary" class="panel-rating-summary" aria-label={`Average rating ${avg} out of 5 from ${count} review${count !== 1 ? 's' : ''}`}>
+      <span class="panel-rating-stars" aria-hidden="true">{stars}</span>
+      <span class="panel-rating-avg">{avg}</span>
+      <span class="panel-rating-count">({count} review{count !== 1 ? 's' : ''})</span>
+    </div>
+  );
+}
+
+function RatingsSection({ kind, entity }: { kind: EntityKind; entity: Skill | Agent | McpServer | Command | Hook }) {
+  if (kind !== 'skill') return null;
+  const skill = entity as Skill;
+  const rating: Rating | undefined = skill.rating;
+  const sourceKey = skill._repo ?? `${skill.source.owner}/${skill.source.repo}`;
+  const discussionsUrl = `https://github.com/${sourceKey}/discussions`;
+
+  return (
+    <div id="entity-panel-ratings-section" class="panel-section">
+      <h3 class="panel-section-title">Reviews</h3>
+      {rating ? (
+        <>
+          <StarRow avg={rating.avg} count={rating.count} />
+          <div id="entity-panel-reviews-list" class="panel-reviews">
+            {rating.reviews.map((r: Review, i: number) => (
+              <div key={i} class="panel-review">
+                <div class="panel-review-header">
+                  <span class="panel-review-stars" aria-label={`${r.stars} out of 5 stars`} aria-hidden="true">
+                    {Array.from({ length: 5 }, (_, j) => j < r.stars ? '★' : '☆').join('')}
+                  </span>
+                  <span class="panel-review-author">{r.author}</span>
+                  <span class="panel-review-date">{r.date.slice(0, 10)}</span>
+                </div>
+                {r.body && <p class="panel-review-body">{r.body}</p>}
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <p id="entity-panel-no-reviews" class="panel-no-reviews">No reviews yet.</p>
+      )}
+      <a
+        id="entity-panel-rate-link"
+        class="panel-rate-link"
+        href={discussionsUrl}
+        target="_blank"
+        rel="noopener"
+      >
+        Rate this skill ↗
+      </a>
+    </div>
   );
 }
 

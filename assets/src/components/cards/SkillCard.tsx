@@ -30,6 +30,11 @@ export function SkillCard({ skill, showSource, showInstall, onOpen, bundled, onT
         </button>
         <div class="card-badges">
           {skill.readOnly && <span class="badge badge-readonly">read-only</span>}
+          {skill.rating && (
+            <span class="badge badge-rating" aria-label={`Rating: ${skill.rating.avg} out of 5, ${skill.rating.count} review${skill.rating.count !== 1 ? 's' : ''}`}>
+              ★ {skill.rating.avg} ({skill.rating.count})
+            </span>
+          )}
           <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>
           {showSource && <span class="badge badge-source">{skill._repo}</span>}
         </div>
