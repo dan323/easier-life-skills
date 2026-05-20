@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import { titleCase } from '../utils.ts';
 import { BUILTIN_REPO } from '../constants.ts';
 import { CopyButton } from './CopyButton.tsx';
-import type { Skill, Agent, McpServer, Command, Hook, Bundle, Rating, Review } from '../types.ts';
+import type { Skill, Agent, McpServer, Command, Hook, Bundle } from '../types.ts';
 
 export type EntityKind = 'skill' | 'agent' | 'mcpServer' | 'command' | 'hook';
 
@@ -220,12 +220,15 @@ function EntityPanelBody({
   );
 }
 
+function starsString(score: number): string {
+  const filled = Math.round(score);
+  return Array.from({ length: 5 }, (_, i) => i < filled ? '★' : '☆').join('');
+}
+
 function StarRow({ avg, count }: { avg: number; count: number }) {
-  const filled  = Math.round(avg);
-  const stars   = Array.from({ length: 5 }, (_, i) => i < filled ? '★' : '☆').join('');
   return (
     <div id="entity-panel-rating-summary" class="panel-rating-summary" aria-label={`Average rating ${avg} out of 5 from ${count} review${count !== 1 ? 's' : ''}`}>
-      <span class="panel-rating-stars" aria-hidden="true">{stars}</span>
+      <span class="panel-rating-stars" aria-hidden="true">{starsString(avg)}</span>
       <span class="panel-rating-avg">{avg}</span>
       <span class="panel-rating-count">({count} review{count !== 1 ? 's' : ''})</span>
     </div>
@@ -235,7 +238,7 @@ function StarRow({ avg, count }: { avg: number; count: number }) {
 function RatingsSection({ kind, entity }: { kind: EntityKind; entity: Skill | Agent | McpServer | Command | Hook }) {
   if (kind !== 'skill') return null;
   const skill = entity as Skill;
-  const rating: Rating | undefined = skill.rating;
+  const rating = skill.rating;
   const sourceKey = skill._repo ?? `${skill.source.owner}/${skill.source.repo}`;
   const discussionsUrl = `https://github.com/${sourceKey}/discussions`;
 
@@ -246,11 +249,11 @@ function RatingsSection({ kind, entity }: { kind: EntityKind; entity: Skill | Ag
         <>
           <StarRow avg={rating.avg} count={rating.count} />
           <div id="entity-panel-reviews-list" class="panel-reviews">
-            {rating.reviews.map((r: Review, i: number) => (
+            {rating.reviews.map((r, i) => (
               <div key={i} class="panel-review">
                 <div class="panel-review-header">
                   <span class="panel-review-stars" aria-label={`${r.stars} out of 5 stars`} aria-hidden="true">
-                    {Array.from({ length: 5 }, (_, j) => j < r.stars ? '★' : '☆').join('')}
+                    {starsString(r.stars)}
                   </span>
                   <span class="panel-review-author">{r.author}</span>
                   <span class="panel-review-date">{r.date.slice(0, 10)}</span>
