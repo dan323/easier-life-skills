@@ -4,9 +4,13 @@ description: >
   Process the top Todo card on a GitHub Project (v2) board end-to-end:
   pull the board into a task-agent `tasks.yml`, run `task-agent` to
   open a PR for the top pending task, then sync the PR back to the
-  card. Use when the user says "process the top board todo", "run
-  the next board task", "drain the top todo", or "auto-process the
-  next card". Composes `gh-project-sync` → `task-agent` →
+  card. Use when the user says "work on the next task", "do the next
+  board task", "pick up the next GitHub project item", "process the
+  next card", "work on the next item in github project", "run the
+  next board task", "drain the top todo", "process the top board
+  todo", "auto-process the next card", or any phrasing that means
+  "take the next pending item from a GitHub Project board and
+  implement it". Composes `gh-project-sync` → `task-agent` →
   `gh-project-sync` via the `workflow` skill against the fixed YAML
   at `${CLAUDE_PLUGIN_ROOT}/workflows/auto-board-task.yaml`. All
   arguments are forwarded verbatim to the workflow runner;
