@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **Skill Rating & Review System — Phase 5 / ingestion pipeline (issue #7).** Closes the loop from Discussion submission to rendered ratings:
+  - **`.github/DISCUSSION_TEMPLATE/skill-reviews.yml`** — a guided Discussion form with three fields: skill name (text input), stars (1–5 dropdown), and an optional review textarea. Pre-populates the title with `[Review] ` so submissions are easy to scan. Duplicate reviews from the same author per skill are deduplicated (last submission wins).
+  - **`scripts/ingest-ratings.ts`** — fail-soft script that (1) resolves the "Skill Reviews" Discussion category ID by name via GraphQL, (2) paginates all discussions in that category, (3) parses each structured form body, (4) maps skill names to their `pluginName` by scanning `plugins/*/` so the key format matches `merge-ratings.ts`, and (5) rewrites `ratings.json`. Exits cleanly with a warning if `GITHUB_TOKEN` is absent or the category doesn't exist yet — the build never breaks.
+  - **`pages.yml`** — two additions: (a) `discussions: read` permission so `GITHUB_TOKEN` can query the GraphQL Discussions API; (b) a daily `schedule: cron: '0 3 * * *'` trigger so ratings refresh even without code pushes; (c) a new "Ingest ratings from GitHub Discussions" step before `npm run build` in both jobs.
+  - **`EntityPanel`** — `RatingsSection` now returns `null` for external-marketplace skills (ratings are local-only in v1). The "Rate this skill ↗" link deep-links to the Discussion form with the skill name pre-filled in the title: `discussions/new?category=skill-reviews&title=[Review]+<skill>`.
+  - **`package.json`** — new `ingest` script (`tsx scripts/ingest-ratings.ts`) for local testing with a personal access token.
+  - **One manual step required**: create a Discussion category named exactly "Skill Reviews" in the repo Settings → Discussions → Categories. The ingest script looks up the category by that name and prints a clear message if it's missing.
+
 - **Skill Rating & Review System — Phases 2 & 3 (issue #7).** Completes the web-UI and sort facets of the rating feature on top of the Phase 1+4 data foundation shipped earlier. Three areas of change:
   - **Star badge on `SkillCard`:** skills with at least one review now render a `★ avg (count)` badge (`.badge-rating`) in the card header alongside the read-only and category badges. The badge is hidden for unrated skills (external-marketplace skills in v1). Accessible via `aria-label`.
   - **Reviews section in `EntityPanel`:** every skill detail panel now contains a "Reviews" section that shows a filled/empty star row with aggregate score, a list of individual reviews (stars / author / date / body), and a "Rate this skill ↗" link pointing to the skill's source-repo Discussions page. Unrated skills see "No reviews yet." in place of the star row and list. Non-skill entities (agents, hooks, commands, MCP servers) do not render the section at all.

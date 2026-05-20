@@ -238,9 +238,13 @@ function StarRow({ avg, count }: { avg: number; count: number }) {
 function RatingsSection({ kind, entity }: { kind: EntityKind; entity: Skill | Agent | McpServer | Command | Hook }) {
   if (kind !== 'skill') return null;
   const skill = entity as Skill;
-  const rating = skill.rating;
   const sourceKey = skill._repo ?? `${skill.source.owner}/${skill.source.repo}`;
-  const discussionsUrl = `https://github.com/${sourceKey}/discussions`;
+  // Ratings are only supported for the built-in marketplace in v1
+  if (sourceKey !== BUILTIN_REPO) return null;
+
+  const rating = skill.rating;
+  const title  = encodeURIComponent(`[Review] ${skill.name}`);
+  const rateUrl = `https://github.com/${BUILTIN_REPO}/discussions/new?category=skill-reviews&title=${title}`;
 
   return (
     <div id="entity-panel-ratings-section" class="panel-section">
@@ -269,7 +273,7 @@ function RatingsSection({ kind, entity }: { kind: EntityKind; entity: Skill | Ag
       <a
         id="entity-panel-rate-link"
         class="panel-rate-link"
-        href={discussionsUrl}
+        href={rateUrl}
         target="_blank"
         rel="noopener"
       >

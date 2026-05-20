@@ -13,6 +13,7 @@
     "test:ui": "vitest run",
     "test:installer": "vitest run --config vitest.installer.config.ts",
     "test:watch": "vitest",
+    "ingest": "tsx scripts/ingest-ratings.ts",
     "publish:installer": "npm publish --workspace installer --access public"
   },
   "engines": {

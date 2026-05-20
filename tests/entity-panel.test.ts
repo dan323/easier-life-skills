@@ -40,7 +40,8 @@ describe('entity panel — skill', () => {
     click(cardByName('skills-grid', 'changelog'));
     const link = document.getElementById('entity-panel-rate-link') as HTMLAnchorElement | null;
     expect(link).not.toBeNull();
-    expect(link!.href).toContain('discussions');
+    expect(link!.href).toContain('discussions/new?category=skill-reviews');
+    expect(link!.href).toContain('changelog');
   });
 
   it('shows tools and keywords for skills', async () => {
