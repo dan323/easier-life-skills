@@ -1,0 +1,115 @@
+{
+  "skill_name": "security-review",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Run a security review on this codebase",
+      "description": "Clean repo with no vulnerabilities — the skill should produce a report noting zero critical/high findings and document its scan coverage.",
+      "setup": "mkdir -p /tmp/eval-security-review-0 && cd /tmp/eval-security-review-0 && git init && mkdir -p src && cat > src/app.py <<'PY'\nimport hashlib\nimport os\n\ndef get_user(user_id: int):\n    return {\"id\": user_id, \"name\": \"Alice\"}\n\ndef hash_cache_key(key: str) -> str:\n    return hashlib.md5(key.encode()).hexdigest()\n\nif __name__ == \"__main__\":\n    print(get_user(1))\nPY\ncat > requirements.txt <<'REQ'\nflask==2.3.2\nREQ\ngit add . && git commit -m 'init'",
+      "expected_output": "A security report with zero Critical and zero High findings. The MD5 usage may appear as Medium or Low (cache key, not security-sensitive). The report includes a Scan Coverage table and a 'No known vulnerable dependencies' section (or notes pip-audit not available).",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-critical-high",
+          "text": "The report contains zero Critical findings and zero High findings."
+        },
+        {
+          "id": "scan-coverage-table",
+          "text": "The report includes a Scan Coverage section listing which tools were used."
+        },
+        {
+          "id": "summary-table-present",
+          "text": "The report includes a Summary table with Severity and Count columns."
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Please do a security audit — I think there might be hardcoded credentials",
+      "description": "Repo contains a hardcoded AWS access key and a plaintext database password — both should be flagged as Critical/High.",
+      "setup": "mkdir -p /tmp/eval-security-review-1 && cd /tmp/eval-security-review-1 && git init && mkdir -p src && cat > src/config.py <<'PY'\n# Application configuration\nAWS_ACCESS_KEY_ID = \"AKIAIOSFODNN7EXAMPLE\"\nAWS_SECRET_ACCESS_KEY = \"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\"\nDB_PASSWORD = \"supersecret123\"\nDEBUG = True\nPY\ncat > src/app.py <<'PY'\nimport os\n\ndef get_db():\n    return {\"host\": \"localhost\", \"password\": \"supersecret123\"}\nPY\ngit add . && git commit -m 'init'",
+      "expected_output": "The report flags the AWS access key shape (AKIA…) as Critical. The plaintext DB_PASSWORD and db password assignments are flagged as High. DEBUG=True is flagged as Medium. The Summary table shows at least 1 Critical and at least 1 High finding.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "aws-key-critical",
+          "text": "The report includes a Critical finding for the AWS access key (AKIA token shape) in src/config.py."
+        },
+        {
+          "id": "db-password-high",
+          "text": "The report includes a High finding for the hardcoded database password."
+        },
+        {
+          "id": "debug-mode-flagged",
+          "text": "The report flags DEBUG=True as a Medium or High security misconfiguration."
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Do a security review of this Flask app",
+      "description": "Repo contains SQL injection via string concatenation and a disabled TLS verification call — both classic High-severity OWASP issues.",
+      "setup": "mkdir -p /tmp/eval-security-review-2 && cd /tmp/eval-security-review-2 && git init && mkdir -p src && cat > src/db.py <<'PY'\nimport sqlite3\nimport requests\n\ndef get_user_by_name(name):\n    conn = sqlite3.connect('app.db')\n    cursor = conn.cursor()\n    cursor.execute(\"SELECT * FROM users WHERE name = '\" + name + \"'\")\n    return cursor.fetchall()\n\ndef fetch_external(url):\n    return requests.get(url, verify=False)\nPY\ncat > requirements.txt <<'REQ'\nflask==2.3.2\nrequests==2.28.0\nREQ\ngit add . && git commit -m 'init'",
+      "expected_output": "The report flags the string-concatenation SQL query as High (SQL Injection / A03). The verify=False call is flagged as High (Cryptographic Failures / A02 or TLS). The Summary table shows at least 2 High findings.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "sql-injection-flagged",
+          "text": "The report includes a High finding for SQL injection via string concatenation in src/db.py."
+        },
+        {
+          "id": "tls-verify-false-flagged",
+          "text": "The report includes a High finding for disabled TLS verification (verify=False) in src/db.py."
+        },
+        {
+          "id": "owasp-category-mentioned",
+          "text": "Each High finding references the relevant OWASP category (e.g., A02, A03, or the full name)."
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Check this codebase for security vulnerabilities",
+      "description": "Repo with a .env file committed to git containing real-looking credentials — should surface as Medium (tracked secrets).",
+      "setup": "mkdir -p /tmp/eval-security-review-3 && cd /tmp/eval-security-review-3 && git init && cat > .env <<'ENV'\nDATABASE_URL=postgresql://admin:realpassword@prod-db.internal/myapp\nSECRET_KEY=django-insecure-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nPAYMENT_KEY=LIVE_KEY_PLACEHOLDER_1234567890\nENV\ncat > app.py <<'PY'\nfrom flask import Flask\napp = Flask(__name__)\nPY\ngit add . && git commit -m 'init'",
+      "expected_output": "The report flags the .env file as tracked in git (Medium). The payment key shape (sk_live_ prefix) is flagged as Critical. The DATABASE_URL with embedded password is flagged as High. The report recommends adding .env to .gitignore.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "env-tracked-flagged",
+          "text": "The report notes that .env is committed to git and flags it as at least Medium severity."
+        },
+        {
+          "id": "stripe-key-detected",
+          "text": "The report detects the payment key (sk_live_ prefix) as a Critical or High finding."
+        },
+        {
+          "id": "gitignore-recommendation",
+          "text": "The report recommends adding .env to .gitignore or using a secrets manager."
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Scan this codebase for security issues",
+      "description": "Repo that mixes test files with production code — test-file findings should be suppressed or noted separately, not mixed into Critical/High counts.",
+      "setup": "mkdir -p /tmp/eval-security-review-4/tests && cd /tmp/eval-security-review-4 && git init && cat > src/auth.py <<'PY'\nimport hashlib\n\ndef check_password(plain, hashed):\n    return hashlib.sha1(plain.encode()).hexdigest() == hashed\nPY\ncat > tests/test_auth.py <<'PY'\nimport subprocess\n\ndef test_helper():\n    # test isolation — intentional shell=True\n    subprocess.run('echo test', shell=True)\n\nAPI_KEY = 'test-api-key-placeholder'\nPY\ngit add . && git commit -m 'init'",
+      "expected_output": "The SHA1 usage in src/auth.py (used for password hashing — security-sensitive) is flagged as High or Medium. The shell=True and API_KEY placeholder in tests/test_auth.py are suppressed or noted as test-file exclusions, not counted in the main severity totals. The report explains test files are excluded from main counts.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "sha1-auth-flagged",
+          "text": "The report flags the SHA1 usage in src/auth.py for password hashing as at least Medium severity."
+        },
+        {
+          "id": "test-file-exclusion",
+          "text": "The shell=True and placeholder API_KEY in tests/test_auth.py are either excluded from Critical/High counts or explicitly noted as test-file suppressions."
+        },
+        {
+          "id": "excluded-section-present",
+          "text": "The report includes an Excluded section listing test/spec/fixture files."
+        }
+      ]
+    }
+  ]
+}

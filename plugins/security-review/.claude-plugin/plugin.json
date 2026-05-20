@@ -1,0 +1,7 @@
+{
+  "name": "security-review",
+  "description": "Scan a codebase for OWASP Top-10 vulnerabilities, hardcoded secrets, insecure dependencies, and unsafe patterns. Read-only report ranked by severity.",
+  "author": { "name": "dan323" },
+  "category": "security",
+  "skills": ["./skills/security-review"]
+}

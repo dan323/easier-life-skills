@@ -62,6 +62,13 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/scaffold"
     },
     {
+      "name": "security-review",
+      "source": "./plugins/security-review",
+      "description": "Scan a codebase for OWASP Top-10 vulnerabilities, hardcoded secrets, insecure dependencies, and unsafe patterns. Read-only report ranked by severity.",
+      "category": "security",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/security-review"
+    },
+    {
       "name": "site-audit",
       "source": "./plugins/site-audit",
       "description": "Audit a website for UX issues, bugs, accessibility problems, and unexpected behavior. site-mapper crawls once via Playwright MCP to produce sitemap.json; ux-analyst, accessibility-auditor, performance-auditor, and bug-script-runner then run in parallel against the shared artifact. bug-script-runner generates a Playwright spec on the fly using real selectors and executes it via npx playwright test.",

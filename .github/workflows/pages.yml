@@ -71,7 +71,7 @@ jobs:
           node-version: '20'
 
       - name: Restore tree cache
-        uses: actions/cache@v4
+        uses:   actions/cache@v4
         with:
           path: .cache/trees
           key: gh-trees-${{ hashFiles('marketplaces.json') }}
