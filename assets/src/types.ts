@@ -16,6 +16,7 @@ export interface Plugin {
   hooks:          string[];
   installCommand: string;
   source:         Source;
+  rating?:        Rating;
   _repo?:         string;
 }
 
@@ -70,6 +71,7 @@ export interface Agent {
   installCommand: string;
   source:         Source;
   bundles?:       string[];
+  rating?:        Rating;
   _repo?:         string;
 }
 
@@ -82,6 +84,7 @@ export interface McpServer {
   installCommand: string;
   source:         Source;
   bundles?:       string[];
+  rating?:        Rating;
   _repo?:         string;
 }
 
@@ -95,6 +98,7 @@ export interface Command {
   installCommand: string;
   source:         Source;
   bundles?:       string[];
+  rating?:        Rating;
   _repo?:         string;
 }
 
@@ -108,6 +112,7 @@ export interface Hook {
   installCommand: string;
   source:         Source;
   bundles?:       string[];
+  rating?:        Rating;
   _repo?:         string;
 }
 

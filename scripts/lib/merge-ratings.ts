@@ -1,19 +1,18 @@
-/* lib/merge-ratings.ts — merge ratings.json into the list of local-marketplace skills.
+/* lib/merge-ratings.ts — merge ratings.json into any entity array.
  *
- * Source of truth for the Skill Rating & Review System (issue #7,
- * docs/architecture.md → Ratings & Reviews). Keyed by `<pluginName>/<skillName>`,
- * only local-marketplace skills (`source.owner === localOwner && source.repo === localRepo`)
- * are merged — external-marketplace skills are intentionally left unrated in v1.
+ * Part of the Skill Rating & Review System (issue #7). Keyed by
+ * `{kind}/{owner}/{repo}/{name}` — e.g. `skill/dan323/easier-life-skills/changelog`
+ * or `plugin/mattpocock/skills/workflow`. Any entity type from any repo can be rated.
  *
  * The merge is fail-soft: a missing or malformed entry warns rather than throwing,
- * because ratings.json is rewritten by a separate scheduled workflow (Phase 5 of
- * the design) and we don't want a transient bad write to deploy-block the site.
+ * because ratings.json is rewritten by a separate scheduled workflow and we don't
+ * want a transient bad write to deploy-block the site.
  *
  * Pure function — no I/O, no globals. The build script handles reading the file
- * and assigning the merged result back; unit tests exercise this in isolation.
+ * and calling this once per entity array; unit tests exercise it in isolation.
  */
 
-import type { Rating, Skill } from './types.js';
+import type { Rating } from './types.js';
 
 export type RatingsMap = Record<string, Rating>;
 
@@ -21,14 +20,18 @@ export interface RatingsFile {
   ratings?: RatingsMap;
 }
 
-export interface MergeRatingsOptions {
-  localOwner: string;
-  localRepo: string;
-  warn?: (msg: string) => void;
+/** Entity kinds that can carry a rating — matches the Discussion form dropdown. */
+export type RatableKind = 'skill' | 'agent' | 'plugin' | 'hook' | 'command' | 'mcpServer' | 'bundle';
+
+/** Minimum shape required for any entity passed to mergeRatings. */
+export interface RatableEntity {
+  name:   string;
+  source: { owner: string; repo: string };
+  rating?: Rating;
 }
 
 export interface MergeRatingsResult {
-  merged: number;
+  merged:  number;
   skipped: number;
 }
 
@@ -42,22 +45,20 @@ function isRating(value: unknown): value is Rating {
 }
 
 /**
- * Mutates `skills` in place: assigns `rating` to every local-marketplace skill
- * whose `<pluginName>/<name>` key appears in `ratings`. Returns counts so the
- * caller can print a one-line summary.
+ * Mutates `entities` in place: assigns `rating` to every entity whose
+ * `{kind}/{owner}/{repo}/{name}` key appears in `ratings`. Works for any
+ * entity type and any source repo — no local-only restriction.
  */
 export function mergeRatings(
-  skills: Skill[],
-  ratings: RatingsMap,
-  opts: MergeRatingsOptions,
+  entities: RatableEntity[],
+  kind:     RatableKind,
+  ratings:  RatingsMap,
+  warn:     (msg: string) => void = (m) => console.warn(m),
 ): MergeRatingsResult {
-  const warn = opts.warn ?? ((m: string) => console.warn(m));
   let merged = 0;
   let skipped = 0;
-  for (const skill of skills) {
-    if (skill.source.owner !== opts.localOwner) continue;
-    if (skill.source.repo  !== opts.localRepo)  continue;
-    const key = `${skill.pluginName}/${skill.name}`;
+  for (const entity of entities) {
+    const key = `${kind}/${entity.source.owner}/${entity.source.repo}/${entity.name}`;
     const r = ratings[key];
     if (r === undefined) continue;
     if (!isRating(r)) {
@@ -65,7 +66,7 @@ export function mergeRatings(
       skipped++;
       continue;
     }
-    skill.rating = r;
+    entity.rating = r;
     merged++;
   }
   return { merged, skipped };

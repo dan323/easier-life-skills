@@ -40,7 +40,9 @@ describe('entity panel — skill', () => {
     click(cardByName('skills-grid', 'changelog'));
     const link = document.getElementById('entity-panel-rate-link') as HTMLAnchorElement | null;
     expect(link).not.toBeNull();
-    expect(link!.href).toContain('discussions/new?category=skill-reviews');
+    expect(link!.href).toContain('discussions/new');
+    expect(link!.href).toContain('category=ratings');
+    expect(link!.href).toContain('entity_type=skill');
     expect(link!.href).toContain('changelog');
   });
 

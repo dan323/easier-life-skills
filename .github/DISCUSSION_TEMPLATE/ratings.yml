@@ -1,0 +1,63 @@
+title: "[Review] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Rate any entity from the [easier-life-skills marketplace](https://dan323.github.io/easier-life-skills/).
+        One review per entity per person — duplicate submissions for the same entity will use the most recent one.
+
+  - type: dropdown
+    id: entity_type
+    attributes:
+      label: Entity type
+      options:
+        - skill
+        - agent
+        - plugin
+        - hook
+        - command
+        - mcp-server
+        - bundle
+    validations:
+      required: true
+
+  - type: input
+    id: entity_name
+    attributes:
+      label: Entity name
+      description: "Exact name as shown in the marketplace, e.g. `changelog`, `docs`, `copilot-review-fixer`"
+      placeholder: changelog
+    validations:
+      required: true
+
+  - type: input
+    id: entity_repo
+    attributes:
+      label: Entity repo
+      description: "Source repository in `owner/repo` format, e.g. `dan323/easier-life-skills`"
+      placeholder: dan323/easier-life-skills
+    validations:
+      required: true
+
+  - type: dropdown
+    id: stars
+    attributes:
+      label: Stars
+      options:
+        - "5"
+        - "4"
+        - "3"
+        - "2"
+        - "1"
+    validations:
+      required: true
+
+  - type: textarea
+    id: review
+    attributes:
+      label: Review
+      description: "Share your experience (optional)"
+      placeholder: "What worked well? What could be better?"
+    validations:
+      required: false

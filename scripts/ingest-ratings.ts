@@ -1,19 +1,20 @@
 #!/usr/bin/env node
 // scripts/ingest-ratings.ts — Phase 5 of the Skill Rating & Review System (issue #7)
 //
-// Queries the GitHub GraphQL API for all Discussions in the "Skill Reviews"
-// category of the local marketplace repo, parses the structured form bodies,
-// aggregates per-skill ratings, and rewrites ratings.json.
+// Queries the GitHub GraphQL API for all Discussions in the "Ratings" category,
+// parses each structured form body, and rewrites ratings.json.
 //
-// Designed to run in CI (pages.yml) before npm run build, using the
-// GITHUB_TOKEN that Actions injects automatically. Can also be run locally
-// with a personal access token:
+// Keys: `{entityType}/{owner}/{repo}/{name}`  e.g. `skill/dan323/easier-life-skills/changelog`
+// Any entity type (skill, agent, plugin, hook, command, mcp-server, bundle) from
+// any repo can be rated — no local-only restriction.
+//
+// Run in CI via pages.yml before `npm run build`. Can also be run locally:
 //   GITHUB_TOKEN=<pat> npx tsx scripts/ingest-ratings.ts
 //
-// Fail-soft: a missing token, missing category, or GraphQL error prints a
-// warning and leaves ratings.json unchanged so the build never breaks.
+// Fail-soft: a missing token, missing category, or API error warns and leaves
+// ratings.json unchanged so the build never breaks.
 
-import { readFileSync, writeFileSync, readdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -30,9 +31,13 @@ const marketplaces = JSON.parse(
 const LOCAL_OWNER = marketplaces[0]!.owner;
 const LOCAL_REPO  = marketplaces[0]!.repo;
 
-const CATEGORY_NAME = 'Skill Reviews';
+const CATEGORY_NAME = 'Ratings';
 const GH_API        = 'https://api.github.com/graphql';
 const token         = process.env['GITHUB_TOKEN'];
+
+// Valid entity types as they appear in the form dropdown.
+// 'mcp-server' is the form value; ingest normalises it to 'mcpServer' for the key.
+const VALID_TYPES = new Set(['skill', 'agent', 'plugin', 'hook', 'command', 'mcp-server', 'bundle']);
 
 // ---------------------------------------------------------------------------
 // Types
@@ -44,31 +49,6 @@ interface RatingsFile {
   _comment: string;
   _schema:  unknown;
   ratings:  Record<string, Rating>;
-}
-
-// ---------------------------------------------------------------------------
-// Build skillName → pluginName map from local plugins/
-// ---------------------------------------------------------------------------
-
-function buildSkillMap(): Map<string, string> {
-  const map = new Map<string, string>();
-  const pluginsDir = join(ROOT, 'plugins');
-  if (!existsSync(pluginsDir)) return map;
-
-  for (const entry of readdirSync(pluginsDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    const pluginJsonPath = join(pluginsDir, entry.name, '.claude-plugin', 'plugin.json');
-    if (!existsSync(pluginJsonPath)) continue;
-    const pluginJson = JSON.parse(readFileSync(pluginJsonPath, 'utf8')) as { name?: string };
-    const pluginName = pluginJson.name ?? entry.name;
-
-    const skillsDir = join(pluginsDir, entry.name, 'skills');
-    if (!existsSync(skillsDir)) continue;
-    for (const skill of readdirSync(skillsDir, { withFileTypes: true })) {
-      if (skill.isDirectory()) map.set(skill.name.toLowerCase(), pluginName);
-    }
-  }
-  return map;
 }
 
 // ---------------------------------------------------------------------------
@@ -92,7 +72,7 @@ async function gql(query: string, variables: Record<string, unknown>): Promise<u
 }
 
 // ---------------------------------------------------------------------------
-// Step 1: resolve the "Skill Reviews" category ID
+// Step 1: resolve the "Ratings" Discussion category ID by name
 // ---------------------------------------------------------------------------
 
 async function findCategoryId(): Promise<string | null> {
@@ -108,9 +88,8 @@ async function findCategoryId(): Promise<string | null> {
     repository: { discussionCategories: { nodes: { id: string; name: string }[] } }
   };
 
-  const cat = data.repository.discussionCategories.nodes
-    .find(n => n.name === CATEGORY_NAME);
-  return cat?.id ?? null;
+  return data.repository.discussionCategories.nodes
+    .find(n => n.name === CATEGORY_NAME)?.id ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -118,9 +97,9 @@ async function findCategoryId(): Promise<string | null> {
 // ---------------------------------------------------------------------------
 
 interface DiscussionNode {
-  author: { login: string } | null;
+  author:    { login: string } | null;
   createdAt: string;
-  body: string;
+  body:      string;
 }
 
 async function fetchDiscussions(categoryId: string): Promise<DiscussionNode[]> {
@@ -138,11 +117,7 @@ async function fetchDiscussions(categoryId: string): Promise<DiscussionNode[]> {
             orderBy: { field: CREATED_AT, direction: ASC }
           ) {
             pageInfo { hasNextPage endCursor }
-            nodes {
-              author { login }
-              createdAt
-              body
-            }
+            nodes { author { login } createdAt body }
           }
         }
       }
@@ -169,9 +144,10 @@ async function fetchDiscussions(categoryId: string): Promise<DiscussionNode[]> {
 // ---------------------------------------------------------------------------
 
 interface ParsedReview {
-  skillName: string;
-  stars:     number;
-  body:      string;
+  entityType: string;
+  entityName: string;
+  entityRepo: string;
+  stars:      number;
 }
 
 // GitHub Discussion forms render each field as:
@@ -182,27 +158,35 @@ interface ParsedReview {
 // Empty optional fields render as "_No response_".
 function parseBody(raw: string): ParsedReview | null {
   const sections: Record<string, string> = {};
-
-  // Split on lines starting with "### "
-  const parts = raw.split(/\n(?=### )/);
-  for (const part of parts) {
-    const headerEnd = part.indexOf('\n');
-    if (headerEnd === -1) continue;
-    const label = part.slice(4, headerEnd).trim().toLowerCase();
-    const value = part.slice(headerEnd + 1).trim();
+  for (const part of raw.split(/\n(?=### )/)) {
+    const nl = part.indexOf('\n');
+    if (nl === -1) continue;
+    const label = part.slice(4, nl).trim().toLowerCase();
+    const value = part.slice(nl + 1).trim();
     sections[label] = value === '_no response_' ? '' : value;
   }
 
-  const skillName = sections['skill name']?.trim().toLowerCase() ?? '';
-  const starsRaw  = sections['stars']?.trim() ?? '';
-  const reviewBody = sections['review']?.trim() ?? '';
+  const entityType = sections['entity type']?.trim().toLowerCase() ?? '';
+  const entityName = sections['entity name']?.trim().toLowerCase() ?? '';
+  const entityRepo = sections['entity repo']?.trim().toLowerCase() ?? '';
+  const starsRaw   = sections['stars']?.trim() ?? '';
 
-  if (!skillName) return null;
+  if (!entityType || !entityName || !entityRepo) return null;
+  if (!VALID_TYPES.has(entityType)) return null;
+
+  // Validate repo is in owner/repo format
+  if (!/^[^/]+\/[^/]+$/.test(entityRepo)) return null;
 
   const stars = parseInt(starsRaw, 10);
   if (isNaN(stars) || stars < 1 || stars > 5) return null;
 
-  return { skillName, stars, body: reviewBody };
+  return { entityType, entityName, entityRepo, stars };
+}
+
+// Normalise the form's entity type to the key format used in ratings.json.
+// The form uses 'mcp-server' (human-readable); the key uses 'mcpServer'.
+function normaliseType(t: string): string {
+  return t === 'mcp-server' ? 'mcpServer' : t;
 }
 
 // ---------------------------------------------------------------------------
@@ -211,33 +195,38 @@ function parseBody(raw: string): ParsedReview | null {
 
 function aggregate(
   discussions: DiscussionNode[],
-  skillMap: Map<string, string>,
+  warn: (msg: string) => void,
 ): Record<string, Rating> {
-  // Collect reviews grouped by key, deduplicating by author (last wins)
+  // byKey[key][author] = most-recent review for that author on that entity
   const byKey = new Map<string, Map<string, Review>>();
 
   for (const disc of discussions) {
     const parsed = parseBody(disc.body);
     if (!parsed) {
-      console.warn(`⚠ Could not parse discussion body — skipping`);
+      warn(`⚠ Could not parse discussion body — skipping`);
       continue;
     }
 
-    const pluginName = skillMap.get(parsed.skillName);
-    if (!pluginName) {
-      // v1 intentionally limits ratings to local-marketplace skills only.
-      // External skills (mattpocock/skills, anthropics/skills, etc.) are not ratable yet.
-      console.warn(`⚠ Skill "${parsed.skillName}" not found in local plugins — skipping (external skills are not ratable in v1)`);
-      continue;
+    // Re-parse body to also grab the optional review text
+    const sections: Record<string, string> = {};
+    for (const part of disc.body.split(/\n(?=### )/)) {
+      const nl = part.indexOf('\n');
+      if (nl === -1) continue;
+      const label = part.slice(4, nl).trim().toLowerCase();
+      const value = part.slice(nl + 1).trim();
+      sections[label] = value === '_no response_' ? '' : value;
     }
 
-    const key    = `${pluginName}/${parsed.skillName}`;
+    const kind   = normaliseType(parsed.entityType);
+    const [owner, repo] = parsed.entityRepo.split('/') as [string, string];
+    const key    = `${kind}/${owner}/${repo}/${parsed.entityName}`;
     const author = disc.author?.login ?? 'anonymous';
 
     if (!byKey.has(key)) byKey.set(key, new Map());
+    // Last submission per author wins (discussions are fetched ASC by date)
     byKey.get(key)!.set(author, {
       stars:  parsed.stars,
-      body:   parsed.body,
+      body:   sections['review'] ?? '',
       author,
       date:   disc.createdAt,
     });
@@ -256,7 +245,6 @@ function writeRatings(ratings: Record<string, Rating>): void {
   const existing = JSON.parse(
     readFileSync(join(ROOT, 'ratings.json'), 'utf8'),
   ) as RatingsFile;
-
   existing.ratings = ratings;
   writeFileSync(join(ROOT, 'ratings.json'), JSON.stringify(existing, null, 2) + '\n', 'utf8');
 }
@@ -271,9 +259,6 @@ if (!token) {
 }
 
 try {
-  const skillMap = buildSkillMap();
-  console.log(`✓ Found ${skillMap.size} local skills`);
-
   const categoryId = await findCategoryId();
   if (!categoryId) {
     console.warn(`⚠ Discussion category "${CATEGORY_NAME}" not found in ${LOCAL_OWNER}/${LOCAL_REPO} — skipping ingest`);
@@ -285,11 +270,12 @@ try {
   const discussions = await fetchDiscussions(categoryId);
   console.log(`✓ Fetched ${discussions.length} discussion(s)`);
 
-  const ratings = aggregate(discussions, skillMap);
+  const warn = (msg: string) => console.warn(msg);
+  const ratings = aggregate(discussions, warn);
   writeRatings(ratings);
 
   const count = Object.keys(ratings).length;
-  console.log(`✓ ratings.json — ${count} skill(s) with ratings`);
+  console.log(`✓ ratings.json — ${count} entity rating(s) written`);
 } catch (err) {
   console.warn(`⚠ Ratings ingest failed: ${(err as Error).message}`);
   console.warn('  ratings.json left unchanged');

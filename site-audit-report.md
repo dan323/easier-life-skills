@@ -3,13 +3,13 @@
 
 ## Summary
 
-| Category       | Critical | High | Medium | Low | Total |
-|----------------|----------|------|--------|-----|-------|
-| UX             | 0        | 2    | 7      | 6   | 15    |
-| Accessibility  | 0        | 1    | 0      | 0   | 1     |
-| Performance    | 0        | 0    | 0      | 3   | 3     |
-| Bugs           | 0        | 0    | 0      | 0   | 0     |
-| **Total**      | **0**    | **3**| **7**  | **9**| **19**|
+| Category      | Critical | High  | Medium | Low   | Total  |
+|---------------|----------|-------|--------|-------|--------|
+| UX            | 0        | 2     | 7      | 6     | 15     |
+| Accessibility | 0        | 1     | 0      | 0     | 1      |
+| Performance   | 0        | 0     | 0      | 3     | 3      |
+| Bugs          | 0        | 0     | 0      | 0     | 0      |
+| **Total**     | **0**    | **3** | **7**  | **9** | **19** |
 
 > **Lighthouse performance score: 99/100**
 

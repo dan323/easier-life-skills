@@ -1,147 +1,122 @@
 /**
- * Unit tests for `scripts/lib/merge-ratings.ts` — the pure-logic half of
- * the Skill Rating & Review System (issue #7).
+ * Unit tests for `scripts/lib/merge-ratings.ts`.
  *
- * The build script's I/O is intentionally not covered here; this suite
- * exercises only the in-memory merge so we can verify the local-only
- * scope, the key shape, the fail-soft type guard, and idempotence
- * without spinning up a fake filesystem.
+ * Key format: `{kind}/{owner}/{repo}/{name}` — any entity type, any repo.
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { mergeRatings, type RatingsMap } from '../scripts/lib/merge-ratings.ts';
-import type { Skill } from '../scripts/lib/types.ts';
+import { mergeRatings, type RatingsMap, type RatableEntity } from '../scripts/lib/merge-ratings.ts';
 
-const LOCAL_OWNER = 'dan323';
-const LOCAL_REPO  = 'easier-life-skills';
+const OWNER = 'dan323';
+const REPO  = 'easier-life-skills';
 
-function makeSkill(over: Partial<Skill> & Pick<Skill, 'name' | 'pluginName'>): Skill {
-  return {
-    name:           over.name,
-    pluginName:     over.pluginName,
-    version:        over.version ?? '0.0.0',
-    description:    over.description ?? '',
-    category:       over.category ?? null,
-    keywords:       over.keywords ?? [],
-    tools:          over.tools ?? [],
-    readOnly:       over.readOnly ?? false,
-    skillPath:      over.skillPath ?? '',
-    rawSkillUrl:    over.rawSkillUrl ?? '',
-    installCommand: over.installCommand ?? '',
-    source: over.source ?? {
-      owner:   LOCAL_OWNER,
-      repo:    LOCAL_REPO,
-      repoUrl: `https://github.com/${LOCAL_OWNER}/${LOCAL_REPO}`,
-    },
-  };
+function makeEntity(name: string, owner = OWNER, repo = REPO): RatableEntity {
+  return { name, source: { owner, repo } };
 }
 
+const sampleRating = {
+  avg: 4.5, count: 2,
+  reviews: [
+    { stars: 5, body: 'great', author: 'octocat', date: '2026-05-10T00:00:00Z' },
+    { stars: 4, body: 'good',  author: 'hubot',   date: '2026-05-11T00:00:00Z' },
+  ],
+};
+
 describe('mergeRatings', () => {
-  it('merges a well-formed rating onto a matching local skill', () => {
-    const skills = [makeSkill({ name: 'changelog', pluginName: 'docs' })];
+  it('merges a well-formed rating onto a matching entity', () => {
+    const skills = [makeEntity('changelog')];
     const ratings: RatingsMap = {
-      'docs/changelog': {
-        avg: 4.5,
-        count: 2,
-        reviews: [
-          { stars: 5, body: 'great', author: 'octocat', date: '2026-05-10T00:00:00Z' },
-          { stars: 4, body: 'good',  author: 'hubot',   date: '2026-05-11T00:00:00Z' },
-        ],
-      },
+      [`skill/${OWNER}/${REPO}/changelog`]: sampleRating,
     };
 
-    const result = mergeRatings(skills, ratings, { localOwner: LOCAL_OWNER, localRepo: LOCAL_REPO });
+    const result = mergeRatings(skills, 'skill', ratings);
 
     expect(result).toEqual({ merged: 1, skipped: 0 });
-    expect(skills[0]!.rating).toEqual(ratings['docs/changelog']);
+    expect(skills[0]!.rating).toEqual(sampleRating);
   });
 
-  it('does not merge ratings onto external-marketplace skills', () => {
-    const external = makeSkill({
-      name:       'changelog',
-      pluginName: 'docs',
-      source: { owner: 'someone-else', repo: 'their-skills', repoUrl: 'https://github.com/someone-else/their-skills' },
-    });
+  it('does not merge ratings from a different kind', () => {
+    const agents = [makeEntity('changelog')];
     const ratings: RatingsMap = {
-      'docs/changelog': { avg: 5, count: 1, reviews: [] },
+      [`skill/${OWNER}/${REPO}/changelog`]: sampleRating, // skill key, not agent
     };
 
-    const result = mergeRatings([external], ratings, { localOwner: LOCAL_OWNER, localRepo: LOCAL_REPO });
+    const result = mergeRatings(agents, 'agent', ratings);
 
     expect(result).toEqual({ merged: 0, skipped: 0 });
-    expect(external.rating).toBeUndefined();
+    expect(agents[0]!.rating).toBeUndefined();
   });
 
-  it('leaves skills without a matching entry untouched', () => {
-    const skills = [
-      makeSkill({ name: 'changelog',     pluginName: 'docs' }),
-      makeSkill({ name: 'find-dead-code', pluginName: 'code-audit' }),
-    ];
+  it('merges ratings for external-repo entities', () => {
+    const external = [makeEntity('workflow', 'mattpocock', 'skills')];
     const ratings: RatingsMap = {
-      'docs/changelog': { avg: 5, count: 1, reviews: [] },
+      'skill/mattpocock/skills/workflow': sampleRating,
     };
 
-    mergeRatings(skills, ratings, { localOwner: LOCAL_OWNER, localRepo: LOCAL_REPO });
+    const result = mergeRatings(external, 'skill', ratings);
 
-    expect(skills[0]!.rating).toBeDefined();
-    expect(skills[1]!.rating).toBeUndefined();
+    expect(result).toEqual({ merged: 1, skipped: 0 });
+    expect(external[0]!.rating).toEqual(sampleRating);
   });
 
-  it('uses `pluginName/skillName` as the lookup key, not just skillName', () => {
-    // Two same-named skills in different plugins (same repo) get disambiguated.
-    const a = makeSkill({ name: 'sync', pluginName: 'plugin-a' });
-    const b = makeSkill({ name: 'sync', pluginName: 'plugin-b' });
+  it('leaves entities without a matching entry untouched', () => {
+    const entities = [makeEntity('changelog'), makeEntity('find-dead-code')];
     const ratings: RatingsMap = {
-      'plugin-a/sync': { avg: 5, count: 1, reviews: [] },
+      [`skill/${OWNER}/${REPO}/changelog`]: sampleRating,
     };
 
-    mergeRatings([a, b], ratings, { localOwner: LOCAL_OWNER, localRepo: LOCAL_REPO });
+    mergeRatings(entities, 'skill', ratings);
 
-    expect(a.rating).toBeDefined();
-    expect(b.rating).toBeUndefined();
+    expect(entities[0]!.rating).toBeDefined();
+    expect(entities[1]!.rating).toBeUndefined();
   });
 
   it('skips a malformed entry with a warning instead of throwing', () => {
-    const skills = [makeSkill({ name: 'changelog', pluginName: 'docs' })];
-    // Cast through unknown so the test can express the "field arrives wrong"
-    // shape without lying to the compiler about the public RatingsMap type.
+    const entities = [makeEntity('changelog')];
     const ratings = {
-      'docs/changelog': { avg: 'four point five', count: 2 },
+      [`skill/${OWNER}/${REPO}/changelog`]: { avg: 'four point five', count: 2 },
     } as unknown as RatingsMap;
     const warn = vi.fn();
 
-    const result = mergeRatings(skills, ratings, {
-      localOwner: LOCAL_OWNER,
-      localRepo:  LOCAL_REPO,
-      warn,
-    });
+    const result = mergeRatings(entities, 'skill', ratings, warn);
 
     expect(result).toEqual({ merged: 0, skipped: 1 });
-    expect(skills[0]!.rating).toBeUndefined();
+    expect(entities[0]!.rating).toBeUndefined();
     expect(warn).toHaveBeenCalledOnce();
-    expect(warn.mock.calls[0]![0]).toMatch(/docs\/changelog/);
+    expect(warn.mock.calls[0]![0]).toMatch(`skill/${OWNER}/${REPO}/changelog`);
   });
 
   it('is idempotent when called twice', () => {
-    const skills = [makeSkill({ name: 'changelog', pluginName: 'docs' })];
+    const entities = [makeEntity('changelog')];
     const ratings: RatingsMap = {
-      'docs/changelog': { avg: 4.5, count: 2, reviews: [] },
+      [`skill/${OWNER}/${REPO}/changelog`]: sampleRating,
     };
 
-    mergeRatings(skills, ratings, { localOwner: LOCAL_OWNER, localRepo: LOCAL_REPO });
-    const after_first = JSON.parse(JSON.stringify(skills[0]));
-    mergeRatings(skills, ratings, { localOwner: LOCAL_OWNER, localRepo: LOCAL_REPO });
-    const after_second = JSON.parse(JSON.stringify(skills[0]));
+    mergeRatings(entities, 'skill', ratings);
+    const afterFirst = JSON.parse(JSON.stringify(entities[0]));
+    mergeRatings(entities, 'skill', ratings);
 
-    expect(after_second).toEqual(after_first);
+    expect(JSON.parse(JSON.stringify(entities[0]))).toEqual(afterFirst);
   });
 
-  it('treats an empty ratings map as a no-op (no skills tagged)', () => {
-    const skills = [makeSkill({ name: 'changelog', pluginName: 'docs' })];
+  it('treats an empty ratings map as a no-op', () => {
+    const entities = [makeEntity('changelog')];
 
-    const result = mergeRatings(skills, {}, { localOwner: LOCAL_OWNER, localRepo: LOCAL_REPO });
+    const result = mergeRatings(entities, 'skill', {});
 
     expect(result).toEqual({ merged: 0, skipped: 0 });
-    expect(skills[0]!.rating).toBeUndefined();
+    expect(entities[0]!.rating).toBeUndefined();
+  });
+
+  it('merges plugin ratings using the plugin kind key', () => {
+    const plugins = [makeEntity('docs')];
+    const ratings: RatingsMap = {
+      [`plugin/${OWNER}/${REPO}/docs`]: sampleRating,
+    };
+
+    const result = mergeRatings(plugins, 'plugin', ratings);
+
+    expect(result).toEqual({ merged: 1, skipped: 0 });
+    expect(plugins[0]!.rating).toEqual(sampleRating);
   });
 });

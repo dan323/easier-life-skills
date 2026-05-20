@@ -8,6 +8,7 @@ import { McpCard }     from './cards/McpCard.tsx';
 import { CommandCard } from './cards/CommandCard.tsx';
 import { HookCard }    from './cards/HookCard.tsx';
 import { refMatchesSkill } from '../bundle-resolve.ts';
+import { ReviewsBlock, rateUrl } from './ReviewsBlock.tsx';
 import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle } from '../types.ts';
 
 interface Props {
@@ -185,6 +186,12 @@ function PluginPanelBody({
           ))}
         </div>
       </div>
+
+      <ReviewsBlock
+        rating={plugin.rating}
+        rateUrl={rateUrl({ entityType: 'plugin', entityName: plugin.name, entityRepo: sourceKey })}
+        idPrefix="plugin-panel"
+      />
 
       <div id="panel-install-footer" class="panel-install-footer">
         <div id="panel-marketplace-row" class="panel-install-row" hidden={isBuiltin}>

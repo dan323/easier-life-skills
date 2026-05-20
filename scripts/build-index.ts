@@ -10,7 +10,7 @@ import { fileURLToPath }                          from 'url';
 import { fetchMarketplaceSkills }                 from './lib/fetch-marketplace.js';
 import { generateCatalog, generateCatalogHtml }   from './lib/catalog.js';
 import { refMatchesEntity }                        from './lib/bundle-resolve.js';
-import { mergeRatings, type RatingsFile }         from './lib/merge-ratings.js';
+import { mergeRatings, type RatingsFile, type RatableEntity, type RatableKind } from './lib/merge-ratings.js';
 import type { Agent, Command, MarketplaceEntry, McpServer, Plugin, Skill, Bundle, Hook } from './lib/types.js';
 
 const ROOT         = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -189,12 +189,23 @@ if (existsSync(ratingsPath)) {
     console.warn(`⚠ ratings.json present but unparseable, skipping: ${(err as Error).message}`);
   }
 }
-const ratingsResult = mergeRatings(allSkills, ratingsFile.ratings ?? {}, {
-  localOwner: LOCAL_OWNER,
-  localRepo:  LOCAL_REPO,
-});
-console.log(`✓ ratings.json — ${ratingsResult.merged} skill rating(s) merged` +
-  (ratingsResult.skipped > 0 ? ` (${ratingsResult.skipped} skipped)` : ''));
+const allRatings = ratingsFile.ratings ?? {};
+const ratingTargets: [RatableKind, RatableEntity[]][] = [
+  ['skill',     allSkills],
+  ['agent',     allAgents],
+  ['plugin',    allPlugins],
+  ['hook',      allHooks],
+  ['command',   allCommands],
+  ['mcpServer', allMcpServers],
+];
+let totalMerged = 0, totalSkipped = 0;
+for (const [kind, entities] of ratingTargets) {
+  const r = mergeRatings(entities, kind, allRatings);
+  totalMerged  += r.merged;
+  totalSkipped += r.skipped;
+}
+console.log(`✓ ratings.json — ${totalMerged} rating(s) merged across all entity types` +
+  (totalSkipped > 0 ? ` (${totalSkipped} skipped)` : ''));
 
 const index = {
   meta: {

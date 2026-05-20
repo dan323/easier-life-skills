@@ -1,7 +1,7 @@
 {
-  "_comment": "Source of truth for Skill Rating & Review System (issue #7). Keyed by skill triplet 'pluginName/skillName' for local-marketplace skills. The build merges this into skills_index.json; the ingest pipeline (Phase 5) will rewrite this file from Discussions. Until the pipeline ships, this file is hand-maintained and only carries seed/sample entries.",
+  "_comment": "Source of truth for the Rating & Review System (issue #7). Keyed by '{entityType}/{owner}/{repo}/{name}' — e.g. 'skill/dan323/easier-life-skills/changelog'. Any entity type (skill, agent, plugin, hook, command, mcpServer, bundle) from any repo can be rated. The build merges this into skills_index.json; the ingest script (scripts/ingest-ratings.ts) rewrites this file from the 'Ratings' GitHub Discussion category on each CI run.",
   "_schema": {
-    "key": "pluginName/skillName",
+    "key": "{entityType}/{owner}/{repo}/{name}",
     "value": {
       "avg": "number — mean of reviews[].stars, rounded to one decimal",
       "count": "number — reviews.length",

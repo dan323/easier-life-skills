@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import { titleCase } from '../utils.ts';
 import { BUILTIN_REPO } from '../constants.ts';
 import { CopyButton } from './CopyButton.tsx';
+import { ReviewsBlock, rateUrl } from './ReviewsBlock.tsx';
 import type { Skill, Agent, McpServer, Command, Hook, Bundle } from '../types.ts';
 
 export type EntityKind = 'skill' | 'agent' | 'mcpServer' | 'command' | 'hook';
@@ -162,7 +163,11 @@ function EntityPanelBody({
         chipCls="chip-command"
       />
 
-      <RatingsSection kind={kind} entity={entity} />
+      <ReviewsBlock
+        rating={(entity as Skill).rating}
+        rateUrl={rateUrl({ entityType: kind, entityName: entity.name, entityRepo: sourceKey })}
+        idPrefix="entity-panel"
+      />
 
       <div id="entity-panel-bundles-section" class="panel-section" hidden={!skillBundles.length}>
         <h3 class="panel-section-title">Part of bundles</h3>
@@ -217,69 +222,6 @@ function EntityPanelBody({
         />
       </div>
     </>
-  );
-}
-
-function starsString(score: number): string {
-  const filled = Math.round(score);
-  return Array.from({ length: 5 }, (_, i) => i < filled ? '★' : '☆').join('');
-}
-
-function StarRow({ avg, count }: { avg: number; count: number }) {
-  return (
-    <div id="entity-panel-rating-summary" class="panel-rating-summary" aria-label={`Average rating ${avg} out of 5 from ${count} review${count !== 1 ? 's' : ''}`}>
-      <span class="panel-rating-stars" aria-hidden="true">{starsString(avg)}</span>
-      <span class="panel-rating-avg">{avg}</span>
-      <span class="panel-rating-count">({count} review{count !== 1 ? 's' : ''})</span>
-    </div>
-  );
-}
-
-function RatingsSection({ kind, entity }: { kind: EntityKind; entity: Skill | Agent | McpServer | Command | Hook }) {
-  if (kind !== 'skill') return null;
-  const skill = entity as Skill;
-  const sourceKey = skill._repo ?? `${skill.source.owner}/${skill.source.repo}`;
-  // Ratings are only supported for the built-in marketplace in v1
-  if (sourceKey !== BUILTIN_REPO) return null;
-
-  const rating = skill.rating;
-  const title  = encodeURIComponent(`[Review] ${skill.name}`);
-  const rateUrl = `https://github.com/${BUILTIN_REPO}/discussions/new?category=skill-reviews&title=${title}`;
-
-  return (
-    <div id="entity-panel-ratings-section" class="panel-section">
-      <h3 class="panel-section-title">Reviews</h3>
-      {rating ? (
-        <>
-          <StarRow avg={rating.avg} count={rating.count} />
-          <div id="entity-panel-reviews-list" class="panel-reviews">
-            {rating.reviews.map((r, i) => (
-              <div key={i} class="panel-review">
-                <div class="panel-review-header">
-                  <span class="panel-review-stars" aria-label={`${r.stars} out of 5 stars`} aria-hidden="true">
-                    {starsString(r.stars)}
-                  </span>
-                  <span class="panel-review-author">{r.author}</span>
-                  <span class="panel-review-date">{r.date.slice(0, 10)}</span>
-                </div>
-                {r.body && <p class="panel-review-body">{r.body}</p>}
-              </div>
-            ))}
-          </div>
-        </>
-      ) : (
-        <p id="entity-panel-no-reviews" class="panel-no-reviews">No reviews yet.</p>
-      )}
-      <a
-        id="entity-panel-rate-link"
-        class="panel-rate-link"
-        href={rateUrl}
-        target="_blank"
-        rel="noopener"
-      >
-        Rate this skill ↗
-      </a>
-    </div>
   );
 }
 
