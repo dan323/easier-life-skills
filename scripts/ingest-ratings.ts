@@ -225,7 +225,9 @@ function aggregate(
 
     const pluginName = skillMap.get(parsed.skillName);
     if (!pluginName) {
-      console.warn(`⚠ Skill "${parsed.skillName}" not found in local plugins — skipping`);
+      // v1 intentionally limits ratings to local-marketplace skills only.
+      // External skills (mattpocock/skills, anthropics/skills, etc.) are not ratable yet.
+      console.warn(`⚠ Skill "${parsed.skillName}" not found in local plugins — skipping (external skills are not ratable in v1)`);
       continue;
     }
 
