@@ -409,9 +409,17 @@ For each step in the plan, in order:
    ```
    You are running step `<id>` of workflow `<wf_name>`.
 
-   Skill: <skill>
-   Arguments (resolved):
+   Invoke the `<skill>` skill using the Skill tool with these
+   arguments (convert the JSON object to space-separated key=value
+   pairs):
    <pretty-printed JSON of step.args>
+
+   IMPORTANT: invoke the skill via the Skill tool — do NOT
+   reimplement the skill's logic yourself. The skill has its own
+   SKILL.md with specific instructions, scripts, and output formats
+   that must be followed exactly. Reimplementing it inline produces
+   incorrect results (wrong file formats, missing idempotence
+   checks, skipped validation).
 
    Output convention:
    - Write a JSON summary to $WORKFLOW_OUTPUT=$STEP_OUTPUT.

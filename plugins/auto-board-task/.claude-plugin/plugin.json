@@ -1,6 +1,6 @@
 {
   "name": "auto-board-task",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Process the top Todo card on a GitHub Project (v2) board end-to-end: pull the board into a task-agent tasks.yml, run task-agent against the top pending task to open a PR, then sync the PR back so the card moves to In Review. Bundles the `gh-project-sync` reconciler skill (used twice in the chain) and composes it with `task-agent` via the `workflow` skill — both `task-agent` and `workflow` must also be installed.",
   "author": { "name": "dan323" },
   "category": "automation",
