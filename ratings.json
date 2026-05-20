@@ -15,5 +15,174 @@
       ]
     }
   },
-  "ratings": {}
+  "ratings": {
+    "plugin/dan323/easier-life-skills/auto-board-task": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:41:55Z"
+        }
+      ]
+    },
+    "plugin/dan323/easier-life-skills/brainstorm": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:41:56Z"
+        }
+      ]
+    },
+    "plugin/dan323/easier-life-skills/code-audit": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:41:57Z"
+        }
+      ]
+    },
+    "plugin/dan323/easier-life-skills/cost-tracker": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:41:58Z"
+        }
+      ]
+    },
+    "plugin/dan323/easier-life-skills/cv-linkedin": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:41:59Z"
+        }
+      ]
+    },
+    "plugin/dan323/easier-life-skills/docs": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:42:00Z"
+        }
+      ]
+    },
+    "plugin/dan323/easier-life-skills/find-breaking-rest-api": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:42:01Z"
+        }
+      ]
+    },
+    "plugin/dan323/easier-life-skills/find-dead-code": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:42:02Z"
+        }
+      ]
+    },
+    "plugin/dan323/easier-life-skills/find-skills": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:42:03Z"
+        }
+      ]
+    },
+    "plugin/dan323/easier-life-skills/improve-logging": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:42:04Z"
+        }
+      ]
+    },
+    "plugin/dan323/easier-life-skills/scaffold": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:42:06Z"
+        }
+      ]
+    },
+    "plugin/dan323/easier-life-skills/site-audit": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:42:07Z"
+        }
+      ]
+    },
+    "plugin/dan323/easier-life-skills/task-agent": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:42:08Z"
+        }
+      ]
+    },
+    "plugin/dan323/easier-life-skills/workflow": {
+      "avg": 5,
+      "count": 1,
+      "reviews": [
+        {
+          "stars": 5,
+          "body": "Excellent plugin — highly recommended.",
+          "author": "dan323",
+          "date": "2026-05-20T17:42:09Z"
+        }
+      ]
+    }
+  }
 }
