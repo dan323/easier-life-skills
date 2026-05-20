@@ -34,16 +34,22 @@ describe('entity panel — skill', () => {
     expect(noReviews!.textContent).toBe('No reviews yet.');
   });
 
-  it('shows Rate this link in reviews section', async () => {
+  it('shows five star rating buttons in reviews section', async () => {
     await bootApp();
     click('#view-skills');
     click(cardByName('skills-grid', 'changelog'));
-    const link = document.getElementById('entity-panel-rate-link') as HTMLAnchorElement | null;
-    expect(link).not.toBeNull();
-    expect(link!.href).toContain('discussions/new');
-    expect(link!.href).toContain('category=ratings');
-    expect(link!.href).toContain('entity_type=skill');
-    expect(link!.href).toContain('changelog');
+    const buttons = document.querySelectorAll<HTMLAnchorElement>('#entity-panel-rate-buttons .panel-rate-star');
+    expect(buttons.length).toBe(5);
+    // Each button links to the Discussion form with a different stars value
+    const hrefs = Array.from(buttons).map(b => b.href);
+    expect(hrefs[0]).toContain('stars=1');
+    expect(hrefs[4]).toContain('stars=5');
+    // All buttons carry the entity context
+    for (const href of hrefs) {
+      expect(href).toContain('category=ratings');
+      expect(href).toContain('entity_type=skill');
+      expect(href).toContain('changelog');
+    }
   });
 
   it('shows tools and keywords for skills', async () => {

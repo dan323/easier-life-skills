@@ -1041,8 +1041,19 @@ footer a:hover { text-decoration: underline; }
 .panel-review-body   { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
 
 .panel-no-reviews { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
-.panel-rate-link  { font-size: 0.8rem; color: var(--accent); text-decoration: none; align-self: flex-start; }
-.panel-rate-link:hover { text-decoration: underline; }
+.panel-rate-buttons { display: flex; gap: 4px; }
+.panel-rate-star {
+  display: inline-block;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: #e3b341;
+  font-size: 0.8rem;
+  text-decoration: none;
+  letter-spacing: 0.05em;
+  transition: background 0.1s, border-color 0.1s;
+}
+.panel-rate-star:hover { background: #2d2200; border-color: #6e4c00; }
 
 .panel-bundle-item {
   display: flex;

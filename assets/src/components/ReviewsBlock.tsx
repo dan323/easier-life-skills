@@ -17,18 +17,38 @@ function StarRow({ avg, count, summaryId }: { avg: number; count: number; summar
   );
 }
 
+/** Five star buttons — clicking each opens the Discussion form with that value pre-filled. */
+function StarButtons({ baseUrl, idPrefix }: { baseUrl: string; idPrefix: string }) {
+  return (
+    <div id={`${idPrefix}-rate-buttons`} class="panel-rate-buttons" aria-label="Rate this">
+      {([1, 2, 3, 4, 5] as const).map(n => (
+        <a
+          key={n}
+          class="panel-rate-star"
+          href={`${baseUrl}&stars=${n}`}
+          target="_blank"
+          rel="noopener"
+          aria-label={`Rate ${n} out of 5 stars`}
+        >
+          {starsString(n)}
+        </a>
+      ))}
+    </div>
+  );
+}
+
 interface Props {
-  rating:     Rating | undefined;
-  /** Pre-built URL for the "Rate this" link — caller supplies entity-specific params. */
-  rateUrl:    string;
+  rating:   Rating | undefined;
+  /** Base URL for the Discussion form — stars value is appended per button. */
+  rateUrl:  string;
   /** Prefix used for element IDs so the block can appear in both EntityPanel and PluginPanel. */
-  idPrefix:   string;
+  idPrefix: string;
 }
 
 /**
  * Reviews section shared between EntityPanel (skills, agents, hooks, …) and
  * PluginPanel. Shows aggregate stars + individual reviews when rated, or a
- * "No reviews yet" message otherwise. Always renders the "Rate this ↗" link.
+ * "No reviews yet" message otherwise. Always renders the 1–5 star rating buttons.
  */
 export function ReviewsBlock({ rating, rateUrl, idPrefix }: Props) {
   return (
@@ -55,20 +75,12 @@ export function ReviewsBlock({ rating, rateUrl, idPrefix }: Props) {
       ) : (
         <p id={`${idPrefix}-no-reviews`} class="panel-no-reviews">No reviews yet.</p>
       )}
-      <a
-        id={`${idPrefix}-rate-link`}
-        class="panel-rate-link"
-        href={rateUrl}
-        target="_blank"
-        rel="noopener"
-      >
-        Rate this ↗
-      </a>
+      <StarButtons baseUrl={rateUrl} idPrefix={idPrefix} />
     </div>
   );
 }
 
-/** Build the "Rate this" URL for any entity, pre-filling the Discussion form fields. */
+/** Build the base "Rate this" URL for any entity, pre-filling the Discussion form fields. */
 export function rateUrl(opts: {
   entityType: string;
   entityName: string;
