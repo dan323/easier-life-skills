@@ -32,7 +32,7 @@ import {
   computeKnownMarketplaces, filterForUpdate, marketplacesForItems,
   searchAll, resolveInstallTarget,
 } from '../lib/logic.js';
-import { claudeAvailable, listInstalledPlugins, pluginUpdate } from '../lib/claude.js';
+import { claudeAvailable, listInstalledPlugins, pluginUpdate, pluginUninstall } from '../lib/claude.js';
 import { installItemsRespectingSource } from '../lib/actions.js';
 import type { Index, Plugin } from '../lib/types.js';
 
@@ -57,6 +57,9 @@ const searchTerm = flagVal('--search');
 const updateMode = flag('--update');
 const updateRaw  = flagVal('--update');
 const updateTarget = updateRaw && !updateRaw.startsWith('--') ? updateRaw : null;
+const uninstallRaw = flagVal('--uninstall');
+const uninstallTarget = uninstallRaw && !uninstallRaw.startsWith('--') ? uninstallRaw : null;
+const uninstallMode = flag('--uninstall') || uninstallTarget != null;
 const dryRun     = flag('--dry-run');
 const yes        = flag('--yes');
 
@@ -266,6 +269,51 @@ function entitySummary(p: Plugin): string {
     return;
   }
 
+  // ── --uninstall ───────────────────────────────────────────────────────────
+  if (uninstallMode) {
+    if (!uninstallTarget) {
+      console.error('\nError: --uninstall requires a plugin name, e.g. --uninstall changelog\n');
+      process.exit(1);
+    }
+
+    if (!(await claudeAvailable())) {
+      console.error('\nError: `claude` is not on $PATH. Install Claude Code from https://claude.ai/code, then re-run.\n');
+      process.exit(1);
+    }
+
+    const knownMarketplaces = computeKnownMarketplaces(
+      [...plugins, ...skills],
+      sources,
+      LOCAL_MARKETPLACE,
+    );
+    const installed = await listInstalledPlugins();
+    const targets = filterForUpdate(installed, knownMarketplaces, uninstallTarget);
+
+    if (targets.length === 0) {
+      console.error(`\n"${uninstallTarget}" is not installed from any of the marketplaces this index knows about. Run --list to see what's available.\n`);
+      process.exit(1);
+    }
+
+    console.log(`\nWill uninstall ${targets.length} plugin${targets.length === 1 ? '' : 's'}:`);
+    targets.forEach((p) => console.log(`  ${p.id.padEnd(40)} (currently ${p.version})`));
+    console.log();
+
+    if (!dryRun) {
+      const ok = await confirm(`Uninstall ${targets.length} plugin${targets.length === 1 ? '' : 's'}?`);
+      if (!ok) { console.log('Cancelled.'); return; }
+    }
+
+    for (const p of targets) {
+      const at = p.id.lastIndexOf('@');
+      await pluginUninstall(p.id.slice(0, at), p.id.slice(at + 1), dryRun);
+    }
+
+    if (!dryRun) {
+      console.log(`\nDone! Restart Claude Code to deactivate the uninstalled plugin${targets.length === 1 ? '' : 's'}.\n`);
+    }
+    return;
+  }
+
   // ── --install ─────────────────────────────────────────────────────────────
   // Accepts a plugin name OR any entity name (skill / agent / hook / command /
   // mcp). Routes to the parent plugin; errors with a disambiguation list if
@@ -450,18 +498,20 @@ Usage:
   npx @dan323/easier-life-skills --bundle <id>
   npx @dan323/easier-life-skills --update
   npx @dan323/easier-life-skills --update <name>
+  npx @dan323/easier-life-skills --uninstall <name>
   npx @dan323/easier-life-skills --install <name> --dry-run
   npx @dan323/easier-life-skills --install <name> --yes
 
 Flags:
-  --list            Show all plugins, skills, agents, hooks, commands, MCP servers, bundles (no claude required)
-  --search <query>  Filter every kind of entity by name / description / category (no claude required)
-  --install <name>  Install by plugin name or any entity name (resolves to parent plugin; errors on ambiguity)
-  --plugin <name>   Explicit plugin install (errors if name is not a plugin)
-  --skill <name>    Explicit skill resolution — installs the plugin that ships this skill
-  --bundle <id>     Install every plugin referenced by a bundle, routed by source
-  --update [name]   Update installed plugins from any of the indexed marketplaces
-  --dry-run         Print what would happen, don't execute
-  --yes             Skip confirmation prompt
+  --list              Show all plugins, skills, agents, hooks, commands, MCP servers, bundles (no claude required)
+  --search <query>    Filter every kind of entity by name / description / category (no claude required)
+  --install <name>    Install by plugin name or any entity name (resolves to parent plugin; errors on ambiguity)
+  --plugin <name>     Explicit plugin install (errors if name is not a plugin)
+  --skill <name>      Explicit skill resolution — installs the plugin that ships this skill
+  --bundle <id>       Install every plugin referenced by a bundle, routed by source
+  --update [name]     Update installed plugins from any of the indexed marketplaces
+  --uninstall <name>  Uninstall an installed plugin from any of the indexed marketplaces
+  --dry-run           Print what would happen, don't execute
+  --yes               Skip confirmation prompt
 `);
 })();
