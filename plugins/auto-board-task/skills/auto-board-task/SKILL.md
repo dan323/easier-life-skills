@@ -23,7 +23,7 @@ tools: Bash
 Invoke the `workflow` skill **in the current conversation** on the
 bundled
 [`workflows/auto-board-task.yaml`](../../workflows/auto-board-task.yaml),
-forwarding the user's `key=value` arguments verbatim.
+passing the resolved project coordinates as explicit `key=value` args.
 
 The workflow chains:
 
@@ -31,39 +31,61 @@ The workflow chains:
 2. `task-agent` — open a PR for the top pending task.
 3. `gh-project-sync` — sync the PR back to its card.
 
-This SKILL does no parsing and no validation of its own. The workflow
-runner validates against the YAML's `inputs:` declarations and the
-composed sub-skills validate their own argument grammar.
-
 ## What to do
 
-Expand `${CLAUDE_PLUGIN_ROOT}` to an absolute path for the workflow
-YAML (relative paths won't survive the move into the workflow runner's
-working directory):
+### Step 1 — Resolve project coordinates
+
+The workflow requires `project_owner` and `project_number` (or
+`project_url`). Extract them from the user's message and any
+available context (the current repo's remote URL, prior conversation,
+`gh` CLI output). The user will phrase this naturally:
+
+| User says | Extract |
+|-----------|---------|
+| "github project 4 for dan323" | `project_owner=dan323 project_number=4` |
+| "project https://github.com/users/alice/projects/7" | `project_url=https://github.com/users/alice/projects/7` |
+| "project 4" (no owner) | infer owner from `gh repo view --json owner` |
+| No mention | ask: "Which GitHub Project should I use? (owner and number, or URL)" |
+
+Also resolve `default_repo` for draft cards that aren't linked to an
+issue. Default: the current repo (`gh repo view --json nameWithOwner`).
+
+### Step 2 — Build the absolute workflow path
 
 ```bash
-WORKFLOW_PATH="${CLAUDE_PLUGIN_ROOT}/workflows/auto-board-task.yaml"
+WORKFLOW_PATH="<CLAUDE_PLUGIN_ROOT>/workflows/auto-board-task.yaml"
 echo "$WORKFLOW_PATH"
 ```
 
-Then invoke the `workflow` skill with the **`Skill` tool — not the
-`Agent` tool**:
+Replace `<CLAUDE_PLUGIN_ROOT>` with the base directory shown at the
+top of this skill file (the path before `/skills/auto-board-task`).
+
+### Step 3 — Invoke the workflow skill
+
+Use the **`Skill` tool — not the `Agent` tool**:
 
 ```
-Skill(skill="workflow", args="<absolute WORKFLOW_PATH> <user args verbatim>")
+Skill(skill="workflow", args="<WORKFLOW_PATH> project_owner=<owner> project_number=<number> default_repo=<owner/repo>")
 ```
 
-The workflow runner prints its own per-step status block — relay it
-as-is once the `Skill` invocation returns.
+Or with a URL:
+
+```
+Skill(skill="workflow", args="<WORKFLOW_PATH> project_url=<url> default_repo=<owner/repo>")
+```
+
+Relay the workflow runner's per-step status block as-is once the
+`Skill` invocation returns.
 
 ## Do not:
 
 - Use the `Agent` tool to invoke the workflow. It looks like the
   natural choice but the sub-agent's tool list comes up wrong for
   the runner — `workflow` only works when it runs inline via `Skill`.
-- Reparse or re-validate the user's arguments here. The workflow
-  runner and the composed sub-skills (`gh-project-sync`,
-  `task-agent`) own validation; duplicating it drifts.
+- Pass the user's raw natural-language message as args. The workflow
+  runner expects `key=value` pairs; natural language produces a
+  validation error. Always resolve to explicit key=value before
+  calling the workflow skill.
 - Call `gh-project-sync` or `task-agent` directly. The composition
   is the point — bypass defeats it.
 - Modify the workflow YAML at runtime. Users who want a different

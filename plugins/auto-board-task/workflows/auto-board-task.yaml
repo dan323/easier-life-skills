@@ -28,16 +28,12 @@ inputs:
     default: "tasks.yml"
   - name: project_url
     description: GitHub Project v2 URL (e.g. https://github.com/users/dan323/projects/4). Alternative to project_owner + project_number.
-    default: ""
   - name: project_owner
     description: GitHub user or org that owns the project. Use together with project_number when project_url is empty.
-    default: ""
   - name: project_number
     description: Project number as shown in the URL. Use together with project_owner when project_url is empty.
-    default: ""
   - name: default_repo
     description: owner/repo for draft cards that aren't linked to an issue. Optional.
-    default: ""
 
 steps:
   - id: sync-in
