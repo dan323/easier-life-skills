@@ -90,3 +90,13 @@ export async function pluginUpdate(pluginName: string, marketplaceName: string, 
   console.log(`Updating ${target}…`);
   await runClaude(['plugin', 'update', target]);
 }
+
+export async function pluginUninstall(pluginName: string, marketplaceName: string, dryRun: boolean): Promise<void> {
+  const target = `${pluginName}@${marketplaceName}`;
+  if (dryRun) {
+    console.log(`  [dry-run] would run: claude plugin uninstall ${target}`);
+    return;
+  }
+  console.log(`Uninstalling ${target}…`);
+  await runClaude(['plugin', 'uninstall', target]);
+}
