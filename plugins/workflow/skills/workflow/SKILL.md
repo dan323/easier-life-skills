@@ -397,12 +397,11 @@ For each step in the plan, in order:
    STEP_STDERR="$WORKFLOW_DIR/$STEP_ID/stderr.log"
    ```
 
-2. Spawn the subagent via the `Agent` tool. Use the step's `skill`
-   name as `subagent_type` when an agent with that name is
-   registered; otherwise spawn the generic `claude` agent and pass
-   the resolved arguments in the prompt so the matching skill picks
-   them up. The agent gets `$WORKFLOW_OUTPUT=$STEP_OUTPUT` and
-   `$WORKFLOW_DIR=$WORKFLOW_DIR` exported via the prompt context.
+2. Spawn the subagent via the `Agent` tool. Always use `claude` as
+   the `subagent_type` — skills are not agent types. Pass the
+   resolved arguments in the prompt so the matching skill picks them
+   up via the `Skill` tool. The agent gets `$WORKFLOW_OUTPUT=$STEP_OUTPUT`
+   and `$WORKFLOW_DIR=$WORKFLOW_DIR` exported via the prompt context.
 
    The prompt template looks like:
 

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.30.0] - 2026-05-22
+
+### Fixed
+- **`workflow` skill (v1.1.2): always spawn `claude` agent type, not skill name.** Phase 4 previously instructed the runner to use the step's `skill` name as `subagent_type` "when registered", which caused `task-agent:task-agent` (a skill, not an agent) to be passed as the agent type — resulting in "Agent type not found" errors. The instruction now unconditionally uses `claude` as `subagent_type` and relies on the subagent invoking the skill via the `Skill` tool, which is the correct path for all skills.
+
 ### Added
 - **`--uninstall <name>` flag for the installer CLI (issue #15).** Mirrors the `--update` delegation pattern shipped in v1.20.0. The flag looks up the named plugin in `claude plugin list --json`, restricts to marketplaces this index knows about (exactly as `--update` does), then calls `claude plugin uninstall <pluginName>@<marketplace>` for each match. Errors with exit 1 if the plugin is not installed from any indexed marketplace. Supports `--dry-run` and `--yes`. New `pluginUninstall` helper added to `installer/src/lib/claude.ts`; installer package bumped to v1.9.0.
 - **`security-review` skill (issue #11).** New read-only plugin that scans a codebase for OWASP Top-10 vulnerabilities, hardcoded secrets, insecure dependencies, and unsafe patterns. Produces a markdown report ranked by severity (Critical / High / Medium / Low). Five phases: language detection → secrets scan (cloud token shapes, high-entropy credential assignments, .env committed to git) → OWASP grep rules (A01 broken access control, A02 cryptographic failures / weak hashes / disabled TLS, A03 SQL and command injection, A05 security misconfiguration, A07 auth failures / JWT none, A08 unsafe deserialisation, A10 SSRF) → dependency audit (npm audit / pip-audit / govulncheck / cargo audit with graceful fallback) → assembled report. Uses `semgrep` / `bandit` when available, falls back to grep-based rules. Framework-aware suppression avoids false positives for Spring beans, test-file patterns, and non-security MD5 usages. Five evals cover: clean repo, hardcoded AWS key, SQL injection + disabled TLS, .env committed to git, and test-file exclusion. Auto-tagged `readOnly` by the build pipeline (no Write/Edit tools).
