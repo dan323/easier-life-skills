@@ -151,7 +151,7 @@ function EntityPanelBody({
               <div class="panel-scan-warn">
                 <p class="panel-scan-warn-title">⚠ Flagged during security scan (v{scanResult.scannedVersion})</p>
                 <ul class="panel-scan-flags">
-                  {scanResult.flags.map(f => <li key={f.rule}>{f.detail}</li>)}
+                  {scanResult.flags.map(f => <li key={`${f.rule}:${f.field}`}>{f.detail}</li>)}
                 </ul>
               </div>
             )

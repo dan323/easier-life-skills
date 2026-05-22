@@ -108,15 +108,16 @@ describe('truncate', () => {
     expect(truncate('hello', 10)).toBe('hello');
   });
 
-  it('truncates at max and appends ellipsis', () => {
+  it('truncates at max and appends ellipsis, result length === max', () => {
     const result = truncate('abcdefghij', 5);
-    expect(result).toBe('abcde…');
-    expect(result.length).toBe(6);
+    expect(result).toBe('abcd…');
+    expect(result.length).toBe(5);
   });
 
-  it('respects FIELD_LIMITS.description', () => {
+  it('respects FIELD_LIMITS.description — result is exactly max chars', () => {
     const long = 'x'.repeat(600);
     const result = truncate(long, FIELD_LIMITS.description);
-    expect(result.length).toBe(FIELD_LIMITS.description + 1);
+    expect(result.length).toBe(FIELD_LIMITS.description);
+    expect(result.endsWith('…')).toBe(true);
   });
 });

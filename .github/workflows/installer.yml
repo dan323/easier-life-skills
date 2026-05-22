@@ -47,9 +47,9 @@ jobs:
             echo "::error::NPM_TOKEN secret is not set. Add it at Settings → Secrets → Actions."
             exit 1
           fi
-          whoami=$(npm whoami 2>&1) || true
-          if echo "$whoami" | grep -q "ENEEDAUTH\|E401\|code E"; then
-            echo "::error::NPM_TOKEN is set but rejected by the registry (invalid or expired). Regenerate at npmjs.com → Access Tokens."
+          if ! whoami=$(npm whoami 2>&1); then
+            echo "::error::NPM_TOKEN rejected by the registry (invalid or expired). Output: $whoami"
+            echo "::error::Regenerate the token at npmjs.com → Access Tokens and update the NPM_TOKEN secret."
             exit 1
           fi
           echo "::notice::Authenticated to npm as: $whoami"

@@ -268,8 +268,13 @@ async function parseSkill(
   const description = truncate(rawDesc, FIELD_LIMITS.description);
   const keywords    = rawKeywords
     .slice(0, FIELD_LIMITS.maxKeywords)
-    .map(k => truncate(k, FIELD_LIMITS.keyword));
-  if (description.length !== rawDesc.length)
+    .map((k, i) => {
+      const t = truncate(k, FIELD_LIMITS.keyword);
+      if (t !== k)
+        console.warn(`  [security] ${owner}/${repo} skill "${skillName}": keyword[${i}] truncated ("${k.slice(0, 20)}…")`);
+      return t;
+    });
+  if (description !== rawDesc)
     console.warn(`  [security] ${owner}/${repo} skill "${skillName}": description truncated (${rawDesc.length} chars)`);
   if (rawKeywords.length > FIELD_LIMITS.maxKeywords)
     console.warn(`  [security] ${owner}/${repo} skill "${skillName}": keywords list truncated (${rawKeywords.length} items)`);
@@ -284,7 +289,7 @@ async function parseSkill(
   return {
     name:           skillName,
     pluginName:     pluginEntry.name,
-    version:        frontmatter.version ?? '1.0',
+    version,
     description,
     category:       pluginEntry.category ?? null,
     keywords,

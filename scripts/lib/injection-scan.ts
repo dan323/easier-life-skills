@@ -1,18 +1,8 @@
 /* lib/injection-scan.ts — heuristic prompt-injection scanner for SKILL.md, agent .md, and metadata fields */
 
-export interface ScanFlag {
-  rule:   string;
-  /** Which field the match was found in: 'body', 'description', or 'keywords'. */
-  field:  string;
-  detail: string;
-}
+import type { ScanFlag, ScanResult } from './types.js';
 
-export interface ScanResult {
-  passed:         boolean;
-  flags:          ScanFlag[];
-  /** Version string of the skill/agent at the time of scanning. */
-  scannedVersion: string;
-}
+export type { ScanFlag, ScanResult };
 
 /**
  * Rules applied in order. Each rule is checked independently; all matches
@@ -31,7 +21,8 @@ export interface ScanResult {
 const RULES: Array<{ rule: string; pattern: RegExp; detail: string }> = [
   {
     rule:    'hidden-chars',
-    // Zero-width space (U+200B), ZWNJ, ZWJ, LRM, RLM, LRE–PDF (U+202A–202E), BOM (U+FEFF)
+    // U+200B zero-width space, U+200C ZWNJ, U+200D ZWJ,
+    // U+200E LRM, U+200F RLM, U+202A–U+202E bidi overrides, U+FEFF BOM
     pattern: /[​‌‍‎‏‪‫‬‭‮﻿]/,
     detail:  'Contains invisible or direction-override Unicode characters',
   },
@@ -54,7 +45,10 @@ const RULES: Array<{ rule: string; pattern: RegExp; detail: string }> = [
   },
 ];
 
-/** Max byte lengths enforced on external metadata before scanning and storing. */
+/**
+ * Maximum character lengths enforced on external metadata before scanning and
+ * storing. Limits are inclusive of any trailing ellipsis added by truncate().
+ */
 export const FIELD_LIMITS = {
   description:    500,
   keyword:         60,
@@ -62,9 +56,12 @@ export const FIELD_LIMITS = {
   name:           100,
 } as const;
 
-/** Truncate a string to at most `max` characters, with a trailing indicator if cut. */
+/**
+ * Truncate a string so its length is at most `max` characters (inclusive of
+ * the trailing ellipsis when truncation occurs).
+ */
 export function truncate(value: string, max: number): string {
-  return value.length > max ? value.slice(0, max) + '…' : value;
+  return value.length > max ? value.slice(0, max - 1) + '…' : value;
 }
 
 function scanField(text: string, field: string): ScanFlag[] {
