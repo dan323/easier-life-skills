@@ -18,7 +18,7 @@ export type { ScanFlag, ScanResult };
  *   - Generic "ignore" — skills legitimately say "ignore test files", "ignore
  *     node_modules", etc.
  */
-const RULES: Array<{ rule: string; pattern: RegExp; detail: string }> = [
+const RULES: Array<{ rule: ScanFlag['rule']; pattern: RegExp; detail: string }> = [
   {
     rule:    'hidden-chars',
     // U+200B zero-width space, U+200C ZWNJ, U+200D ZWJ,
@@ -64,7 +64,7 @@ export function truncate(value: string, max: number): string {
   return value.length > max ? value.slice(0, max - 1) + '…' : value;
 }
 
-function scanField(text: string, field: string): ScanFlag[] {
+function scanField(text: string, field: ScanFlag['field']): ScanFlag[] {
   const flags: ScanFlag[] = [];
   for (const { rule, pattern, detail } of RULES) {
     if (pattern.test(text)) {

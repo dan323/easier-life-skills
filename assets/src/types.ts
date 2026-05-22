@@ -5,9 +5,9 @@ export interface Source {
 }
 
 export interface ScanFlag {
-  rule:   string;
+  rule:   'hidden-chars' | 'system-inject' | 'anthropic-override' | 'credential-exfil';
   /** Which field triggered this flag: 'body', 'description', or 'keywords'. */
-  field:  string;
+  field:  'body' | 'description' | 'keywords';
   detail: string;
 }
 
