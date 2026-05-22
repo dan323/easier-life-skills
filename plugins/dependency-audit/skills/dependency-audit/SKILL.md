@@ -123,17 +123,23 @@ Parse `vulnerabilities.list[]` from the JSON output. Record package, version, RU
 
 **Tool available** (`pip-audit` preferred, then `safety`):
 
-```bash
-# pip-audit
-pip-audit --format json 2>/dev/null
+Run the audit against each discovered manifest — do **not** run against the interpreter environment, as that reflects globally installed packages rather than project dependencies:
 
-# safety (legacy)
-safety check --json 2>/dev/null
+```bash
+# pip-audit against each requirements*.txt found in Phase 1
+pip-audit -r <requirements.txt> --format json 2>/dev/null
+
+# pip-audit for Pipfile.lock / pyproject.toml / poetry.lock:
+# run in the directory containing the manifest (pip-audit auto-detects these formats)
+# e.g. cd <manifest-dir> && pip-audit --format json 2>/dev/null
+
+# safety (legacy) — run against each requirements file
+safety check -r <requirements.txt> --json 2>/dev/null
 ```
 
 Parse JSON output. Record package, installed version, vulnerability ID (CVE or PYSEC), and description.
 
-**Fallback** — use `pip list --format json` (or parse `requirements*.txt` / `Pipfile.lock` / `poetry.lock`) to enumerate installed packages. Note that no vulnerability check could be performed and list all packages for manual review.
+**Fallback** — parse `requirements*.txt`, `Pipfile.lock`, or `poetry.lock` directly to enumerate declared packages and their pinned versions. Note that no vulnerability check could be performed and list all packages for manual review. Do **not** use `pip list` — it reflects the interpreter environment rather than the project manifests.
 
 ### Ruby (bundler)
 
@@ -149,24 +155,49 @@ bundle-audit check --format json 2>/dev/null || bundle audit check 2>/dev/null
 
 **Tool available** (`govulncheck`):
 
+Run with module writes disabled to prevent `go.sum`/`go.mod` from being modified:
+
 ```bash
-govulncheck ./... 2>/dev/null
+GOFLAGS=-mod=readonly govulncheck ./... 2>/dev/null
 ```
 
-**Fallback** — parse `go.sum` or `go.mod` for module paths and versions. Attempt `go list -m -u all 2>/dev/null` to detect available updates.
+If the repo is not tidy (missing sums), `govulncheck` may fail with `-mod=readonly`. In that case, fall back to parsing `go.mod` and `go.sum` directly — do **not** run `go mod tidy` or any command that mutates project files.
+
+**Fallback** — parse `go.sum` or `go.mod` for module paths and versions and list them for manual review. Attempt to detect available updates read-only:
+
+```bash
+GOFLAGS=-mod=readonly go list -m -u all 2>/dev/null
+```
 
 ### Java (Maven / Gradle)
 
 **Tool available**:
 
+The OWASP dependency-check plugin writes its report and NVD data cache to `target/` or `build/` by default, violating this skill's read-only guarantee. Redirect all output to a temporary directory and clean it up afterwards:
+
 ```bash
+_DC_TMP=$(mktemp -d)
+
 # Maven OWASP dependency-check plugin (if wrapper present)
-./mvnw dependency-check:check -DfailBuildOnCVSS=0 2>/dev/null \
-  || mvn dependency-check:check -DfailBuildOnCVSS=0 2>/dev/null
+./mvnw dependency-check:check -DfailBuildOnCVSS=0 \
+  -Dodc.reports.dir="$_DC_TMP/reports" \
+  -DdataDirectory="$_DC_TMP/nvdcache" \
+  -Dformat=JSON 2>/dev/null \
+  || mvn dependency-check:check -DfailBuildOnCVSS=0 \
+  -Dodc.reports.dir="$_DC_TMP/reports" \
+  -DdataDirectory="$_DC_TMP/nvdcache" \
+  -Dformat=JSON 2>/dev/null
 
 # Gradle (if wrapper present)
-./gradlew dependencyCheckAnalyze 2>/dev/null \
-  || gradle dependencyCheckAnalyze 2>/dev/null
+./gradlew dependencyCheckAnalyze \
+  -PdependencyCheck.outputDirectory="$_DC_TMP/reports" \
+  -PdependencyCheck.dataDirectory="$_DC_TMP/nvdcache" 2>/dev/null \
+  || gradle dependencyCheckAnalyze \
+  -PdependencyCheck.outputDirectory="$_DC_TMP/reports" \
+  -PdependencyCheck.dataDirectory="$_DC_TMP/nvdcache" 2>/dev/null
+
+# Parse JSON report from $_DC_TMP/reports/ then remove the temp dir
+rm -rf "$_DC_TMP"
 ```
 
 **Fallback** — parse `pom.xml` or `build.gradle` for declared dependency coordinates and list them for manual review.
@@ -208,9 +239,16 @@ If `cargo-outdated` is not installed, skip — do not attempt to install it.
 
 ### Python
 
-```bash
-pip list --outdated --format json 2>/dev/null
-```
+Python outdated detection without an installed environment is unreliable: `pip list --outdated` reflects the interpreter environment, not the project manifests, and will produce false results in arbitrary repos where dependencies are not installed.
+
+Instead, use manifest-based detection:
+
+1. Parse pinned versions from each discovered `requirements*.txt`, `Pipfile.lock`, or `pyproject.toml` (poetry).
+2. If `pip-audit` supports version comparison for the discovered manifest, check its output for packages where `latest_version` differs from the pinned version:
+   ```bash
+   pip-audit -r <requirements.txt> --format json 2>/dev/null
+   ```
+3. If no tool can determine latest versions without an installed environment, list the pinned versions from the manifests in the report and explicitly note that outdated checks for Python could not be performed without an active environment.
 
 ### Ruby
 

@@ -34,9 +34,9 @@
     {
       "id": 1,
       "prompt": "Check this Python project for dependency vulnerabilities",
-      "description": "Python project with a requirements.txt listing a package with a known CVE. pip-audit should be invoked if available; otherwise pip list --outdated is used as a fallback. The report must clearly distinguish between the tool path and the fallback path.",
+      "description": "Python project with a requirements.txt listing a package with a known CVE. pip-audit should be invoked against the manifest file (pip-audit -r requirements.txt) if available. If no audit tool is found, the skill must fall back to parsing requirements.txt directly and listing the declared packages for manual review — not running pip list, which reflects the interpreter environment. The report must clearly distinguish between the tool path and the fallback path.",
       "setup": "mkdir -p /tmp/eval-depaudit-1 && cd /tmp/eval-depaudit-1 && git init && cat > requirements.txt << 'EOF'\nrequests==2.18.0\nEOF",
-      "expected_output": "Report identifies the Python ecosystem, states whether pip-audit was used or a fallback was applied, and flags requests 2.18.0 as outdated or vulnerable. If pip-audit is unavailable, the report explicitly states this and lists packages for manual review.",
+      "expected_output": "Report identifies the Python ecosystem, states whether pip-audit was invoked against requirements.txt or a fallback was applied. If pip-audit is available, requests 2.18.0 is flagged as vulnerable (CVE or PYSEC advisory exists). If pip-audit is unavailable, the report explicitly states this, lists requests==2.18.0 from the manifest for manual review, and does not use pip list or the interpreter environment.",
       "files": [],
       "assertions": [
         {
