@@ -1,0 +1,135 @@
+{
+  "skill_name": "dependency-audit",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Audit the dependencies in this project for vulnerabilities",
+      "description": "Node.js project with a package-lock.json present and npm available. npm audit should be invoked and its output parsed. The report must show the severity breakdown and list at least one advisory.",
+      "setup": "mkdir -p /tmp/eval-depaudit-0 && cd /tmp/eval-depaudit-0 && git init && cat > package.json << 'EOF'\n{\n  \"name\": \"test-app\",\n  \"version\": \"1.0.0\",\n  \"dependencies\": {\n    \"lodash\": \"4.17.4\"\n  }\n}\nEOF\nnpm install --package-lock-only 2>/dev/null || true",
+      "expected_output": "Report identifies the Node.js ecosystem, notes that npm audit was used, and lists lodash 4.17.4 as vulnerable (prototype pollution advisories exist for versions below 4.17.21). Report includes severity, advisory ID, and a recommended fix version.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "npm-audit-used",
+          "text": "The report states that npm audit was used to scan dependencies"
+        },
+        {
+          "id": "lodash-flagged",
+          "text": "lodash is listed as a vulnerable package"
+        },
+        {
+          "id": "severity-present",
+          "text": "The report includes a severity level (critical, high, moderate, or low) for the lodash finding"
+        },
+        {
+          "id": "fix-version-present",
+          "text": "The report recommends a fix or upgrade path for the vulnerable package"
+        },
+        {
+          "id": "no-files-modified",
+          "text": "No project files were modified — package.json and package-lock.json are unchanged"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Check this Python project for dependency vulnerabilities",
+      "description": "Python project with a requirements.txt listing a package with a known CVE. pip-audit should be invoked against the manifest file (pip-audit -r requirements.txt) if available. If no audit tool is found, the skill must fall back to parsing requirements.txt directly and listing the declared packages for manual review — not running pip list, which reflects the interpreter environment. The report must clearly distinguish between the tool path and the fallback path.",
+      "setup": "mkdir -p /tmp/eval-depaudit-1 && cd /tmp/eval-depaudit-1 && git init && cat > requirements.txt << 'EOF'\nrequests==2.18.0\nEOF",
+      "expected_output": "Report identifies the Python ecosystem, states whether pip-audit was invoked against requirements.txt or a fallback was applied. If pip-audit is available, requests 2.18.0 is flagged as vulnerable (CVE or PYSEC advisory exists). If pip-audit is unavailable, the report explicitly states this, lists requests==2.18.0 from the manifest for manual review, and does not use pip list or the interpreter environment.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "python-ecosystem-detected",
+          "text": "The report identifies Python as one of the scanned ecosystems"
+        },
+        {
+          "id": "requests-mentioned",
+          "text": "requests 2.18.0 appears in the report (as vulnerable, outdated, or requiring manual review)"
+        },
+        {
+          "id": "tool-or-fallback-noted",
+          "text": "The report states which tool was used (pip-audit, safety) or explicitly notes the fallback path if no tool was found"
+        },
+        {
+          "id": "no-files-modified",
+          "text": "requirements.txt is not modified"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run a dependency audit",
+      "description": "Monorepo with both a Node.js package.json and a Python requirements.txt at different paths. Both ecosystems must be scanned — the skill must not stop after finding the first manifest.",
+      "setup": "mkdir -p /tmp/eval-depaudit-2/frontend /tmp/eval-depaudit-2/backend && cd /tmp/eval-depaudit-2 && git init && cat > frontend/package.json << 'EOF'\n{\n  \"name\": \"frontend\",\n  \"version\": \"1.0.0\",\n  \"dependencies\": {\n    \"react\": \"16.8.0\"\n  }\n}\nEOF\ncat > backend/requirements.txt << 'EOF'\nFlask==1.0.0\nEOF",
+      "expected_output": "Report covers both the Node.js frontend and the Python backend. Summary table shows findings for both ecosystems. Fallback paths are documented if dedicated tools are absent.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "node-ecosystem-scanned",
+          "text": "The report mentions Node.js or npm as a scanned ecosystem"
+        },
+        {
+          "id": "python-ecosystem-scanned",
+          "text": "The report mentions Python as a scanned ecosystem"
+        },
+        {
+          "id": "both-manifests-listed",
+          "text": "Both frontend/package.json and backend/requirements.txt (or their packages) appear in the report"
+        },
+        {
+          "id": "summary-table-present",
+          "text": "The report includes a summary table or section listing finding counts by severity across all ecosystems"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Audit dependencies for vulnerabilities",
+      "description": "Clean project with only a Cargo.toml whose dependencies have no known vulnerabilities. The report must say 'no vulnerabilities found' clearly rather than showing an empty table with no explanation.",
+      "setup": "mkdir -p /tmp/eval-depaudit-3/src && cd /tmp/eval-depaudit-3 && git init && cat > Cargo.toml << 'EOF'\n[package]\nname = \"clean-app\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nserde = { version = \"1\", features = [\"derive\"] }\nEOF\ncat > src/main.rs << 'EOF'\nfn main() {}\nEOF",
+      "expected_output": "Report identifies the Rust ecosystem, states that cargo audit (or fallback) was run, and clearly states that no vulnerabilities were found. The report does not falsely claim findings.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "rust-ecosystem-detected",
+          "text": "The report identifies Rust as a scanned ecosystem"
+        },
+        {
+          "id": "no-vulnerabilities-stated",
+          "text": "The report explicitly states that no vulnerabilities were found (not just an empty section)"
+        },
+        {
+          "id": "audit-tool-or-fallback-noted",
+          "text": "The report states whether cargo audit was used or a fallback was applied"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Check for outdated packages",
+      "description": "Node.js project where no audit tool reports vulnerabilities but npm outdated shows several packages with newer versions available. The outdated section of the report must be populated even when the vulnerabilities section is empty.",
+      "setup": "mkdir -p /tmp/eval-depaudit-4 && cd /tmp/eval-depaudit-4 && git init && cat > package.json << 'EOF'\n{\n  \"name\": \"old-app\",\n  \"version\": \"1.0.0\",\n  \"dependencies\": {\n    \"express\": \"4.16.0\",\n    \"chalk\": \"4.0.0\"\n  }\n}\nEOF\nnpm install --package-lock-only 2>/dev/null || true",
+      "expected_output": "Report runs npm outdated and lists express and/or chalk as having newer versions available. The vulnerabilities section is either empty or minimal. The outdated section is not omitted just because no CVEs were found.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "outdated-check-run",
+          "text": "The report includes an outdated packages section (not just vulnerabilities)"
+        },
+        {
+          "id": "outdated-packages-listed",
+          "text": "At least one package is listed as having a newer version available"
+        },
+        {
+          "id": "current-and-latest-shown",
+          "text": "The report shows both the currently installed version and the available latest version for outdated packages"
+        },
+        {
+          "id": "no-files-modified",
+          "text": "package.json and lock files are not modified"
+        }
+      ]
+    }
+  ]
+}

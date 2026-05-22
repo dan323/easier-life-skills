@@ -1,0 +1,8 @@
+{
+  "name": "dependency-audit",
+  "version": "1.0.0",
+  "description": "Scan all dependencies for outdated versions and known vulnerabilities. Uses npm audit, pip-audit, cargo audit, and bundler-audit with grep-based fallbacks. Read-only report.",
+  "author": { "name": "dan323" },
+  "category": "security",
+  "skills": ["./skills/dependency-audit"]
+}
