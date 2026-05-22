@@ -134,6 +134,8 @@ describe('entity panel — scan result', () => {
     const flags = section!.querySelectorAll('.panel-scan-flags li');
     expect(flags.length).toBe(1);
     expect(flags[0]!.textContent).toContain('system-level instruction injection');
+    // flag detail should be present (field attribution is in the data, not displayed separately)
+    expect(flags[0]!.textContent!.length).toBeGreaterThan(0);
   });
 
   it('shows no scan section for document-project (no scanResult)', async () => {

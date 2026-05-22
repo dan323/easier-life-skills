@@ -101,7 +101,7 @@
       "rawSkillUrl": "https://raw.githubusercontent.com/dan323/easier-life-skills/master/plugins/code-audit/skills/find-dead-code/SKILL.md",
       "installCommand": "/plugin install code-audit@easier-life-skills",
       "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" },
-      "scanResult": { "passed": false, "flags": [{ "rule": "system-inject", "detail": "Contains known system-level instruction injection phrases" }], "scannedVersion": "2.0" }
+      "scanResult": { "passed": false, "flags": [{ "rule": "system-inject", "field": "description", "detail": "Contains known system-level instruction injection phrases" }], "scannedVersion": "2.0" }
     },
     {
       "name": "document-project",

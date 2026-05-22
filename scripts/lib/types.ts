@@ -2,6 +2,8 @@
 
 export interface ScanFlag {
   rule:   string;
+  /** Which field triggered this flag: 'body', 'description', or 'keywords'. */
+  field:  string;
   detail: string;
 }
 

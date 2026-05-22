@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 
 import { join, dirname, basename }                                          from 'path';
 import { fileURLToPath }                                                    from 'url';
 import { parseFrontmatter }                                                 from './frontmatter.js';
-import { scanContent }                                                       from './injection-scan.js';
+import { scanBody, mergeMetadataScan, truncate, FIELD_LIMITS }               from './injection-scan.js';
 import type { Skill, Agent, McpServer, Command, Plugin, Bundle, MarketplaceResult, Hook } from './types.js';
 
 const __dirname  = dirname(fileURLToPath(import.meta.url));
@@ -261,19 +261,33 @@ async function parseSkill(
   const WRITE_TOOLS = new Set(['Write', 'Edit', 'NotebookEdit']);
   const readOnly    = tools.length > 0 && !tools.some(t => WRITE_TOOLS.has(t));
   const version     = String(frontmatter.version ?? '1.0');
-  const scanResult  = scanContent(content, version);
+
+  // Apply length limits before storing or scanning metadata
+  const rawDesc     = (frontmatter.description as string | undefined) ?? pluginEntry.description ?? '';
+  const rawKeywords = (pluginEntry.keywords ?? []) as string[];
+  const description = truncate(rawDesc, FIELD_LIMITS.description);
+  const keywords    = rawKeywords
+    .slice(0, FIELD_LIMITS.maxKeywords)
+    .map(k => truncate(k, FIELD_LIMITS.keyword));
+  if (description.length !== rawDesc.length)
+    console.warn(`  [security] ${owner}/${repo} skill "${skillName}": description truncated (${rawDesc.length} chars)`);
+  if (rawKeywords.length > FIELD_LIMITS.maxKeywords)
+    console.warn(`  [security] ${owner}/${repo} skill "${skillName}": keywords list truncated (${rawKeywords.length} items)`);
+
+  const bodyScan   = scanBody(content, version);
+  const scanResult = mergeMetadataScan(bodyScan, description, keywords);
 
   if (!scanResult.passed) {
-    console.warn(`  [security] ${owner}/${repo} skill "${skillName}": ${scanResult.flags.map(f => f.detail).join('; ')}`);
+    console.warn(`  [security] ${owner}/${repo} skill "${skillName}": ${scanResult.flags.map(f => `[${f.field}] ${f.detail}`).join('; ')}`);
   }
 
   return {
     name:           skillName,
     pluginName:     pluginEntry.name,
     version:        frontmatter.version ?? '1.0',
-    description:    (frontmatter.description as string | undefined) ?? pluginEntry.description ?? '',
+    description,
     category:       pluginEntry.category ?? null,
-    keywords:       pluginEntry.keywords ?? [],
+    keywords,
     tools,
     readOnly,
     skillPath,
@@ -301,18 +315,26 @@ async function parseAgent(
   const content = await readFile(fullAgentPath, remoteBase, root);
   if (!content) return null;
 
-  const frontmatter = parseFrontmatter(content);
+  const frontmatter  = parseFrontmatter(content);
   const agentVersion = String((frontmatter.version as string | undefined) ?? '1.0');
-  const scanResult  = scanContent(content, agentVersion);
+
+  // Apply length limits before storing or scanning metadata
+  const rawDesc   = (frontmatter.description as string | undefined) ?? '';
+  const description = truncate(rawDesc, FIELD_LIMITS.description);
+  if (description.length !== rawDesc.length)
+    console.warn(`  [security] ${owner}/${repo} agent "${agentName}": description truncated (${rawDesc.length} chars)`);
+
+  const bodyScan   = scanBody(content, agentVersion);
+  const scanResult = mergeMetadataScan(bodyScan, description, []);
 
   if (!scanResult.passed) {
-    console.warn(`  [security] ${owner}/${repo} agent "${agentName}": ${scanResult.flags.map(f => f.detail).join('; ')}`);
+    console.warn(`  [security] ${owner}/${repo} agent "${agentName}": ${scanResult.flags.map(f => `[${f.field}] ${f.detail}`).join('; ')}`);
   }
 
   return {
     name:           (frontmatter.name as string | undefined) ?? agentName,
     pluginName:     pluginEntry.name,
-    description:    (frontmatter.description as string | undefined) ?? '',
+    description,
     category:       (frontmatter.category as string | undefined) ?? pluginEntry.category ?? null,
     tools:          frontmatter.tools ? String(frontmatter.tools).split(',').map(t => t.trim()) : [],
     background:     frontmatter.background === true || frontmatter.background === 'true',

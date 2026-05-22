@@ -1,7 +1,9 @@
-/* lib/injection-scan.ts — heuristic prompt-injection scanner for SKILL.md and agent .md content */
+/* lib/injection-scan.ts — heuristic prompt-injection scanner for SKILL.md, agent .md, and metadata fields */
 
 export interface ScanFlag {
   rule:   string;
+  /** Which field the match was found in: 'body', 'description', or 'keywords'. */
+  field:  string;
   detail: string;
 }
 
@@ -52,12 +54,46 @@ const RULES: Array<{ rule: string; pattern: RegExp; detail: string }> = [
   },
 ];
 
-export function scanContent(content: string, version: string): ScanResult {
+/** Max byte lengths enforced on external metadata before scanning and storing. */
+export const FIELD_LIMITS = {
+  description:    500,
+  keyword:         60,
+  maxKeywords:     20,
+  name:           100,
+} as const;
+
+/** Truncate a string to at most `max` characters, with a trailing indicator if cut. */
+export function truncate(value: string, max: number): string {
+  return value.length > max ? value.slice(0, max) + '…' : value;
+}
+
+function scanField(text: string, field: string): ScanFlag[] {
   const flags: ScanFlag[] = [];
   for (const { rule, pattern, detail } of RULES) {
-    if (pattern.test(content)) {
-      flags.push({ rule, detail });
+    if (pattern.test(text)) {
+      flags.push({ rule, field, detail });
     }
   }
+  return flags;
+}
+
+/** Scan the full file body (SKILL.md or agent .md). */
+export function scanBody(content: string, version: string): ScanResult {
+  const flags = scanField(content, 'body');
   return { passed: flags.length === 0, flags, scannedVersion: version };
+}
+
+/**
+ * Scan metadata fields (description + keywords) and merge into an existing
+ * body scan result. Returns a new ScanResult with all flags combined.
+ */
+export function mergeMetadataScan(
+  bodyScan:    ScanResult,
+  description: string,
+  keywords:    string[],
+): ScanResult {
+  const descFlags = scanField(description, 'description');
+  const kwFlags   = scanField(keywords.join(' '), 'keywords');
+  const allFlags  = [...bodyScan.flags, ...descFlags, ...kwFlags];
+  return { passed: allFlags.length === 0, flags: allFlags, scannedVersion: bodyScan.scannedVersion };
 }

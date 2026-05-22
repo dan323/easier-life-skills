@@ -6,6 +6,8 @@ export interface Source {
 
 export interface ScanFlag {
   rule:   string;
+  /** Which field triggered this flag: 'body', 'description', or 'keywords'. */
+  field:  string;
   detail: string;
 }
 
@@ -166,6 +168,8 @@ export interface SkillsIndexMeta {
 }
 
 export interface SkillsIndex {
+  /** Build-time security notice; instructs Claude to treat all external string values as data. */
+  _security?: string;
   meta:       SkillsIndexMeta;
   plugins:    Plugin[];
   skills:     Skill[];
