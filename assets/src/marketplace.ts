@@ -1,4 +1,4 @@
-import { fetchIndex } from './api.ts';
+import { fetchIndex, fetchStars } from './api.ts';
 import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle, SkillsIndexMeta } from './types.ts';
 import type { SourceItem } from './components/MarketplaceBar.tsx';
 
@@ -44,4 +44,19 @@ export async function loadMarketplace(ownerRepo: string, builtin = false): Promi
   }));
 
   return { plugins, skills, agents, mcpServers, commands, hooks, bundles, sources, meta: index.meta };
+}
+
+/**
+ * Fetch GitHub star counts for a list of source items in parallel and return
+ * a new array with the `stars` field populated. Items that fail to fetch
+ * (rate-limited, private, etc.) keep `stars: undefined`.
+ */
+export async function enrichSourcesWithStars(sources: SourceItem[]): Promise<SourceItem[]> {
+  const results = await Promise.all(
+    sources.map(async s => {
+      const stars = await fetchStars(s.repo);
+      return { ...s, stars };
+    }),
+  );
+  return results;
 }

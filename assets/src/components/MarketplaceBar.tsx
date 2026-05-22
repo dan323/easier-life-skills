@@ -3,6 +3,8 @@ export interface SourceItem {
   count:   number;
   builtin: boolean;
   error?:  string;
+  /** GitHub star count for this repo, fetched asynchronously after initial load. */
+  stars?:  number;
 }
 
 interface Props {
@@ -37,7 +39,11 @@ export function MarketplaceBar({ sources, activeRepos, onToggle, onCopyAdd }: Pr
                 onClick={() => onToggle(s.repo)}
               >
                 <span class="label">
-                  {s.error ? `${s.repo} ✕` : `${s.repo} (${s.count})`}
+                  {s.error
+                    ? `${s.repo} ✕`
+                    : s.stars !== undefined
+                      ? `${s.repo} (${s.count}) ★ ${s.stars}`
+                      : `${s.repo} (${s.count})`}
                 </span>
               </button>
               <button
