@@ -94,7 +94,11 @@ yarn audit --json 2>/dev/null
 pnpm audit --json 2>/dev/null
 ```
 
-Parse the JSON output. For each vulnerability, record:
+Parse the audit output according to the tool's actual format:
+- `npm audit --json` and `pnpm audit --json` emit a single JSON document.
+- `yarn audit --json` in Yarn v1 emits newline-delimited JSON (NDJSON): each line is a separate JSON event, not one top-level JSON document. Parse it line by line (or aggregate the per-line JSON objects first), then extract vulnerability information from the relevant audit/advisory events.
+
+For each vulnerability, record:
 - Package name
 - Installed version
 - Severity (`critical` / `high` / `moderate` / `low` / `info`)
