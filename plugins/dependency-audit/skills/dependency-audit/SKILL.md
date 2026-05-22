@@ -70,7 +70,7 @@ Skip `package.json` files found inside `node_modules/`.
 Check which audit tools are installed:
 
 ```bash
-command -v npm yarn pnpm cargo pip pip3 pip-audit poetry pipenv bundle gem go mvn gradle composer 2>/dev/null
+command -v npm yarn pnpm cargo cargo-audit cargo-outdated pip pip3 pip-audit safety poetry pipenv bundle bundle-audit bundler-audit gem go govulncheck mvn gradle composer local-php-security-checker 2>/dev/null
 ```
 
 ---
