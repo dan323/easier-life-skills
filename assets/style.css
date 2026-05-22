@@ -559,6 +559,8 @@ main { padding: 20px 32px 80px; }
 }
 .badge-readonly { background: #21262d; color: var(--text-muted); border: 1px solid var(--border); }
 .badge-rating { background: #2d2200; color: #e3b341; border: 1px solid #6e4c00; font-size: 0.72rem; letter-spacing: 0.01em; }
+.badge-scan-ok   { background: var(--green-dim); color: var(--green); border: 1px solid #1a4d25; cursor: default; }
+.badge-scan-warn { background: #2a1800; color: #e3a44a; border: 1px solid #6e4200; cursor: default; }
 .badge-cat { border: none; }
 .badge-marketplace { background: #1a2332; color: #58a6ff; border: 1px solid #1f6feb; font-family: monospace; }
 .badge-documentation { background: var(--cat-documentation-bg); color: var(--cat-documentation); }
@@ -972,6 +974,11 @@ footer a:hover { text-decoration: underline; }
 }
 
 .panel-section { display: flex; flex-direction: column; gap: 10px; }
+.panel-scan-section { padding: 10px 14px; border-radius: 6px; }
+.panel-scan-ok { color: var(--green); font-size: 0.82rem; }
+.panel-scan-warn { display: flex; flex-direction: column; gap: 6px; }
+.panel-scan-warn-title { color: #e3a44a; font-size: 0.82rem; font-weight: 600; }
+.panel-scan-flags { margin: 0; padding-left: 1.2em; color: var(--text-muted); font-size: 0.78rem; display: flex; flex-direction: column; gap: 3px; }
 .panel-section-title {
   font-size: 0.72rem;
   font-weight: 600;

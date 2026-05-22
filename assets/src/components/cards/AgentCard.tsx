@@ -29,6 +29,11 @@ export function AgentCard({ agent, showSource, showInstall, onOpen, bundled, onT
         </button>
         <div class="card-badges">
           {agent.background && <span class="badge badge-readonly">background</span>}
+          {agent.scanResult && (
+            agent.scanResult.passed
+              ? <span class="badge badge-scan-ok" title={`Content scanned at v${agent.scanResult.scannedVersion} — no injection patterns detected`}>✓ scanned</span>
+              : <span class="badge badge-scan-warn" title={`Flagged at v${agent.scanResult.scannedVersion}: ${agent.scanResult.flags.map(f => f.detail).join('; ')}`}>⚠ flagged</span>
+          )}
           <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>
           {showSource && <span class="badge badge-source">{agent._repo}</span>}
         </div>

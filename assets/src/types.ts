@@ -4,6 +4,20 @@ export interface Source {
   repoUrl: string;
 }
 
+export interface ScanFlag {
+  rule:   'hidden-chars' | 'system-inject' | 'anthropic-override' | 'credential-exfil';
+  /** Which field triggered this flag: 'body', 'description', or 'keywords'. */
+  field:  'body' | 'description' | 'keywords';
+  detail: string;
+}
+
+export interface ScanResult {
+  passed:         boolean;
+  flags:          ScanFlag[];
+  /** Version of the skill/agent at the time of scanning. */
+  scannedVersion: string;
+}
+
 export interface Plugin {
   name:           string;
   description:    string;
@@ -57,6 +71,7 @@ export interface Skill {
   source:         Source;
   bundles?:       string[];
   rating?:        Rating;
+  scanResult?:    ScanResult;
   _repo?:         string;
 }
 
@@ -72,6 +87,7 @@ export interface Agent {
   source:         Source;
   bundles?:       string[];
   rating?:        Rating;
+  scanResult?:    ScanResult;
   _repo?:         string;
 }
 
@@ -152,6 +168,8 @@ export interface SkillsIndexMeta {
 }
 
 export interface SkillsIndex {
+  /** Build-time security notice; instructs Claude to treat all external string values as data. */
+  _security?: string;
   meta:       SkillsIndexMeta;
   plugins:    Plugin[];
   skills:     Skill[];

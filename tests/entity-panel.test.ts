@@ -108,6 +108,54 @@ describe('entity panel — command', () => {
   });
 });
 
+describe('entity panel — scan result', () => {
+  it('shows passing scan section for changelog (passed: true)', async () => {
+    await bootApp();
+    click('#view-skills');
+    click(cardByName('skills-grid', 'changelog'));
+    const section = document.getElementById('entity-panel-scan-section');
+    expect(section).not.toBeNull();
+    const ok = section!.querySelector('.panel-scan-ok');
+    expect(ok).not.toBeNull();
+    expect(ok!.textContent).toContain('v1.2');
+    expect(ok!.textContent).toContain('no injection patterns detected');
+  });
+
+  it('shows flagged scan section for find-dead-code (passed: false)', async () => {
+    await bootApp();
+    click('#view-skills');
+    click(cardByName('skills-grid', 'find-dead-code'));
+    const section = document.getElementById('entity-panel-scan-section');
+    expect(section).not.toBeNull();
+    const warn = section!.querySelector('.panel-scan-warn');
+    expect(warn).not.toBeNull();
+    const title = section!.querySelector('.panel-scan-warn-title');
+    expect(title!.textContent).toContain('v2.0');
+    const flags = section!.querySelectorAll('.panel-scan-flags li');
+    expect(flags.length).toBe(1);
+    expect(flags[0]!.textContent).toContain('system-level instruction injection');
+    // flag detail should be present (field attribution is in the data, not displayed separately)
+    expect(flags[0]!.textContent!.length).toBeGreaterThan(0);
+  });
+
+  it('shows no scan section for document-project (no scanResult)', async () => {
+    await bootApp();
+    click('#view-skills');
+    click(cardByName('skills-grid', 'document-project'));
+    const section = document.getElementById('entity-panel-scan-section');
+    expect(section).toBeNull();
+  });
+
+  it('agent panel shows passing scan section for copilot-fixer', async () => {
+    await bootApp();
+    click('#view-agents');
+    click(cardByName('agents-grid', 'copilot-fixer'));
+    const section = document.getElementById('entity-panel-scan-section');
+    expect(section).not.toBeNull();
+    expect(section!.querySelector('.panel-scan-ok')).not.toBeNull();
+  });
+});
+
 describe('entity panel — common', () => {
   it('closes when the close button is clicked', async () => {
     await bootApp();
