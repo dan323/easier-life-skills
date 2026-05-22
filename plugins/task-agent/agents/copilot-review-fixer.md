@@ -19,7 +19,7 @@ You are fixing Copilot review comments on a pull request.
 Copilot needs time to analyse the PR. Sleep 3 minutes before the first check:
 
 ```bash
-sleep 180
+sleep 600
 ```
 
 ## Step 2 — Poll for Copilot review comments
