@@ -39,12 +39,13 @@ no network).
 
 For each (card, yml entry) pair, exactly one of these applies:
 
-| Card status                          | yml entry                 | Action                                                                    |
-|--------------------------------------|---------------------------|---------------------------------------------------------------------------|
-| `Todo`                               | missing                   | **Add** to `tasks.yml` (`status: pending`, `external_ref:`)               |
-| `Won't Do`                           | present                   | **Drop** from `tasks.yml` (a human decided not to ship it)                |
-| `Done`                               | present                   | **Drop** from `tasks.yml` (a human merged the PR and closed out the card) |
-| NOT in `{In Review, Done, Won't Do}` | `status: done` + `pr_url` | **Move card to `In Review`**, post PR link to the card                    |
+| Card status                                       | yml entry                                           | Action                                                                    |
+|---------------------------------------------------|-----------------------------------------------------|---------------------------------------------------------------------------|
+| `Todo`                                            | missing                                             | **Add** to `tasks.yml` (`status: pending`, `external_ref:`)               |
+| `Won't Do`                                        | present                                             | **Drop** from `tasks.yml` (a human decided not to ship it)                |
+| `Done`                                            | present                                             | **Drop** from `tasks.yml` (a human merged the PR and closed out the card) |
+| NOT in `{In Progress, In Review, Done, Won't Do}` | There is a pr, but only partially solving the issue | **Move card to `In Progress`**, post PR link to the card                  |
+| NOT in `{In Review, Done, Won't Do}`              | `status: done` + `pr_url`                           | **Move card to `In Review`**, post PR link to the card                    |
 
 A `task-agent` completion only means a PR is **open for human review**
 — not that the work has shipped. The skill therefore moves the card to

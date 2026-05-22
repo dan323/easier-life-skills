@@ -40,12 +40,12 @@ The workflow requires `project_owner` and `project_number` (or
 available context (the current repo's remote URL, prior conversation,
 `gh` CLI output). The user will phrase this naturally:
 
-| User says | Extract |
-|-----------|---------|
-| "github project 4 for dan323" | `project_owner=dan323 project_number=4` |
-| "project https://github.com/users/alice/projects/7" | `project_url=https://github.com/users/alice/projects/7` |
-| "project 4" (no owner) | infer owner from `gh repo view --json owner` |
-| No mention | ask: "Which GitHub Project should I use? (owner and number, or URL)" |
+| User says                                           | Extract                                                              |
+|-----------------------------------------------------|----------------------------------------------------------------------|
+| "github project 4 for dan323"                       | `project_owner=dan323 project_number=4`                              |
+| "project https://github.com/users/alice/projects/7" | `project_url=https://github.com/users/alice/projects/7`              |
+| "project 4" (no owner)                              | infer owner from `gh repo view --json owner`                         |
+| No mention                                          | ask: "Which GitHub Project should I use? (owner and number, or URL)" |
 
 Also resolve `default_repo` for draft cards that aren't linked to an
 issue. Default: the current repo (`gh repo view --json nameWithOwner`).

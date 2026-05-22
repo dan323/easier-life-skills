@@ -16,10 +16,10 @@ and a `task-agent` unified `tasks.yml`. It computes a diff between
 the two sides on every run and applies a small set of idempotent
 rules:
 
-| Source state                                  | Action                              |
-|-----------------------------------------------|-------------------------------------|
-| Todo card with no yml entry                   | Add to yml as `status: pending`     |
-| Card moved to `Won't Do` or `Done`            | Drop the yml entry                  |
+| Source state                                                                | Action                                     |
+|-----------------------------------------------------------------------------|--------------------------------------------|
+| Todo card with no yml entry                                                 | Add to yml as `status: pending`            |
+| Card moved to `Won't Do` or `Done`                                          | Drop the yml entry                         |
 | yml `status: done` + `pr_url` + card not yet in {In Review, Done, Won't Do} | Move card to `In Review`, post the PR link |
 
 The third rule is the one where the design choice matters. When

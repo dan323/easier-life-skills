@@ -29,3 +29,4 @@ tasks.yml
 cv-improved.md
 *.pdf
 *.csv
+/.playwright-mcp/
