@@ -41,6 +41,13 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/cv-linkedin"
     },
     {
+      "name": "dependency-audit",
+      "source": "./plugins/dependency-audit",
+      "description": "Scan all dependencies for outdated versions and known vulnerabilities. Uses npm audit, pip-audit, cargo audit, and bundler-audit with grep-based fallbacks. Read-only report.",
+      "category": "security",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/dependency-audit"
+    },
+    {
       "name": "docs",
       "source": "./plugins/docs",
       "description": "Documentation skills: generate or update CHANGELOG.md from git history, and create a root README.md with a linked /docs structure",
