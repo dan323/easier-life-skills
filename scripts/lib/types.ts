@@ -1,5 +1,18 @@
 /* lib/types.ts — shared domain types */
 
+export interface ScanFlag {
+  rule:   string;
+  detail: string;
+}
+
+/** Result of the build-time injection scan on SKILL.md / agent .md content. */
+export interface ScanResult {
+  passed:         boolean;
+  flags:          ScanFlag[];
+  /** Version of the skill/agent that was scanned. Used to detect stale scan results. */
+  scannedVersion: string;
+}
+
 export interface PluginSource {
   owner: string;
   repo: string;
@@ -53,6 +66,8 @@ export interface Skill {
    * skills do not carry ratings in v1.
    */
   rating?: Rating;
+  /** Injection scan result for this skill's SKILL.md content. */
+  scanResult?: ScanResult;
   _repo?: string;
 }
 
@@ -69,6 +84,8 @@ export interface Agent {
   source: PluginSource;
   bundles?: string[];
   rating?: Rating;
+  /** Injection scan result for this agent's .md content. */
+  scanResult?: ScanResult;
   _repo?: string;
 }
 

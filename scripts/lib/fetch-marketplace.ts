@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 
 import { join, dirname, basename }                                          from 'path';
 import { fileURLToPath }                                                    from 'url';
 import { parseFrontmatter }                                                 from './frontmatter.js';
+import { scanContent }                                                       from './injection-scan.js';
 import type { Skill, Agent, McpServer, Command, Plugin, Bundle, MarketplaceResult, Hook } from './types.js';
 
 const __dirname  = dirname(fileURLToPath(import.meta.url));
@@ -259,6 +260,12 @@ async function parseSkill(
   const tools       = Array.isArray(frontmatter.tools) ? frontmatter.tools as string[] : [];
   const WRITE_TOOLS = new Set(['Write', 'Edit', 'NotebookEdit']);
   const readOnly    = tools.length > 0 && !tools.some(t => WRITE_TOOLS.has(t));
+  const version     = String(frontmatter.version ?? '1.0');
+  const scanResult  = scanContent(content, version);
+
+  if (!scanResult.passed) {
+    console.warn(`  [security] ${owner}/${repo} skill "${skillName}": ${scanResult.flags.map(f => f.detail).join('; ')}`);
+  }
 
   return {
     name:           skillName,
@@ -273,6 +280,7 @@ async function parseSkill(
     rawSkillUrl:    `${remoteBase}/${skillPath}`,
     installCommand: `/plugin install ${pluginEntry.name}@${repo}`,
     source:         { owner, repo, repoUrl: `https://github.com/${owner}/${repo}` },
+    scanResult,
   };
 }
 
@@ -294,6 +302,12 @@ async function parseAgent(
   if (!content) return null;
 
   const frontmatter = parseFrontmatter(content);
+  const agentVersion = String((frontmatter.version as string | undefined) ?? '1.0');
+  const scanResult  = scanContent(content, agentVersion);
+
+  if (!scanResult.passed) {
+    console.warn(`  [security] ${owner}/${repo} agent "${agentName}": ${scanResult.flags.map(f => f.detail).join('; ')}`);
+  }
 
   return {
     name:           (frontmatter.name as string | undefined) ?? agentName,
@@ -306,6 +320,7 @@ async function parseAgent(
     rawAgentUrl:    `${remoteBase}/${fullAgentPath}`,
     installCommand: `/plugin install ${pluginEntry.name}@${repo}`,
     source:         { owner, repo, repoUrl: `https://github.com/${owner}/${repo}` },
+    scanResult,
   };
 }
 

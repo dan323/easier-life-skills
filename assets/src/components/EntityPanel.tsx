@@ -89,9 +89,10 @@ function EntityPanelBody({
   const isBuiltin = sourceKey === BUILTIN_REPO;
   const marketplaceCmd = `/plugin marketplace add ${sourceKey}`;
 
-  const tools    = (entity as Skill | Agent).tools ?? [];
-  const events   = kind === 'hook'  ? (entity as Hook).events ?? []   : [];
-  const keywords = kind === 'skill' ? (entity as Skill).keywords ?? [] : [];
+  const tools      = (entity as Skill | Agent).tools ?? [];
+  const events     = kind === 'hook'  ? (entity as Hook).events ?? []   : [];
+  const keywords   = kind === 'skill' ? (entity as Skill).keywords ?? [] : [];
+  const scanResult = (kind === 'skill' || kind === 'agent') ? (entity as Skill | Agent).scanResult : undefined;
 
   const mcpCommand = kind === 'mcpServer' ? (entity as McpServer).command : '';
 
@@ -137,6 +138,26 @@ function EntityPanelBody({
       <p id="entity-panel-desc" class="panel-desc" style={{ display: entity.description ? '' : 'none' }}>
         {entity.description || ''}
       </p>
+
+      {scanResult && (
+        <div id="entity-panel-scan-section" class="panel-section panel-scan-section">
+          {scanResult.passed
+            ? (
+              <p class="panel-scan-ok">
+                ✓ Content scanned at v{scanResult.scannedVersion} — no injection patterns detected.
+              </p>
+            )
+            : (
+              <div class="panel-scan-warn">
+                <p class="panel-scan-warn-title">⚠ Flagged during security scan (v{scanResult.scannedVersion})</p>
+                <ul class="panel-scan-flags">
+                  {scanResult.flags.map(f => <li key={f.rule}>{f.detail}</li>)}
+                </ul>
+              </div>
+            )
+          }
+        </div>
+      )}
 
       <ChipSection
         sectionId="entity-panel-tools-section"

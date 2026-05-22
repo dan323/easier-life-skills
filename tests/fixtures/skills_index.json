@@ -80,6 +80,7 @@
       "rawSkillUrl": "https://raw.githubusercontent.com/dan323/easier-life-skills/master/plugins/docs/skills/changelog/SKILL.md",
       "installCommand": "/plugin install docs@easier-life-skills",
       "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" },
+      "scanResult": { "passed": true, "flags": [], "scannedVersion": "1.2" },
       "rating": {
         "avg": 4.5,
         "count": 2,
@@ -99,7 +100,8 @@
       "readOnly": true,
       "rawSkillUrl": "https://raw.githubusercontent.com/dan323/easier-life-skills/master/plugins/code-audit/skills/find-dead-code/SKILL.md",
       "installCommand": "/plugin install code-audit@easier-life-skills",
-      "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" }
+      "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" },
+      "scanResult": { "passed": false, "flags": [{ "rule": "system-inject", "detail": "Contains known system-level instruction injection phrases" }], "scannedVersion": "2.0" }
     },
     {
       "name": "document-project",
@@ -124,7 +126,8 @@
       "background": true,
       "rawAgentUrl": "https://raw.githubusercontent.com/external/hooks-pack/master/agents/copilot-fixer.md",
       "installCommand": "/plugin install hooks-pack@hooks-pack",
-      "source": { "owner": "external", "repo": "hooks-pack", "repoUrl": "https://github.com/external/hooks-pack" }
+      "source": { "owner": "external", "repo": "hooks-pack", "repoUrl": "https://github.com/external/hooks-pack" },
+      "scanResult": { "passed": true, "flags": [], "scannedVersion": "1.0" }
     }
   ],
   "mcpServers": [

@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [1.31.0] - 2026-05-22
+
+### Added
+- **Build-time injection scan for external skill and agent content.** `scripts/lib/injection-scan.ts` is a new scanner that checks every SKILL.md and agent `.md` file fetched from external marketplaces for four heuristic patterns: invisible/direction-override Unicode characters, known system-level injection phrases (`ignore all previous instructions`, `[SYSTEM]`, DAN mode), explicit Anthropic guideline-override language, and credential-file exfiltration commands. The scan runs inside `parseSkill` / `parseAgent` in `fetch-marketplace.ts`, emits a `[security]` warning to build output for any flagged content, and stores a `scanResult: { passed, flags, scannedVersion }` field on each `Skill` and `Agent` in `skills_index.json`. `scannedVersion` records the plugin version at scan time so a subsequent version bump is detectable.
+- **Scan badges on skill and agent cards.** `SkillCard` and `AgentCard` render a `✓ scanned` (green) or `⚠ flagged` (amber) badge whenever `scanResult` is present. The badge `title` tooltip includes the scanned version and — for flagged entries — the flag details.
+- **Scan detail in the entity panel.** The `EntityPanel` detail panel shows a full scan section beneath the description: passing entries display "Content scanned at vX.Y — no injection patterns detected"; flagged entries show the scan version and a bulleted list of flag descriptions.
+
+### Changed
+- `ScanResult` type (both `scripts/lib/types.ts` and `assets/src/types.ts`) includes a `scannedVersion` field. Rules intentionally exclude "you are now …" persona-instruction language (common in legitimate skills) and generic "ignore" phrases (legitimately used for file exclusions).
+
 ## [1.30.0] - 2026-05-22
 
 ### Fixed
