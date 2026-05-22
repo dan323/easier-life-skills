@@ -31,7 +31,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write   # needed by the Tag release step (git push origin <tag>)
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -41,6 +41,20 @@ jobs:
           cache: 'npm'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
+      - name: Verify npm token
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error::NPM_TOKEN secret is not set. Add it at Settings → Secrets → Actions."
+            exit 1
+          fi
+          whoami=$(npm whoami 2>&1) || true
+          if echo "$whoami" | grep -q "ENEEDAUTH\|E401\|code E"; then
+            echo "::error::NPM_TOKEN is set but rejected by the registry (invalid or expired). Regenerate at npmjs.com → Access Tokens."
+            exit 1
+          fi
+          echo "::notice::Authenticated to npm as: $whoami"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Check whether installer version is already published
         id: check
         run: |
@@ -54,6 +68,8 @@ jobs:
           else
             echo "already_published=false" >> "$GITHUB_OUTPUT"
           fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish
         if: steps.check.outputs.already_published == 'false'
         run: npm run publish:installer

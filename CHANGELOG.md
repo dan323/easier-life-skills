@@ -4,6 +4,9 @@
 
 ## [1.31.0] - 2026-05-22
 
+### Fixed
+- **Installer publish workflow — `contents: write` permission for tag push.** The `publish` job declared `contents: read` at the job level, which caused `git push origin <tag>` to fail with HTTP 403 after a successful npm publish. Changed to `contents: write`. Also added a "Verify npm token" step that runs `npm whoami` before the version check and fails fast with an actionable error message if `NPM_TOKEN` is absent or rejected by the registry.
+
 ### Added
 - **Build-time injection scan for external skill, agent, and metadata content.** `scripts/lib/injection-scan.ts` exposes `scanBody` (checks SKILL.md / agent `.md` file body) and `mergeMetadataScan` (checks `description` and `keywords` fields), both using four heuristic rules: invisible/direction-override Unicode characters, known system-level injection phrases (`ignore all previous instructions`, `[SYSTEM]`, DAN mode), explicit Anthropic guideline-override language, and credential-file exfiltration commands. `ScanFlag` now carries a `field` property (`'body'`, `'description'`, `'keywords'`) identifying where the match was found. `scanBody` / `mergeMetadataScan` replace the earlier `scanContent` entry point. Scans run inside `parseSkill` / `parseAgent` in `fetch-marketplace.ts`, emit `[security]` warnings to build output, and store a `scanResult: { passed, flags, scannedVersion }` field on each `Skill` and `Agent` in `skills_index.json`. `scannedVersion` records the plugin version at scan time so a subsequent version bump is detectable.
 - **Field length limits on external metadata.** `FIELD_LIMITS` constants cap `description` at 500 chars, each keyword at 60 chars, and the keywords list at 20 items. Overlong values are truncated with a trailing `…` and a `[security]` warning is emitted. This prevents large blocks of injection text from entering the index via metadata fields.
