@@ -202,9 +202,7 @@ Call `mcp__github__create_pull_request` with:
 Capture the `html_url` field from the response as the PR URL.
 Extract the PR number from the URL (last path segment).
 
-Immediately after the PR is open, **spawn Phase 5 in the background** (run_in_background: true),
-passing it: OWNER, REPO_NAME, PR_NUMBER, BRANCH, LOCAL_PATH, DEFAULT_BRANCH.
-Then continue to Phase 4 without waiting for Phase 5 to finish.
+After the PR is open, continue to Phase 4.
 
 ---
 
@@ -249,7 +247,22 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/tasks_io.py" record "$TASKS_PATH" \
 `{"branch": "...", "pr_url": "...", "date": "YYYY-MM-DD"}`; for `failed` use
 `{"error": "<short reason>"}`; for `skipped` use `{"reason": "<why>"}`.
 
-### 4.3 Print the summary
+### 4.3 Emit workflow output
+
+If the `$WORKFLOW_OUTPUT` environment variable is set (i.e. this skill is running as a
+workflow step), write a JSON object so the next step can interpolate `pr_url`, `repo`,
+and `branch`:
+
+```bash
+if [ -n "$WORKFLOW_OUTPUT" ]; then
+  printf '{"pr_url":"%s","repo":"%s/%s","branch":"%s"}' \
+    "$PR_URL" "$OWNER" "$REPO_NAME" "$BRANCH" > "$WORKFLOW_OUTPUT"
+fi
+```
+
+Skip this step when `$WORKFLOW_OUTPUT` is unset (standalone invocation).
+
+### 4.4 Print the summary
 
 ```
 ## Task — Done
@@ -270,30 +283,9 @@ Next up:  "Fix the typo in README.md" (owner/repo-name)
 
 ---
 
-## Phase 5 — Review and fix Copilot comments (background)
+## Phase 5 — Remove all temporary files
 
-This phase runs **in the background**, in parallel with Phase 4.
-Spawn it as a background agent immediately after the PR is opened.
-
-Spawn a background agent using the Agent tool with:
-- `subagent_type`: `task-agent:copilot-review-fixer`
-- `run_in_background`: `true`
-- `prompt`: the real values for the placeholders, e.g.:
-  ```
-  OWNER=<owner>
-  REPO_NAME=<repo>
-  PR_NUMBER=<number>
-  BRANCH=<branch>
-  LOCAL_PATH=<path>
-  DEFAULT_BRANCH=<branch>
-  ```
-
----
-
-## Phase 6 — Remove all temporary files
-
-After all tasks are done, spawn an agent to clean up the local clones in `$WORKDIR` to
-free up disk space:
+After all tasks are done, run the cleanup directly:
 
 ```bash
 rm -rf "$WORKDIR"

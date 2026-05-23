@@ -2,24 +2,29 @@
 #
 # Processes the top Todo card on a GitHub Project (v2) board end-to-end:
 #
-#   1. gh-project-sync  — reconcile the board into `tasks.yml`. New Todo
-#                         cards land as `status: pending`; stale Done /
-#                         Won't Do entries are dropped.
-#   2. task-agent       — pick the first pending task in `tasks.yml`
-#                         (i.e. the top of the Todo column after step 1),
-#                         clone the repo, do the work, open a PR, and mark
-#                         the entry `status: done` with a `pr_url`.
-#   3. gh-project-sync  — reconcile again. Rule 4 fires for the entry
-#                         freshly marked `done + pr_url`: the card moves
-#                         to In Review (or In Progress if the board has
-#                         no In Review column) and the PR link is posted
-#                         as a comment on the card.
+#   1. gh-project-sync       — reconcile the board into `tasks.yml`. New Todo
+#                              cards land as `status: pending`; stale Done /
+#                              Won't Do entries are dropped.
+#   2. task-agent            — pick the first pending task in `tasks.yml`
+#                              (i.e. the top of the Todo column after step 1),
+#                              clone the repo, do the work, open a PR, and mark
+#                              the entry `status: done` with a `pr_url`.
+#   3. gh-project-sync       — reconcile again. Rule 4 fires for the entry
+#                              freshly marked `done + pr_url`: the card moves
+#                              to In Review (or In Progress if the board has
+#                              no In Review column) and the PR link is posted
+#                              as a comment on the card.
+#   4. copilot-review-fixer  — waits for Copilot to post review comments on
+#                              the new PR, then applies fixes for actionable
+#                              ones. Runs at the workflow level so the Agent
+#                              tool is available (subagents cannot spawn
+#                              further agents).
 #
 # See ../skills/auto-board-task/SKILL.md for the user-facing flow,
 # and ../../workflow/references/format.md for the workflow YAML schema.
 
 name: auto-board-task
-description: Drain the top Todo card from a GitHub Project — sync in, run task-agent, sync out.
+description: Drain the top Todo card from a GitHub Project — sync in, run task-agent, sync out, fix Copilot review comments.
 category: automation
 
 inputs:
@@ -61,3 +66,11 @@ steps:
       project_owner: ${{ inputs.project_owner }}
       project_number: ${{ inputs.project_number }}
       default_repo: ${{ inputs.default_repo }}
+
+  - id: review-fix
+    skill: copilot-review-fixer
+    description: Wait for Copilot to review the PR, then apply fixes for actionable comments.
+    args:
+      pr_url: ${{ steps.run-task.output.pr_url }}
+      repo: ${{ steps.run-task.output.repo }}
+      branch: ${{ steps.run-task.output.branch }}

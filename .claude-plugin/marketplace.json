@@ -8,7 +8,7 @@
     {
       "name": "auto-board-task",
       "source": "./plugins/auto-board-task",
-      "description": "Process the top Todo card on a GitHub Project (v2) board end-to-end: pull the board into a task-agent tasks.yml, run task-agent against the top pending task to open a PR, then sync the PR back so the card moves to In Review. Bundles the `gh-project-sync` reconciler skill (used twice in the chain) and composes it with `task-agent` via the `workflow` skill — both `task-agent` and `workflow` must also be installed.",
+      "description": "Process the top Todo card on a GitHub Project (v2) board end-to-end: pull the board into a task-agent tasks.yml, run task-agent against the top pending task to open a PR, sync the PR back so the card moves to In Review, then apply fixes for actionable Copilot review comments. Bundles the `gh-project-sync` reconciler skill (used twice in the chain) and composes it with `task-agent` and the `copilot-review-fixer` skill wrapper (shipped by `task-agent`) via the `workflow` skill — `task-agent` and `workflow` must also be installed.",
       "category": "automation",
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/auto-board-task"
     },
@@ -85,7 +85,7 @@
     {
       "name": "task-agent",
       "source": "./plugins/task-agent",
-      "description": "Read tasks from a YAML file (unified or legacy two-file format), implement one per run via an agent, and open a PR",
+      "description": "Read tasks from a YAML file (unified or legacy two-file format), implement one per run via an agent, and open a PR. Also ships a `copilot-review-fixer` skill callable as a workflow step.",
       "category": "automation",
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/task-agent"
     },
