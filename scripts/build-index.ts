@@ -251,6 +251,40 @@ console.log(`✓ catalog.html`);
 
 const BASE_URL = 'https://dan323.github.io/easier-life-skills';
 const today    = new Date().toISOString().slice(0, 10);
+
+const ogSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- accent bar -->
+  <rect x="0" y="0" width="6" height="630" fill="#58a6ff"/>
+  <!-- icon -->
+  <rect x="80" y="180" width="80" height="80" rx="16" fill="#21262d"/>
+  <text x="120" y="240" font-size="48" font-weight="700" font-family="system-ui,sans-serif" fill="#58a6ff" text-anchor="middle">S</text>
+  <!-- title -->
+  <text x="188" y="222" font-size="52" font-weight="700" font-family="system-ui,sans-serif" fill="#e6edf3">easier-life-skills</text>
+  <!-- subtitle -->
+  <text x="80" y="295" font-size="28" font-family="system-ui,sans-serif" fill="#8b949e">Claude Code Skill Marketplace</text>
+  <!-- divider -->
+  <rect x="80" y="330" width="1040" height="1" fill="#30363d"/>
+  <!-- stats -->
+  <text x="80"  y="390" font-size="24" font-family="system-ui,sans-serif" fill="#58a6ff" font-weight="600">${allSkills.length}</text>
+  <text x="80"  y="420" font-size="18" font-family="system-ui,sans-serif" fill="#8b949e">skills</text>
+  <text x="260" y="390" font-size="24" font-family="system-ui,sans-serif" fill="#58a6ff" font-weight="600">${allPlugins.length}</text>
+  <text x="260" y="420" font-size="18" font-family="system-ui,sans-serif" fill="#8b949e">plugins</text>
+  <text x="440" y="390" font-size="24" font-family="system-ui,sans-serif" fill="#58a6ff" font-weight="600">${allAgents.length}</text>
+  <text x="440" y="420" font-size="18" font-family="system-ui,sans-serif" fill="#8b949e">agents</text>
+  <text x="620" y="390" font-size="24" font-family="system-ui,sans-serif" fill="#58a6ff" font-weight="600">${marketplaces.length}</text>
+  <text x="620" y="420" font-size="18" font-family="system-ui,sans-serif" fill="#8b949e">marketplaces</text>
+  <!-- url -->
+  <text x="80" y="570" font-size="20" font-family="system-ui,sans-serif" fill="#30363d">dan323.github.io/easier-life-skills</text>
+</svg>`;
+writeFileSync(join(ROOT, 'assets', 'og-image.svg'), ogSvg);
+console.log(`✓ assets/og-image.svg`);
 const sitemap  = [
   '<?xml version="1.0" encoding="UTF-8"?>',
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
