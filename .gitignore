@@ -12,6 +12,7 @@ trigger-*.html
 /skills_index.json
 /CATALOG.md
 /catalog.html
+/sitemap.xml
 assets/bundle.js
 installer/dist/
 

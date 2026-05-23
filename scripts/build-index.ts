@@ -248,3 +248,15 @@ console.log(`✓ CATALOG.md`);
 
 writeFileSync(join(ROOT, 'catalog.html'), generateCatalogHtml(allSkills, allAgents, allMcpServers, allCommands, allHooks, allPlugins, BUNDLES, marketplaces, sourceInfo));
 console.log(`✓ catalog.html`);
+
+const BASE_URL = 'https://dan323.github.io/easier-life-skills';
+const today    = new Date().toISOString().slice(0, 10);
+const sitemap  = [
+  '<?xml version="1.0" encoding="UTF-8"?>',
+  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+  `  <url><loc>${BASE_URL}/</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>`,
+  `  <url><loc>${BASE_URL}/catalog.html</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>`,
+  '</urlset>',
+].join('\n') + '\n';
+writeFileSync(join(ROOT, 'sitemap.xml'), sitemap);
+console.log(`✓ sitemap.xml`);
