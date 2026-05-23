@@ -270,27 +270,7 @@ Next up:  "Fix the typo in README.md" (owner/repo-name)
 
 ---
 
-## Phase 5 — Review and fix Copilot comments (background)
-
-This phase runs **in the background**, in parallel with Phase 4.
-Spawn it as a background agent immediately after the PR is opened.
-
-Spawn a background agent using the Agent tool with:
-- `subagent_type`: `task-agent:copilot-review-fixer`
-- `run_in_background`: `true`
-- `prompt`: the real values for the placeholders, e.g.:
-  ```
-  OWNER=<owner>
-  REPO_NAME=<repo>
-  PR_NUMBER=<number>
-  BRANCH=<branch>
-  LOCAL_PATH=<path>
-  DEFAULT_BRANCH=<branch>
-  ```
-
----
-
-## Phase 6 — Remove all temporary files
+## Phase 5 — Remove all temporary files
 
 After all tasks are done, spawn an agent to clean up the local clones in `$WORKDIR` to
 free up disk space:

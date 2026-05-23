@@ -1,6 +1,6 @@
 {
   "name": "task-agent",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Read tasks from a YAML file (unified or legacy two-file format), implement one per run via an agent, and open a PR",
   "author": { "name": "dan323" },
   "category": "automation",
