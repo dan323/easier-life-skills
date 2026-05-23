@@ -24,6 +24,11 @@ const BODY_HTML = extractBody(indexHtml).replace(/<script[\s\S]*?<\/script>/g, '
 export interface BootOptions {
   hash?: string;
   fixture?: unknown;
+  /**
+   * Map of "owner/repo" → star count to return from the GitHub API stub.
+   * Repos not listed here return 404 (stars stays undefined).
+   */
+  stars?: Record<string, number>;
 }
 
 export interface Booted {
@@ -69,6 +74,7 @@ export async function bootApp(opts: BootOptions = {}): Promise<Booted> {
   });
 
   const body = opts.fixture ?? fixture;
+  const starsByRepo = opts.stars ?? {};
   vi.stubGlobal('fetch', (input: RequestInfo | URL) => {
     const url = typeof input === 'string' ? input : input.toString();
     if (url.includes('skills_index.json')) {
@@ -79,12 +85,27 @@ export async function bootApp(opts: BootOptions = {}): Promise<Booted> {
         }),
       );
     }
+    const githubApiPrefix = 'https://api.github.com/repos/';
+    if (url.startsWith(githubApiPrefix)) {
+      const repo = url.slice(githubApiPrefix.length);
+      if (repo in starsByRepo) {
+        return Promise.resolve(
+          new Response(JSON.stringify({ stargazers_count: starsByRepo[repo] }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          }),
+        );
+      }
+    }
     return Promise.resolve(new Response('not found', { status: 404 }));
   });
 
   await import('../assets/src/app.tsx');
 
   await flush();
+  await flush();
+  await flush();
+  // Extra flushes for the async star-enrichment microtask chain
   await flush();
   await flush();
 
