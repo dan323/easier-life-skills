@@ -1,7 +1,7 @@
 {
   "name": "auto-board-task",
-  "version": "1.1.4",
-  "description": "Process the top Todo card on a GitHub Project (v2) board end-to-end: pull the board into a task-agent tasks.yml, run task-agent against the top pending task to open a PR, then sync the PR back so the card moves to In Review. Bundles the `gh-project-sync` reconciler skill (used twice in the chain) and composes it with `task-agent` via the `workflow` skill — both `task-agent` and `workflow` must also be installed.",
+  "version": "1.2.0",
+  "description": "Process the top Todo card on a GitHub Project (v2) board end-to-end: pull the board into a task-agent tasks.yml, run task-agent against the top pending task to open a PR, sync the PR back so the card moves to In Review, then apply fixes for actionable Copilot review comments. Bundles the `gh-project-sync` reconciler skill (used twice in the chain) and composes it with `task-agent` and `copilot-review-fixer` via the `workflow` skill — `task-agent` and `workflow` must also be installed.",
   "author": { "name": "dan323" },
   "category": "automation",
   "dependencies": [
