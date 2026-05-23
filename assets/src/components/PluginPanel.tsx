@@ -81,6 +81,7 @@ function PluginPanelBody({
   const hasDesc = (plugin.description ?? '').trim().length > 0;
   const pluginUrl = plugin.homepage ?? `https://github.com/${plugin.source.owner}/${plugin.source.repo}`;
   const promptText = `Explain to me what I would find in plugin ${pluginUrl} and what would it be used for`;
+  const shareUrl = `${location.origin}${location.pathname}#view=plugins&q=${encodeURIComponent(plugin.name)}`;
 
   // Match by (repo, pluginName, name) — two plugins in the same repo could ship
   // entities with the same name; scoping by `_repo` alone would mis-resolve them.
@@ -124,6 +125,17 @@ function PluginPanelBody({
           >{plugin.name}</a>
           <span id="panel-category" class={`badge badge-cat ${catClass}`}>{catLabel}</span>
         </div>
+        <CopyButton
+          id="panel-share-copy"
+          text={shareUrl}
+          label="Copy link"
+          className="panel-share-btn"
+          ariaLabel={`Copy link to ${plugin.name}`}
+          analyticsEvent={{
+            name:   'share_copy',
+            params: { kind: 'plugin', name: plugin.name, source: sourceKey },
+          }}
+        />
         <button
           ref={closeBtnRef}
           id="panel-close"

@@ -88,6 +88,8 @@ function EntityPanelBody({
   const sourceKey = entity._repo ?? `${entity.source.owner}/${entity.source.repo}`;
   const isBuiltin = sourceKey === BUILTIN_REPO;
   const marketplaceCmd = `/plugin marketplace add ${sourceKey}`;
+  const viewKey = kind === 'mcpServer' ? 'mcpServers' : `${kind}s`;
+  const shareUrl = `${location.origin}${location.pathname}#view=${viewKey}&q=${encodeURIComponent(entity.name)}&repo=${encodeURIComponent(sourceKey)}`;
 
   const tools      = (entity as Skill | Agent).tools ?? [];
   const events     = kind === 'hook'  ? (entity as Hook).events ?? []   : [];
@@ -124,6 +126,17 @@ function EntityPanelBody({
           </span>
           <span id="entity-panel-source" class="badge badge-source">{sourceKey}</span>
         </div>
+        <CopyButton
+          id="entity-panel-share-copy"
+          text={shareUrl}
+          label="Copy link"
+          className="panel-share-btn"
+          ariaLabel={`Copy link to ${entity.name}`}
+          analyticsEvent={{
+            name:   'share_copy',
+            params: { kind, name: entity.name, source: sourceKey },
+          }}
+        />
         <button
           ref={closeBtnRef}
           id="entity-panel-close"

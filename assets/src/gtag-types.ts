@@ -21,9 +21,16 @@ export interface EntityOpenParams {
   source: string;
 }
 
+export interface ShareCopyParams {
+  kind:   EntityKind;
+  name:   string;
+  source: string;
+}
+
 export interface AppEvents {
   install_copy: InstallCopyParams;
   entity_open:  EntityOpenParams;
+  share_copy:   ShareCopyParams;
 }
 
 export type AppEventName = keyof AppEvents;

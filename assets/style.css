@@ -943,6 +943,21 @@ footer a:hover { text-decoration: underline; }
 }
 .panel-close-btn:hover { background: var(--surface-hover); color: var(--text); }
 
+.panel-share-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 4px 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+.panel-share-btn:hover { background: var(--surface-hover); color: var(--text); }
+.panel-share-btn.copied { color: var(--accent); border-color: var(--accent); }
+
 .panel-desc {
   font-size: 0.88rem;
   color: var(--text-muted);
@@ -1514,7 +1529,7 @@ body.catalog-page footer {
 
   /* 44×44px minimum touch target */
   .filter-btn, .sort-btn, .view-btn, .copy-btn, .expand-btn,
-  .bundle-copy-btn, .panel-close-btn, .panel-copy-btn, #panel-install-copy,
+  .bundle-copy-btn, .panel-close-btn, .panel-copy-btn, .panel-share-btn, #panel-install-copy,
   .bundle-add-btn, .bundle-drawer-clear, .bundle-drawer-remove {
     min-height: 44px;
     min-width: 44px;
