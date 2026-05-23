@@ -12,8 +12,8 @@ description: >
   the top board todo", "auto-process the next card", or any phrasing
   that means "take the next pending item from a GitHub Project board
   and implement it". Composes `gh-project-sync` → `task-agent` →
-  `gh-project-sync` → `copilot-review-fixer` via the `workflow`
-  skill against the fixed YAML at
+  `gh-project-sync` → `copilot-review-fixer` (skill wrapper shipped
+  by `task-agent`) via the `workflow` skill against the fixed YAML at
   `${CLAUDE_PLUGIN_ROOT}/workflows/auto-board-task.yaml`. All
   arguments are forwarded verbatim to the workflow runner;
   validation happens there and inside the composed sub-skills.

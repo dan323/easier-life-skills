@@ -247,7 +247,22 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/tasks_io.py" record "$TASKS_PATH" \
 `{"branch": "...", "pr_url": "...", "date": "YYYY-MM-DD"}`; for `failed` use
 `{"error": "<short reason>"}`; for `skipped` use `{"reason": "<why>"}`.
 
-### 4.3 Print the summary
+### 4.3 Emit workflow output
+
+If the `$WORKFLOW_OUTPUT` environment variable is set (i.e. this skill is running as a
+workflow step), write a JSON object so the next step can interpolate `pr_url`, `repo`,
+and `branch`:
+
+```bash
+if [ -n "$WORKFLOW_OUTPUT" ]; then
+  printf '{"pr_url":"%s","repo":"%s/%s","branch":"%s"}' \
+    "$PR_URL" "$OWNER" "$REPO_NAME" "$BRANCH" > "$WORKFLOW_OUTPUT"
+fi
+```
+
+Skip this step when `$WORKFLOW_OUTPUT` is unset (standalone invocation).
+
+### 4.4 Print the summary
 
 ```
 ## Task — Done
