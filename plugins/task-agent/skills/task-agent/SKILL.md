@@ -202,9 +202,7 @@ Call `mcp__github__create_pull_request` with:
 Capture the `html_url` field from the response as the PR URL.
 Extract the PR number from the URL (last path segment).
 
-Immediately after the PR is open, **spawn Phase 5 in the background** (run_in_background: true),
-passing it: OWNER, REPO_NAME, PR_NUMBER, BRANCH, LOCAL_PATH, DEFAULT_BRANCH.
-Then continue to Phase 4 without waiting for Phase 5 to finish.
+After the PR is open, continue to Phase 4.
 
 ---
 
@@ -272,8 +270,7 @@ Next up:  "Fix the typo in README.md" (owner/repo-name)
 
 ## Phase 5 — Remove all temporary files
 
-After all tasks are done, spawn an agent to clean up the local clones in `$WORKDIR` to
-free up disk space:
+After all tasks are done, run the cleanup directly:
 
 ```bash
 rm -rf "$WORKDIR"
