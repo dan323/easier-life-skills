@@ -31,6 +31,21 @@ describe('initial render', () => {
     expect(labels).toContain('external/hooks-pack (1)');
   });
 
+  it('appends star count to source tag label when GitHub API returns a count', async () => {
+    await bootApp({
+      stars: {
+        'dan323/easier-life-skills': 42,
+        'external/slack-tools': 7,
+      },
+    });
+    const tags = Array.from(document.querySelectorAll<HTMLElement>('#marketplace-sources .source-tag'));
+    const labels = tags.map(t => t.querySelector('.label')?.textContent ?? '');
+    expect(labels).toContain('dan323/easier-life-skills (2) ★ 42');
+    expect(labels).toContain('external/slack-tools (1) ★ 7');
+    // Repos not in the stars map keep the plain label
+    expect(labels).toContain('external/hooks-pack (1)');
+  });
+
   it('shows category filter buttons drawn from plugin categories', async () => {
     await bootApp();
     const cats = Array.from(document.querySelectorAll<HTMLElement>('#filters .filter-btn'))

@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- **GitHub star counts on marketplace source tags.** The MarketplaceBar now displays the GitHub star count for each marketplace repo alongside the plugin count — e.g. `dan323/easier-life-skills (12) ★ 42`. Stars are fetched asynchronously from the GitHub API after the initial render so the page load is not delayed. Missing stars (rate-limited or private repos) are silently omitted.
+
 ## [1.31.0] - 2026-05-22
 
 ### Fixed

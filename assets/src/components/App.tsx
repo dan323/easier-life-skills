@@ -11,7 +11,7 @@ import { PluginPanel }    from './PluginPanel.tsx';
 import { EntityPanel }    from './EntityPanel.tsx';
 import type { EntityKind } from './EntityPanel.tsx';
 import { BundleDrawer }   from './BundleDrawer.tsx';
-import { loadMarketplace } from '../marketplace.ts';
+import { loadMarketplace, enrichSourcesWithStars } from '../marketplace.ts';
 import { readUrlState, writeUrlState } from '../url-state.ts';
 import type { SortKey } from '../url-state.ts';
 import { track, getStoredConsent, setStoredConsent } from '../analytics.ts';
@@ -90,7 +90,7 @@ export function App() {
 
   useEffect(() => {
     let cancelled = false;
-    void loadMarketplace(BUILTIN_REPO, true).then(result => {
+    void loadMarketplace(BUILTIN_REPO, true).then(async result => {
       if (cancelled) return;
       if ('error' in result) {
         setSources(prev => prev.map(s => s.repo === result.repo ? { ...s, error: result.error } : s));
@@ -107,6 +107,9 @@ export function App() {
       setSources(result.sources);
       setMeta(result.meta);
       setLoaded(true);
+      // Fetch GitHub star counts asynchronously — does not block initial render.
+      const enriched = await enrichSourcesWithStars(result.sources);
+      if (!cancelled) setSources(enriched);
     });
     return () => { cancelled = true; };
   }, []);
