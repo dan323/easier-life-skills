@@ -744,7 +744,7 @@ interface MarketplaceJson {
 }
 
 export async function fetchMarketplaceSkills(owner: string, repo: string, root: string | null): Promise<MarketplaceResult> {
-  const branch  = 'master';
+  const branch  = 'main';
   const baseUrl = `${RAW_BASE}/${owner}/${repo}/${branch}`;
 
   console.log(`  Fetching ${owner}/${repo}…`);
