@@ -34,8 +34,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache/trees
-          key: gh-trees-${{ hashFiles('marketplaces.json') }}
-          restore-keys: gh-trees-
+          key: gh-trees-v2-${{ hashFiles('marketplaces.json') }}
+          restore-keys: gh-trees-v2-
 
       - name: Install dependencies
         run: npm ci
@@ -74,8 +74,8 @@ jobs:
         uses:   actions/cache@v4
         with:
           path: .cache/trees
-          key: gh-trees-${{ hashFiles('marketplaces.json') }}
-          restore-keys: gh-trees-
+          key: gh-trees-v2-${{ hashFiles('marketplaces.json') }}
+          restore-keys: gh-trees-v2-
 
       - name: Install dependencies
         run: npm ci
