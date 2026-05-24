@@ -4,5 +4,6 @@
   { "owner": "mattpocock", "repo": "skills" },
   { "owner": "DustyWalker", "repo": "claude-code-marketplace" },
   { "owner": "marcusabu", "repo": "claude-code-docs-plugin" },
-  { "owner": "obra", "repo": "superpowers" }
+  { "owner": "obra", "repo": "superpowers" },
+  {"owner":"backnotprop", "repo":"plannotator"}
 ]
