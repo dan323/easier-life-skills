@@ -2,9 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useState } from 'preact/hooks';
 import { Header }         from './Header.tsx';
 import { QuickStart }     from './QuickStart.tsx';
 import { Controls }       from './Controls.tsx';
-import type { ViewKey }   from './Controls.tsx';
 import { MarketplaceBar } from './MarketplaceBar.tsx';
-import type { SourceItem } from './MarketplaceBar.tsx';
 import { Footer }         from './Footer.tsx';
 import { Grid }           from './Grid.tsx';
 import { PluginPanel }    from './PluginPanel.tsx';
@@ -18,9 +16,10 @@ import { track, getStoredConsent, setStoredConsent } from '../analytics.ts';
 import type { ConsentState } from '../analytics.ts';
 import { ConsentBanner } from './ConsentBanner.tsx';
 import { BUILTIN_REPO } from '../constants.ts';
+import { nlSearch, isNLQuery } from '../search.ts';
 import { encodeItem, decodeItem, buildBundleItemId } from '../bundle-state.ts';
 import type { BundleItem, BundleItemKind } from '../bundle-state.ts';
-import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle, SkillsIndexMeta } from '../types.ts';
+import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle, SkillsIndexMeta, ViewKey, SourceItem } from '../types.ts';
 
 const VALID_VIEWS: ViewKey[] = ['plugins', 'skills', 'agents', 'mcpServers', 'commands', 'hooks', 'bundles'];
 
@@ -72,6 +71,7 @@ export function App() {
   const [sources,    setSources]    = useState<SourceItem[]>([{ repo: BUILTIN_REPO, count: 0, builtin: true }]);
   const [meta,       setMeta]       = useState<SkillsIndexMeta | undefined>(undefined);
   const [loaded,     setLoaded]     = useState(false);
+  const [nlScores,   setNlScores]   = useState<Map<string, number>>(new Map());
 
   // Map from "owner/repo" → { isMarketplace } for BundleDrawer.
   // meta.sources is the authoritative source — it records isMarketplace per repo
@@ -113,6 +113,19 @@ export function App() {
     });
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    const lq = query.toLowerCase();
+    if (!isNLQuery(lq)) {
+      setNlScores(new Map());
+      return;
+    }
+    let cancelled = false;
+    void nlSearch(lq)
+      .then(scores => { if (!cancelled) setNlScores(scores); })
+      .catch(() => { if (!cancelled) setNlScores(new Map()); });
+    return () => { cancelled = true; };
+  }, [query]);
 
   // Sync all app state → URL hash
   useLayoutEffect(() => {
@@ -252,6 +265,7 @@ export function App() {
           view={view}
           loaded={loaded}
           query={lowerQuery}
+          nlScores={nlScores}
           sort={sort}
           activeRepos={activeRepos}
           activeCategories={activeCategories}

@@ -12,6 +12,7 @@ import { generateCatalog, generateCatalogHtml }   from './lib/catalog.js';
 import { refMatchesEntity }                        from './lib/bundle-resolve.js';
 import { mergeRatings, type RatingsFile, type RatableEntity, type RatableKind } from './lib/merge-ratings.js';
 import type { Agent, Command, MarketplaceEntry, McpServer, Plugin, Skill, Bundle, Hook } from './lib/types.js';
+import { tokenize as searchTokenize } from '../shared/search-tokenize.js';
 
 const ROOT         = join(dirname(fileURLToPath(import.meta.url)), '..');
 const marketplaces = JSON.parse(readFileSync(join(ROOT, 'marketplaces.json'), 'utf8')) as MarketplaceEntry[];
@@ -251,6 +252,118 @@ console.log(`✓ catalog.html`);
 
 const BASE_URL = 'https://dan323.github.io/easier-life-skills';
 const today    = new Date().toISOString().slice(0, 10);
+
+// --- Search index (BM25 with Robertson IDF²) ---
+//
+// Robertson IDF — log(1 + (N - df + 0.5) / (df + 0.5)) instead of
+// log((N+1)/(df+1)) + 1.  The old formula's "+1" floors every term's
+// IDF at 1, masking the discrimination between rare domain nouns
+// ("tests", "changelog") and common action verbs ("create", "generate").
+// Robertson penalises common terms far more aggressively.
+//
+// IDF² — squaring the IDF amplifies the advantage of rare, specific terms
+// exponentially. A term appearing in 1 out of 100 docs scores ~25× more
+// than one appearing in 50 out of 100, making query-intent nouns dominate
+// over action verbs that are common across the entire corpus.
+//
+// BM25 TF saturation — bm25TF = tf * (k1+1) / (tf + k1), k1=1.2.
+// Caps the marginal gain from repetition.
+
+const searchDocs: Array<{ id: string; text: string }> = [
+  ...allSkills.map(s => ({
+    id:   `s:${s.source.owner}/${s.source.repo}/${s.pluginName}/${s.name}`,
+    text: [s.name, s.description, ...(s.keywords ?? [])].join(' '),
+  })),
+  ...allAgents.map(a => ({
+    id:   `a:${a.source.owner}/${a.source.repo}/${a.pluginName}/${a.name}`,
+    text: [a.name, a.description].join(' '),
+  })),
+  ...allPlugins.map(p => ({
+    id:   `p:${p.source.owner}/${p.source.repo}/${p.name}`,
+    text: [p.name, p.description].join(' '),
+  })),
+  ...allMcpServers.map(m => ({
+    id:   `m:${m.source.owner}/${m.source.repo}/${m.pluginName}/${m.name}`,
+    text: [m.name, m.description].join(' '),
+  })),
+  ...allCommands.map(c => ({
+    id:   `c:${c.source.owner}/${c.source.repo}/${c.pluginName}/${c.name}`,
+    text: [c.name, c.description].join(' '),
+  })),
+  ...allHooks.map(h => ({
+    id:   `h:${h.source.owner}/${h.source.repo}/${h.pluginName}/${h.name}`,
+    text: [h.name, h.description, ...h.events].join(' '),
+  })),
+];
+
+const docCount  = searchDocs.length;
+const dfMap     = new Map<string, number>();
+const docTfMap  = new Map<string, Map<string, number>>();
+
+for (const doc of searchDocs) {
+  const tokens = searchTokenize(doc.text);
+  if (tokens.length === 0) continue;
+  const tf = new Map<string, number>();
+  for (const t of tokens) tf.set(t, (tf.get(t) ?? 0) + 1);
+  for (const [term, n] of tf) tf.set(term, n / tokens.length);
+  docTfMap.set(doc.id, tf);
+  for (const term of tf.keys()) dfMap.set(term, (dfMap.get(term) ?? 0) + 1);
+}
+
+const BM25_K1 = 1.2; // TF saturation parameter (lower = stronger saturation)
+
+const invertedIndex: Record<string, [string, number][]> = {};
+for (const [docId, tf] of docTfMap) {
+  for (const [term, termTf] of tf) {
+    const df      = dfMap.get(term) ?? 1;
+    const idf     = Math.log(1 + (docCount - df + 0.5) / (df + 0.5)); // Robertson IDF
+    const bm25TF  = termTf * (BM25_K1 + 1) / (termTf + BM25_K1);     // BM25 TF saturation
+    const score   = +(bm25TF * idf * idf).toFixed(4);                 // IDF² amplifies rare terms
+    if (!invertedIndex[term]) invertedIndex[term] = [];
+    invertedIndex[term].push([docId, score]);
+  }
+}
+for (const postings of Object.values(invertedIndex)) {
+  postings.sort((a, b) => b[1] - a[1]);
+}
+
+writeFileSync(join(ROOT, 'assets', 'search-index.json'), JSON.stringify(invertedIndex) + '\n');
+console.log(`✓ assets/search-index.json — ${Object.keys(invertedIndex).length} terms, ${docCount} entities`);
+
+// --- Badge ---
+function makeBadgeSvg(label: string, value: string, color: string): string {
+  const charW = 6.5;
+  const pad   = 10;
+  const lw    = Math.round(label.length * charW + pad);
+  const rw    = Math.round(value.length * charW + pad);
+  const tw    = lw + rw;
+  const lcx   = Math.round(lw / 2);
+  const rcx   = lw + Math.round(rw / 2);
+  const ltl   = Math.round(label.length * charW * 10);
+  const rtl   = Math.round(value.length * charW * 10);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${tw}" height="20" viewBox="0 0 ${tw} 20" role="img" aria-label="${label}: ${value}">
+  <title>${label}: ${value}</title>
+  <linearGradient id="s" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <clipPath id="r"><rect width="${tw}" height="20" rx="3" fill="#fff"/></clipPath>
+  <g clip-path="url(#r)">
+    <rect width="${lw}" height="20" fill="#555"/>
+    <rect x="${lw}" width="${rw}" height="20" fill="${color}"/>
+    <rect width="${tw}" height="20" fill="url(#s)"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="110">
+    <text aria-hidden="true" x="${lcx * 10}" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="${ltl}" lengthAdjust="spacing">${label}</text>
+    <text x="${lcx * 10}" y="140" transform="scale(.1)" textLength="${ltl}" lengthAdjust="spacing">${label}</text>
+    <text aria-hidden="true" x="${rcx * 10}" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="${rtl}" lengthAdjust="spacing">${value}</text>
+    <text x="${rcx * 10}" y="140" transform="scale(.1)" textLength="${rtl}" lengthAdjust="spacing">${value}</text>
+  </g>
+</svg>`;
+}
+
+writeFileSync(join(ROOT, 'badge.svg'), makeBadgeSvg('Claude Code', `${allSkills.length} skills`, '#007ec6'));
+console.log(`✓ badge.svg — ${allSkills.length} skills`);
 
 const ogSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <defs>

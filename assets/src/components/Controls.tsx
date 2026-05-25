@@ -1,7 +1,6 @@
 import { Filters } from './Filters.tsx';
 import type { SortKey } from '../url-state.ts';
-
-export type ViewKey = 'plugins' | 'skills' | 'agents' | 'mcpServers' | 'commands' | 'hooks' | 'bundles';
+import type { ViewKey } from '../types.ts';
 
 interface Props {
   query:            string;
@@ -56,9 +55,9 @@ export function Controls({
           <input
             id="search"
             type="search"
-            placeholder="Search skills…"
+            placeholder="Search or describe a task…"
             autocomplete="off"
-            aria-label="Search skills"
+            aria-label="Search marketplace"
             aria-keyshortcuts="/"
             value={query}
             onInput={e => onSearch((e.currentTarget as HTMLInputElement).value)}

@@ -1,11 +1,4 @@
-export interface SourceItem {
-  repo:    string;
-  count:   number;
-  builtin: boolean;
-  error?:  string;
-  /** GitHub star count for this repo, fetched asynchronously after initial load. */
-  stars?:  number;
-}
+import type { SourceItem } from '../types.ts';
 
 interface Props {
   sources:     SourceItem[];

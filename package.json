@@ -29,6 +29,7 @@
     "vitest": "^4.1.6"
   },
   "dependencies": {
-    "preact": "^10.29.1"
+    "preact": "^10.29.1",
+    "wink-porter2-stemmer": "^2.0.1"
   }
 }
