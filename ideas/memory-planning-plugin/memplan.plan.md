@@ -15,3 +15,4 @@ Plugin: `memplan` — Memory-Optimised Planning for Claude Code.
 | [skills.plan.md](skills.plan.md) | All skill definitions (`init`, `gaps`, `start`, `inbox`, `plan`, `act`, `refine`, `record`, `decide`, `ask`, `review`) |
 | [dependencies.plan.md](dependencies.plan.md) | Dependency graph, staleness tracking (`stale.mem`), plan-file dependency table |
 | [token-budget.plan.md](token-budget.plan.md) | Token budget per file, synergies table, hook integration |
+| [scripting-layer.plan.md](scripting-layer.plan.md) | `memplan-cli.js` — CLI script that handles all mechanical file ops so the AI only reasons |

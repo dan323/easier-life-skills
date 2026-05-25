@@ -147,7 +147,7 @@ When a file in this column changes, review the files in "dependents":
 | `inbox-protocol.plan.md` | `skills.plan.md` (memplan/inbox), `steps.plan.md` |
 | `conventions.plan.md` | `skills.plan.md` (lock/unlock), `file-layout.plan.md`, `steps.plan.md` |
 | `token-budget.plan.md` | `steps.plan.md` (budget skill steps) |
-| `dependencies.plan.md` | `skills.plan.md` (staleness checks), `file-layout.plan.md` (deps.mem + stale.mem), `steps.plan.md` |
+| `dependencies.plan.md` | `skills.plan.md` (staleness checks), `file-layout.plan.md` (deps.mem + stale.mem), `steps.plan.md`, `scripting-layer.plan.md` (stale-mark/stale-resolve/deps-closure commands) |
 
 `steps.plan.md` depends on every other file — it should be reviewed last, after all
 other files are stable.
