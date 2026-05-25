@@ -27,11 +27,12 @@ The files are the protocol. The agent doesn't need to "remember" — it reads fi
 ## Phases
 
 ### Phase 1 — Core loop (MVP)
-`start`, `inbox`, `plan`, `record`, `progress`, `checkpoint`, `persona`, `hot`
+`init`, `start`, `inbox`, `plan`, `act`, `record`, `gaps`
 
-Get the orient → plan → act → record cycle working end-to-end. The inbox protocol
-ships in Phase 1 — it is the only human feedback path and must exist before any
-human uses the tool.
+Get the orient → plan → act → record cycle working end-to-end. `init` bootstraps
+the directory. The inbox protocol ships in Phase 1 — it is the only human feedback
+path and must exist before any human uses the tool. `gaps` ships in Phase 1 so it
+can be run before implementation proceeds.
 
 ### Phase 2 — Memory depth
 `entities`, `aliases`, `code-map`, `facts`, `failures`, `questions`

@@ -133,10 +133,10 @@ for each line in file:
 ## Example: `persona.mem`
 
 ```
-style:terse;no-trailing-summaries
-test-policy:real-db;no-mocks
+style:terse|no-trailing-summaries
+test-policy:real-db|no-mocks
 test-reason:mock-prod-divergence-~2024-Q3
-commit-format:conventional;atomic
+commit-format:conventional|atomic
 lang:go=expert,react=novice
 ~2026-05-25T09:00Z +fact:user-prefers-single-bundled-pr-over-splits
 ```

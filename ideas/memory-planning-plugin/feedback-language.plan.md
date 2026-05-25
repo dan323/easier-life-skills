@@ -87,8 +87,17 @@ Append `+fact:tag=TAG,text=TEXT` to `facts.mem`. TAG must match `[a-z][a-z0-9-]*
 ```
 ANSWER qid=ID text="TEXT"
 ```
-Resolve open question with id ID. Agent removes the matching `+question:` line from
-`questions.mem` and appends to `decisions/log.mem`.
+Resolve open question with id ID. Agent appends `+question-answer:id=ID,text=TEXT` to
+`questions.mem`. Does NOT remove the original question line — append-only semantics are
+preserved. The question is treated as resolved once the answer line exists.
+Also appends to `decisions/log.mem`: `~DATETIME +decision:from-question=ID,text=TEXT`.
+
+```
+CLEAR-STALE file=FILENAME
+```
+Mark a stale entry as resolved without running `memplan/review`. Agent appends
+`~DATETIME +stale-resolved:file=FILENAME,session=~DATE` to `stale.mem`. Used when the
+human has manually verified the file is up to date. FILENAME is relative to `.memplan/`.
 
 ```
 SET file=FILENAME key=KEY value="VALUE"
@@ -109,6 +118,8 @@ Cannot target append-only keys — use FACT for that.
 | Conflicting ops on same step | Apply in file order; log last applied to `decisions/log.mem` |
 | SET targets unknown file | Append `~DATETIME +bad-file:file=FILENAME` to `questions.mem`; skip |
 | SET targets `+` (append-only) key | Append `~DATETIME +bad-set:key=KEY` to `questions.mem`; skip |
+| CLEAR-STALE targets file not in `stale.mem` | No-op; skip silently |
+| ANSWER targets unknown qid | Append `~DATETIME +bad-answer:qid=ID` to `questions.mem`; skip |
 
 Errors never abort processing. The agent finishes all lines, then deletes the `.feedback` file.
 

@@ -7,6 +7,7 @@ All files live under `.memplan/` in the project root.
   progress                              # "n/N | current: STEP-TEXT" — no dual, already minimal
   branch-intent                         # "one-line description of this branch" — no dual
 
+  steps.plan.md / steps.mem             # full ordered implementation steps; optional during orient, REQUIRED before first act
   plan.plan.md / plan.mem               # current plan (numbered checklist, ≤20 steps)
   slice.plan.md / slice.mem             # ≤5 atomic steps for the current sub-task
   checkpoint.plan.md / checkpoint.mem   # last action / next action / open questions
@@ -24,6 +25,9 @@ All files live under `.memplan/` in the project root.
     failures.plan.md / failures.mem     # failed commands + reason (append-only)
     questions.plan.md / questions.mem   # open questions for the human (cleared on answer)
     deps.json                           # hand-curated module dependency map — no dual, already structured
+
+  deps.mem                              # dependency graph: dep:TARGET=SOURCE|SOURCE (no .plan.md counterpart — structural metadata)
+  stale.mem                             # append-only staleness log: +stale:file=F,because=F,session=DATE; cleared by memplan/review
     sessions/
       YYYY-MM-DD.plan.md                # per-session digest for human (≤10 bullets, prose)
       YYYY-MM-DD.mem                    # per-session digest for agent (MemScript v1)
@@ -70,9 +74,9 @@ All files live under `.memplan/` in the project root.
 
 **`persona.mem`** (agent reads — MemScript v1):
 ```
-style:terse;no-trailing-summaries
-test-policy:real-db;no-mocks
+style:terse|no-trailing-summaries
+test-policy:real-db|no-mocks
 test-reason:mock-prod-divergence-~2024-Q3
-commit-format:conventional;atomic
+commit-format:conventional|atomic
 lang:go=expert,react=novice
 ```

@@ -24,6 +24,16 @@ Compare to loading `CLAUDE.md` + a README + a schema: typically 3,000–8,000 to
 Append-only files (`failures.mem`, `facts.mem`, `entities.mem`, `decisions/log.mem`,
 `sessions/`) are not loaded during orient — only grepped on demand.
 
+### Cap overflow behaviour
+
+When a skill attempts to append to a file already at its line cap:
+1. Write the new entry to `memory/overflow.mem` instead, prefixed with the target filename:
+   `~DATETIME +overflow:target=FILENAME,entry=ENTRY`
+2. Append `~DATETIME +cap-warning:file=FILENAME` to `questions.mem` (once per file per session — deduped)
+
+`memplan/start` warns if `overflow.mem` is non-empty: "⚠ overflow.mem has entries — run `memplan/review` to compact."
+`memplan/review` merges `overflow.mem` entries into their target files after pruning old entries to make room, then clears `overflow.mem`.
+
 ---
 
 ## Synergies
