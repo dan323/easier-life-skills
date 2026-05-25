@@ -15,6 +15,7 @@ trigger-*.html
 /sitemap.xml
 assets/bundle.js
 assets/og-image.svg
+assets/search-index.json
 installer/dist/
 
 # Build cache

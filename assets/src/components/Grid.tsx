@@ -5,8 +5,7 @@ import { McpCard }     from './cards/McpCard.tsx';
 import { CommandCard } from './cards/CommandCard.tsx';
 import { HookCard }    from './cards/HookCard.tsx';
 import { BundleCard }  from './cards/BundleCard.tsx';
-import type { ViewKey } from './Controls.tsx';
-import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle } from '../types.ts';
+import type { ViewKey, Plugin, Skill, Agent, McpServer, Command, Hook, Bundle } from '../types.ts';
 import type { SortKey } from '../url-state.ts';
 import { buildBundleItemId } from '../bundle-state.ts';
 
@@ -24,6 +23,7 @@ interface Props {
   view:       ViewKey;
   loaded:     boolean;
   query:      string;
+  nlScores:   Map<string, number>;
   sort:       SortKey;
   activeRepos: Set<string>;
   activeCategories: Set<string>;
@@ -42,6 +42,37 @@ interface Props {
   onToggleBundleMcp:     (m: McpServer) => void;
   onToggleBundleCommand: (c: Command) => void;
   onToggleBundleHook:    (h: Hook) => void;
+}
+
+function nlFilter<T>(
+  items: T[],
+  nlScores: Map<string, number>,
+  idFn: (item: T) => string,
+): T[] {
+  return items
+    .map(item => ({ item, score: nlScores.get(idFn(item)) ?? 0 }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(({ item }) => item);
+}
+
+function filterEntities<T extends { _repo?: string; category?: string | null }>(
+  all: T[],
+  activeRepos: Set<string>,
+  activeCategories: Set<string>,
+  query: string,
+  nlScores: Map<string, number>,
+  nlKey: (item: T) => string,
+  textMatch: (item: T, q: string) => boolean,
+): T[] {
+  const base = all.filter(item => {
+    if (activeRepos.size && !activeRepos.has(item._repo ?? '')) return false;
+    return !(activeCategories.size && !activeCategories.has(item.category ?? ''));
+
+  });
+  return nlScores.size > 0
+    ? nlFilter(base, nlScores, nlKey)
+    : base.filter(item => !query || textMatch(item, query));
 }
 
 const GRID_IDS: Record<ViewKey, string> = {
@@ -144,15 +175,13 @@ function viewEmpty(view: ViewKey, icon: string, label: string, allCount: number,
   );
 }
 
-function PluginsGrid({ data, query, sort, activeRepos, activeCategories, onOpenPlugin, bundledIds, onToggleBundlePlugin }: Props) {
+function PluginsGrid({ data, query, nlScores, sort, activeRepos, activeCategories, onOpenPlugin, bundledIds, onToggleBundlePlugin }: Props) {
   const all = data.plugins;
   const show = multiRepo(all);
-  const filtered = all.filter(p => {
-    if (activeRepos.size && !activeRepos.has(p._repo ?? '')) return false;
-    if (activeCategories.size && !activeCategories.has(p.category ?? '')) return false;
-    if (!query) return true;
-    return p.name.includes(query) || (p.description ?? '').toLowerCase().includes(query);
-  });
+  const filtered = filterEntities(all, activeRepos, activeCategories, query, nlScores,
+    p => `p:${p._repo}/${p.name}`,
+    (p, q) => p.name.includes(q) || (p.description ?? '').toLowerCase().includes(q),
+  );
   return (
     <>
       <div class="count" id="count" aria-live="polite" aria-atomic="true">
@@ -161,7 +190,7 @@ function PluginsGrid({ data, query, sort, activeRepos, activeCategories, onOpenP
       <div id="plugins-grid" style={{ display: 'grid' }}>
         {filtered.length === 0
           ? viewEmpty('plugins', '🔍', 'plugins', all.length, data)
-          : sortedBy(filtered, sort).map(p =>
+          : (nlScores.size > 0 ? filtered : sortedBy(filtered, sort)).map(p =>
               <PluginCard
                 key={`${p._repo}/${p.name}`}
                 plugin={p}
@@ -175,17 +204,13 @@ function PluginsGrid({ data, query, sort, activeRepos, activeCategories, onOpenP
   );
 }
 
-function SkillsGrid({ data, query, sort, activeRepos, activeCategories, onOpenSkill, bundledIds, onToggleBundleSkill }: Props) {
+function SkillsGrid({ data, query, nlScores, sort, activeRepos, activeCategories, onOpenSkill, bundledIds, onToggleBundleSkill }: Props) {
   const all = data.skills;
   const show = multiRepo(all);
-  const filtered = all.filter(s => {
-    if (activeRepos.size && !activeRepos.has(s._repo ?? '')) return false;
-    if (activeCategories.size && !activeCategories.has(s.category ?? '')) return false;
-    if (!query) return true;
-    return s.name.includes(query)
-        || s.description.toLowerCase().includes(query)
-        || (s.keywords ?? []).some(k => k.includes(query));
-  });
+  const filtered = filterEntities(all, activeRepos, activeCategories, query, nlScores,
+    s => `s:${s._repo}/${s.pluginName}/${s.name}`,
+    (s, q) => s.name.includes(q) || s.description.toLowerCase().includes(q) || (s.keywords ?? []).some(k => k.includes(q)),
+  );
   return (
     <>
       <div class="count" id="count" aria-live="polite" aria-atomic="true">
@@ -194,7 +219,7 @@ function SkillsGrid({ data, query, sort, activeRepos, activeCategories, onOpenSk
       <div id="skills-grid" style={{ display: 'grid' }}>
         {filtered.length === 0
           ? viewEmpty('skills', '🔍', 'skills', all.length, data)
-          : sortedByRating(filtered, sort).map(s =>
+          : (nlScores.size > 0 ? filtered : sortedByRating(filtered, sort)).map(s =>
               <SkillCard
                 key={`${s._repo}/${s.pluginName}/${s.name}`}
                 skill={s}
@@ -209,15 +234,13 @@ function SkillsGrid({ data, query, sort, activeRepos, activeCategories, onOpenSk
   );
 }
 
-function AgentsGrid({ data, query, sort, activeRepos, activeCategories, onOpenAgent, bundledIds, onToggleBundleAgent }: Props) {
+function AgentsGrid({ data, query, nlScores, sort, activeRepos, activeCategories, onOpenAgent, bundledIds, onToggleBundleAgent }: Props) {
   const all = data.agents;
   const show = multiRepo(all);
-  const filtered = all.filter(a => {
-    if (activeRepos.size && !activeRepos.has(a._repo ?? '')) return false;
-    if (activeCategories.size && !activeCategories.has(a.category ?? '')) return false;
-    if (!query) return true;
-    return a.name.includes(query) || a.description.toLowerCase().includes(query);
-  });
+  const filtered = filterEntities(all, activeRepos, activeCategories, query, nlScores,
+    a => `a:${a._repo}/${a.pluginName}/${a.name}`,
+    (a, q) => a.name.includes(q) || a.description.toLowerCase().includes(q),
+  );
   return (
     <>
       <div class="count" id="count" aria-live="polite" aria-atomic="true">
@@ -226,7 +249,7 @@ function AgentsGrid({ data, query, sort, activeRepos, activeCategories, onOpenAg
       <div id="agents-grid" style={{ display: 'grid' }}>
         {filtered.length === 0
           ? viewEmpty('agents', '🤖', 'agents', all.length, data)
-          : sortedBy(filtered, sort).map(a =>
+          : (nlScores.size > 0 ? filtered : sortedBy(filtered, sort)).map(a =>
               <AgentCard
                 key={`${a._repo}/${a.pluginName}/${a.name}`}
                 agent={a}
@@ -241,15 +264,13 @@ function AgentsGrid({ data, query, sort, activeRepos, activeCategories, onOpenAg
   );
 }
 
-function McpGrid({ data, query, sort, activeRepos, activeCategories, onOpenMcp, bundledIds, onToggleBundleMcp }: Props) {
+function McpGrid({ data, query, nlScores, sort, activeRepos, activeCategories, onOpenMcp, bundledIds, onToggleBundleMcp }: Props) {
   const all = data.mcpServers;
   const show = multiRepo(all);
-  const filtered = all.filter(m => {
-    if (activeRepos.size && !activeRepos.has(m._repo ?? '')) return false;
-    if (activeCategories.size && !activeCategories.has(m.category ?? '')) return false;
-    if (!query) return true;
-    return m.name.includes(query) || m.description.toLowerCase().includes(query);
-  });
+  const filtered = filterEntities(all, activeRepos, activeCategories, query, nlScores,
+    m => `m:${m._repo}/${m.pluginName}/${m.name}`,
+    (m, q) => m.name.includes(q) || m.description.toLowerCase().includes(q),
+  );
   return (
     <>
       <div class="count" id="count" aria-live="polite" aria-atomic="true">
@@ -258,7 +279,7 @@ function McpGrid({ data, query, sort, activeRepos, activeCategories, onOpenMcp, 
       <div id="mcp-grid" style={{ display: 'grid' }}>
         {filtered.length === 0
           ? viewEmpty('mcpServers', '🔌', 'MCP servers', all.length, data)
-          : sortedBy(filtered, sort).map(m =>
+          : (nlScores.size > 0 ? filtered : sortedBy(filtered, sort)).map(m =>
               <McpCard
                 key={`${m._repo}/${m.pluginName}/${m.name}`}
                 mcp={m}
@@ -273,15 +294,13 @@ function McpGrid({ data, query, sort, activeRepos, activeCategories, onOpenMcp, 
   );
 }
 
-function CommandsGrid({ data, query, sort, activeRepos, activeCategories, onOpenCommand, bundledIds, onToggleBundleCommand }: Props) {
+function CommandsGrid({ data, query, nlScores, sort, activeRepos, activeCategories, onOpenCommand, bundledIds, onToggleBundleCommand }: Props) {
   const all = data.commands;
   const show = multiRepo(all);
-  const filtered = all.filter(c => {
-    if (activeRepos.size && !activeRepos.has(c._repo ?? '')) return false;
-    if (activeCategories.size && !activeCategories.has(c.category ?? '')) return false;
-    if (!query) return true;
-    return c.name.includes(query) || c.description.toLowerCase().includes(query);
-  });
+  const filtered = filterEntities(all, activeRepos, activeCategories, query, nlScores,
+    c => `c:${c._repo}/${c.pluginName}/${c.name}`,
+    (c, q) => c.name.includes(q) || c.description.toLowerCase().includes(q),
+  );
   return (
     <>
       <div class="count" id="count" aria-live="polite" aria-atomic="true">
@@ -290,7 +309,7 @@ function CommandsGrid({ data, query, sort, activeRepos, activeCategories, onOpen
       <div id="commands-grid" style={{ display: 'grid' }}>
         {filtered.length === 0
           ? viewEmpty('commands', '⌨️', 'commands', all.length, data)
-          : sortedBy(filtered, sort).map(c =>
+          : (nlScores.size > 0 ? filtered : sortedBy(filtered, sort)).map(c =>
               <CommandCard
                 key={`${c._repo}/${c.pluginName}/${c.name}`}
                 command={c}
@@ -305,17 +324,13 @@ function CommandsGrid({ data, query, sort, activeRepos, activeCategories, onOpen
   );
 }
 
-function HooksGrid({ data, query, sort, activeRepos, activeCategories, onOpenHook, bundledIds, onToggleBundleHook }: Props) {
+function HooksGrid({ data, query, nlScores, sort, activeRepos, activeCategories, onOpenHook, bundledIds, onToggleBundleHook }: Props) {
   const all = data.hooks;
   const show = multiRepo(all);
-  const filtered = all.filter(h => {
-    if (activeRepos.size && !activeRepos.has(h._repo ?? '')) return false;
-    if (activeCategories.size && !activeCategories.has(h.category ?? '')) return false;
-    if (!query) return true;
-    return h.name.includes(query)
-        || h.description.toLowerCase().includes(query)
-        || h.events.some(e => e.toLowerCase().includes(query));
-  });
+  const filtered = filterEntities(all, activeRepos, activeCategories, query, nlScores,
+    h => `h:${h._repo}/${h.pluginName}/${h.name}`,
+    (h, q) => h.name.includes(q) || h.description.toLowerCase().includes(q) || h.events.some(e => e.toLowerCase().includes(q)),
+  );
   return (
     <>
       <div class="count" id="count" aria-live="polite" aria-atomic="true">
@@ -324,7 +339,7 @@ function HooksGrid({ data, query, sort, activeRepos, activeCategories, onOpenHoo
       <div id="hooks-grid" style={{ display: 'grid' }}>
         {filtered.length === 0
           ? viewEmpty('hooks', '🪝', 'hooks', all.length, data)
-          : sortedBy(filtered, sort).map(h =>
+          : (nlScores.size > 0 ? filtered : sortedBy(filtered, sort)).map(h =>
               <HookCard
                 key={`${h._repo}/${h.pluginName}/${h.name}`}
                 hook={h}

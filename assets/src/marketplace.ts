@@ -1,6 +1,5 @@
 import { fetchIndex, fetchStars } from './api.ts';
-import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle, SkillsIndexMeta } from './types.ts';
-import type { SourceItem } from './components/MarketplaceBar.tsx';
+import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle, SkillsIndexMeta, SourceItem } from './types.ts';
 
 export interface LoadedMarketplace {
   plugins:    Plugin[];

@@ -179,3 +179,14 @@ export interface SkillsIndex {
   hooks:      Hook[];
   bundles:    Bundle[];
 }
+
+export type ViewKey = 'plugins' | 'skills' | 'agents' | 'mcpServers' | 'commands' | 'hooks' | 'bundles';
+
+export interface SourceItem {
+  repo:    string;
+  count:   number;
+  builtin: boolean;
+  error?:  string;
+  /** GitHub star count for this repo, fetched asynchronously after initial load. */
+  stars?:  number;
+}

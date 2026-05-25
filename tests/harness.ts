@@ -29,6 +29,11 @@ export interface BootOptions {
    * Repos not listed here return 404 (stars stays undefined).
    */
   stars?: Record<string, number>;
+  /**
+   * Pre-built inverted index to serve as search-index.json.
+   * When omitted, the fetch returns 404 and NL search silently produces no scores.
+   */
+  searchIndex?: Record<string, [string, number][]>;
 }
 
 export interface Booted {
@@ -80,6 +85,14 @@ export async function bootApp(opts: BootOptions = {}): Promise<Booted> {
     if (url.includes('skills_index.json')) {
       return Promise.resolve(
         new Response(JSON.stringify(body), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+    }
+    if (url.includes('search-index.json') && opts.searchIndex) {
+      return Promise.resolve(
+        new Response(JSON.stringify(opts.searchIndex), {
           status: 200,
           headers: { 'content-type': 'application/json' },
         }),
