@@ -43,7 +43,14 @@ leading/trailing whitespace on a statement line is stripped.
 
 On every write the agent:
 1. For mutable keys: opens the file, removes all existing lines matching `^key:`, appends the new line, re-locks.
-2. For append-only keys: appends the new line to the end of the file without reading first.
+2. For append-only keys: appends the new line to the end of the file **without reading first**.
+
+The no-read guarantee for `+` keys is not an optimisation — it is a correctness property.
+Append-only files grow monotonically: no existing line is ever removed between compactions.
+Because there are no read–modify–write cycles, concurrent hook-triggered writes (e.g. a
+PostToolUse hook calling `memplan/act` while `memplan/record` is running) cannot produce
+torn reads or lost updates. The only operation that breaks monotonicity is `memplan/review`
+compaction — and that skill is human-initiated, never automatic.
 
 ---
 
@@ -84,6 +91,7 @@ Append-only keys cannot be cleared (use `memplan/review` to compact).
 | Datetime | `key:~YYYY-MM-DDTHH:MMZ` | `locked-at:~2026-05-25T14:30Z` |
 | List | `key:a|b|c` | `hot-files:src/api.ts|tests/unit.ts|src/main.ts` |
 | Inline map | `key:k1=v1,k2=v2` | `session:date=~2026-05-25,steps=#3,done=#2` |
+| Step deps | `+step:id=N,deps=A\|B` | `+step:id=4,deps=2\|3` — step 4 cannot start until steps 2 and 3 are complete |
 | Null | `key:` | `risk:` |
 | Append scalar | `+key:text` | `+fact:no-force-push-to-main` |
 | Append map | `+key:k1=v1,k2=v2` | `+failure:cmd=npm-test,reason=missing-env` |
@@ -154,11 +162,19 @@ lang:go=expert,react=novice
 title:add inbox protocol to memplan
 step-count:#6
 current:#3
-~2026-05-25T09:00Z +step:1=design-feedback-format
-~2026-05-25T09:05Z +step:2=add-inbox-dir-to-layout
-~2026-05-25T09:10Z +step:3=write-memplan-inbox-skill
-+step:4=update-start-skill-to-process-inbox
-+step:5=write-language-specs
-+step:6=update-token-budget
+~2026-05-25T09:00Z +step:id=1,text=design-feedback-format,atomic=true
+~2026-05-25T09:05Z +step:id=2,text=add-inbox-dir-to-layout,atomic=true
+~2026-05-25T09:10Z +step:id=3,text=write-memplan-inbox-skill,deps=1|2,refined=true
++step:id=3.1,text=write-inbox-skill-header-and-invocation,atomic=true
++step:id=3.2,text=implement-feedscript-parse-loop,atomic=true
++step:id=3.3,text=implement-file-unlock-write-relock,atomic=true
++step:id=4,text=update-start-skill-to-process-inbox,deps=3
++step:id=5,text=write-language-specs,deps=3
++step:id=6,text=update-token-budget,deps=4|5
 status:in-progress
 ```
+
+Steps 4 and 5 both depend on 3 but not on each other — they form a parallelisable
+frontier once step 3 is done. `memplan/slice` reads `deps` to surface this: instead
+of always picking `current+1`, it selects all steps whose `deps` are fully complete
+and which are not yet started.

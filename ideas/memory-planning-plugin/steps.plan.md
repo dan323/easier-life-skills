@@ -10,6 +10,7 @@ Reference files: `overview.plan.md`, `skills.plan.md`, `file-layout.plan.md`,
 ## Bootstrap (prerequisite — do this once before Phase 1)
 
 - [ ] 0a. Create `.memplan/deps.mem` defining the dependency graph (from `dependencies.plan.md`)
+- [ ] 0a2. Extend `memplan/init` to compute `deps-closure.mem` (transitive closure of `deps.mem`) at init time; `memplan/act` reads `deps-closure.mem` for staleness propagation (not `deps.mem`)
 - [ ] 0b. Create `.memplan/steps.mem` from this file (`steps.plan.md`) using MemScript v1.
   Each step becomes a `+step:id=#N,text=TEXT,status=todo` append line.
   Create `.memplan/steps.plan.md` with the generated-file header.
@@ -27,7 +28,7 @@ Reference files: `overview.plan.md`, `skills.plan.md`, `file-layout.plan.md`,
 - [ ] 5. Write `SKILL.md` for `memplan/init` — bootstraps `.memplan/` from scratch; creates dirs, stub files, default `deps.mem`, writes `progress` → `0/0 | not started`
 - [ ] 6. Write `SKILL.md` for `memplan/start` — orient; processes inbox first; warns on missing `steps.mem` and stale entries
 - [ ] 7. Write `SKILL.md` for `memplan/plan` — creates `plan.mem` + `plan.plan.md`, `slice.mem`, writes `progress` → `0/N | not started`
-- [ ] 8. Write `SKILL.md` for `memplan/act` — pre-flight (steps + stale), execute, update progress + code-map, propagate staleness, inline stale resolution
+- [ ] 8. Write `SKILL.md` for `memplan/act` — pre-flight (steps + stale), execute, update progress + code-map, propagate staleness, inline stale resolution; when a step creates a new `.mem` file: create dual files, append to `deps.mem`, append incremental closure entry to `deps-closure.mem`
 - [ ] 9. Write `SKILL.md` for `memplan/inbox` — processes FeedScript v1; handles ANSWER (appends question-answer), CLEAR-STALE, all other ops
 - [ ] 10. Write `SKILL.md` for `memplan/record` — end-of-session close; writes checkpoint, session digest, propagates staleness for files written
 - [ ] 11. Write `SKILL.md` for `memplan/gaps` — reads all plan/skill files; runs 7 gap checks; outputs numbered list
@@ -50,15 +51,17 @@ Reference files: `overview.plan.md`, `skills.plan.md`, `file-layout.plan.md`,
 ## Phase 3 — Planning quality
 
 - [ ] 20. Write `SKILL.md` for `memplan/decide` — appends to `decisions/log.mem` + `decisions/log.plan.md`
-- [ ] 21. Add `risk` file generation to `memplan/plan` — writes `risk.plan.md` + `risk.mem`; deleted by `memplan/record` on clean close
-- [ ] 22. Add `budget.mem` tracking to `memplan/record` — record observed load costs per session
-- [ ] 23. Write evals for Phase 3 (risk file present and deleted correctly; decide round-trip)
+- [ ] 21. Write `SKILL.md` for `memplan/refine` — divide-and-conquer step decomposition; atomicity check (files touched, verb clauses, done-condition); N.M sub-step numbering; depth limit; idempotent; updates `progress` denominator using leaf-node count (refined parents excluded)
+- [ ] 22. Extend `memplan/act` to handle `refined=true` steps — execute sub-steps in order; mark parent complete when all sub-steps done
+- [ ] 23. Add `risk` file generation to `memplan/plan` — writes `risk.plan.md` + `risk.mem`; deleted by `memplan/record` on clean close
+- [ ] 24. Add `budget.mem` tracking to `memplan/record` — record observed load costs per session
+- [ ] 25. Write evals for Phase 3 (refine decomposes correctly; act executes sub-steps; idempotent re-run; risk file lifecycle; decide round-trip)
 
 ---
 
 ## Phase 4 — Hygiene and hooks
 
-- [ ] 24. Write `SKILL.md` for `memplan/review` — resolves stale entries; compacts append-only files (incl. overflow.mem); compacts question+answer pairs into decisions; regenerates all `.plan.md`; enforces line caps
+- [ ] 24. Write `SKILL.md` for `memplan/review` — resolves stale entries; compacts append-only files (incl. overflow.mem); compacts question+answer pairs into decisions; regenerates all `.plan.md` using canonical render order (from conventions.plan.md); enforces line caps; recomputes `deps-closure.mem` if `deps.mem` changed
 - [ ] 25. Add PostToolUse hook definition: calls `memplan/act` on every `Write`/`Edit`
 - [ ] 26. Add PreToolUse hook definition: calls `memplan/start` on first tool call of a session
 - [ ] 27. Document `deps.json` format and how the agent uses it for structural awareness without scanning

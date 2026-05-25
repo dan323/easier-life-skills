@@ -45,6 +45,12 @@ Before writing, checks:
 - `entities.mem` — known domain concepts in the task description?
 - `decisions/log.mem` — prior decisions that constrain this task?
 
+For each step, the agent infers `deps` from the task description and any explicit ordering cues:
+- Steps with no predecessor get no `deps` field (immediately executable).
+- Steps blocked on one or more prior steps get `deps=A|B|…` (pipe-separated step IDs).
+- Two steps that are independently executable get no `deps` on each other even if they follow a common predecessor — they form a parallelisable frontier once their shared dependency completes.
+- `memplan/slice` uses `deps` to build the ready frontier: the set of not-yet-started steps whose every listed dependency is complete. It surfaces this set rather than always picking `current+1`.
+
 After writing `plan.mem`, writes `progress` → `0/N | not started` where N is the step count.
 This ensures `memplan/start` can read a valid `progress` on the very first orient after planning.
 
@@ -58,7 +64,8 @@ Wraps a single plan step.
 
 **Pre-flight (hard halts — in order)**:
 1. If `steps.mem` is absent: halt. Never execute work without defined steps.
-2. Check `stale.mem` for any file this step will read. If a dependency is stale: halt and output "⚠ FILE is stale — resolve via inbox or `memplan/review` before proceeding."
+2. Check `deps` on the target step. If any listed dep step is not yet complete: halt and output "⚠ Step N cannot start — deps [X, Y] not complete."
+3. Check `stale.mem` for any file this step will read. If a dependency is stale: halt and output "⚠ FILE is stale — resolve via inbox or `memplan/review` before proceeding."
 
 **Execution**:
 1. Read `progress` to confirm correct step
@@ -90,6 +97,76 @@ When the pre-flight halts on a stale file, the agent may resolve it inline:
 4. Update `budget.plan.md` + `budget.mem` with observed load costs
 5. Delete `risk.plan.md` + `risk.mem` if the multi-file change completed cleanly
 6. Append any new aliases or facts discovered during the session (both forms)
+
+---
+
+## `memplan/refine` — divide-and-conquer step decomposition (optional)
+
+Decomposes one or more steps that are too large or ambiguous into smaller, atomic
+sub-steps. Optional — only run when the agent or human judges a step too coarse to
+act on directly.
+
+### Invocation
+
+```
+memplan/refine              # refine all steps not yet marked atomic
+memplan/refine step=N       # refine a single step
+memplan/refine step=N depth=D  # refine recursively up to depth D (default: 2)
+```
+
+### Atomicity criterion
+
+A step is considered non-atomic if any of the following are true:
+- It touches or mentions more than 2 distinct files
+- It contains more than one independent verb clause (e.g. "write X and update Y and verify Z")
+- The agent cannot express a single, verifiable done-condition for it
+
+If a step passes all three checks it is marked `atomic=true` and skipped.
+
+### Sub-step numbering
+
+Step `N` decomposes into `N.1`, `N.2`, … `N.K`. Each sub-step can itself decompose
+to `N.M.1`, `N.M.2`, … up to the depth limit. The original step N is kept in
+`steps.mem` as a summary header, marked `refined=true`:
+
+```
++step:id=3,text=implement dual-file write helper,refined=true
++step:id=3.1,text=write references/dual-file-write.md with unlock/write/re-lock procedure,atomic=true
++step:id=3.2,text=add generated-file header template to references/dual-file-write.md,deps=3.1,atomic=true
++step:id=3.3,text=verify helper invoked correctly in memplan/plan SKILL.md,deps=3.1|3.2,atomic=true
+```
+
+Sub-step `deps` use the same pipe-separated format as top-level step deps. The scope is
+local: `deps=3.1` means sub-step 3.1 of the same parent, not top-level step 3.1.
+
+### Execution
+
+1. Read `steps.mem` — collect target steps (one or all non-atomic)
+2. For each target step, in order:
+   a. Read the step text and any context from `plan.mem` and `checkpoint.mem`
+   b. Check atomicity criteria — if atomic, mark `atomic=true` and skip
+   c. Generate sub-steps; verify each sub-step is independently executable and verifiable
+   d. Append sub-step lines to `steps.mem`; update original step with `refined=true`
+   e. If `depth > 1`: recursively apply to any sub-step that fails atomicity check
+3. Update `progress` denominator: **N = number of leaf steps** (steps that are `atomic=true`
+   or have no sub-steps). Refined parent steps (`refined=true`) contribute 0 to N.
+   M = number of leaf steps whose status is complete.
+   This makes `progress` a stable fraction even after repeated refinements — adding
+   sub-steps changes the denominator precisely, not approximately.
+4. Regenerate `steps.plan.md` from updated `steps.mem`; re-lock
+5. Append to `decisions/log.mem`: `~DATETIME +decision:refined=N,sub-steps=K`
+
+### `memplan/act` behaviour for refined steps
+
+When `memplan/act` encounters a step marked `refined=true`, it does not execute it
+directly. Instead it reads the sub-steps (`id=N.1`, `N.2`, …) and executes each in
+order, updating `progress` at the sub-step level. The parent step is marked complete
+only when all sub-steps are complete.
+
+### Idempotency
+
+Re-running `memplan/refine` on an already-refined step is a no-op — steps already
+marked `refined=true` or `atomic=true` are skipped unless `force=true` is passed.
 
 ---
 
@@ -132,7 +209,7 @@ empty/default files, sets permissions, and writes the initial `deps.mem`.
 1. Create `.memplan/` and all subdirectories (`memory/`, `decisions/`, `inbox/`, `sessions/`)
 2. Write `progress` → `0/0 | not started`
 3. Write `branch-intent` → `(not set)`
-4. Write `deps.mem` with the default dependency graph (from `dependencies.plan.md`)
+4. Write `deps.mem` from the fixed template embedded in the plugin (from `dependencies.plan.md`); write `deps-closure.mem` (transitive closure) immediately after
 5. Create empty stubs for all Phase 1 `.mem` files: `checkpoint.mem`, `persona.mem`, `hot.mem`, `plan.mem`, `questions.mem`, `decisions/log.mem`, `stale.mem`, `question-counter`
 6. Generate `.plan.md` counterparts for all stubbed files; lock all `.plan.md` files
 7. Print: "memplan initialised. Run `memplan/plan` to define your steps."
@@ -154,6 +231,7 @@ Checks performed:
 5. **Uncovered error paths** — operations or states with no defined error handling
 6. **Format inconsistencies** — examples that use syntax not defined in the grammar (e.g. undeclared separators)
 7. **Circular dependencies** — cycles in `deps.mem` that would cause infinite staleness propagation
+8. **Missing documentation step** — if the plan touches ≥1 file matching `README*`, `CHANGELOG*`, `SKILL.md`, `*.plan.md`, or any file that exports a public interface (detected by filename pattern or step text containing words like `api`, `export`, `command`, `skill`, `agent`, `endpoint`), AND no step's `text` contains `doc`, `readme`, `changelog`, or `spec` — flag as a gap. Suggested fix: add a documentation step with `deps` pointing to the last implementation step that settles the public shape, or note explicitly that a separate doc skill will be run post-completion.
 
 Output format: numbered list, one gap per item, each with: file where gap was found, description, suggested fix direction. No prose padding.
 

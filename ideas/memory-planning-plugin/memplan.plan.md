@@ -12,6 +12,6 @@ Plugin: `memplan` — Memory-Optimised Planning for Claude Code.
 | [mem-language.plan.md](mem-language.plan.md) | MemScript v1 — machine language spec for `.mem` files |
 | [inbox-protocol.plan.md](inbox-protocol.plan.md) | Inbox protocol, plugin extension point, plannotator integration |
 | [feedback-language.plan.md](feedback-language.plan.md) | FeedScript v1 — machine language spec for `.feedback` files |
-| [skills.plan.md](skills.plan.md) | All skill definitions (`init`, `gaps`, `start`, `inbox`, `plan`, `act`, `record`, `decide`, `ask`, `review`) |
+| [skills.plan.md](skills.plan.md) | All skill definitions (`init`, `gaps`, `start`, `inbox`, `plan`, `act`, `refine`, `record`, `decide`, `ask`, `review`) |
 | [dependencies.plan.md](dependencies.plan.md) | Dependency graph, staleness tracking (`stale.mem`), plan-file dependency table |
 | [token-budget.plan.md](token-budget.plan.md) | Token budget per file, synergies table, hook integration |

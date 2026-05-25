@@ -47,6 +47,20 @@ to the correct feedback channel.
 
 ---
 
+## Creating a new dual-file pair
+
+When a skill creates a new `.mem` file (not one of the predefined files), three things
+must happen atomically in this order:
+
+1. Write `X.mem` stub + `X.plan.md` with generated-file header; lock `X.plan.md`
+2. Append `dep:X.mem=…` to `deps.mem`
+3. Append the incremental closure entry for X to `deps-closure.mem`
+
+Skipping step 2 or 3 leaves the staleness system unaware of the new file — it will never
+be marked stale, even if its sources change. This is a silent consistency failure.
+
+---
+
 ## Two-channel model
 
 | Direction | Channel | Format | Who writes |
@@ -64,3 +78,28 @@ file (or uses a tool that does). The agent processes it on next session start.
 `.mem` is authoritative. `memplan/review` regenerates all `.plan.md` files from
 their `.mem` counterparts during hygiene passes. If the two ever diverge (e.g. after
 a bug or manual unlock), the `.mem` version wins.
+
+---
+
+## Canonical `.plan.md` rendering
+
+The render function `.mem → .plan.md` must be a **pure, deterministic function**:
+the same `.mem` content always produces byte-for-byte identical `.plan.md` output.
+This guarantees that regeneration produces no noise in diffs — only semantic changes
+produce visible output changes, which is what makes the human-readable file trustworthy
+as a review surface.
+
+Canonical order rules (applied in this sequence, non-negotiable):
+
+1. **Generated-file header** — always first line, exact fixed string
+2. **Mutable keys** — rendered in a fixed, per-file declared section order (not
+   insertion order); each key appears exactly once (last write wins)
+3. **Append-only entries** — rendered sorted by timestamp ascending; ties broken by
+   line order in the `.mem` file
+4. **Step entries** — sorted numerically by id (1, 2, 3, 3.1, 3.2, 3.3, 4 …);
+   never alphabetically, never by insertion order
+5. **Empty values** — mutable keys with empty value are omitted from `.plan.md`
+   (they are present in `.mem` as explicit nulls but add no human value)
+
+Any skill that generates a `.plan.md` must follow these rules. The render algorithm
+is the same for all skills — no per-skill layout variation.
