@@ -11,8 +11,12 @@ function loadIndex(): Promise<InvertedIndex> {
   if (indexCache) return Promise.resolve(indexCache);
   if (!inflightFetch) {
     inflightFetch = fetch('./assets/search-index.json')
-      .then(r => r.json() as Promise<InvertedIndex>)
-      .then(data => { indexCache = data; return data; });
+      .then(r => {
+        if (!r.ok) return {} as InvertedIndex;
+        return r.json() as Promise<InvertedIndex>;
+      })
+      .then(data => { indexCache = data; return data; })
+      .catch(() => { inflightFetch = null; return {} as InvertedIndex; });
   }
   return inflightFetch;
 }

@@ -57,7 +57,7 @@ export function Controls({
             type="search"
             placeholder="Search or describe a task…"
             autocomplete="off"
-            aria-label="Search skills"
+            aria-label="Search marketplace"
             aria-keyshortcuts="/"
             value={query}
             onInput={e => onSearch((e.currentTarget as HTMLInputElement).value)}

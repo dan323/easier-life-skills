@@ -1,4 +1,4 @@
 declare module 'wink-porter2-stemmer' {
   function stem(word: string): string;
-  export = stem;
+  export default stem;
 }

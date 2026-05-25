@@ -13,5 +13,5 @@
     "jsxImportSource": "preact",
     "types": ["gtag.js"]
   },
-  "include": ["assets/src/**/*.ts", "assets/src/**/*.tsx", "shared/**/*.ts"]
+  "include": ["assets/src/**/*.ts", "assets/src/**/*.tsx", "shared/**/*.ts", "shared/**/*.d.ts"]
 }

@@ -121,7 +121,9 @@ export function App() {
       return;
     }
     let cancelled = false;
-    void nlSearch(lq).then(scores => { if (!cancelled) setNlScores(scores); });
+    void nlSearch(lq)
+      .then(scores => { if (!cancelled) setNlScores(scores); })
+      .catch(() => { if (!cancelled) setNlScores(new Map()); });
     return () => { cancelled = true; };
   }, [query]);
 
