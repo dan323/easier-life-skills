@@ -210,7 +210,7 @@ empty/default files, sets permissions, and writes the initial `deps.mem`.
 2. Write `progress` → `0/0 | not started`
 3. Write `branch-intent` → `(not set)`
 4. Write `deps.mem` from the fixed template embedded in the plugin (from `dependencies.plan.md`); write `deps-closure.mem` (transitive closure) immediately after
-5. Create empty stubs for all Phase 1 `.mem` files: `checkpoint.mem`, `persona.mem`, `hot.mem`, `plan.mem`, `questions.mem`, `decisions/log.mem`, `stale.mem`, `question-counter`
+5. Create empty stubs for all Phase 1 `.mem` files: `checkpoint.mem`, `persona.mem`, `hot.mem`, `plan.mem`, `questions.mem`, `decisions/log.mem`, `stale.mem`
 6. Generate `.plan.md` counterparts for all stubbed files; lock all `.plan.md` files
 7. Print: "memplan initialised. Run `memplan/plan` to define your steps."
 

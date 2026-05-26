@@ -225,8 +225,9 @@ and appends a cap-warning to `questions.mem` (deduped per session file).
 memplan-cli.js progress <dir> <m> <n> <text>
 ```
 
-Writes `<m>/<n> | current: <text>` to `<dir>/.memplan/progress`. `progress` is a mutable
+Writes `<m>/<n> | <text>` to `<dir>/.memplan/progress`. `progress` is a mutable
 single-line file with no `.plan.md` counterpart — this is a direct write, no locking needed.
+Examples: `0/N | not started` (after planning), `3/12 | implement-feedscript-parse-loop` (mid-session).
 
 ---
 

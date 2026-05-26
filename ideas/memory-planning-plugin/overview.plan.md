@@ -40,7 +40,7 @@ can be run before implementation proceeds.
 Give the agent accumulated codebase knowledge that survives across sessions.
 
 ### Phase 3 — Planning quality
-`slice`, `risk`, `decide`, `budget`, `refine`
+`risk`, `decide`, `budget`, `refine`
 
 Improve planning precision and decision traceability. `refine` is optional —
 it decomposes coarse steps into atomic sub-steps using divide-and-conquer.

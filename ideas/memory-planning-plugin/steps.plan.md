@@ -105,14 +105,14 @@ Reference files: `overview.plan.md`, `skills.plan.md`, `file-layout.plan.md`,
 
 ## Phase 4 — Hygiene and hooks
 
-- [ ] 24. Write `SKILL.md` for `memplan/review` — agent reads all `.mem` files for reasoning
+- [ ] 26. Write `SKILL.md` for `memplan/review` — agent reads all `.mem` files for reasoning
   (which entries to compact, what to prune); delegates all writes to the CLI:
   `stale-resolve`, `append` for compacted decisions, `render-all` for final `.plan.md`
   regeneration, `deps-closure` if `deps.mem` changed. The CLI's `render-all` ensures
   canonical output — agent never hand-writes a `.plan.md`.
-- [ ] 25. Add PostToolUse hook definition: calls `memplan/act` on every `Write`/`Edit`
-- [ ] 26. Add PreToolUse hook definition: calls `memplan/start` on first tool call of a session
-- [ ] 27. Document `deps.json` format and how the agent uses it for structural awareness without scanning
-- [ ] 28. Write evals for Phase 4 (review compacts without data loss; overflow.mem merged
+- [ ] 27. Add PostToolUse hook definition: calls `memplan/act` on every `Write`/`Edit`
+- [ ] 28. Add PreToolUse hook definition: calls `memplan/start` on first tool call of a session
+- [ ] 29. Document `deps.json` format and how the agent uses it for structural awareness without scanning
+- [ ] 30. Write evals for Phase 4 (review compacts without data loss; overflow.mem merged
   correctly via CLI redirect; hooks fire and invoke CLI; idempotent re-runs)
-- [ ] 29. Final `npm run build` + update `CHANGELOG.md`
+- [ ] 31. Final `npm run build` + update `CHANGELOG.md`
