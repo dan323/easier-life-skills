@@ -308,9 +308,10 @@ header {
   transition: all 0.15s;
   white-space: nowrap;
 }
-.sort-btn:hover { color: var(--accent); border-color: var(--accent); }
+.sort-btn:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
 .sort-icon { opacity: 0.75; margin-right: 4px; }
-.sort-btn:hover .sort-icon { opacity: 1; }
+.sort-btn:hover:not(:disabled) .sort-icon { opacity: 1; }
+.sort-btn:disabled { opacity: 0.6; cursor: default; }
 .sort-label { /* targetable by tests; no visual change */ }
 
 .view-toggle {

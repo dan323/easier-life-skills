@@ -53,7 +53,7 @@ Browse and search skills, agents, commands, hooks, and MCP servers from **multip
 
 | Action                          | What it does                                                                                          |
 |---------------------------------|-------------------------------------------------------------------------------------------------------|
-| Press **`/`**                   | Focus the search box                                                                                  |
+| Press **`/`**                   | Focus the search box — type a name **or describe what you want** in plain English (e.g. `find unused code`, `generate a changelog`) for natural-language matching |
 | Toggle **A→Z / Z→A**             | Flip sort direction                                                                                   |
 | Click a **source tag**           | Filter results down to that marketplace                                                              |
 | Click the **`+`** on a tag       | Copy `/plugin marketplace add <owner>/<repo>` to your clipboard                                       |

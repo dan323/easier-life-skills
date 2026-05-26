@@ -227,6 +227,8 @@ The current set of plugins is documented in `README.md`'s plugins table — don'
 
 App state lives in the top-level `<App>` component via `useState` hooks; URL sync, the `/` keyboard shortcut, and the panel Escape handlers use `useLayoutEffect` so behavior is observable synchronously after each event (this is what makes the regression tests deterministic). There is no global state singleton — components communicate only through props and callbacks.
 
+**Search and sort interaction.** The search box accepts both exact-name queries (single word — fast substring match) and plain-English natural-language queries (multi-word, detected by `isNLQuery` in `assets/src/search.ts`). Multi-word queries fire `nlSearch`, which scores entities via an inverted index (`assets/search-index.json`) and returns a `Map<id, score>` stored as `nlScores` in `<App>`. When `nlScores` is non-empty the grid sorts by score and **ignores the `sort` prop** (`Grid.tsx` line ~193: `nlScores.size > 0 ? filtered : sortedBy(filtered, sort)`). To keep the sort button honest, `<App>` passes `isNLSearch={nlScores.size > 0}` to `<Controls>`, which renders the button label as **"Sort: Relevance"** and disables it while a multi-word query is active.
+
 The build also generates `.claude-plugin/marketplace.json` — a combined catalog with absolute source references for all repos in `marketplaces.json`.
 
 **Scripts:**

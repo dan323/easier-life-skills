@@ -246,6 +246,7 @@ export function App() {
         onSearch={setQuery}
         sort={sort}
         onToggleSort={() => setSort(s => s === 'az' ? 'za' : s === 'za' ? 'rating' : 'az')}
+        isNLSearch={nlScores.size > 0}
         view={view}
         onSwitchView={setView}
         categories={categories}

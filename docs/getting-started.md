@@ -45,7 +45,7 @@ Browse all skills, agents, commands, hooks, and MCP servers at **https://dan323.
 
 | Shortcut | Action |
 |----------|--------|
-| Press `/` | Focus the search box |
+| Press `/` | Focus the search box — type a name or **describe what you want in plain English** (e.g. `find unused code`, `generate a changelog`); multi-word queries trigger natural-language ranking |
 | Click **A→Z** button | Toggle sort direction |
 | Click a plugin card | Open the right-side detail panel with full description and install command (also shows `/plugin marketplace add …` for non-builtin sources) |
 | Click a skill / agent / MCP / command / hook card | Open the left-side detail panel with full description, tools or events, source link, and install command |

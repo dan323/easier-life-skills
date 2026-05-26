@@ -4,6 +4,8 @@
 
 ### Added
 - **GitHub star counts on marketplace source tags.** The MarketplaceBar now displays the GitHub star count for each marketplace repo alongside the plugin count — e.g. `dan323/easier-life-skills (12) ★ 42`. Stars are fetched asynchronously from the GitHub API after the initial render so the page load is not delayed. Missing stars (rate-limited or private repos) are silently omitted.
+- **Natural-language search made explicit in the UI and docs.** The search input's `aria-label` and `title` tooltip now state clearly that plain-English queries (e.g. "find unused code", "generate a changelog") are accepted alongside exact name searches. `README.md`, `docs/getting-started.md`, and `docs/architecture.md` are updated to explain that multi-word queries trigger the inverted-index NL ranking path while single-word queries use fast substring matching.
+- **Sort button reflects relevance mode during NL search.** When a multi-word query activates natural-language ranking, the sort button now shows **"Sort: Relevance"** and is disabled (with tooltip "Results are ranked by relevance while a multi-word query is active"). Previously it kept showing A→Z / Z→A / Rating even though the `sort` prop was silently ignored by the grid. `.claude/CLAUDE.md` documents the `isNLSearch` prop contract between `<App>` and `<Controls>`.
 
 ## [1.31.0] - 2026-05-22
 
