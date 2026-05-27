@@ -104,21 +104,24 @@ recorded, leave the risk file in place.
 
 For each new alias or fact the user stated (or that emerged clearly from code):
 
+**Aliases** — `set` replaces the existing key, so it is inherently dedup-safe. Write
+unconditionally:
+
 ```bash
-# Alias: short-form → full meaning
+# Alias: short-form → full meaning (set replaces any existing value for <alias-key>)
 node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . memory/aliases.mem "<alias-key>" "<full-meaning>"
-
-# Fact: tagged invariant or constraint
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/facts.mem "fact" "tag=<tag>,text=<text>"
 ```
 
-Skip if no new aliases or facts were discovered. Do not duplicate existing entries — grep
-`aliases.mem` and `facts.mem` first:
+**Facts** — `append` does not dedup, so grep before writing. Skip the fact if the
+identical tag+text pair already exists:
 
 ```bash
-grep "^<alias-key>:" .memplan/memory/aliases.mem 2>/dev/null
-grep "<tag>" .memplan/memory/facts.mem 2>/dev/null
+# Check: skip if this exact tag+text pair is already recorded
+grep -Fq "+fact:tag=<tag>,text=<text>" .memplan/memory/facts.mem 2>/dev/null || \
+  node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/facts.mem "fact" "tag=<tag>,text=<text>"
 ```
+
+Skip the entire phase if no new aliases or facts were discovered this session.
 
 ---
 

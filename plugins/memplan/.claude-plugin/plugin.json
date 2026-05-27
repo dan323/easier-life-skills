@@ -1,8 +1,10 @@
 {
   "name": "memplan",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Persistent low-token working memory and structured planning for Claude Code",
-  "author": { "name": "dan323" },
+  "author": {
+    "name": "dan323"
+  },
   "category": "productivity",
   "skills": [
     "./skills/init",
