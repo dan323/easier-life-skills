@@ -120,23 +120,34 @@ contradictions, missing behaviours, uncovered error paths, etc.). No files are w
 
 ---
 
-## Sending feedback
+## Updating the plan
 
-`.plan.md` files are read-only — they are generated output, never edited directly.
-To influence the plan from outside the agent, write a `.feedback` file in FeedScript v1:
+Just say it. The agent updates `plan.mem` directly in response to natural language:
 
-```
-# .memplan/inbox/my-review.feedback
-APPROVE step=3
-REWRITE step=4 text="write-render-command-with-canonical-output"
-INSERT after=4 text="add-render-to-cli-help-text"
-FACT tag=constraint text="render output must be byte-for-byte deterministic"
-```
+> "Add a step to write the OpenAPI spec after step 5."
+> "We also need to handle the rollback case — add that to the plan."
+> "Replan — the approach changed, here's the new task: …"
+> "Remove step 4, it's no longer needed."
 
-Drop it in `.memplan/inbox/`. On next `memplan/start` (or when you run `memplan/inbox`)
-it is applied atomically and then deleted.
+The agent runs the appropriate `memplan-cli.js` commands to insert, rewrite, or replace
+steps and regenerates the `.plan.md` counterpart immediately.
 
-See `references/feedscript-v1.md` for the full FeedScript v1 language reference.
+---
+
+## External tool integration (inbox)
+
+The inbox is **not** the human feedback path — it is the integration point for external
+tools and plugins that cannot talk to the agent directly.
+
+Any external tool becomes a memplan plugin by writing a FeedScript v1 `.feedback` file
+to `.memplan/inbox/<tool-name>.feedback`. No registration or manifest required. The agent
+applies it automatically on the next `memplan/start` and then deletes the file.
+
+[Plannotator](https://github.com/backnotprop/plannotator) is a ready-made example:
+it renders `plan.plan.md` as a visual annotation UI, writes the result as a `.feedback`
+file, and the agent picks it up on next session start.
+
+See `references/feedscript-v1.md` for the FeedScript v1 language reference.
 
 ---
 
