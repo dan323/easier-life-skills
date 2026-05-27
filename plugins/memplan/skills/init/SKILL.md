@@ -69,7 +69,7 @@ Print exactly:
 
 ```
 memplan initialised.
-  .memplan/ created with all Phase 1 stubs.
+  .memplan/ created with all stubs (Phase 1 + Phase 2).
   Run `memplan/plan` to define your steps, or `memplan/start` at the top of each session.
 ```
 

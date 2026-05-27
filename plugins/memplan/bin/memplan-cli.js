@@ -55,7 +55,7 @@ function cmdInit(dir) {
   const closure = computeClosure(parseDeps(path.join(mp, 'deps.mem')));
   writeDepsClosure(path.join(mp, 'deps-closure.mem'), closure);
 
-  console.log('memplan: .memplan/ initialised with all Phase 1 stubs.');
+  console.log('memplan: .memplan/ initialised with all stubs (Phase 1 + Phase 2).');
 }
 
 function cmdSet(dir, file, keyOrValue, value) {
