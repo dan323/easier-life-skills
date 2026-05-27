@@ -1,0 +1,7 @@
+{
+  "name": "memplan",
+  "description": "Persistent low-token working memory and structured planning for Claude Code",
+  "author": { "name": "dan323" },
+  "category": "productivity",
+  "skills": ["./skills/memplan"]
+}
