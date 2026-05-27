@@ -50,6 +50,12 @@ it decomposes coarse steps into atomic sub-steps using divide-and-conquer.
 
 Make the system self-maintaining and automatic.
 
+### NICE_TO_HAVE — HTML export
+`memplan-cli.js html` converts all `.plan.md` files to self-contained `.plan.html`
+pages with embedded CSS and an `index.html` dashboard. No external dependencies.
+Status badges, risk callouts, and question callouts are colour-coded. See
+`plan-html.plan.md` for the full format spec.
+
 ---
 
 ## Done when

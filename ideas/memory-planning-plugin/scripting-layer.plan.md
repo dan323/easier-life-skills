@@ -219,6 +219,48 @@ and appends a cap-warning to `questions.mem` (deduped per session file).
 
 ---
 
+### HTML export
+
+```
+memplan-cli.js html <dir> [--out <output-dir>]
+```
+
+Converts every `.plan.md` file under `<dir>/.memplan/` into a self-contained
+`.plan.html` file and writes an `index.html` dashboard.
+
+Output location:
+- Default (`--out` omitted): `.plan.html` files are written as siblings of their
+  `.plan.md` sources (e.g. `plan.plan.md` → `plan.plan.html`). `.plan.html` files
+  are **not** read-only — they are disposable build output, regenerated on each run.
+- `--out <dir>`: all HTML files are written under `<dir>/` instead (useful for CI
+  publish or a docs folder). Directory is created if it does not exist.
+
+The command:
+1. Discovers all `*.plan.md` files recursively under `.memplan/` (including
+   `sessions/`, `decisions/`, `memory/`).
+2. Parses the Markdown into sections using the canonical render schema (same
+   schema used by `render`). It does not use a general-purpose Markdown parser —
+   it uses the schema so it can apply semantic CSS classes (status badges, callout
+   types) that a generic parser cannot infer.
+3. Writes each `.plan.html` as a self-contained document with embedded CSS
+   (no CDN, no external fonts — see `plan-html.plan.md` for palette and structure).
+4. Writes `index.html` (or `<output-dir>/index.html`) — a dashboard listing every
+   `.plan.md` with its `status` badge and `title` or `next-action` subtitle,
+   sorted by file path with `plan`, `checkpoint`, `slice` pinned to the top.
+
+`html` is intentionally separate from `render` — it is never called automatically
+during a session. It is a human-facing export command, not a session step.
+
+```
+memplan-cli.js html <dir> --file <relative-path>
+```
+
+Single-file variant: converts one `.plan.md` to `.plan.html` (and regenerates
+`index.html` to keep the dashboard consistent). Used for quick preview of a single
+file without a full export pass.
+
+---
+
 ### Progress
 
 ```

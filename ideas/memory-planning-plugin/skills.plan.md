@@ -1,5 +1,19 @@
 # memplan — Skills Reference
 
+## General rules
+
+### Plan-mode requirement for sub-agents
+
+Any sub-agent spawned during a **planning-phase skill** (`memplan/plan`, `memplan/refine`,
+`memplan/gaps`) must be launched in plan mode (`EnterPlanMode` / `--plan` flag or equivalent
+harness mechanism). This prevents a planning sub-agent from inadvertently writing files or
+executing commands while the outer skill is still deciding what to do.
+
+Execution-phase skills (`memplan/act`, `memplan/record`, `memplan/inbox`, `memplan/review`)
+may spawn sub-agents normally — plan mode is not required there.
+
+---
+
 ## `memplan/start` — orient at session start
 
 Triggered manually or by a PreToolUse hook on the first tool call of a session.
@@ -35,6 +49,10 @@ For each `.feedback` file (sorted by modification time, oldest first):
 ---
 
 ## `memplan/plan` — create or update the plan
+
+> **Sub-agents must be in plan mode.** Any agent spawned to help analyse the task,
+> check prior failures, or draft steps must be launched with `EnterPlanMode`. See
+> the general rule above.
 
 Takes a task description and produces `plan.plan.md` + `plan.mem` (numbered checklist, ≤20 steps)
 and `slice.plan.md` + `slice.mem` (the next ≤5 atomic steps, ready to act on immediately).

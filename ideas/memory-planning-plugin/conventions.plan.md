@@ -81,6 +81,16 @@ a bug or manual unlock), the `.mem` version wins.
 
 ---
 
+## HTML rendering
+
+`.plan.md` files also serve as the source for `.plan.html` browsable output via
+`memplan-cli.js html`. The Markdown structure is constrained (heading levels, badge
+syntax, key-value tables, callout blockquotes) so that the HTML converter can apply
+semantic CSS classes without a general-purpose Markdown parser. Full spec in
+`plan-html.plan.md`.
+
+---
+
 ## Canonical `.plan.md` rendering
 
 The render function `.mem → .plan.md` must be a **pure, deterministic function**:
