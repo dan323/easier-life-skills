@@ -1,0 +1,85 @@
+{
+  "skill_name": "ask",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Ask: should we use postgres or sqlite for the local dev database?",
+      "description": "Happy path: question does not exist yet — it should be recorded as open with a unique timestamp ID.",
+      "setup": "mkdir -p /tmp/eval-ask-0/.memplan/memory && touch /tmp/eval-ask-0/.memplan/memory/questions.mem",
+      "expected_output": "The skill appends a new question entry to questions.mem with status=open and a valid ISO8601 id, then prints 'Question recorded: ...'",
+      "files": [],
+      "assertions": [
+        {
+          "id": "question-appended",
+          "text": "questions.mem contains a line with '+question:' and 'status=open' and 'text=should we use postgres or sqlite for the local dev database'"
+        },
+        {
+          "id": "unique-timestamp-id",
+          "text": "The appended line contains an 'id=' field that matches the ISO8601 format YYYY-MM-DDTHH:MMZ"
+        },
+        {
+          "id": "confirm-printed",
+          "text": "The agent prints a confirmation message containing the question text"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Ask: should we use postgres or sqlite for the local dev database?",
+      "description": "Dedup path: an open question with the same text already exists in questions.mem — the skill must skip appending and inform the user.",
+      "setup": "mkdir -p /tmp/eval-ask-1/.memplan/memory && echo '~2026-05-28T09:00Z +question:id=~2026-05-28T09:00Z,text=should we use postgres or sqlite for the local dev database,status=open' > /tmp/eval-ask-1/.memplan/memory/questions.mem",
+      "expected_output": "The skill detects the existing open question and prints 'Already recorded (open): ...' without appending any new line to questions.mem.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-duplicate-appended",
+          "text": "questions.mem contains exactly one line matching 'status=open' and the question text after the skill runs"
+        },
+        {
+          "id": "skip-message-printed",
+          "text": "The agent prints a message indicating the question is already recorded as open"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Ask: should we use postgres or sqlite for the local dev database?",
+      "description": "Closed-question does not block new ask: the same text exists but with status=answered — the skill must record a fresh open question.",
+      "setup": "mkdir -p /tmp/eval-ask-2/.memplan/memory && echo '~2026-05-20T10:00Z +question:id=~2026-05-20T10:00Z,text=should we use postgres or sqlite for the local dev database,status=answered' > /tmp/eval-ask-2/.memplan/memory/questions.mem",
+      "expected_output": "The skill does not treat the closed question as a duplicate. It appends a new question entry with status=open and confirms to the user.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "new-open-question-appended",
+          "text": "questions.mem contains a new line with 'status=open' and the question text after the skill runs"
+        },
+        {
+          "id": "closed-question-preserved",
+          "text": "The original 'status=answered' line is still present in questions.mem (not removed or overwritten)"
+        },
+        {
+          "id": "confirm-printed",
+          "text": "The agent prints a confirmation message containing the question text, not a skip/already-recorded message"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Ask: what is the preferred commit format for this project?",
+      "description": "New question when questions.mem does not yet exist — the skill must handle the missing file gracefully and still record the question.",
+      "setup": "mkdir -p /tmp/eval-ask-3/.memplan/memory",
+      "expected_output": "The skill handles a missing questions.mem without error, creates/appends the file via the CLI, and confirms the question was recorded.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "file-created-with-question",
+          "text": "After the skill runs, questions.mem exists and contains a line with 'status=open' and the question text"
+        },
+        {
+          "id": "no-error-on-missing-file",
+          "text": "The agent does not report an error or abort due to questions.mem not existing"
+        }
+      ]
+    }
+  ]
+}
