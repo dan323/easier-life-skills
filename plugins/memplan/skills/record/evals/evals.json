@@ -5,8 +5,8 @@
       "id": 0,
       "prompt": "Record the session. Last thing I did was implement the inbox parser. Next up is writing the render command.",
       "description": "Happy path: session with stated last/next actions. Verifies checkpoint, session digest, hot files, and budget are all written.",
-      "setup": "mkdir -p /tmp/eval-record-0/.memplan/memory /tmp/eval-record-0/.memplan/decisions /tmp/eval-record-0/.memplan/sessions && echo '4/10 | implement-inbox-parser' > /tmp/eval-record-0/.memplan/progress && touch /tmp/eval-record-0/.memplan/checkpoint.mem /tmp/eval-record-0/.memplan/hot.mem /tmp/eval-record-0/.memplan/budget.mem /tmp/eval-record-0/.memplan/memory/aliases.mem /tmp/eval-record-0/.memplan/memory/facts.mem /tmp/eval-record-0/.memplan/memory/failures.mem",
-      "expected_output": "checkpoint.mem updated with last-action and next-action. A YYYY-MM-DD.mem file written under sessions/. hot.mem updated. budget.mem gets a new session entry. Skill prints confirmation.",
+      "setup": "mkdir -p /tmp/eval-record-0/.memplan/memory /tmp/eval-record-0/.memplan/decisions /tmp/eval-record-0/.memplan/sessions && echo \"4/10 | implement-inbox-parser\" > /tmp/eval-record-0/.memplan/progress && touch /tmp/eval-record-0/.memplan/checkpoint.mem /tmp/eval-record-0/.memplan/hot.mem /tmp/eval-record-0/.memplan/budget.mem /tmp/eval-record-0/.memplan/memory/aliases.mem /tmp/eval-record-0/.memplan/memory/facts.mem /tmp/eval-record-0/.memplan/memory/failures.mem",
+      "expected_output": "checkpoint.mem updated with last-action and next-action. A YYYY-MM-DD.mem file written under sessions/. hot.mem updated. budget.mem gets a new session entry.",
       "files": [],
       "assertions": [
         {
@@ -29,9 +29,9 @@
     },
     {
       "id": 1,
-      "prompt": "Record the session. The multi-file change is complete — no failures.",
+      "prompt": "Record the session. The multi-file change is complete -- no failures.",
       "description": "Risk file cleanup: risk.mem present and change completed cleanly. Verifies risk.mem and risk.plan.md are deleted.",
-      "setup": "mkdir -p /tmp/eval-record-1/.memplan/memory /tmp/eval-record-1/.memplan/decisions /tmp/eval-record-1/.memplan/sessions && echo '3/3 | complete' > /tmp/eval-record-1/.memplan/progress && printf 'what-could-break:data-loss\\nirreversible:db-drop\\nverify-first:backup\\n' > /tmp/eval-record-1/.memplan/risk.mem && printf '<!-- GENERATED -->\n# Risk\n' > /tmp/eval-record-1/.memplan/risk.plan.md && touch /tmp/eval-record-1/.memplan/checkpoint.mem /tmp/eval-record-1/.memplan/hot.mem /tmp/eval-record-1/.memplan/budget.mem /tmp/eval-record-1/.memplan/memory/aliases.mem /tmp/eval-record-1/.memplan/memory/facts.mem /tmp/eval-record-1/.memplan/memory/failures.mem",
+      "setup": "mkdir -p /tmp/eval-record-1/.memplan/memory /tmp/eval-record-1/.memplan/decisions /tmp/eval-record-1/.memplan/sessions && echo \"3/3 | complete\" > /tmp/eval-record-1/.memplan/progress && printf \"what-could-break:data-loss\nirreversible:db-drop\nverify-first:backup\n\" > /tmp/eval-record-1/.memplan/risk.mem && printf \"<!-- GENERATED -->\n# Risk\n\" > /tmp/eval-record-1/.memplan/risk.plan.md && touch /tmp/eval-record-1/.memplan/checkpoint.mem /tmp/eval-record-1/.memplan/hot.mem /tmp/eval-record-1/.memplan/budget.mem /tmp/eval-record-1/.memplan/memory/aliases.mem /tmp/eval-record-1/.memplan/memory/facts.mem /tmp/eval-record-1/.memplan/memory/failures.mem",
       "expected_output": "risk.mem and risk.plan.md are deleted because the change completed cleanly. Checkpoint and session digest written.",
       "files": [],
       "assertions": [
@@ -51,10 +51,10 @@
     },
     {
       "id": 2,
-      "prompt": "Record the session. I discovered that 'mp' is short for 'memplan' and that all .plan.md files are read-only.",
+      "prompt": "Record the session. I discovered that mp is short for memplan and that all .plan.md files are read-only.",
       "description": "Alias and fact discovery: verifies aliases.mem and facts.mem are updated without creating duplicates.",
-      "setup": "mkdir -p /tmp/eval-record-2/.memplan/memory /tmp/eval-record-2/.memplan/decisions /tmp/eval-record-2/.memplan/sessions && echo '1/5 | orient' > /tmp/eval-record-2/.memplan/progress && touch /tmp/eval-record-2/.memplan/checkpoint.mem /tmp/eval-record-2/.memplan/hot.mem /tmp/eval-record-2/.memplan/budget.mem && printf '' > /tmp/eval-record-2/.memplan/memory/aliases.mem && printf '' > /tmp/eval-record-2/.memplan/memory/facts.mem && touch /tmp/eval-record-2/.memplan/memory/failures.mem",
-      "expected_output": "aliases.mem contains an 'mp' → 'memplan' entry. facts.mem contains an entry about plan.md files being read-only. Re-running does not create duplicate entries.",
+      "setup": "mkdir -p /tmp/eval-record-2/.memplan/memory /tmp/eval-record-2/.memplan/decisions /tmp/eval-record-2/.memplan/sessions && echo \"1/5 | orient\" > /tmp/eval-record-2/.memplan/progress && touch /tmp/eval-record-2/.memplan/checkpoint.mem /tmp/eval-record-2/.memplan/hot.mem /tmp/eval-record-2/.memplan/budget.mem && printf \"\" > /tmp/eval-record-2/.memplan/memory/aliases.mem && printf \"\" > /tmp/eval-record-2/.memplan/memory/facts.mem && touch /tmp/eval-record-2/.memplan/memory/failures.mem",
+      "expected_output": "aliases.mem contains a mp -> memplan entry. facts.mem contains an entry about plan.md files being read-only. Re-running does not create duplicate entries.",
       "files": [],
       "assertions": [
         {
@@ -64,6 +64,54 @@
         {
           "id": "fact-written",
           "text": ".memplan/memory/facts.mem contains a +fact: entry about plan.md read-only behaviour"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Record the session. I learned that svc is an alias for service and that all database writes go through the repository layer.",
+      "description": "Alias written to aliases.mem: verifies the skill writes a new alias entry for svc -> service in aliases.mem.",
+      "setup": "mkdir -p /tmp/eval-record-3/.memplan/memory /tmp/eval-record-3/.memplan/decisions /tmp/eval-record-3/.memplan/sessions && echo \"6/12 | implement-repo-layer\" > /tmp/eval-record-3/.memplan/progress && touch /tmp/eval-record-3/.memplan/checkpoint.mem /tmp/eval-record-3/.memplan/hot.mem /tmp/eval-record-3/.memplan/budget.mem && printf \"\" > /tmp/eval-record-3/.memplan/memory/aliases.mem && printf \"\" > /tmp/eval-record-3/.memplan/memory/facts.mem && touch /tmp/eval-record-3/.memplan/memory/failures.mem",
+      "expected_output": "aliases.mem contains a new entry mapping svc to service. facts.mem contains an entry about database writes going through the repository layer. Both files are appended to without overwriting prior content.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "alias-svc-written",
+          "text": ".memplan/memory/aliases.mem contains an entry for svc mapping to service"
+        },
+        {
+          "id": "fact-repo-layer-written",
+          "text": ".memplan/memory/facts.mem contains a +fact: entry about database writes going through the repository layer"
+        },
+        {
+          "id": "aliases-mem-append-only",
+          "text": "Any pre-existing entries in aliases.mem are still present after the skill runs (append, not overwrite)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Record the session. I found out that ctrl is short for controller and that all controllers must extend BaseController.",
+      "description": "Fact written to facts.mem: verifies a domain constraint fact is appended to facts.mem with the correct +fact: format.",
+      "setup": "mkdir -p /tmp/eval-record-4/.memplan/memory /tmp/eval-record-4/.memplan/decisions /tmp/eval-record-4/.memplan/sessions && echo \"3/7 | implement-controllers\" > /tmp/eval-record-4/.memplan/progress && touch /tmp/eval-record-4/.memplan/checkpoint.mem /tmp/eval-record-4/.memplan/hot.mem /tmp/eval-record-4/.memplan/budget.mem && printf \"+alias:short=mp,full=memplan\n\" > /tmp/eval-record-4/.memplan/memory/aliases.mem && printf \"+fact:tag=test-policy,text=no mocks allowed\n\" > /tmp/eval-record-4/.memplan/memory/facts.mem && touch /tmp/eval-record-4/.memplan/memory/failures.mem",
+      "expected_output": "facts.mem gains a new +fact: entry encoding the BaseController constraint. The pre-existing test-policy fact is not removed. aliases.mem gains a ctrl -> controller entry without disturbing the existing mp alias.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "fact-base-controller-written",
+          "text": ".memplan/memory/facts.mem contains a +fact: entry about all controllers extending BaseController"
+        },
+        {
+          "id": "prior-fact-preserved",
+          "text": ".memplan/memory/facts.mem still contains the pre-existing test-policy fact after the skill runs"
+        },
+        {
+          "id": "alias-ctrl-written",
+          "text": ".memplan/memory/aliases.mem contains an entry mapping ctrl to controller"
+        },
+        {
+          "id": "prior-alias-preserved",
+          "text": ".memplan/memory/aliases.mem still contains the pre-existing mp alias after the skill runs"
         }
       ]
     }

@@ -5,21 +5,21 @@
       "id": 0,
       "prompt": "Orient me. Where are we in the plan?",
       "description": "Happy path: .memplan/ exists with populated progress, checkpoint, and persona. Verifies 3-line summary output within token budget.",
-      "setup": "mkdir -p /tmp/eval-start-0/.memplan/memory /tmp/eval-start-0/.memplan/decisions /tmp/eval-start-0/.memplan/inbox /tmp/eval-start-0/.memplan/sessions && echo '3/12 | implement-feedscript-parse-loop' > /tmp/eval-start-0/.memplan/progress && printf 'last-action:wrote-inbox-dir\\nnext-action:implement-parse-loop\\nopen-questions:none\\n' > /tmp/eval-start-0/.memplan/checkpoint.mem && printf 'style:terse|no-trailing-summaries\\ntest-policy:real-db|no-mocks\\n' > /tmp/eval-start-0/.memplan/memory/persona.mem && printf 'hot-files:src/inbox.ts|src/cli.js\\nlast-updated:~2026-05-25\\n' > /tmp/eval-start-0/.memplan/hot.mem",
+      "setup": "mkdir -p /tmp/eval-start-0/.memplan/memory /tmp/eval-start-0/.memplan/decisions /tmp/eval-start-0/.memplan/inbox /tmp/eval-start-0/.memplan/sessions && echo \"3/12 | implement-feedscript-parse-loop\" > /tmp/eval-start-0/.memplan/progress && printf \"last-action:wrote-inbox-dir\nnext-action:implement-parse-loop\nopen-questions:none\n\" > /tmp/eval-start-0/.memplan/checkpoint.mem && printf \"style:terse|no-trailing-summaries\ntest-policy:real-db|no-mocks\n\" > /tmp/eval-start-0/.memplan/memory/persona.mem && printf \"hot-files:src/inbox.ts|src/cli.js\nlast-updated:~2026-05-25\n\" > /tmp/eval-start-0/.memplan/hot.mem",
       "expected_output": "3-line summary: current step (3/12 implement-feedscript-parse-loop), next action, and active constraints. Output fits within 500 tokens.",
       "files": [],
       "assertions": [
         {
           "id": "step-line-present",
-          "text": "Output contains a 'Step:' line with the current progress value"
+          "text": "Output contains a Step: line with the current progress value"
         },
         {
           "id": "next-line-present",
-          "text": "Output contains a 'Next:' line with the next action"
+          "text": "Output contains a Next: line with the next action"
         },
         {
           "id": "constraints-line-present",
-          "text": "Output contains a 'Constraints:' line with persona-derived constraints"
+          "text": "Output contains a Constraints: line with persona-derived constraints"
         },
         {
           "id": "no-extra-prose",
@@ -35,13 +35,13 @@
       "id": 1,
       "prompt": "Start the session. I have some feedback waiting.",
       "description": "Inbox processing: .memplan/inbox/ contains a .feedback file. Verifies skill calls inbox before orient and includes inbox summary in output.",
-      "setup": "mkdir -p /tmp/eval-start-1/.memplan/memory /tmp/eval-start-1/.memplan/decisions /tmp/eval-start-1/.memplan/inbox /tmp/eval-start-1/.memplan/sessions && echo '2/5 | write-plan' > /tmp/eval-start-1/.memplan/progress && printf 'last-action:drafted-steps\\nnext-action:write-plan\\nopen-questions:none\\n' > /tmp/eval-start-1/.memplan/checkpoint.mem && printf 'APPROVE step=2\\n' > /tmp/eval-start-1/.memplan/inbox/copilot.feedback",
-      "expected_output": "Inbox is processed before orient. Output includes 'Inbox: N ops applied' line. 3-line summary reflects updated state.",
+      "setup": "mkdir -p /tmp/eval-start-1/.memplan/memory /tmp/eval-start-1/.memplan/decisions /tmp/eval-start-1/.memplan/inbox /tmp/eval-start-1/.memplan/sessions && echo \"2/5 | write-plan\" > /tmp/eval-start-1/.memplan/progress && printf \"last-action:drafted-steps\nnext-action:write-plan\nopen-questions:none\n\" > /tmp/eval-start-1/.memplan/checkpoint.mem && printf \"APPROVE step=2\n\" > /tmp/eval-start-1/.memplan/inbox/copilot.feedback",
+      "expected_output": "Inbox is processed before orient. Output includes Inbox: N ops applied line. 3-line summary reflects updated state.",
       "files": [],
       "assertions": [
         {
           "id": "inbox-processed",
-          "text": "Output includes an 'Inbox:' line indicating feedback was processed"
+          "text": "Output includes an Inbox: line indicating feedback was processed"
         },
         {
           "id": "feedback-file-deleted",
@@ -53,7 +53,7 @@
       "id": 2,
       "prompt": "Orient me. Where are we?",
       "description": "Missing steps.mem: .memplan/ exists but steps.mem is absent. Verifies warning is appended to output and skill does not halt.",
-      "setup": "mkdir -p /tmp/eval-start-2/.memplan/memory /tmp/eval-start-2/.memplan/decisions /tmp/eval-start-2/.memplan/inbox && echo '0/0 | not started' > /tmp/eval-start-2/.memplan/progress && printf 'last-action:initialised\\nnext-action:define-steps\\nopen-questions:none\\n' > /tmp/eval-start-2/.memplan/checkpoint.mem",
+      "setup": "mkdir -p /tmp/eval-start-2/.memplan/memory /tmp/eval-start-2/.memplan/decisions /tmp/eval-start-2/.memplan/inbox && echo \"0/0 | not started\" > /tmp/eval-start-2/.memplan/progress && printf \"last-action:initialised\nnext-action:define-steps\nopen-questions:none\n\" > /tmp/eval-start-2/.memplan/checkpoint.mem",
       "expected_output": "3-line orient summary is printed. Output also includes a warning line about missing steps.mem. Skill does not hard-halt.",
       "files": [],
       "assertions": [
@@ -74,9 +74,9 @@
     {
       "id": 3,
       "prompt": "Resume where we left off.",
-      "description": "Interrupted resume: checkpoint.mem records open questions from a previous session that was cut off mid-execution. Verifies the open question is surfaced in the orient output so the user can restart from a safe point.",
-      "setup": "mkdir -p /tmp/eval-start-3/.memplan/memory /tmp/eval-start-3/.memplan/decisions /tmp/eval-start-3/.memplan/inbox && echo '5/10 | migrate-db-schema' > /tmp/eval-start-3/.memplan/progress && printf 'last-action:ran-migration-step-1\\nnext-action:run-migration-step-2\\nopen-questions:migration script may have been partially applied — verify db state before continuing\\n' > /tmp/eval-start-3/.memplan/checkpoint.mem && printf 'style:terse\\ntest-policy:no-mocks\\n' > /tmp/eval-start-3/.memplan/memory/persona.mem",
-      "expected_output": "3-line summary is printed. Output surfaces the open question about the partially-applied migration so the user knows to verify db state. .memplan/.session is written.",
+      "description": "Interrupted resume: checkpoint.mem records open questions from a previous session that was cut off mid-execution.",
+      "setup": "mkdir -p /tmp/eval-start-3/.memplan/memory /tmp/eval-start-3/.memplan/decisions /tmp/eval-start-3/.memplan/inbox && echo \"5/10 | migrate-db-schema\" > /tmp/eval-start-3/.memplan/progress && printf \"last-action:ran-migration-step-1\nnext-action:run-migration-step-2\nopen-questions:migration script may have been partially applied -- verify db state before continuing\n\" > /tmp/eval-start-3/.memplan/checkpoint.mem && printf \"style:terse\ntest-policy:no-mocks\n\" > /tmp/eval-start-3/.memplan/memory/persona.mem",
+      "expected_output": "3-line summary is printed. Output surfaces the open question about the partially-applied migration. .memplan/.session is written.",
       "files": [],
       "assertions": [
         {
@@ -95,15 +95,15 @@
     },
     {
       "id": 4,
-      "prompt": "Start session. I need to work on the auth module today.",
-      "description": "Alias surfacing: aliases.mem is present and contains an entry for 'auth'. Verifies that the skill greps aliases.mem for the term and includes the alias in its output.",
-      "setup": "mkdir -p /tmp/eval-start-4/.memplan/memory /tmp/eval-start-4/.memplan/decisions /tmp/eval-start-4/.memplan/inbox && echo '4/8 | implement-auth-flow' > /tmp/eval-start-4/.memplan/progress && printf 'last-action:scaffolded-routes\\nnext-action:implement-token-refresh\\nopen-questions:none\\n' > /tmp/eval-start-4/.memplan/checkpoint.mem && printf 'style:terse\\ntest-policy:no-mocks\\n' > /tmp/eval-start-4/.memplan/memory/persona.mem && printf 'auth:src/auth/index.ts\\nauth-guard:src/middleware/auth.guard.ts\\n' > /tmp/eval-start-4/.memplan/memory/aliases.mem",
-      "expected_output": "3-line orient summary is printed. Output surfaces at least one alias from aliases.mem matching 'auth' (e.g. 'auth:src/auth/index.ts'). .memplan/.session is written.",
+      "prompt": "Orient me. We are working on the mp project today.",
+      "description": "Alias resolution: user message contains mp which is a known alias for memplan. Verifies the skill expands the alias and uses the canonical term in its orient output.",
+      "setup": "mkdir -p /tmp/eval-start-4/.memplan/memory /tmp/eval-start-4/.memplan/decisions /tmp/eval-start-4/.memplan/inbox && echo \"2/8 | implement-mp-cli\" > /tmp/eval-start-4/.memplan/progress && printf \"last-action:wrote-parser\nnext-action:implement-render-command\nopen-questions:none\n\" > /tmp/eval-start-4/.memplan/checkpoint.mem && printf \"style:terse\n\" > /tmp/eval-start-4/.memplan/memory/persona.mem && printf \"+alias:short=mp,full=memplan\n+alias:short=fp,full=feedparser\n\" > /tmp/eval-start-4/.memplan/memory/aliases.mem",
+      "expected_output": "The skill reads aliases.mem and resolves mp to memplan before generating the orient output. The summary refers to memplan (the canonical term) rather than the raw alias mp.",
       "files": [],
       "assertions": [
         {
-          "id": "alias-surfaced",
-          "text": "Output contains at least one alias entry matching the term 'auth' from aliases.mem"
+          "id": "alias-resolved",
+          "text": "Output uses the canonical term memplan rather than the raw abbreviation mp"
         },
         {
           "id": "summary-present",
@@ -117,19 +117,19 @@
     },
     {
       "id": 5,
-      "prompt": "Orient me. Let's work on the parser today.",
-      "description": "aliases.mem absent: .memplan/memory/ exists but aliases.mem is not present. Verifies the skill completes without error and does not crash due to the missing file.",
-      "setup": "mkdir -p /tmp/eval-start-5/.memplan/memory /tmp/eval-start-5/.memplan/decisions /tmp/eval-start-5/.memplan/inbox && echo '2/6 | build-parser' > /tmp/eval-start-5/.memplan/progress && printf 'last-action:defined-grammar\\nnext-action:implement-lexer\\nopen-questions:none\\n' > /tmp/eval-start-5/.memplan/checkpoint.mem && printf 'style:terse\\ntest-policy:unit-only\\n' > /tmp/eval-start-5/.memplan/memory/persona.mem",
-      "expected_output": "3-line orient summary is printed normally. No error about missing aliases.mem. .memplan/.session is written. Skill completes successfully.",
+      "prompt": "Orient me. Where are we?",
+      "description": "Aliases absent: aliases.mem does not exist. Verifies the skill does not error and still produces the normal orient summary.",
+      "setup": "mkdir -p /tmp/eval-start-5/.memplan/memory /tmp/eval-start-5/.memplan/decisions /tmp/eval-start-5/.memplan/inbox && echo \"1/4 | scaffold\" > /tmp/eval-start-5/.memplan/progress && printf \"last-action:init\nnext-action:scaffold-dirs\nopen-questions:none\n\" > /tmp/eval-start-5/.memplan/checkpoint.mem && printf \"style:terse\n\" > /tmp/eval-start-5/.memplan/memory/persona.mem",
+      "expected_output": "Skill completes without error. Normal 3-line orient summary is printed. No warning about missing aliases.mem is required.",
       "files": [],
       "assertions": [
         {
-          "id": "no-error",
-          "text": "Skill completes without any error message about a missing aliases.mem file"
+          "id": "no-error-on-missing-aliases",
+          "text": "Skill completes without halting or raising a file-not-found error for aliases.mem"
         },
         {
           "id": "summary-present",
-          "text": "Output contains Step, Next, and Constraints lines reflecting the checkpoint state"
+          "text": "Output contains the Step, Next, and Constraints lines"
         },
         {
           "id": "session-marker-written",
