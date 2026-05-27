@@ -58,6 +58,46 @@
           "text": "No files outside .memplan/ are created or modified"
         }
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "Execute step 1 of the plan. The step creates a file called router.js and introduces a 'Router' class.",
+      "description": "Entity dedup: the agent runs act twice for the same step. The second run must not produce a duplicate entity entry for 'Router'.",
+      "setup": "mkdir -p /tmp/eval-act-3/.memplan/memory /tmp/eval-act-3/.memplan/decisions /tmp/eval-act-3/.memplan/inbox && echo '0/2 | not-started' > /tmp/eval-act-3/.memplan/progress && printf '+step:id=1,text=create-router,atomic=true\\n+step:id=2,text=write-tests,deps=1,atomic=true\\n' > /tmp/eval-act-3/.memplan/steps.mem && printf '2024-01-01T00:00Z +entity:name=Router,type=class,desc=HTTP router\\n' > /tmp/eval-act-3/.memplan/memory/entities.mem && touch /tmp/eval-act-3/.memplan/memory/code-map.mem /tmp/eval-act-3/.memplan/memory/failures.mem && printf '' > /tmp/eval-act-3/.memplan/stale.mem && printf '' > /tmp/eval-act-3/.memplan/deps.mem && printf '' > /tmp/eval-act-3/.memplan/deps-closure.mem && touch /tmp/eval-act-3/router.js",
+      "expected_output": "Step 1 completes. entities.mem contains exactly one entry for 'Router' — the pre-existing entry is not duplicated.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "entity-not-duplicated",
+          "text": "entities.mem contains exactly one line matching 'name=Router' — the agent checked before appending and skipped the duplicate"
+        },
+        {
+          "id": "progress-updated",
+          "text": ".memplan/progress shows step 1 as complete (e.g. '1/2')"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Execute step 1 of the plan. The step runs a failing build command.",
+      "description": "Failure recording: when a step fails, the failure must be appended to failures.mem with both cmd and reason fields present.",
+      "setup": "mkdir -p /tmp/eval-act-4/.memplan/memory /tmp/eval-act-4/.memplan/decisions /tmp/eval-act-4/.memplan/inbox && echo '0/2 | not-started' > /tmp/eval-act-4/.memplan/progress && printf '+step:id=1,text=run-build,atomic=true\\n+step:id=2,text=deploy,deps=1,atomic=true\\n' > /tmp/eval-act-4/.memplan/steps.mem && touch /tmp/eval-act-4/.memplan/memory/code-map.mem /tmp/eval-act-4/.memplan/memory/entities.mem /tmp/eval-act-4/.memplan/memory/failures.mem && printf '' > /tmp/eval-act-4/.memplan/stale.mem && printf '' > /tmp/eval-act-4/.memplan/deps.mem && printf '' > /tmp/eval-act-4/.memplan/deps-closure.mem",
+      "expected_output": "Step 1 fails (e.g. 'npm run build' exits non-zero). failures.mem contains one entry with a 'cmd=' field and a 'reason=' field describing the failure. The skill prints 'Step 1 failed — failure recorded. Resolve before retrying.'",
+      "files": [],
+      "assertions": [
+        {
+          "id": "failure-recorded",
+          "text": "failures.mem contains an entry with both 'cmd=' and 'reason=' fields"
+        },
+        {
+          "id": "failure-halt-message",
+          "text": "Output contains 'Step 1 failed — failure recorded. Resolve before retrying.'"
+        },
+        {
+          "id": "progress-not-advanced",
+          "text": ".memplan/progress still shows '0/2' — progress is not advanced when the step fails"
+        }
+      ]
     }
   ]
 }

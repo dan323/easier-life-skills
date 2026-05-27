@@ -100,13 +100,23 @@ node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/code-map.mem "file
 
 **Record new entities discovered:**
 
-For each new concept, symbol, or module encountered that is not already in `entities.mem`:
+For each new concept, symbol, or module encountered during the step, check whether it is
+already recorded before appending. Skip if already present:
+
+```bash
+grep "name=<name>" .memplan/memory/entities.mem 2>/dev/null
+```
+
+If the grep returns no output (entity not found), append it:
 
 ```bash
 node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/entities.mem "entity" "name=<name>,type=<type>,desc=<description>"
 ```
 
 Types: `file`, `function`, `class`, `module`, `config`, `concept`.
+
+Do **not** append an entity whose `name=` value already appears in `entities.mem` — even
+if the description differs. This prevents duplicate entries across re-runs.
 
 **Record failure (if step failed):**
 
