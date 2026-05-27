@@ -90,12 +90,12 @@
       "prompt": "Record the session. I note that all .plan.md files are read-only. That fact was already recorded last session under tag=plan-files.",
       "description": "Fact dedup: an existing fact tag+text pair is restated. The grep-before-append guard must prevent a second identical entry in facts.mem.",
       "setup": "mkdir -p /tmp/eval-record-4/.memplan/memory /tmp/eval-record-4/.memplan/decisions /tmp/eval-record-4/.memplan/sessions && echo '3/5 | integrate-tests' > /tmp/eval-record-4/.memplan/progress && touch /tmp/eval-record-4/.memplan/checkpoint.mem /tmp/eval-record-4/.memplan/hot.mem /tmp/eval-record-4/.memplan/budget.mem /tmp/eval-record-4/.memplan/memory/aliases.mem /tmp/eval-record-4/.memplan/memory/failures.mem && printf '+fact: tag=plan-files,text=.plan.md files are read-only\n' > /tmp/eval-record-4/.memplan/memory/facts.mem",
-      "expected_output": "facts.mem contains exactly one entry for tag=plan-files. The grep guard detected the existing entry and skipped the append. Checkpoint and session digest are written normally.",
+      "expected_output": "facts.mem contains exactly one entry for tag=plan-files,text=.plan.md files are read-only. The grep guard detected the existing entry and skipped the append. Checkpoint and session digest are written normally.",
       "files": [],
       "assertions": [
         {
           "id": "fact-no-duplicate",
-          "text": ".memplan/memory/facts.mem contains exactly one line with 'tag=plan-files' after the skill runs \u2014 the grep guard prevented a second append"
+          "text": ".memplan/memory/facts.mem contains exactly one line with 'tag=plan-files,text=.plan.md files are read-only' after the skill runs \u2014 the grep guard prevented a second append"
         },
         {
           "id": "checkpoint-written",
