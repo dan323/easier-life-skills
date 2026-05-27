@@ -116,8 +116,9 @@ node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . memory/aliases.mem "<alias-k
 identical tag+text pair already exists:
 
 ```bash
-# Check: skip if this exact tag is already recorded with the same text
-grep "tag=<tag>,text=<text>" .memplan/memory/facts.mem 2>/dev/null ||   node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/facts.mem "fact" "tag=<tag>,text=<text>"
+# Check: skip if this exact tag+text pair is already recorded
+grep -Fq "+fact:tag=<tag>,text=<text>" .memplan/memory/facts.mem 2>/dev/null || \
+  node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/facts.mem "fact" "tag=<tag>,text=<text>"
 ```
 
 Skip the entire phase if no new aliases or facts were discovered this session.
