@@ -1,0 +1,67 @@
+{
+  "skill_name": "update-mem",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Add a step to write the OpenAPI spec after step 5. Also note that 'mp' is short for 'memplan'.",
+      "description": "Mixed update: one plan change and one alias. Verifies both are written to the correct files and staleness is propagated from plan.mem to its dependents.",
+      "setup": "mkdir -p /tmp/eval-update-mem-0/.memplan/memory /tmp/eval-update-mem-0/.memplan/decisions && printf '+step:id=1,text=setup,atomic=true\\n+step:id=2,text=implement,deps=1,atomic=true\\n+step:id=3,text=test,deps=2,atomic=true\\n+step:id=4,text=review,deps=3,atomic=true\\n+step:id=5,text=deploy,deps=4,atomic=true\\nstep-count:#5\\n' > /tmp/eval-update-mem-0/.memplan/plan.mem && touch /tmp/eval-update-mem-0/.memplan/slice.mem && printf '' > /tmp/eval-update-mem-0/.memplan/memory/aliases.mem && printf 'dep:slice.mem=plan.mem\\n' > /tmp/eval-update-mem-0/.memplan/deps-closure.mem && printf '' > /tmp/eval-update-mem-0/.memplan/stale.mem",
+      "expected_output": "plan.mem gains a +step:id=6,text=write-openapi-spec,deps=5 entry. aliases.mem gains mp=memplan. stale.mem gets a +stale: entry for slice.mem because plan.mem changed.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "plan-step-added",
+          "text": ".memplan/plan.mem contains a +step: entry for write-openapi-spec with deps=5"
+        },
+        {
+          "id": "alias-written",
+          "text": ".memplan/memory/aliases.mem contains an mp entry mapping to memplan"
+        },
+        {
+          "id": "staleness-propagated",
+          "text": ".memplan/stale.mem contains a +stale: entry for slice.mem because plan.mem was changed"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "We discovered that the PluginManager class is responsible for loading all plugins at startup. Also, never use singletons in this codebase.",
+      "description": "Entity + fact update. Verifies entity is written to entities.mem and fact to facts.mem with no duplication.",
+      "setup": "mkdir -p /tmp/eval-update-mem-1/.memplan/memory /tmp/eval-update-mem-1/.memplan/decisions && touch /tmp/eval-update-mem-1/.memplan/memory/entities.mem && touch /tmp/eval-update-mem-1/.memplan/memory/facts.mem && printf '' > /tmp/eval-update-mem-1/.memplan/deps-closure.mem && printf '' > /tmp/eval-update-mem-1/.memplan/stale.mem",
+      "expected_output": "entities.mem gets +entity:name=PluginManager,type=class,desc=... . facts.mem gets +fact:tag=no-singletons,text=... . Running the skill again with the same prompt skips both (deduplication).",
+      "files": [],
+      "assertions": [
+        {
+          "id": "entity-written",
+          "text": ".memplan/memory/entities.mem contains an +entity: entry for PluginManager with type=class"
+        },
+        {
+          "id": "fact-written",
+          "text": ".memplan/memory/facts.mem contains a +fact: entry about singletons"
+        },
+        {
+          "id": "no-duplicate-on-rerun",
+          "text": "Running the skill again with the same prompt does not create a second entity or fact entry"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "From now on always use snake_case for database column names.",
+      "description": "Persona preference update. Verifies the constraint is written to persona.mem under a sensible key.",
+      "setup": "mkdir -p /tmp/eval-update-mem-2/.memplan/memory /tmp/eval-update-mem-2/.memplan/decisions && printf 'style:terse\\n' > /tmp/eval-update-mem-2/.memplan/memory/persona.mem && printf '' > /tmp/eval-update-mem-2/.memplan/deps-closure.mem && printf '' > /tmp/eval-update-mem-2/.memplan/stale.mem",
+      "expected_output": "persona.mem gains a new key (e.g. db-column-case:snake_case) without overwriting the existing style key.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "persona-updated",
+          "text": ".memplan/memory/persona.mem contains an entry about snake_case database columns"
+        },
+        {
+          "id": "existing-entry-preserved",
+          "text": ".memplan/memory/persona.mem still contains the original style:terse entry"
+        }
+      ]
+    }
+  ]
+}

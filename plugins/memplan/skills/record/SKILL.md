@@ -122,7 +122,24 @@ grep "<tag>" .memplan/memory/facts.mem 2>/dev/null
 
 ---
 
-## Phase 8: Confirm
+## Phase 8: Propagate staleness
+
+For every file written this session, look up dependents in `deps-closure.mem` and mark
+them stale:
+
+```bash
+cat .memplan/deps-closure.mem
+```
+
+For each dependent of `checkpoint.mem`, `hot.mem`, `budget.mem`, or any session file:
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" stale-mark . "<dependent>" "<source>"
+```
+
+---
+
+## Phase 9: Confirm
 
 Print:
 `Session recorded. Next: <next-action>.`

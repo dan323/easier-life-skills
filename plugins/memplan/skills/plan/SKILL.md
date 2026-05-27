@@ -102,7 +102,24 @@ Halt and report error if any CLI command exits non-zero.
 
 ---
 
-## Phase 4: Confirm
+## Phase 4: Propagate staleness
+
+For every file written in Phase 3, look up its dependents in `deps-closure.mem` and
+mark them stale:
+
+```bash
+cat .memplan/deps-closure.mem
+```
+
+For each dependent of `plan.mem`, `slice.mem`, `progress`, or `risk.mem` that was written:
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" stale-mark . "<dependent>" "<source>"
+```
+
+---
+
+## Phase 5: Confirm
 
 Print:
 

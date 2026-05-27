@@ -11,6 +11,7 @@
     "./skills/act",
     "./skills/inbox",
     "./skills/record",
-    "./skills/gaps"
+    "./skills/gaps",
+    "./skills/update-mem"
   ]
 }
