@@ -104,16 +104,15 @@ For each new concept, symbol, or module encountered during the step, check wheth
 already recorded before appending. Skip if already present:
 
 ```bash
-grep "name=<name>" .memplan/memory/entities.mem 2>/dev/null
-```
-
-If the grep returns no output (entity not found), append it:
-
-```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/entities.mem "entity" "name=<name>,type=<type>,desc=<description>"
+if ! grep -qF "name=<name>," .memplan/memory/entities.mem 2>/dev/null; then
+  node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/entities.mem "entity" "name=<name>,type=<type>,desc=<description>"
+fi
 ```
 
 Types: `file`, `function`, `class`, `module`, `config`, `concept`.
+
+The `-F` flag ensures fixed-string matching (no regex), and the trailing comma after
+`name=<name>,` prevents false matches (e.g., `name=Router,` will not match `name=Router2,`).
 
 Do **not** append an entity whose `name=` value already appears in `entities.mem` — even
 if the description differs. This prevents duplicate entries across re-runs.
