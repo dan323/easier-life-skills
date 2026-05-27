@@ -172,6 +172,52 @@ function cmdInit(projectDir) {
 }
 
 /**
+ * Command: set <dir> <file> <key> [<value>]
+ * Set a mutable key in a .mem file. Removes all existing lines matching ^key:,
+ * then appends key:value.
+ * For simple files like branch-intent (no MemScript), <key> is treated as the value.
+ */
+function cmdSet(projectDir, file, keyOrValue, value) {
+  const memplanDir = path.join(projectDir, '.memplan');
+  const filePath = path.join(memplanDir, file);
+
+  // For special files like branch-intent that are not MemScript, just overwrite
+  // In this case, keyOrValue is actually the value
+  if (file === 'branch-intent' || file === 'progress') {
+    fs.writeFileSync(filePath, keyOrValue + '\n');
+    console.log(`${file} set to: ${keyOrValue}`);
+    return 0;
+  }
+
+  // For MemScript files, read, modify, write
+  const key = keyOrValue;
+  if (value === undefined) {
+    console.error('Error: MemScript files require both key and value');
+    return 1;
+  }
+
+  let content = '';
+  if (fs.existsSync(filePath)) {
+    content = fs.readFileSync(filePath, 'utf-8');
+  }
+
+  // Remove all existing lines with this key
+  const lines = content.split('\n').filter(line => {
+    return !line.match(new RegExp(`^${key}:`));
+  });
+
+  // Append new key:value
+  lines.push(`${key}:${value}`);
+
+  // Write back
+  const newContent = lines.filter(line => line.trim() || line === '').join('\n');
+  fs.writeFileSync(filePath, newContent + '\n');
+
+  console.log(`${file}: ${key} set`);
+  return 0;
+}
+
+/**
  * Command: deps-closure <dir>
  * Compute transitive closure of deps.mem and write to deps-closure.mem
  */
@@ -202,7 +248,7 @@ function main() {
 
   if (args.length < 2) {
     console.error('Usage: memplan-cli.js <command> <dir> [args...]');
-    console.error('Commands: init, deps-closure');
+    console.error('Commands: init, set, deps-closure');
     return 1;
   }
 
@@ -213,6 +259,13 @@ function main() {
     switch (command) {
       case 'init':
         return cmdInit(projectDir);
+      case 'set':
+        if (args.length < 4) {
+          console.error('Usage: memplan-cli.js set <dir> <file> <value>  OR  set <dir> <file> <key> <value>');
+          return 1;
+        }
+        // args[2] = file, args[3] = key or value, args[4] = value (optional)
+        return cmdSet(projectDir, args[2], args[3], args[4]);
       case 'deps-closure':
         return cmdDepsClosure(projectDir);
       default:
