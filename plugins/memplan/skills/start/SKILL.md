@@ -14,8 +14,9 @@ tools: Bash, Read, Grep
 Orient skill. Reads `.memplan/` state and prints a compact 3-line summary so the
 session can begin with full context at minimum token cost.
 
-**This skill is read-only.** It never writes files. All writes are delegated to
-`memplan/inbox` when the inbox is non-empty.
+**This skill writes one file:** `.memplan/.session` — a session marker read by
+`memplan/update-mem` to confirm orientation happened before any writes. All other
+writes are delegated to `memplan/inbox` when the inbox is non-empty.
 
 ---
 
@@ -86,3 +87,14 @@ Append any warning lines from Phase 3 (one per line, prefixed `⚠`).
 
 Total output must fit in 500 tokens or less. Do not add prose, greetings, or summaries
 beyond the format above.
+
+---
+
+## Phase 5: Write session marker
+
+Write `.memplan/.session` with the current UTC timestamp. This is the signal that
+`memplan/update-mem` checks before allowing any writes.
+
+```bash
+date -u +%Y-%m-%dT%H:%MZ > .memplan/.session
+```

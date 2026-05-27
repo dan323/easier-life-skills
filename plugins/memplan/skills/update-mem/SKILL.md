@@ -19,6 +19,23 @@ runs `stale-mark` for every dependent in `deps-closure.mem`.
 
 **This skill is mutating.** All writes go through `memplan-cli.js`.
 
+**Guard:** only runs if `memplan/start` was called earlier in this session.
+
+---
+
+## Phase 0: Session guard
+
+Check that `memplan/start` has been called this session:
+
+```bash
+cat .memplan/.session 2>/dev/null
+```
+
+If the file is absent: halt and output:
+`memplan/update-mem requires an active session — run memplan/start first.`
+
+Do not write any `.mem` files without a valid session marker.
+
 ---
 
 ## Phase 1: Classify the update

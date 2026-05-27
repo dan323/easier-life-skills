@@ -62,6 +62,24 @@
           "text": ".memplan/memory/persona.mem still contains the original style:terse entry"
         }
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "Add a fact: always lint before committing.",
+      "description": "Session guard: .memplan/.session is absent. Verifies the skill halts without writing anything.",
+      "setup": "mkdir -p /tmp/eval-update-mem-3/.memplan/memory && touch /tmp/eval-update-mem-3/.memplan/memory/facts.mem",
+      "expected_output": "Skill halts with a message instructing the user to run memplan/start first. facts.mem is not modified.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "guard-halt",
+          "text": "Output contains a message that memplan/start must be run before update-mem"
+        },
+        {
+          "id": "no-write",
+          "text": ".memplan/memory/facts.mem remains empty — no fact was written"
+        }
+      ]
     }
   ]
 }
