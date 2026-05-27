@@ -26,7 +26,7 @@ Check whether an open question with the same text is already recorded:
 grep "status=open" .memplan/memory/questions.mem 2>/dev/null | grep -F "text=<QUESTION_TEXT>"
 ```
 
-Replace `<QUESTION_TEXT>` with the exact question text the user provided.
+Replace `<QUESTION_TEXT>` with the exact `text=` value you intend to write in Phase 2 (after any required rewording or escaping).
 
 - If the file does not exist or the grep returns no output: proceed to Phase 2.
 - If a matching open question is found: stop here and print:
