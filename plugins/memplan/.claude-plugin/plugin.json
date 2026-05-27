@@ -4,7 +4,6 @@
   "author": { "name": "dan323" },
   "category": "productivity",
   "skills": [
-    "./skills/memplan",
     "./skills/init",
     "./skills/start",
     "./skills/plan",
