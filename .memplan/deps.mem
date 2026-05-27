@@ -1,0 +1,5 @@
+dep:steps.mem=plan.mem
+dep:slice.mem=steps.mem|progress
+dep:checkpoint.mem=progress|plan.mem
+dep:risk.mem=failures.mem|plan.mem
+dep:budget.mem=hot.mem
