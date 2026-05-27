@@ -97,8 +97,8 @@
       "id": 4,
       "prompt": "Start session. I need to work on the auth module today.",
       "description": "Alias surfacing: aliases.mem is present and contains an entry for 'auth'. Verifies that the skill greps aliases.mem for the term and includes the alias in its output.",
-      "setup": "mkdir -p /tmp/eval-start-4/.memplan/memory /tmp/eval-start-4/.memplan/decisions /tmp/eval-start-4/.memplan/inbox && echo '4/8 | implement-auth-flow' > /tmp/eval-start-4/.memplan/progress && printf 'last-action:scaffolded-routes\\nnext-action:implement-token-refresh\\nopen-questions:none\\n' > /tmp/eval-start-4/.memplan/checkpoint.mem && printf 'style:terse\\ntest-policy:no-mocks\\n' > /tmp/eval-start-4/.memplan/memory/persona.mem && printf 'auth=src/auth/index.ts\\nauth-guard=src/middleware/auth.guard.ts\\n' > /tmp/eval-start-4/.memplan/memory/aliases.mem",
-      "expected_output": "3-line orient summary is printed. Output surfaces at least one alias from aliases.mem matching 'auth' (e.g. 'auth=src/auth/index.ts'). .memplan/.session is written.",
+      "setup": "mkdir -p /tmp/eval-start-4/.memplan/memory /tmp/eval-start-4/.memplan/decisions /tmp/eval-start-4/.memplan/inbox && echo '4/8 | implement-auth-flow' > /tmp/eval-start-4/.memplan/progress && printf 'last-action:scaffolded-routes\\nnext-action:implement-token-refresh\\nopen-questions:none\\n' > /tmp/eval-start-4/.memplan/checkpoint.mem && printf 'style:terse\\ntest-policy:no-mocks\\n' > /tmp/eval-start-4/.memplan/memory/persona.mem && printf 'auth:src/auth/index.ts\\nauth-guard:src/middleware/auth.guard.ts\\n' > /tmp/eval-start-4/.memplan/memory/aliases.mem",
+      "expected_output": "3-line orient summary is printed. Output surfaces at least one alias from aliases.mem matching 'auth' (e.g. 'auth:src/auth/index.ts'). .memplan/.session is written.",
       "files": [],
       "assertions": [
         {
