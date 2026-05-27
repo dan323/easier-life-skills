@@ -7,8 +7,12 @@ const INITIAL_DEPS =
   'dep:steps.mem=plan.mem\n' +
   'dep:slice.mem=steps.mem|progress\n' +
   'dep:checkpoint.mem=progress|plan.mem\n' +
-  'dep:risk.mem=failures.mem|plan.mem\n' +
-  'dep:budget.mem=hot.mem\n';
+  'dep:risk.mem=memory/failures.mem|plan.mem\n' +
+  'dep:budget.mem=hot.mem\n' +
+  'dep:memory/aliases.mem=memory/entities.mem\n' +
+  'dep:memory/code-map.mem=plan.mem\n' +
+  'dep:memory/facts.mem=plan.mem\n' +
+  'dep:memory/questions.mem=plan.mem|checkpoint.mem\n';
 
 // Mutable keys rendered in canonical section order per file type.
 const SCHEMAS = {
