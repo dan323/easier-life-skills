@@ -61,8 +61,8 @@
     },
     {
       "id": 3,
-      "prompt": "Execute step 1 of the plan. The step creates a file called router.js and introduces a 'Router' class.",
-      "description": "Entity dedup: the agent runs act twice for the same step. The second run must not produce a duplicate entity entry for 'Router'.",
+      "prompt": "Execute step 1 of the plan. The step creates a file called router.js and introduces a 'Router' class. entities.mem already contains an entry with name=Router.",
+      "description": "Entity dedup: when the entity already exists in entities.mem, act must not append a duplicate entry for 'Router'.",
       "setup": "mkdir -p /tmp/eval-act-3/.memplan/memory /tmp/eval-act-3/.memplan/decisions /tmp/eval-act-3/.memplan/inbox && echo '0/2 | not-started' > /tmp/eval-act-3/.memplan/progress && printf '+step:id=1,text=create-router,atomic=true\\n+step:id=2,text=write-tests,deps=1,atomic=true\\n' > /tmp/eval-act-3/.memplan/steps.mem && printf '2024-01-01T00:00Z +entity:name=Router,type=class,desc=HTTP router\\n' > /tmp/eval-act-3/.memplan/memory/entities.mem && touch /tmp/eval-act-3/.memplan/memory/code-map.mem /tmp/eval-act-3/.memplan/memory/failures.mem && printf '' > /tmp/eval-act-3/.memplan/stale.mem && printf '' > /tmp/eval-act-3/.memplan/deps.mem && printf '' > /tmp/eval-act-3/.memplan/deps-closure.mem && touch /tmp/eval-act-3/router.js",
       "expected_output": "Step 1 completes. entities.mem contains exactly one entry for 'Router' — the pre-existing entry is not duplicated.",
       "files": [],
