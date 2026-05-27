@@ -6,7 +6,7 @@
       "prompt": "Ask: should we use postgres or sqlite for the local dev database?",
       "description": "Happy path: question does not exist yet — it should be recorded as open with a unique timestamp ID.",
       "setup": "mkdir -p /tmp/eval-ask-0/.memplan/memory && touch /tmp/eval-ask-0/.memplan/memory/questions.mem",
-      "expected_output": "The skill appends a new question entry to questions.mem with status=open and a valid ISO8601 id, then prints 'Question recorded: ...'",
+      "expected_output": "The skill appends a new question entry to questions.mem with status=open and a valid ISO8601 id (prefixed with ~), then prints 'Question recorded: ...'",
       "files": [],
       "assertions": [
         {
@@ -15,7 +15,7 @@
         },
         {
           "id": "unique-timestamp-id",
-          "text": "The appended line contains an 'id=' field that matches the ISO8601 format YYYY-MM-DDTHH:MMZ"
+          "text": "The appended line contains an 'id=' field that matches the MemScript datetime format ~YYYY-MM-DDTHH:MMZ"
         },
         {
           "id": "confirm-printed",
