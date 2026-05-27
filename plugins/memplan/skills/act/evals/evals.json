@@ -79,10 +79,10 @@
     },
     {
       "id": 4,
-      "prompt": "Execute step 1 of the plan. The step runs a failing build command.",
+      "prompt": "Execute step 1 of the plan. The step runs a failing build command (run ./fail-build.sh, which exits non-zero).",
       "description": "Failure recording: when a step fails, the failure must be appended to failures.mem with both cmd and reason fields present.",
-      "setup": "mkdir -p /tmp/eval-act-4/.memplan/memory /tmp/eval-act-4/.memplan/decisions /tmp/eval-act-4/.memplan/inbox && echo '0/2 | not-started' > /tmp/eval-act-4/.memplan/progress && printf '+step:id=1,text=run-build,atomic=true\\n+step:id=2,text=deploy,deps=1,atomic=true\\n' > /tmp/eval-act-4/.memplan/steps.mem && touch /tmp/eval-act-4/.memplan/memory/code-map.mem /tmp/eval-act-4/.memplan/memory/entities.mem /tmp/eval-act-4/.memplan/memory/failures.mem && printf '' > /tmp/eval-act-4/.memplan/stale.mem && printf '' > /tmp/eval-act-4/.memplan/deps.mem && printf '' > /tmp/eval-act-4/.memplan/deps-closure.mem",
-      "expected_output": "Step 1 fails (e.g. 'npm run build' exits non-zero). failures.mem contains one entry with a 'cmd=' field and a 'reason=' field describing the failure. The skill prints 'Step 1 failed — failure recorded. Resolve before retrying.'",
+      "setup": "mkdir -p /tmp/eval-act-4/.memplan/memory /tmp/eval-act-4/.memplan/decisions /tmp/eval-act-4/.memplan/inbox && echo '0/2 | not-started' > /tmp/eval-act-4/.memplan/progress && printf '+step:id=1,text=run-build,atomic=true\\n+step:id=2,text=deploy,deps=1,atomic=true\\n' > /tmp/eval-act-4/.memplan/steps.mem && touch /tmp/eval-act-4/.memplan/memory/code-map.mem /tmp/eval-act-4/.memplan/memory/entities.mem /tmp/eval-act-4/.memplan/memory/failures.mem && printf '' > /tmp/eval-act-4/.memplan/stale.mem && printf '' > /tmp/eval-act-4/.memplan/deps.mem && printf '' > /tmp/eval-act-4/.memplan/deps-closure.mem && printf '#!/usr/bin/env bash\\nexit 1\\n' > /tmp/eval-act-4/fail-build.sh && chmod +x /tmp/eval-act-4/fail-build.sh",
+      "expected_output": "Step 1 fails (./fail-build.sh exits non-zero). failures.mem contains one entry with a 'cmd=' field and a 'reason=' field describing the failure. The skill prints 'Step 1 failed — failure recorded. Resolve before retrying.'",
       "files": [],
       "assertions": [
         {
