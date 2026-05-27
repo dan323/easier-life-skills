@@ -41,7 +41,7 @@ Generate a unique ID from the current UTC timestamp and append the question:
 
 ```bash
 node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/questions.mem question \
-  "id=$(date -u +%Y-%m-%dT%H:%MZ),text=<QUESTION_TEXT>,status=open"
+  "id=~$(date -u +%Y-%m-%dT%H:%MZ),text=<QUESTION_TEXT>,status=open"
 ```
 
 Replace `<QUESTION_TEXT>` with the exact question text. Ensure the text does not contain
