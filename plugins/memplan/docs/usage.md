@@ -18,6 +18,7 @@ init → plan → act → record → start → plan → act → record → …
 | `memplan/start` | At the top of every session |
 | `memplan/plan` | When starting a new task |
 | `memplan/act` | To execute each plan step |
+| `memplan/update-mem` | Any time new information or a plan change comes up mid-session |
 | `memplan/inbox` | Automatically by `start`; or manually to flush feedback |
 | `memplan/record` | At the end of every session |
 | `memplan/gaps` | On demand, to audit the plan for issues |
@@ -120,17 +121,35 @@ contradictions, missing behaviours, uncovered error paths, etc.). No files are w
 
 ---
 
-## Updating the plan
+## Updating the plan or recording new information
 
-Just say it. The agent updates `plan.mem` directly in response to natural language:
+Just say it. The `memplan/update-mem` skill triggers on any prompt that contains
+new information worth persisting:
 
+**Plan changes:**
 > "Add a step to write the OpenAPI spec after step 5."
-> "We also need to handle the rollback case — add that to the plan."
-> "Replan — the approach changed, here's the new task: …"
 > "Remove step 4, it's no longer needed."
+> "Replan — the approach changed, here's the new task: …"
 
-The agent runs the appropriate `memplan-cli.js` commands to insert, rewrite, or replace
-steps and regenerates the `.plan.md` counterpart immediately.
+**New entities, facts, aliases, preferences:**
+> "We discovered that PluginManager is responsible for loading all plugins."
+> "Never use singletons in this codebase."
+> "mp is short for memplan."
+> "From now on always use snake_case for database column names."
+
+The skill classifies what was said, writes it to the right `.mem` file, and
+propagates staleness to any dependent files automatically:
+
+| What you say | Where it goes |
+|---|---|
+| Plan step change | `plan.mem` + `slice.mem` rebuilt |
+| Named concept, module, symbol | `memory/entities.mem` |
+| Invariant or constraint | `memory/facts.mem` |
+| Short-form → full meaning | `memory/aliases.mem` |
+| Style or workflow preference | `memory/persona.mem` |
+| Unanswered question | `memory/questions.mem` |
+
+Duplicates are silently skipped — the same entity or fact is never recorded twice.
 
 ---
 
