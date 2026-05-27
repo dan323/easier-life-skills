@@ -97,7 +97,7 @@
       "id": 4,
       "prompt": "Orient me. We are working on the mp project today.",
       "description": "Alias resolution: user message contains mp which is a known alias for memplan. Verifies the skill expands the alias and uses the canonical term in its orient output.",
-      "setup": "mkdir -p /tmp/eval-start-4/.memplan/memory /tmp/eval-start-4/.memplan/decisions /tmp/eval-start-4/.memplan/inbox && echo \"2/8 | implement-mp-cli\" > /tmp/eval-start-4/.memplan/progress && printf \"last-action:wrote-parser\nnext-action:implement-render-command\nopen-questions:none\n\" > /tmp/eval-start-4/.memplan/checkpoint.mem && printf \"style:terse\n\" > /tmp/eval-start-4/.memplan/memory/persona.mem && printf \"+alias:short=mp,full=memplan\n+alias:short=fp,full=feedparser\n\" > /tmp/eval-start-4/.memplan/memory/aliases.mem",
+      "setup": "mkdir -p /tmp/eval-start-4/.memplan/memory /tmp/eval-start-4/.memplan/decisions /tmp/eval-start-4/.memplan/inbox && echo \"2/8 | implement-mp-cli\" > /tmp/eval-start-4/.memplan/progress && printf \"last-action:wrote-parser\nnext-action:implement-render-command\nopen-questions:none\n\" > /tmp/eval-start-4/.memplan/checkpoint.mem && printf \"style:terse\n\" > /tmp/eval-start-4/.memplan/memory/persona.mem && printf \"mp:memplan\nfp:feedparser\n\" > /tmp/eval-start-4/.memplan/memory/aliases.mem",
       "expected_output": "The skill reads aliases.mem and resolves mp to memplan before generating the orient output. The summary refers to memplan (the canonical term) rather than the raw alias mp.",
       "files": [],
       "assertions": [

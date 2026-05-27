@@ -93,7 +93,7 @@
       "id": 4,
       "prompt": "Record the session. I found out that ctrl is short for controller and that all controllers must extend BaseController.",
       "description": "Fact written to facts.mem: verifies a domain constraint fact is appended to facts.mem with the correct +fact: format.",
-      "setup": "mkdir -p /tmp/eval-record-4/.memplan/memory /tmp/eval-record-4/.memplan/decisions /tmp/eval-record-4/.memplan/sessions && echo \"3/7 | implement-controllers\" > /tmp/eval-record-4/.memplan/progress && touch /tmp/eval-record-4/.memplan/checkpoint.mem /tmp/eval-record-4/.memplan/hot.mem /tmp/eval-record-4/.memplan/budget.mem && printf \"+alias:short=mp,full=memplan\n\" > /tmp/eval-record-4/.memplan/memory/aliases.mem && printf \"+fact:tag=test-policy,text=no mocks allowed\n\" > /tmp/eval-record-4/.memplan/memory/facts.mem && touch /tmp/eval-record-4/.memplan/memory/failures.mem",
+      "setup": "mkdir -p /tmp/eval-record-4/.memplan/memory /tmp/eval-record-4/.memplan/decisions /tmp/eval-record-4/.memplan/sessions && echo \"3/7 | implement-controllers\" > /tmp/eval-record-4/.memplan/progress && touch /tmp/eval-record-4/.memplan/checkpoint.mem /tmp/eval-record-4/.memplan/hot.mem /tmp/eval-record-4/.memplan/budget.mem && printf \"mp:memplan\n\" > /tmp/eval-record-4/.memplan/memory/aliases.mem && printf \"+fact:tag=test-policy,text=no mocks allowed\n\" > /tmp/eval-record-4/.memplan/memory/facts.mem && touch /tmp/eval-record-4/.memplan/memory/failures.mem",
       "expected_output": "facts.mem gains a new +fact: entry encoding the BaseController constraint. The pre-existing test-policy fact is not removed. aliases.mem gains a ctrl -> controller entry without disturbing the existing mp alias.",
       "files": [],
       "assertions": [
