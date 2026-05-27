@@ -1,0 +1,36 @@
+~2026-05-27T22:10Z +step:id=#1,text=Create `.memplan/deps.mem` defining the dependency graph (from `dependencies.plan.md`),status=todo
+~2026-05-27T22:10Z +step:id=#2,text=Extend `memplan/init` to compute `deps-closure.mem` (transitive closure of `deps.mem`) at init time; `memplan/act` reads `deps-closure.mem...,status=todo
+~2026-05-27T22:10Z +step:id=#3,text=Create `.memplan/steps.mem` from this file (`steps.plan.md`) using MemScript v1. Each step becomes a `+step:id=#N\,text=TEXT\,status=todo` ap...,status=todo
+~2026-05-27T22:10Z +step:id=#4,text=Write `plugins/memplan/bin/memplan-cli.js` - the scripting layer (from `scripting-layer.plan.md`). Implements: `init`\, `set`\, `clear`\, `app...,status=todo
+~2026-05-27T22:10Z +step:id=#5,text=Write `plugins/memplan/bin/memplan-cli.test.js` - Node `--test` unit tests for the CLI. Cover: init idempotency; `set`/`clear`/`append`; ca...,status=todo
+~2026-05-27T22:10Z +step:id=#6,text=Scaffold plugin: `/scaffold name=memplan description="Persistent low-token working memory and structured planning for Claude Code" category=...,status=todo
+~2026-05-27T22:10Z +step:id=#7,text=Write `plugins/memplan/references/memscript-v1.md` - MemScript v1 spec (from `mem-language.plan.md`); loaded by skills at runtime,status=todo
+~2026-05-27T22:10Z +step:id=#8,text=Write `plugins/memplan/references/feedscript-v1.md` - FeedScript v1 spec (from `feedback-language.plan.md`),status=todo
+~2026-05-27T22:10Z +step:id=#9,text=~~Write `plugins/memplan/references/dual-file-write.md`~~ - SUPERSEDED by the scripting layer. Skills no longer contain a manual unlock→writ...,status=todo
+~2026-05-27T22:10Z +step:id=#10,text=Write `SKILL.md` for `memplan/init` - instructs agent to run `memplan-cli.js init .`; the CLI creates all dirs\, stub files\, `deps.mem`\, and ...,status=todo
+~2026-05-27T22:10Z +step:id=#11,text=Write `SKILL.md` for `memplan/start` - orient; runs `memplan-cli.js inbox .` first (CLI processes all `.feedback` files); reads `.mem` files...,status=todo
+~2026-05-27T22:10Z +step:id=#12,text=Write `SKILL.md` for `memplan/plan` - agent reasons about the plan and determines step texts and deps; writes each step via `memplan-cli.js ...,status=todo
+~2026-05-27T22:10Z +step:id=#13,text=Write `SKILL.md` for `memplan/act` - pre-flight uses CLI outputs (stale-list\, step status from plan.mem read); agent executes the step; post...,status=todo
+~2026-05-27T22:10Z +step:id=#14,text=Write `SKILL.md` for `memplan/inbox` - skill is now a thin wrapper: runs `memplan-cli.js inbox .` and reports the summary from decisions/log...,status=todo
+~2026-05-27T22:10Z +step:id=#15,text=Write `SKILL.md` for `memplan/record` - agent decides content (checkpoint text\, session bullets\, new facts/aliases discovered); writes each...,status=todo
+~2026-05-27T22:10Z +step:id=#16,text=Write `SKILL.md` for `memplan/gaps` - read-only; agent reads plan files and runs checks; outputs numbered gap list. No CLI writes needed (g...,status=todo
+~2026-05-27T22:10Z +step:id=#17,text=Write evals for Phase 1 skills (happy path + interrupted resume + inbox round-trip via CLI + gaps detects known issue). Evals verify CLI is...,status=todo
+~2026-05-27T22:10Z +step:id=#18,text=`npm run build` - verify plugin appears in marketplace,status=todo
+~2026-05-27T22:10Z +step:id=#19,text=Extend `memplan-cli.js init` to create `memory/entities`\, `memory/aliases`\, `memory/code-map`\, `memory/facts`\, `memory/failures`\, `memory/q...,status=todo
+~2026-05-27T22:10Z +step:id=#20,text=Extend `memplan/act` SKILL.md to append entities via `memplan-cli.js append . memory/entities.mem entity name=X\,type=T\,desc=D` and failures...,status=todo
+~2026-05-27T22:10Z +step:id=#21,text=Extend `memplan/start` SKILL.md to read `aliases.mem` (agent does grep reasoning; no CLI write needed here - orient is read-only).,status=todo
+~2026-05-27T22:10Z +step:id=#22,text=Extend `memplan/record` SKILL.md to append new aliases/facts via CLI append commands.,status=todo
+~2026-05-27T22:10Z +step:id=#23,text=Write `SKILL.md` for `memplan/ask` - agent dedupes by reading `questions.mem`; appends via `memplan-cli.js append . memory/questions.mem qu...,status=todo
+~2026-05-27T22:10Z +step:id=#24,text=Write evals for Phase 2 (entities accumulate; same question not asked twice; aliases resolved; answer round-trip via CLI inbox),status=todo
+~2026-05-27T22:10Z +step:id=#25,text=Write `SKILL.md` for `memplan/decide` - agent determines choice+reason text; writes via `memplan-cli.js append . decisions/log.mem decision...,status=todo
+~2026-05-27T22:10Z +step:id=#26,text=Write `SKILL.md` for `memplan/refine` - agent reasons about atomicity and generates sub-step texts; writes sub-steps via CLI append; update...,status=todo
+~2026-05-27T22:10Z +step:id=#27,text=Extend `memplan/act` SKILL.md to handle `refined=true` steps - execute sub-steps in order; mark parent complete when all sub-steps done (CL...,status=todo
+~2026-05-27T22:10Z +step:id=#28,text=Add `risk` file generation to `memplan/plan` SKILL.md - agent writes risk bullets via CLI set commands; `memplan/record` deletes `risk.mem`...,status=todo
+~2026-05-27T22:10Z +step:id=#29,text=Add `budget.mem` tracking to `memplan/record` SKILL.md - agent observes load costs and appends via `memplan-cli.js append . budget.mem sess...,status=todo
+~2026-05-27T22:10Z +step:id=#30,text=Write evals for Phase 3 (refine decomposes correctly; act executes sub-steps; idempotent re-run; risk file lifecycle; decide round-trip),status=todo
+~2026-05-27T22:10Z +step:id=#31,text=Write `SKILL.md` for `memplan/review` - agent reads all `.mem` files for reasoning (which entries to compact\, what to prune); delegates all...,status=todo
+~2026-05-27T22:10Z +step:id=#32,text=Add PostToolUse hook definition: calls `memplan/act` on every `Write`/`Edit`,status=todo
+~2026-05-27T22:10Z +step:id=#33,text=Add PreToolUse hook definition: calls `memplan/start` on first tool call of a session,status=todo
+~2026-05-27T22:10Z +step:id=#34,text=Document `deps.json` format and how the agent uses it for structural awareness without scanning,status=todo
+~2026-05-27T22:10Z +step:id=#35,text=Write evals for Phase 4 (review compacts without data loss; overflow.mem merged correctly via CLI redirect; hooks fire and invoke CLI; idem...,status=todo
+~2026-05-27T22:10Z +step:id=#36,text=Final `npm run build` + update `CHANGELOG.md`,status=todo
