@@ -24,6 +24,10 @@
         {
           "id": "no-extra-prose",
           "text": "Output does not include greetings, apologies, or explanatory paragraphs beyond the 3-line summary"
+        },
+        {
+          "id": "session-marker-written",
+          "text": ".memplan/.session file exists and contains a UTC timestamp after the skill runs"
         }
       ]
     },
@@ -64,6 +68,28 @@
         {
           "id": "no-halt",
           "text": "Skill completes without throwing an error or halting mid-execution"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Resume where we left off.",
+      "description": "Interrupted resume: checkpoint.mem records open questions from a previous session that was cut off mid-execution. Verifies the open question is surfaced in the orient output so the user can restart from a safe point.",
+      "setup": "mkdir -p /tmp/eval-start-3/.memplan/memory /tmp/eval-start-3/.memplan/decisions /tmp/eval-start-3/.memplan/inbox && echo '5/10 | migrate-db-schema' > /tmp/eval-start-3/.memplan/progress && printf 'last-action:ran-migration-step-1\\nnext-action:run-migration-step-2\\nopen-questions:migration script may have been partially applied — verify db state before continuing\\n' > /tmp/eval-start-3/.memplan/checkpoint.mem && printf 'style:terse\\ntest-policy:no-mocks\\n' > /tmp/eval-start-3/.memplan/memory/persona.mem",
+      "expected_output": "3-line summary is printed. Output surfaces the open question about the partially-applied migration so the user knows to verify db state. .memplan/.session is written.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "open-question-surfaced",
+          "text": "Output includes the open question about the partially-applied migration from checkpoint.mem"
+        },
+        {
+          "id": "summary-present",
+          "text": "Output contains Step, Next, and Constraints lines reflecting the checkpoint state"
+        },
+        {
+          "id": "session-marker-written",
+          "text": ".memplan/.session file exists after the skill runs"
         }
       ]
     }
