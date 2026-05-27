@@ -100,13 +100,22 @@ node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/code-map.mem "file
 
 **Record new entities discovered:**
 
-For each new concept, symbol, or module encountered that is not already in `entities.mem`:
+For each new concept, symbol, or module encountered during the step, check whether it is
+already recorded before appending. Skip if already present:
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/entities.mem "entity" "name=<name>,type=<type>,desc=<description>"
+if ! grep -qF "name=<name>," .memplan/memory/entities.mem 2>/dev/null; then
+  node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/entities.mem "entity" "name=<name>,type=<type>,desc=<description>"
+fi
 ```
 
 Types: `file`, `function`, `class`, `module`, `config`, `concept`.
+
+The `-F` flag ensures fixed-string matching (no regex), and the trailing comma after
+`name=<name>,` prevents false matches (e.g., `name=Router,` will not match `name=Router2,`).
+
+Do **not** append an entity whose `name=` value already appears in `entities.mem` — even
+if the description differs. This prevents duplicate entries across re-runs.
 
 **Record failure (if step failed):**
 
