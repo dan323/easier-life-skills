@@ -92,6 +92,50 @@
           "text": ".memplan/.session file exists after the skill runs"
         }
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Start session. I need to work on the auth module today.",
+      "description": "Alias surfacing: aliases.mem is present and contains an entry for 'auth'. Verifies that the skill greps aliases.mem for the term and includes the alias in its output.",
+      "setup": "mkdir -p /tmp/eval-start-4/.memplan/memory /tmp/eval-start-4/.memplan/decisions /tmp/eval-start-4/.memplan/inbox && echo '4/8 | implement-auth-flow' > /tmp/eval-start-4/.memplan/progress && printf 'last-action:scaffolded-routes\\nnext-action:implement-token-refresh\\nopen-questions:none\\n' > /tmp/eval-start-4/.memplan/checkpoint.mem && printf 'style:terse\\ntest-policy:no-mocks\\n' > /tmp/eval-start-4/.memplan/memory/persona.mem && printf 'auth=src/auth/index.ts\\nauth-guard=src/middleware/auth.guard.ts\\n' > /tmp/eval-start-4/.memplan/memory/aliases.mem",
+      "expected_output": "3-line orient summary is printed. Output surfaces at least one alias from aliases.mem matching 'auth' (e.g. 'auth=src/auth/index.ts'). .memplan/.session is written.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "alias-surfaced",
+          "text": "Output contains at least one alias entry matching the term 'auth' from aliases.mem"
+        },
+        {
+          "id": "summary-present",
+          "text": "Output contains Step, Next, and Constraints lines"
+        },
+        {
+          "id": "session-marker-written",
+          "text": ".memplan/.session file exists after the skill runs"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Orient me. Let's work on the parser today.",
+      "description": "aliases.mem absent: .memplan/memory/ exists but aliases.mem is not present. Verifies the skill completes without error and does not crash due to the missing file.",
+      "setup": "mkdir -p /tmp/eval-start-5/.memplan/memory /tmp/eval-start-5/.memplan/decisions /tmp/eval-start-5/.memplan/inbox && echo '2/6 | build-parser' > /tmp/eval-start-5/.memplan/progress && printf 'last-action:defined-grammar\\nnext-action:implement-lexer\\nopen-questions:none\\n' > /tmp/eval-start-5/.memplan/checkpoint.mem && printf 'style:terse\\ntest-policy:unit-only\\n' > /tmp/eval-start-5/.memplan/memory/persona.mem",
+      "expected_output": "3-line orient summary is printed normally. No error about missing aliases.mem. .memplan/.session is written. Skill completes successfully.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-error",
+          "text": "Skill completes without any error message about a missing aliases.mem file"
+        },
+        {
+          "id": "summary-present",
+          "text": "Output contains Step, Next, and Constraints lines reflecting the checkpoint state"
+        },
+        {
+          "id": "session-marker-written",
+          "text": ".memplan/.session file exists after the skill runs"
+        }
+      ]
     }
   ]
 }
