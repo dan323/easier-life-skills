@@ -1,0 +1,63 @@
+{
+  "skill_name": "act",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Execute step 2 of the plan.",
+      "description": "Happy path: steps.mem present, deps satisfied, no stale files. Verifies progress is updated, code-map appended, and step completes.",
+      "setup": "mkdir -p /tmp/eval-act-0/.memplan/memory /tmp/eval-act-0/.memplan/decisions /tmp/eval-act-0/.memplan/inbox && echo '1/3 | write-layout' > /tmp/eval-act-0/.memplan/progress && printf '+step:id=1,text=write-layout,atomic=true\\n+step:id=2,text=write-cli-js,deps=1,atomic=true\\n+step:id=3,text=write-tests,deps=2,atomic=true\\n' > /tmp/eval-act-0/.memplan/steps.mem && touch /tmp/eval-act-0/.memplan/memory/code-map.mem /tmp/eval-act-0/.memplan/memory/entities.mem /tmp/eval-act-0/.memplan/memory/failures.mem && printf '' > /tmp/eval-act-0/.memplan/stale.mem && printf '' > /tmp/eval-act-0/.memplan/deps.mem && printf '' > /tmp/eval-act-0/.memplan/deps-closure.mem && touch /tmp/eval-act-0/cli.js",
+      "expected_output": "Step 2 is executed. progress updated to 2/3. code-map.mem gets an entry for the file touched. No failures recorded.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "progress-updated",
+          "text": ".memplan/progress shows step 2 as complete (e.g. '2/3')"
+        },
+        {
+          "id": "code-map-appended",
+          "text": ".memplan/memory/code-map.mem contains an entry for a file touched during the step"
+        },
+        {
+          "id": "no-failure-recorded",
+          "text": ".memplan/memory/failures.mem is empty (step succeeded)"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Act on step 2.",
+      "description": "Pre-flight halt: dep step 1 is not yet complete. Verifies the skill halts without executing the step.",
+      "setup": "mkdir -p /tmp/eval-act-1/.memplan/memory /tmp/eval-act-1/.memplan/decisions && echo '0/3 | not-started' > /tmp/eval-act-1/.memplan/progress && printf '+step:id=1,text=write-layout,atomic=true\\n+step:id=2,text=write-cli-js,deps=1,atomic=true\\n' > /tmp/eval-act-1/.memplan/steps.mem && touch /tmp/eval-act-1/.memplan/stale.mem /tmp/eval-act-1/.memplan/memory/code-map.mem",
+      "expected_output": "Skill halts with a message indicating step 2 cannot start because dep step 1 is not complete. No files are modified.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "halt-message",
+          "text": "Output contains a warning that step 2 cannot start due to unmet dep"
+        },
+        {
+          "id": "progress-unchanged",
+          "text": ".memplan/progress still shows '0/3 | not-started'"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Act on step 1.",
+      "description": "Pre-flight halt: steps.mem is missing. Verifies the skill halts immediately with the correct message.",
+      "setup": "mkdir -p /tmp/eval-act-2/.memplan/memory /tmp/eval-act-2/.memplan/decisions && echo '0/0 | not started' > /tmp/eval-act-2/.memplan/progress",
+      "expected_output": "Skill halts immediately with a message that steps.mem is absent. No execution occurs.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "missing-steps-halt",
+          "text": "Output contains a message about missing steps.mem and instructs running memplan/plan"
+        },
+        {
+          "id": "no-execution",
+          "text": "No files outside .memplan/ are created or modified"
+        }
+      ]
+    }
+  ]
+}

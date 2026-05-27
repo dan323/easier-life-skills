@@ -1,0 +1,71 @@
+{
+  "skill_name": "init",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Initialise memplan for this project. My branch is 'add-inbox-protocol'. I prefer terse responses and no mocks.",
+      "description": "Happy path: new project with no .memplan/ directory. Verifies full structure is created and project-specific content is written.",
+      "setup": "mkdir -p /tmp/eval-init-0 && cd /tmp/eval-init-0 && git init && echo 'test project' > README.md && git add . && git commit -m 'init'",
+      "expected_output": ".memplan/ created with all Phase 1 stubs, branch-intent set to 'add-inbox-protocol', persona.mem contains terse and no-mocks entries, confirmation message printed.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "memplan-dir-created",
+          "text": ".memplan/ directory exists with subdirectories memory/, decisions/, inbox/, sessions/"
+        },
+        {
+          "id": "branch-intent-set",
+          "text": ".memplan/branch-intent contains 'add-inbox-protocol'"
+        },
+        {
+          "id": "persona-written",
+          "text": ".memplan/memory/persona.mem contains a style or test-policy entry reflecting the user's preferences"
+        },
+        {
+          "id": "progress-initialised",
+          "text": ".memplan/progress contains '0/0 | not started'"
+        },
+        {
+          "id": "deps-written",
+          "text": ".memplan/deps.mem and .memplan/deps-closure.mem both exist and are non-empty"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Initialise memplan for this project.",
+      "description": "Idempotent re-run: .memplan/ already exists. Skill must print 'Already initialised' and make no changes.",
+      "setup": "mkdir -p /tmp/eval-init-1/.memplan/memory /tmp/eval-init-1/.memplan/decisions /tmp/eval-init-1/.memplan/inbox /tmp/eval-init-1/.memplan/sessions && echo '0/0 | not started' > /tmp/eval-init-1/.memplan/progress",
+      "expected_output": "Skill prints 'Already initialised — run memplan/start to orient.' and writes no files.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "already-initialised-message",
+          "text": "Skill output contains 'Already initialised'"
+        },
+        {
+          "id": "no-files-overwritten",
+          "text": ".memplan/progress still contains '0/0 | not started' (existing file not clobbered)"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Set up memplan. I haven't mentioned any preferences yet.",
+      "description": "Init with no persona input: no persona entries should be written. Verifies the skill does not invent preferences.",
+      "setup": "mkdir -p /tmp/eval-init-2 && cd /tmp/eval-init-2 && git init && echo 'test' > README.md && git add . && git commit -m 'init'",
+      "expected_output": ".memplan/ created. persona.mem is empty or contains only a stub. No preferences fabricated.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "memplan-dir-created",
+          "text": ".memplan/ directory exists"
+        },
+        {
+          "id": "no-invented-persona",
+          "text": ".memplan/memory/persona.mem contains no style or preference entries that were not stated by the user"
+        }
+      ]
+    }
+  ]
+}

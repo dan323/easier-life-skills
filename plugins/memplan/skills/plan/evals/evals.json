@@ -1,0 +1,71 @@
+{
+  "skill_name": "plan",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Create a plan for adding a WebSocket notification endpoint to the API. It will touch src/server.ts, src/ws-handler.ts, and tests/ws.test.ts.",
+      "description": "Happy path: new plan touching 3+ files triggers risk file creation. Verifies plan.mem, slice.mem, progress, and risk.mem are all written.",
+      "setup": "mkdir -p /tmp/eval-plan-0/.memplan/memory /tmp/eval-plan-0/.memplan/decisions /tmp/eval-plan-0/.memplan/inbox && echo '0/0 | not started' > /tmp/eval-plan-0/.memplan/progress && touch /tmp/eval-plan-0/.memplan/memory/failures.mem /tmp/eval-plan-0/.memplan/memory/entities.mem /tmp/eval-plan-0/.memplan/decisions/log.mem",
+      "expected_output": "plan.mem contains ≥3 numbered steps with text and deps fields. slice.mem contains the ready frontier (steps with no unmet deps). progress updated to 0/N. risk.mem written because 3+ files are touched.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "plan-mem-written",
+          "text": ".memplan/plan.mem exists and contains +step: entries"
+        },
+        {
+          "id": "slice-mem-written",
+          "text": ".memplan/slice.mem exists and contains at least one step entry"
+        },
+        {
+          "id": "progress-initialised",
+          "text": ".memplan/progress starts with '0/' indicating not-started state"
+        },
+        {
+          "id": "risk-mem-written",
+          "text": ".memplan/risk.mem exists because the task touches 3+ files"
+        },
+        {
+          "id": "deps-inferred",
+          "text": "At least one +step: entry in plan.mem has a deps= field indicating ordering was inferred"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Plan: add a comment to README.md.",
+      "description": "Small single-file task: only 1 file touched, no irreversible ops. Verifies risk.mem is NOT written.",
+      "setup": "mkdir -p /tmp/eval-plan-1/.memplan/memory /tmp/eval-plan-1/.memplan/decisions /tmp/eval-plan-1/.memplan/inbox && echo '0/0 | not started' > /tmp/eval-plan-1/.memplan/progress && touch /tmp/eval-plan-1/.memplan/memory/failures.mem /tmp/eval-plan-1/.memplan/decisions/log.mem",
+      "expected_output": "plan.mem written with 1-2 steps. risk.mem is NOT written because only 1 file is touched.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "plan-written",
+          "text": ".memplan/plan.mem exists and contains at least one step"
+        },
+        {
+          "id": "no-risk-file",
+          "text": ".memplan/risk.mem does not exist after the skill runs"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Plan a database migration: drop the legacy_users table and rebuild it with a new schema. This is irreversible.",
+      "description": "Irreversible operation triggers risk.mem even with only 1 file. Verifies the irreversible check fires correctly.",
+      "setup": "mkdir -p /tmp/eval-plan-2/.memplan/memory /tmp/eval-plan-2/.memplan/decisions /tmp/eval-plan-2/.memplan/inbox && echo '0/0 | not started' > /tmp/eval-plan-2/.memplan/progress && touch /tmp/eval-plan-2/.memplan/memory/failures.mem /tmp/eval-plan-2/.memplan/decisions/log.mem",
+      "expected_output": "plan.mem written. risk.mem written because the task contains an irreversible operation (drop table).",
+      "files": [],
+      "assertions": [
+        {
+          "id": "plan-written",
+          "text": ".memplan/plan.mem exists with steps covering the migration"
+        },
+        {
+          "id": "risk-written-for-irreversible",
+          "text": ".memplan/risk.mem exists and its irreversible field is not 'none'"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "skill_name": "inbox",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Process my feedback inbox.",
+      "description": "Happy path: inbox/ contains a .feedback file with valid FeedScript ops. Verifies CLI is invoked, ops are applied, and file is deleted.",
+      "setup": "mkdir -p /tmp/eval-inbox-0/.memplan/memory /tmp/eval-inbox-0/.memplan/decisions /tmp/eval-inbox-0/.memplan/inbox && printf '+step:id=1,text=write-layout,atomic=true\\n' > /tmp/eval-inbox-0/.memplan/plan.mem && printf 'APPROVE step=1\\n' > /tmp/eval-inbox-0/.memplan/inbox/human.feedback && touch /tmp/eval-inbox-0/.memplan/decisions/log.mem",
+      "expected_output": "CLI processes human.feedback. Skill reports '1 ops applied'. .feedback file is deleted. decisions/log.mem gets an +inbox: entry.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "feedback-file-deleted",
+          "text": ".memplan/inbox/human.feedback no longer exists after the skill runs"
+        },
+        {
+          "id": "ops-reported",
+          "text": "Output reports the number of ops applied (e.g. '1 ops applied')"
+        },
+        {
+          "id": "log-entry-written",
+          "text": ".memplan/decisions/log.mem contains a +inbox: entry"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Flush the inbox.",
+      "description": "Empty inbox: no .feedback files present. Verifies skill reports 'empty' and does not error.",
+      "setup": "mkdir -p /tmp/eval-inbox-1/.memplan/inbox /tmp/eval-inbox-1/.memplan/decisions && touch /tmp/eval-inbox-1/.memplan/decisions/log.mem",
+      "expected_output": "Skill reports 'Inbox: empty — no pending feedback.' No errors raised.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "empty-inbox-message",
+          "text": "Output contains a message indicating inbox was empty"
+        },
+        {
+          "id": "no-error",
+          "text": "Skill completes without halting or raising an error"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Process inbox.",
+      "description": "Malformed feedback file: .feedback contains an unknown verb. Verifies errors are reported and processing continues (not aborted).",
+      "setup": "mkdir -p /tmp/eval-inbox-2/.memplan/memory /tmp/eval-inbox-2/.memplan/inbox /tmp/eval-inbox-2/.memplan/decisions && printf 'APPROVE step=1\\nUNKNOWN_VERB foo=bar\\nAPPROVE step=2\\n' > /tmp/eval-inbox-2/.memplan/inbox/bad.feedback && touch /tmp/eval-inbox-2/.memplan/decisions/log.mem /tmp/eval-inbox-2/.memplan/memory/questions.mem",
+      "expected_output": "Skill reports 2 ops applied and 1 error. bad.feedback is deleted. questions.mem contains an +unknown-op: entry for the bad line.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "errors-reported",
+          "text": "Output reports at least 1 error"
+        },
+        {
+          "id": "processing-continued",
+          "text": "2 valid ops were applied despite the error (APPROVE step=1 and APPROVE step=2)"
+        },
+        {
+          "id": "file-deleted",
+          "text": ".memplan/inbox/bad.feedback no longer exists"
+        }
+      ]
+    }
+  ]
+}
