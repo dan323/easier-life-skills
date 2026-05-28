@@ -22,6 +22,7 @@ init → plan → act → record → start → plan → act → record → …
 | `memplan/inbox` | Automatically by `start`; or manually to flush feedback |
 | `memplan/record` | At the end of every session |
 | `memplan/gaps` | On demand, to audit the plan for issues |
+| `memplan/decide` | To record a non-obvious decision with rationale |
 
 ---
 
