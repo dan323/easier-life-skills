@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="151" height="20" viewBox="0 0 151 20" role="img" aria-label="Claude Code: 59 skills">
-  <title>Claude Code: 59 skills</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="151" height="20" viewBox="0 0 151 20" role="img" aria-label="Claude Code: 57 skills">
+  <title>Claude Code: 57 skills</title>
   <linearGradient id="s" x2="0" y2="100%">
     <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
     <stop offset="1" stop-opacity=".1"/>
@@ -13,7 +13,7 @@
   <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="110">
     <text aria-hidden="true" x="410" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="715" lengthAdjust="spacing">Claude Code</text>
     <text x="410" y="140" transform="scale(.1)" textLength="715" lengthAdjust="spacing">Claude Code</text>
-    <text aria-hidden="true" x="1170" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="585" lengthAdjust="spacing">59 skills</text>
-    <text x="1170" y="140" transform="scale(.1)" textLength="585" lengthAdjust="spacing">59 skills</text>
+    <text aria-hidden="true" x="1170" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="585" lengthAdjust="spacing">57 skills</text>
+    <text x="1170" y="140" transform="scale(.1)" textLength="585" lengthAdjust="spacing">57 skills</text>
   </g>
 </svg>
