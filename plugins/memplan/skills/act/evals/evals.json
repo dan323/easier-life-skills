@@ -190,6 +190,80 @@
           "text": ".memplan/memory/code-map.mem contains entries for files touched in sub-steps 3.1 and 3.2"
         }
       ]
+    },
+    {
+      "id": 9,
+      "prompt": "Continue acting on step 3 (refined step with sub-steps, where 3.1 is already complete).",
+      "description": "Resume refined-step execution: when sub-step 3.1 is already complete, act must skip it and resume from 3.2. Verifies the progress text is parsed correctly to determine the last completed sub-step.",
+      "setup": "mkdir -p /tmp/eval-act-9/.memplan/memory /tmp/eval-act-9/.memplan/decisions /tmp/eval-act-9/.memplan/inbox && echo '3/5 | write-references-dual-file-write-md' > /tmp/eval-act-9/.memplan/progress && printf '+step:id=1,text=init-project,atomic=true\\n+step:id=2,text=write-core-module,atomic=true\\n+step:id=3,text=implement-dual-file-write-helper,refined=true\\n+step:id=3.1,text=write-references-dual-file-write-md,atomic=true\\n+step:id=3.2,text=add-generated-file-header,deps=3.1,atomic=true\\n+step:id=3.3,text=verify-helper-invoked,deps=3.2,atomic=true\\n+step:id=4,text=write-tests,deps=3,atomic=true\\n' > /tmp/eval-act-9/.memplan/steps.mem && printf '+file:path=references/dual-file-write.md,purpose=reference,touched=~2024-01-01\\n' > /tmp/eval-act-9/.memplan/memory/code-map.mem && touch /tmp/eval-act-9/.memplan/memory/entities.mem /tmp/eval-act-9/.memplan/memory/failures.mem && printf '' > /tmp/eval-act-9/.memplan/stale.mem && printf '' > /tmp/eval-act-9/.memplan/deps.mem && printf '' > /tmp/eval-act-9/.memplan/deps-closure.mem && touch /tmp/eval-act-9/references/dual-file-write.md /tmp/eval-act-9/header.ts",
+      "expected_output": "Act reads progress (3/5 | write-references-dual-file-write-md), identifies that sub-step 3.1 is complete, skips it, and resumes from 3.2. Progress advances from 3/5 to 4/5 (after 3.2), then 5/5 (after 3.3). Finally, parent step 3 is marked complete.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "sub-step-3-1-skipped",
+          "text": "Sub-step 3.1 is NOT re-executed — the agent correctly identifies it as complete from the progress text"
+        },
+        {
+          "id": "resume-from-3-2",
+          "text": "Sub-step 3.2 is executed (the first incomplete sub-step after 3.1)"
+        },
+        {
+          "id": "progress-advances-from-3",
+          "text": ".memplan/progress advances from 3/5 to 4/5 (after 3.2), not from 3/5 to 2/5 or 3/5"
+        },
+        {
+          "id": "parent-completion-after-resume",
+          "text": "After sub-step 3.3 completes, progress is updated with the parent step 3 text to mark the parent complete"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Act on refined step 3 when one of its sub-steps (3.2) fails.",
+      "description": "Refined-step failure handling: when a sub-step fails, act must record the failure, halt execution, and NOT proceed to the next sub-step. Progress should stop at the failed sub-step.",
+      "setup": "mkdir -p /tmp/eval-act-10/.memplan/memory /tmp/eval-act-10/.memplan/decisions /tmp/eval-act-10/.memplan/inbox && echo '3/5 | write-references-dual-file-write-md' > /tmp/eval-act-10/.memplan/progress && printf '+step:id=1,text=init-project,atomic=true\\n+step:id=2,text=write-core-module,atomic=true\\n+step:id=3,text=implement-dual-file-write-helper,refined=true\\n+step:id=3.1,text=write-references-dual-file-write-md,atomic=true\\n+step:id=3.2,text=run-failing-command,atomic=true\\n+step:id=3.3,text=verify-helper-invoked,deps=3.2,atomic=true\\n+step:id=4,text=write-tests,deps=3,atomic=true\\n' > /tmp/eval-act-10/.memplan/steps.mem && printf '+file:path=references/dual-file-write.md,purpose=reference,touched=~2024-01-01\\n' > /tmp/eval-act-10/.memplan/memory/code-map.mem && touch /tmp/eval-act-10/.memplan/memory/entities.mem /tmp/eval-act-10/.memplan/memory/failures.mem && printf '' > /tmp/eval-act-10/.memplan/stale.mem && printf '' > /tmp/eval-act-10/.memplan/deps.mem && printf '' > /tmp/eval-act-10/.memplan/deps-closure.mem && printf '#!/usr/bin/env bash\\nexit 1\\n' > /tmp/eval-act-10/fail-command.sh && chmod +x /tmp/eval-act-10/fail-command.sh",
+      "expected_output": "Act resumes from sub-step 3.2 (since 3.1 is complete). Sub-step 3.2 involves running a command that fails. Act records the failure in failures.mem, halts, and does NOT proceed to sub-step 3.3. Progress remains at 3/5.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "sub-step-3-2-failure-recorded",
+          "text": ".memplan/memory/failures.mem contains a +failure: entry with cmd and reason fields for sub-step 3.2"
+        },
+        {
+          "id": "sub-step-3-3-not-executed",
+          "text": "Sub-step 3.3 is NOT executed — act halts after the 3.2 failure"
+        },
+        {
+          "id": "progress-not-advanced-after-failure",
+          "text": ".memplan/progress remains at 3/5 — it is not advanced to 4/5 when sub-step 3.2 fails"
+        },
+        {
+          "id": "failure-halt-message",
+          "text": "Output contains a message like 'Sub-step 3.2 failed — failure recorded. Resolve before continuing with remaining sub-steps.'"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "Act on refined step 5, but it has no sub-steps defined (no 5.1, 5.2, etc.).",
+      "description": "Pre-flight halt for refined step with no sub-steps: when a step is marked refined=true but has no sub-steps in steps.mem, act must halt with a clear error message directing the user to run memplan/refine first.",
+      "setup": "mkdir -p /tmp/eval-act-11/.memplan/memory /tmp/eval-act-11/.memplan/decisions /tmp/eval-act-11/.memplan/inbox && echo '4/6 | step-4-complete' > /tmp/eval-act-11/.memplan/progress && printf '+step:id=1,text=init-project,atomic=true\\n+step:id=2,text=write-core-module,atomic=true\\n+step:id=3,text=write-tests,atomic=true\\n+step:id=4,text=write-docs,atomic=true\\n+step:id=5,text=implement-complex-feature,refined=true\\n+step:id=6,text=deploy,deps=5,atomic=true\\n' > /tmp/eval-act-11/.memplan/steps.mem && touch /tmp/eval-act-11/.memplan/memory/code-map.mem /tmp/eval-act-11/.memplan/memory/entities.mem /tmp/eval-act-11/.memplan/memory/failures.mem && printf '' > /tmp/eval-act-11/.memplan/stale.mem && printf '' > /tmp/eval-act-11/.memplan/deps.mem && printf '' > /tmp/eval-act-11/.memplan/deps-closure.mem",
+      "expected_output": "Act reads step 5, detects refined=true, then searches for sub-steps (5.1, 5.2, etc.) and finds none. It halts immediately with an error message: '⚠ Refined step 5 has no sub-steps (no 5.1, 5.2, etc. found). Run memplan/refine first.'",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-sub-steps-halt-message",
+          "text": "Output contains the error message: '⚠ Refined step 5 has no sub-steps (no 5.1, 5.2, etc. found). Run memplan/refine first.'"
+        },
+        {
+          "id": "no-execution",
+          "text": "No files outside .memplan/ are created or modified — act halts before any execution"
+        },
+        {
+          "id": "progress-unchanged",
+          "text": ".memplan/progress remains at 4/6 — no progress update occurs"
+        }
+      ]
     }
   ]
 }

@@ -46,24 +46,36 @@ cat .memplan/steps.mem
 If the step has `refined=true`:
 - Set execution mode to **refined**
 - The step will not be executed directly; instead, sub-steps (id=N.1, N.2, etc.) will be executed in order
-- Skip to Phase 2 (sub-step execution)
+- Continue with remaining pre-flight checks below (do NOT skip to Phase 2)
 
 If the step has `atomic=true` or no `refined` field:
 - Set execution mode to **atomic**
 - Continue with remaining pre-flight checks below
 
-**Check 3 — deps satisfied:**
+**Check 3 — deps satisfied (atomic steps only):**
 
-For atomic steps: If the step has a `deps=` field, verify each listed dep ID is complete by reading `.memplan/progress`:
+For atomic steps only: If the step has a `deps=` field, verify each listed dep ID is complete by reading `.memplan/progress` and `.memplan/steps.mem`:
 
 ```bash
 cat .memplan/progress
+cat .memplan/steps.mem
 ```
 
-For refined steps: Check that all sub-steps exist. For a parent step with id=N and `refined=true`, there must be at least one sub-step with id=N.1, N.2, etc.
-
-For each dep that is not yet complete: halt and output:
+Parse the progress to extract completed step IDs. For each dep that is not yet complete: halt and output:
 `⚠ Step <N> cannot start — deps [<X>, <Y>] not complete.`
+
+Skip this check for refined steps (deps are verified per sub-step, not at parent level).
+
+**Check 3b — sub-steps exist (refined steps only):**
+
+For refined steps only: Verify that at least one sub-step exists. For a parent step with id=N and `refined=true`, there must be at least one sub-step with id=N.1 in `.memplan/steps.mem`.
+
+```bash
+cat .memplan/steps.mem | grep "^+step:id=${N}\."
+```
+
+If no sub-steps are found: halt and output:
+`⚠ Refined step <N> has no sub-steps (no N.1, N.2, etc. found). Run memplan/refine first.`
 
 **Check 4 — no stale reads:**
 
@@ -105,11 +117,13 @@ Do **not** execute the parent step directly. Instead:
 
 1. Read `.memplan/steps.mem` to find all sub-steps with id=N.1, N.2, N.3, etc., where N is the parent step ID.
 
-2. Read `.memplan/progress` to determine which sub-steps are already complete.
+2. Read `.memplan/progress` to determine the last completed step. The progress format is `M/N | <last-step-text>`. Parse `<last-step-text>` to extract the last completed step ID (e.g., if text is "sub-step 3.2 text", then step 3.2 is complete). Compare against the sub-step list to find the first incomplete sub-step.
+
+   **Resume logic:** If the progress text matches a sub-step text (e.g., contains "3.1" or matches the sub-step 3.1 text verbatim), that sub-step and all preceding sub-steps are complete. Start from the next sub-step.
 
 3. For each incomplete sub-step in order (N.1, then N.2, then N.3, etc.):
 
-   a. Check if the sub-step has dependencies via `deps=` field. If so, verify all deps are complete before proceeding.
+   a. Check if the sub-step has dependencies via `deps=` field. If so, verify all deps are complete before proceeding (by checking if their step text appears in progress or if M >= their step number).
 
    b. Execute the sub-step using standard project tools (Edit, Write, Bash, etc.) as required by the sub-step text.
 
@@ -117,7 +131,7 @@ Do **not** execute the parent step directly. Instead:
 
    d. If the sub-step succeeds: proceed to Phase 3 to update progress for this specific sub-step, then continue to the next sub-step.
 
-4. After all sub-steps are complete, mark the parent step (id=N) as complete in Phase 3.
+4. After all sub-steps are complete, update progress one final time to mark the parent step as complete (see Phase 3).
 
 **Important:** Progress tracking for refined steps counts sub-steps, not the parent. If step 3 has sub-steps 3.1, 3.2, 3.3, then completing 3.1 advances progress by 1, completing 3.2 advances by 1, and completing 3.3 advances by 1 and also marks step 3 itself as complete.
 
@@ -145,12 +159,13 @@ Where `<M>` is the completed sub-step count (including all previously completed 
 
 For the parent refined step (after all sub-steps complete):
 
-Mark the parent step as complete without incrementing the progress counter (sub-steps already counted):
+After all sub-steps of a refined parent are complete, update progress to mark the parent itself as complete. Use the parent step text (not a sub-step text) to signal completion:
 
 ```bash
-# Parent step completion is implicit when all sub-steps are done
-# No separate progress update needed for the parent itself
+node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" progress . <M> <N> "<parent-step-text>"
 ```
+
+Where `<parent-step-text>` is the text of the parent step (id=N, not N.1/N.2/etc.). This marks the parent as complete and provides a durable completion signal.
 
 **Record files touched in code-map:**
 
