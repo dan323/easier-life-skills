@@ -86,7 +86,7 @@ DATE=$(date -u +%Y-%m-%d)
 node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . budget.mem "load" "file=<filename>,tokens=<T>,date=~${DATE}"
 ```
 
-Use the token costs from `token-budget.plan.md` as estimates if exact costs are unavailable:
+Use these token-cost estimates if exact costs are unavailable:
 - `progress`: ~10 tokens
 - `checkpoint.mem`: ~50 tokens
 - `persona.mem`: ~35 tokens
