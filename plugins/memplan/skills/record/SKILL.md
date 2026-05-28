@@ -76,13 +76,27 @@ Use a `|`-separated list. Omit if fewer than 5 files were touched — list what 
 
 ## Phase 5: Update budget
 
-Observe the session's approximate token load cost (visible from `/cost` or session metadata):
+Record the token cost for each `.mem` file loaded during this session's orient phase (from
+`memplan/start`). For each file that was read (progress, checkpoint.mem, persona.mem, hot.mem,
+plan.mem, slice.mem, etc.), append a load entry:
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . budget.mem "session" "date=~$(date -u +%Y-%m-%d),files=<N>,tokens=<T>"
+DATE=$(date -u +%Y-%m-%d)
+# For each file loaded during orient:
+node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . budget.mem "load" "file=<filename>,tokens=<T>,date=~${DATE}"
 ```
 
-If token cost is unavailable, write `tokens=unknown`.
+Use the token costs from `token-budget.plan.md` as estimates if exact costs are unavailable:
+- `progress`: ~10 tokens
+- `checkpoint.mem`: ~50 tokens
+- `persona.mem`: ~35 tokens
+- `hot.mem`: ~20 tokens
+- `plan.mem`: ~70 tokens
+- `slice.mem`: ~30 tokens
+- `risk.mem`: ~20 tokens
+
+Only record files that were actually loaded this session. If a file was skipped or absent,
+do not record it.
 
 ---
 
