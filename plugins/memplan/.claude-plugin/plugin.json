@@ -16,6 +16,7 @@
     "./skills/gaps",
     "./skills/update-mem",
     "./skills/ask",
-    "./skills/refine"
+    "./skills/refine",
+    "./skills/decide"
   ]
 }
