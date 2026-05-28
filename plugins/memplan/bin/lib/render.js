@@ -65,6 +65,7 @@ function renderMem(filePath, relFile) {
   lines.push(`## ${keyToLabel(title)}`, '');
 
   const orderedKeys = [...mutKeys];
+  const isRisk = relFile === 'risk.mem';
   if (alphaKeys) otherMutableKeys.sort();
   for (const k of otherMutableKeys) {
     if (!orderedKeys.includes(k)) orderedKeys.push(k);
@@ -74,10 +75,15 @@ function renderMem(filePath, relFile) {
   for (const key of orderedKeys) {
     const val = mutableMap[key];
     if (val === undefined || val === '') continue;
-    lines.push(`**${keyToLabel(key)}**: ${renderValue(val)}  `);
+    if (isRisk) {
+      lines.push(`> **${keyToLabel(key)}**: ${renderValue(val)}`);
+      lines.push('');
+    } else {
+      lines.push(`**${keyToLabel(key)}**: ${renderValue(val)}  `);
+    }
     hasMutable = true;
   }
-  if (hasMutable) lines.push('');
+  if (hasMutable && !isRisk) lines.push('');
 
   if (stepEntries.length > 0) {
     stepEntries.sort((a, b) => {

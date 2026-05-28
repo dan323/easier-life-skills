@@ -56,7 +56,7 @@ Also draft `slice`: the ≤5 steps on the ready frontier (steps whose `deps` are
 complete, or steps with no deps). These are the first actions to take.
 
 **Risk check**: If the task touches ≥3 files or any irreversible operation (delete, drop,
-force-push, migrate), set `needs-risk=true` and draft risk content:
+force-push, migrate), set `needs-risk=true` and draft risk content for risk.mem/risk.plan.md:
 - `what-could-break` — one line
 - `irreversible` — one line (or "none")
 - `verify-first` — one line
@@ -90,13 +90,15 @@ node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . slice.mem title "next-steps"
 node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . slice.mem step "id=<ID>,text=<text>"
 ```
 
-Write risk files if `needs-risk=true`:
+Write risk files if `needs-risk=true` (paired risk.mem + risk.plan.md):
 
 ```bash
 node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . risk.mem what-could-break "<text>"
 node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . risk.mem irreversible "<text>"
 node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . risk.mem verify-first "<text>"
 ```
+
+These `set` commands render `.memplan/risk.plan.md` automatically (paired file).
 
 Halt and report error if any CLI command exits non-zero.
 

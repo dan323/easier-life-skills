@@ -88,8 +88,8 @@ If token cost is unavailable, write `tokens=unknown`.
 
 ## Phase 6: Delete risk file (conditional)
 
-If a multi-file change was completed cleanly this session (all steps in `plan.mem` for
-the at-risk area are now complete, no failures recorded):
+If a risk file exists and the change completed cleanly this session (all steps in
+`plan.mem` for the at-risk area are now complete, no failures recorded):
 
 ```bash
 rm -f .memplan/risk.mem .memplan/risk.plan.md
