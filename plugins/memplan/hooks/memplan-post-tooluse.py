@@ -33,6 +33,23 @@ def get_plugin_root() -> str:
     return str(Path(__file__).parent.parent)
 
 
+def escape_memscript(text: str) -> str:
+    """
+    Escape MemScript special characters in text values.
+
+    Per memscript-v1.md:93-100, `,`, `|`, `=` are structural characters
+    that must be escaped when they appear in text values to avoid corrupting
+    the entry format.
+
+    Args:
+        text: Text that may contain special characters
+
+    Returns:
+        Text with special characters escaped
+    """
+    return text.replace('\\', '\\\\').replace(',', '\\,').replace('|', '\\|').replace('=', '\\=')
+
+
 def update_code_map(plugin_root: str, working_dir: str, file_path: str, tool_name: str) -> None:
     """
     Update code-map.mem with the modified file using memplan-cli.js.
@@ -56,12 +73,19 @@ def update_code_map(plugin_root: str, working_dir: str, file_path: str, tool_nam
     try:
         rel_path = os.path.relpath(file_path, working_dir)
     except ValueError:
-        # File is on a different drive on Windows, use absolute path
-        rel_path = file_path
+        # File is on a different drive on Windows, skip it
+        return
+
+    # Skip files outside the project directory
+    if rel_path.startswith(".."):
+        return
+
+    # Escape special MemScript characters in the path
+    rel_path_escaped = escape_memscript(rel_path)
 
     # Append to code-map.mem
     # Format: +file:path=<path>,purpose=<purpose>,touched=~<DATE>
-    value = f"path={rel_path},purpose={purpose},touched=~{date_stamp}"
+    value = f"path={rel_path_escaped},purpose={purpose},touched=~{date_stamp}"
 
     try:
         subprocess.run(
@@ -76,9 +100,9 @@ def update_code_map(plugin_root: str, working_dir: str, file_path: str, tool_nam
 
 def update_hot_files(plugin_root: str, working_dir: str, file_path: str) -> None:
     """
-    Update hot.mem with the recently modified file using memplan-cli.js.
+    Update hot.mem with the recently modified file using memplan-cli.js hot-bump.
 
-    Reads current hot files, adds the new file, keeps the 5 most recent.
+    Uses the hot-bump command for atomic LRU-style updates that avoid race conditions.
 
     Args:
         plugin_root: Path to the memplan plugin root
@@ -89,49 +113,24 @@ def update_hot_files(plugin_root: str, working_dir: str, file_path: str) -> None
     if not os.path.isfile(cli_path):
         return
 
-    hot_mem_path = os.path.join(working_dir, ".memplan", "memory", "hot.mem")
-
-    # Read current hot files
-    hot_files = []
-    if os.path.isfile(hot_mem_path):
-        try:
-            with open(hot_mem_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    if line.startswith("hot-files:"):
-                        hot_files_str = line.split(":", 1)[1].strip()
-                        if hot_files_str:
-                            hot_files = [f.strip() for f in hot_files_str.split("|")]
-                        break
-        except Exception:
-            pass
-
     # Make file path relative to working directory
     try:
         rel_path = os.path.relpath(file_path, working_dir)
     except ValueError:
-        rel_path = file_path
+        # File is on a different drive on Windows, skip it
+        return
 
-    # Add new file to front of list (most recent first)
-    if rel_path in hot_files:
-        hot_files.remove(rel_path)
-    hot_files.insert(0, rel_path)
+    # Skip files outside the project directory
+    if rel_path.startswith(".."):
+        return
 
-    # Keep only 5 most recent
-    hot_files = hot_files[:5]
+    # Escape special MemScript characters in the path
+    rel_path_escaped = escape_memscript(rel_path)
 
-    # Write back to hot.mem
-    hot_files_value = "|".join(hot_files)
-    date_stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
+    # Use hot-bump command for atomic update
     try:
         subprocess.run(
-            ["node", cli_path, "set", working_dir, "memory/hot.mem", "hot-files", hot_files_value],
-            check=False,
-            capture_output=True,
-            timeout=5,
-        )
-        subprocess.run(
-            ["node", cli_path, "set", working_dir, "memory/hot.mem", "last-updated", f"~{date_stamp}"],
+            ["node", cli_path, "hot-bump", working_dir, rel_path_escaped],
             check=False,
             capture_output=True,
             timeout=5,
@@ -159,16 +158,17 @@ def main() -> int:
         return 0
 
     # Extract tool name and parameters from hook context
+    # Claude Code PostToolUse hook uses 'tool_input' and 'cwd', not 'tool_parameters' and 'working_directory'
     tool_name = data.get("tool_name", "")
-    tool_params = data.get("tool_parameters", {})
-    working_dir = data.get("working_directory", os.getcwd())
+    tool_input = data.get("tool_input", {})
+    working_dir = data.get("cwd", os.getcwd())
 
     # Only process Write and Edit tool calls
     if tool_name not in ("Write", "Edit"):
         return 0
 
-    # Extract file path from tool parameters
-    file_path = tool_params.get("file_path", "")
+    # Extract file path from tool input
+    file_path = tool_input.get("file_path", "")
     if not file_path:
         return 0
 

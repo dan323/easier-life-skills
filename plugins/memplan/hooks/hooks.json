@@ -1,5 +1,5 @@
 {
-  "description": "Calls memplan/act after Write/Edit tool calls to keep code-map.mem, hot.mem, and progress in sync automatically.",
+  "description": "Updates code-map.mem and hot.mem after Write/Edit tool calls to track file modifications automatically.",
   "hooks": {
     "PostToolUse": [
       {
