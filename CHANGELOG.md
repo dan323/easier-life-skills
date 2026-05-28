@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+- **memplan v1.3.0**: New `review` skill for weekly memory hygiene
+  - Resolves all stale.mem entries in one pass
+  - Compacts append-only files (entities.mem, facts.mem, code-map.mem, failures.mem, questions.mem, decisions/log.mem) by removing duplicates
+  - Merges overflow.mem entries back into appropriate target files
+  - Regenerates all .plan.md files via render-all (the ONLY skill that calls render-all)
+  - Produces human-readable summary of compaction results
+  - Human-initiated only — never runs automatically to preserve monotonic-append safety
+  - Creates .backup files for all modified files before compaction
+  - Includes 5 comprehensive evals covering: basic hygiene run with duplicates, no-op empty stale list, selective resolution, overflow merge with unknown keys, and idempotent no-duplicates scenario
 - **memplan v1.2.0**: New `refine` skill decomposes coarse steps into atomic sub-steps
   - Reads plan.mem and checks atomicity criteria (≤2 files, 1 verb clause, single done-condition)
   - Generates numbered sub-steps (N → N.1, N.2, ..., N.K)
