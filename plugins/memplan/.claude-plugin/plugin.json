@@ -15,6 +15,7 @@
     "./skills/record",
     "./skills/gaps",
     "./skills/update-mem",
-    "./skills/ask"
+    "./skills/ask",
+    "./skills/refine"
   ]
 }
