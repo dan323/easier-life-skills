@@ -408,3 +408,133 @@ test('html --out: writes all html to output directory', () => {
   const indexPath = path.join(outDir, 'index.html');
   assert.ok(fs.existsSync(indexPath), 'index.html written to --out dir');
 });
+
+test('html: status badges rendered correctly', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+
+  // Create test markdown with status badges
+  const testMd = `<!-- GENERATED -->
+# Test
+## Steps
+1. Task one [done]
+2. Task two [in-progress]
+3. Task three [blocked]
+4. Task four [pending]
+5. Task five [skipped]
+`;
+  fs.writeFileSync(path.join(dir, '.memplan', 'test.plan.md'), testMd, 'utf8');
+
+  run(`html "${dir}"`);
+  const htmlPath = path.join(dir, '.memplan', 'test.plan.html');
+  const html = fs.readFileSync(htmlPath, 'utf8');
+
+  assert.ok(html.includes('badge-done'), 'done badge class present');
+  assert.ok(html.includes('badge-in-progress'), 'in-progress badge class present');
+  assert.ok(html.includes('badge-blocked'), 'blocked badge class present');
+  assert.ok(html.includes('badge-pending'), 'pending badge class present');
+  assert.ok(html.includes('badge-skipped'), 'skipped badge class present');
+  assert.ok(html.includes('--mp-done: #16a34a'), 'CSS custom properties defined');
+});
+
+test('html: table rendering with key-value pairs', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+
+  const testMd = `<!-- GENERATED -->
+# Test
+| Key | Value |
+|-----|-------|
+| title | Test Project |
+| status | in-progress |
+`;
+  fs.writeFileSync(path.join(dir, '.memplan', 'test-table.plan.md'), testMd, 'utf8');
+
+  run(`html "${dir}"`);
+  const htmlPath = path.join(dir, '.memplan', 'test-table.plan.html');
+  const html = fs.readFileSync(htmlPath, 'utf8');
+
+  assert.ok(html.includes('<table>'), 'table element present');
+  assert.ok(html.includes('<th>Key</th>'), 'table header rendered');
+  assert.ok(html.includes('Test Project'), 'table value rendered');
+});
+
+test('html: blockquote to callout conversion', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+
+  const testMd = `<!-- GENERATED -->
+# Test
+## Risk
+> **What could break**: Database migration
+> **Irreversible**: Cannot roll back
+`;
+  fs.writeFileSync(path.join(dir, '.memplan', 'test-callout.plan.md'), testMd, 'utf8');
+
+  run(`html "${dir}"`);
+  const htmlPath = path.join(dir, '.memplan', 'test-callout.plan.html');
+  const html = fs.readFileSync(htmlPath, 'utf8');
+
+  assert.ok(html.includes('<aside class="callout callout-risk">'), 'risk callout rendered');
+  assert.ok(html.includes('What could break'), 'blockquote content preserved');
+  assert.ok(html.includes('--mp-risk-bg'), 'risk CSS variables defined');
+});
+
+test('html: self-contained with no external resources', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+
+  run(`html "${dir}"`);
+  const htmlPath = path.join(dir, '.memplan', 'plan.plan.html');
+  const html = fs.readFileSync(htmlPath, 'utf8');
+
+  // Should not contain any external CDN links
+  assert.ok(!html.includes('cdn.'), 'no CDN references');
+  assert.ok(!html.includes('http://'), 'no http:// links');
+  assert.ok(!html.includes('https://'), 'no https:// links');
+
+  // Should have embedded CSS
+  assert.ok(html.includes('<style>'), 'embedded CSS present');
+  assert.ok(html.includes('--mp-bg'), 'CSS custom properties embedded');
+
+  // Should have proper structure
+  assert.ok(html.includes('<!DOCTYPE html>'), 'proper HTML5 doctype');
+  assert.ok(html.includes('<meta charset="utf-8">'), 'charset meta tag');
+  assert.ok(html.includes('mp-header'), 'header element present');
+  assert.ok(html.includes('mp-footer'), 'footer element present');
+  assert.ok(html.includes('mp-content'), 'content wrapper present');
+});
+
+test('html: index dashboard shows status and subtitle', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+
+  // Create test files with status and subtitle
+  const testMd = `<!-- GENERATED -->
+# Test
+| Key | Value |
+|-----|-------|
+| status | in-progress |
+| next-action | Complete the implementation |
+`;
+  fs.writeFileSync(path.join(dir, '.memplan', 'test-status.plan.md'), testMd, 'utf8');
+
+  run(`html "${dir}"`);
+  const indexPath = path.join(dir, '.memplan', 'index.html');
+  const indexHtml = fs.readFileSync(indexPath, 'utf8');
+
+  assert.ok(indexHtml.includes('badge-in-progress'), 'status badge in index');
+  assert.ok(indexHtml.includes('Complete the implementation'), 'subtitle in index');
+  assert.ok(indexHtml.includes('index-subtitle'), 'subtitle CSS class present');
+});
+
+test('html: max-width is 800px', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+
+  run(`html "${dir}"`);
+  const htmlPath = path.join(dir, '.memplan', 'plan.plan.html');
+  const html = fs.readFileSync(htmlPath, 'utf8');
+
+  assert.ok(html.includes('max-width: 800px'), 'max-width set to 800px per spec');
+});
