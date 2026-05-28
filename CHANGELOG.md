@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **memplan v1.2.0**: New `refine` skill decomposes coarse steps into atomic sub-steps
+  - Reads plan.mem and checks atomicity criteria (≤2 files, 1 verb clause, single done-condition)
+  - Generates numbered sub-steps (N → N.1, N.2, ..., N.K)
+  - Marks parent step as refined=true
+  - Updates progress denominator to count only leaf steps
+  - Idempotent: skips already-refined steps unless force=true
+  - Supports invocation modes: `memplan/refine`, `memplan/refine step=N`, `memplan/refine step=N depth=D`
+  - Includes 5 comprehensive evals covering happy path, idempotency, force re-refine, and atomic checks
 - **GitHub star counts on marketplace source tags.** The MarketplaceBar now displays the GitHub star count for each marketplace repo alongside the plugin count — e.g. `dan323/easier-life-skills (12) ★ 42`. Stars are fetched asynchronously from the GitHub API after the initial render so the page load is not delayed. Missing stars (rate-limited or private repos) are silently omitted.
 
 ## [1.31.0] - 2026-05-22
