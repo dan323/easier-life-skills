@@ -113,7 +113,7 @@
       "id": 4,
       "prompt": "Record my decision: use Vite instead of Webpack because Vite has faster build times.",
       "description": "MemScript format compliance: verifies the decision entry follows the MemScript v1 tag:key=value format exactly.",
-      "setup": "mkdir -p /tmp/eval-decide-4/.memplan/memory /tmp/eval-decide-4/.memplan/decisions /tmp/eval-decide-4/.memplan/inbox && echo '2/6 | configure-build-tool' > /tmp/eval-decide-4/.memplan/progress && printf '~2026-03-01T14:00Z +decision:choice=npm,because=ecosystem-standard\n' > /tmp/eval-decide-4/.memplan/decisions/log.mem",
+      "setup": "mkdir -p /tmp/eval-decide-4/.memplan/memory /tmp/eval-decide-4/.memplan/decisions /tmp/eval-decide-4/.memplan/inbox && echo '2/6 | configure-build-tool' > /tmp/eval-decide-4/.memplan/progress && printf '~2026-03-01T14:00Z +decision:choice=npm,because=ecosystem-standard\\n' > /tmp/eval-decide-4/.memplan/decisions/log.mem",
       "expected_output": "log.mem gains a new entry: ~DATETIME +decision:choice=Vite,because=faster-build-times. Format is MemScript-compliant (no spaces around =, comma-separated key=value pairs).",
       "files": [],
       "assertions": [
