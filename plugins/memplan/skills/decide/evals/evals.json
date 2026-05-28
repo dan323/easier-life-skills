@@ -31,7 +31,7 @@
       "id": 1,
       "prompt": "Record my decision: I'm using JWT tokens instead of sessions because they're stateless.",
       "description": "Decision round-trip: decision is written to log.mem, then read back. Verifies the entry can be parsed and the choice/because fields are intact.",
-      "setup": "mkdir -p /tmp/eval-decide-1/.memplan/memory /tmp/eval-decide-1/.memplan/decisions /tmp/eval-decide-1/.memplan/inbox && echo '5/15 | auth-implementation' > /tmp/eval-decide-1/.memplan/progress && printf '~2026-01-15T10:00Z +decision:choice=redis-cache,because=low-latency\n' > /tmp/eval-decide-1/.memplan/decisions/log.mem",
+      "setup": "mkdir -p /tmp/eval-decide-1/.memplan/memory /tmp/eval-decide-1/.memplan/decisions /tmp/eval-decide-1/.memplan/inbox && echo '5/15 | auth-implementation' > /tmp/eval-decide-1/.memplan/progress && printf '~2026-01-15T10:00Z +decision:choice=redis-cache,because=low-latency\\n' > /tmp/eval-decide-1/.memplan/decisions/log.mem",
       "expected_output": "New entry appended to log.mem. Pre-existing redis-cache decision is preserved. The new JWT decision is written as: ~DATETIME +decision:choice=JWT-tokens,because=stateless (or similar).",
       "files": [],
       "assertions": [
@@ -57,7 +57,7 @@
       "id": 2,
       "prompt": "Record a decision: I'll use a REST API instead of GraphQL because the team is more familiar with REST.",
       "description": "Multiple decisions accumulate: log.mem already has 2 decisions. Verifies the third decision is appended without overwriting.",
-      "setup": "mkdir -p /tmp/eval-decide-2/.memplan/memory /tmp/eval-decide-2/.memplan/decisions /tmp/eval-decide-2/.memplan/inbox && echo '4/12 | api-design' > /tmp/eval-decide-2/.memplan/progress && printf '~2026-02-10T09:30Z +decision:choice=postgres,because=team-standard\n~2026-02-10T11:00Z +decision:choice=docker-compose,because=local-dev-simplicity\n' > /tmp/eval-decide-2/.memplan/decisions/log.mem",
+      "setup": "mkdir -p /tmp/eval-decide-2/.memplan/memory /tmp/eval-decide-2/.memplan/decisions /tmp/eval-decide-2/.memplan/inbox && echo '4/12 | api-design' > /tmp/eval-decide-2/.memplan/progress && printf '~2026-02-10T09:30Z +decision:choice=postgres,because=team-standard\\n~2026-02-10T11:00Z +decision:choice=docker-compose,because=local-dev-simplicity\\n' > /tmp/eval-decide-2/.memplan/decisions/log.mem",
       "expected_output": "log.mem gains a third entry for the REST API decision. Both prior entries (postgres and docker-compose) are preserved.",
       "files": [],
       "assertions": [
