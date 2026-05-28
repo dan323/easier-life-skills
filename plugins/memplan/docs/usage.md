@@ -23,6 +23,7 @@ init → plan → act → record → start → plan → act → record → …
 | `memplan/record` | At the end of every session |
 | `memplan/gaps` | On demand, to audit the plan for issues |
 | `memplan/decide` | To record a non-obvious decision with rationale |
+| `memplan/review` | Weekly, for memory hygiene (human-initiated only) |
 
 ---
 
@@ -192,6 +193,7 @@ See `references/feedscript-v1.md` for the FeedScript v1 language reference.
     facts.mem                 # tagged invariants and constraints
     failures.mem              # failed commands and reasons
     questions.mem             # open questions for the human
+    overflow.mem              # entries redirected when append-only files hit cap
 
   deps.mem                    # dependency graph for staleness tracking
   stale.mem                   # files that may be out of date

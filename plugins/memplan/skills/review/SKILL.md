@@ -20,8 +20,11 @@ this skill breaks the monotonic-append guarantee, so it must never run automatic
 - Resolves all `stale.mem` entries at once
 - Compacts append-only files to remove duplicates
 
-All writes are via `memplan-cli.js`. This skill does NOT modify `plan.mem`, `steps.mem`,
-or any mutable-key files — it only compacts append-only logs.
+Compaction writes use shell commands (`awk`, `mv`, `>`) directly for atomic bulk rewrites.
+This is an architectural exception (see Design Notes). Phase 5 (overflow merge) and Phase 2
+(stale resolution) route through `memplan-cli.js` to preserve cap checks and staleness propagation.
+This skill does NOT modify `plan.mem`, `steps.mem`, or any mutable-key files — it only
+compacts append-only logs.
 
 ---
 
@@ -100,13 +103,13 @@ After resolving all entries, compact `stale.mem` to retain only unresolved entri
 
    # Overwrite with only unresolved entries (preserving timestamps)
    > .memplan/stale.mem
-   while IFS= read -r line; do
+   jq -c '.[]' /tmp/unresolved.json | while IFS= read -r line; do
      file=$(echo "$line" | jq -r '.file')
      because=$(echo "$line" | jq -r '.because')
      session=$(echo "$line" | jq -r '.session')
      timestamp=$(echo "$line" | jq -r '.timestamp')
      echo "${timestamp} +stale:file=${file},because=${because},session=${session}" >> .memplan/stale.mem
-   done < /tmp/unresolved.json
+   done
    ```
 
    This step removes all resolved entries, keeping only the unresolved ones.
@@ -124,30 +127,30 @@ For each append-only file (`entities.mem`, `facts.mem`, `code-map.mem`, `failure
 cat .memplan/memory/entities.mem
 ```
 
-Remove duplicate entity entries. Each entity is a timestamped `+entity:name=X,kind=Y,context=Z`
-line. Dedup by `(name, kind)` pair — keep the **last** occurrence (most recent):
+Remove duplicate entity entries. Each entity is a timestamped `+entity:name=X,type=Y,desc=Z`
+line. Dedup by `(name, type)` pair — keep the **last** occurrence (most recent):
 
 ```bash
-# Parse, dedup by (name, kind), keep last occurrence, rewrite
+# Parse, dedup by (name, type), keep last occurrence, rewrite
 awk -F'[: =,]+' '
   /^\~.*\+entity:/ {
     split($0, parts, " ");
     ts = parts[1];
     rest = substr($0, index($0, "+entity:"));
 
-    # Extract name and kind
+    # Extract name and type
     for (i = 3; i <= NF; i += 2) {
       if ($i == "name") name = $(i+1);
-      if ($i == "kind") kind = $(i+1);
+      if ($i == "type") type = $(i+1);
     }
 
-    key = name ":" kind;
+    key = name ":" type;
     entries[key] = ts " " rest;
   }
   END {
     for (key in entries) print entries[key];
   }
-' .memplan/memory/entities.mem | sort > /tmp/entities-dedup.mem
+' .memplan/memory/entities.mem > /tmp/entities-dedup.mem
 
 # Replace if different
 if ! cmp -s .memplan/memory/entities.mem /tmp/entities-dedup.mem; then
@@ -186,7 +189,7 @@ awk -F'[: =,]+' '
   END {
     for (key in entries) print entries[key];
   }
-' .memplan/memory/facts.mem | sort > /tmp/facts-dedup.mem
+' .memplan/memory/facts.mem > /tmp/facts-dedup.mem
 
 if ! cmp -s .memplan/memory/facts.mem /tmp/facts-dedup.mem; then
   mv .memplan/memory/facts.mem .memplan/memory/facts.mem.backup
@@ -203,31 +206,31 @@ fi
 cat .memplan/memory/code-map.mem
 ```
 
-Dedup by `(file, purpose)` pair — keep the **last** occurrence:
+Dedup by `(path, purpose)` pair — keep the **last** occurrence:
 
 ```bash
 awk -F'[: =,]+' '
-  /^\~.*\+touched:/ {
+  /^\~.*\+file:/ {
     split($0, parts, " ");
     ts = parts[1];
-    rest = substr($0, index($0, "+touched:"));
+    rest = substr($0, index($0, "+file:"));
 
-    # Extract file and purpose
+    # Extract path and purpose
     for (i = 3; i <= NF; i += 2) {
-      if ($i == "file") file = $(i+1);
+      if ($i == "path") path = $(i+1);
       if ($i == "purpose") purpose = $(i+1);
     }
 
-    key = file ":" purpose;
+    key = path ":" purpose;
     entries[key] = ts " " rest;
   }
   END {
     for (key in entries) print entries[key];
   }
-' .memplan/memory/code-map.mem | sort > /tmp/code-map-dedup.mem
+' .memplan/memory/code-map.mem > /tmp/code-map-dedup.mem
 
 if ! cmp -s .memplan/memory/code-map.mem /tmp/code-map-dedup.mem; then
-  mv .memplan/memory/code-map.mem .memplan/memory/code-map-dedup.mem.backup
+  mv .memplan/memory/code-map.mem .memplan/memory/code-map.mem.backup
   mv /tmp/code-map-dedup.mem .memplan/memory/code-map.mem
   echo "code-map.mem: compacted"
 else
@@ -262,7 +265,7 @@ awk -F'[: =,]+' '
   END {
     for (key in entries) print entries[key];
   }
-' .memplan/memory/failures.mem | sort > /tmp/failures-dedup.mem
+' .memplan/memory/failures.mem > /tmp/failures-dedup.mem
 
 if ! cmp -s .memplan/memory/failures.mem /tmp/failures-dedup.mem; then
   mv .memplan/memory/failures.mem .memplan/memory/failures.mem.backup
@@ -341,7 +344,7 @@ awk -F'[: =,]+' '
   END {
     for (key in entries) print entries[key];
   }
-' .memplan/decisions/log.mem | sort > /tmp/log-dedup.mem
+' .memplan/decisions/log.mem > /tmp/log-dedup.mem
 
 if ! cmp -s .memplan/decisions/log.mem /tmp/log-dedup.mem; then
   mv .memplan/decisions/log.mem .memplan/decisions/log.mem.backup
@@ -356,47 +359,53 @@ fi
 
 ## Phase 5: Merge overflow.mem
 
-If `overflow.mem` exists, merge its entries back into the appropriate files:
+If `overflow.mem` exists, merge its entries back into the appropriate files via `memplan-cli.js append`:
 
 ```bash
 if [ -f .memplan/memory/overflow.mem ]; then
   cat .memplan/memory/overflow.mem
 
-  # Parse each line and determine target file
+  # Parse each line and route via CLI append
   while IFS= read -r line; do
-    # Extract key from line (format: ~timestamp +key:value)
+    # Extract timestamp, key, and value from line (format: ~timestamp +key:value)
+    timestamp=$(echo "$line" | awk '{print $1}')
     key=$(echo "$line" | sed -E 's/^~[^ ]+ \+([^:]+):.*/\1/')
+    value=$(echo "$line" | sed -E 's/^~[^ ]+ \+[^:]+://')
 
     case "$key" in
       entity)
-        echo "$line" >> .memplan/memory/entities.mem
+        target="memory/entities.mem"
         ;;
       fact)
-        echo "$line" >> .memplan/memory/facts.mem
+        target="memory/facts.mem"
         ;;
-      touched)
-        echo "$line" >> .memplan/memory/code-map.mem
+      file)
+        target="memory/code-map.mem"
         ;;
       failure)
-        echo "$line" >> .memplan/memory/failures.mem
+        target="memory/failures.mem"
         ;;
       question)
-        echo "$line" >> .memplan/memory/questions.mem
+        target="memory/questions.mem"
         ;;
       decision)
-        echo "$line" >> .memplan/decisions/log.mem
+        target="decisions/log.mem"
         ;;
       *)
         echo "Unknown overflow key: $key — keeping in overflow.mem" >&2
         echo "$line" >> /tmp/overflow-remainder.mem
+        continue
         ;;
     esac
+
+    # Append via CLI (respects cap checks and staleness propagation)
+    node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . "$target" "$key" "$value"
   done < .memplan/memory/overflow.mem
 
   # Replace overflow.mem with unprocessed entries (if any)
   if [ -f /tmp/overflow-remainder.mem ]; then
     mv /tmp/overflow-remainder.mem .memplan/memory/overflow.mem
-    echo "overflow.mem: merged, ${$(wc -l < .memplan/memory/overflow.mem)} unprocessed entries remain"
+    echo "overflow.mem: merged, $(wc -l < .memplan/memory/overflow.mem) unprocessed entries remain"
   else
     rm .memplan/memory/overflow.mem
     echo "overflow.mem: merged, all entries processed"
@@ -458,7 +467,7 @@ to `memplan/review`.
 Verify that all `.plan.md` files are unlocked, written, and re-locked:
 
 ```bash
-ls -la .memplan/*.plan.md .memplan/memory/*.plan.md .memplan/decisions/*.plan.md
+find .memplan -name '*.plan.md' -ls
 ```
 
 ---
@@ -470,16 +479,16 @@ Generate a human-readable summary of the review:
 ```bash
 echo "memplan/review: completed"
 echo ""
-echo "Resolved stale entries: $(grep -c '+stale-resolved:' .memplan/stale.mem || echo 0)"
+echo "Resolved stale entries: $(grep -c '+stale-resolved:' .memplan/stale.mem.backup || echo 0)"
 echo "Unresolved stale entries: $(node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" stale-list . | jq 'length')"
 echo ""
 echo "Compaction results:"
-echo "  entities.mem: $(wc -l < .memplan/memory/entities.mem) entries"
-echo "  facts.mem: $(wc -l < .memplan/memory/facts.mem) entries"
-echo "  code-map.mem: $(wc -l < .memplan/memory/code-map.mem) entries"
-echo "  failures.mem: $(wc -l < .memplan/memory/failures.mem) entries"
-echo "  questions.mem: $(wc -l < .memplan/memory/questions.mem) entries"
-echo "  decisions/log.mem: $(wc -l < .memplan/decisions/log.mem) entries"
+echo "  entities.mem: $([ -f .memplan/memory/entities.mem ] && wc -l < .memplan/memory/entities.mem || echo 0) entries"
+echo "  facts.mem: $([ -f .memplan/memory/facts.mem ] && wc -l < .memplan/memory/facts.mem || echo 0) entries"
+echo "  code-map.mem: $([ -f .memplan/memory/code-map.mem ] && wc -l < .memplan/memory/code-map.mem || echo 0) entries"
+echo "  failures.mem: $([ -f .memplan/memory/failures.mem ] && wc -l < .memplan/memory/failures.mem || echo 0) entries"
+echo "  questions.mem: $([ -f .memplan/memory/questions.mem ] && wc -l < .memplan/memory/questions.mem || echo 0) entries"
+echo "  decisions/log.mem: $([ -f .memplan/decisions/log.mem ] && wc -l < .memplan/decisions/log.mem || echo 0) entries"
 echo ""
 echo "Overflow.mem: $([ -f .memplan/memory/overflow.mem ] && wc -l < .memplan/memory/overflow.mem || echo 0) entries"
 echo ""
@@ -494,6 +503,22 @@ first.
 ---
 
 ## Design Notes
+
+### Architectural exception: shell-based compaction
+
+`memplan/review` is the **only** skill that uses shell commands (`awk`, `mv`, `>`) to rewrite `.mem` files directly instead of routing all writes through `memplan-cli.js`. This breaks the central design invariant documented in `references/memscript-v1.md` and `record/SKILL.md`.
+
+**Why the exception exists:**
+
+Compaction requires reading, deduplicating, and rewriting entire files atomically. The CLI's `append` and `set` commands are designed for incremental writes, not bulk rewrites. Implementing `compact <file>` subcommands in `memplan-cli.js` would duplicate the deduplication logic shown here (awk scripts that parse field-delimited entries) without adding safety — the core risk (concurrent writes during compaction) cannot be solved by routing through the CLI, only by the human-initiated-only constraint.
+
+**Mitigation:**
+
+- Phase 5 (overflow merge) **does** route through `memplan-cli.js append` to preserve cap checks and staleness propagation.
+- The human-initiated-only constraint prevents concurrent writes (no hooks trigger during review).
+- Backups (`.backup` files) allow rollback if compaction fails.
+
+Future work: if compaction patterns stabilize, add `memplan-cli.js compact <file> <key-fields>` to centralize the logic. For now, the shell-based approach is the simplest correct implementation.
 
 ### Why human-initiated only?
 
