@@ -1,0 +1,15 @@
+{
+  "description": "Calls memplan/act after Write/Edit tool calls to keep code-map.mem, hot.mem, and progress in sync automatically.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/memplan-post-tooluse.py"
+          }
+        ]
+      }
+    ]
+  }
+}
