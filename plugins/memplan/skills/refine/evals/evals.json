@@ -1,0 +1,111 @@
+{
+  "skill_name": "refine",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "memplan refine step=3",
+      "description": "Refines a coarse step into atomic sub-steps. Validates that sub-steps are numbered N.1, N.2, ..., N.K, parent is marked refined=true, and progress denominator counts only leaf steps.",
+      "setup": "mkdir -p /tmp/eval-refine-0/.memplan && cd /tmp/eval-refine-0 && cat > .memplan/plan.mem <<'EOF'\ntitle:implement-api-layer\nstep-count:#5\nstatus:in-progress\n~2026-05-28T10:00Z +step:id=1,text=design-data-model,atomic=true\n~2026-05-28T10:05Z +step:id=2,text=create-database-schema,atomic=true,deps=1\n~2026-05-28T10:10Z +step:id=3,text=implement-user-auth-and-middleware,atomic=false\n~2026-05-28T10:15Z +step:id=4,text=add-api-docs,atomic=true,deps=3\n~2026-05-28T10:20Z +step:id=5,text=write-integration-tests,atomic=true,deps=4\nEOF\ncat > .memplan/progress <<'EOF'\n2/5 | step 2 text\nEOF\ncat > .memplan/deps-closure.mem <<'EOF'\nplan.mem:slice.mem\nprogress:slice.mem\nEOF",
+      "expected_output": "Step 3 refined into 3.1–3.K (K sub-steps, where K is between 2 and 5). Progress denominator updated from 5 to 5+K-1 (original 5 steps minus the refined parent plus K sub-steps). Sub-steps are marked atomic=true. Parent step 3 is marked refined=true. Sub-steps have correct dependencies inferred.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "sub-steps-created",
+          "text": "plan.mem contains sub-steps with ids 3.1, 3.2, etc., all marked atomic=true"
+        },
+        {
+          "id": "parent-marked-refined",
+          "text": "plan.mem shows step 3 with refined=true"
+        },
+        {
+          "id": "progress-denominator-updated",
+          "text": "progress file shows denominator equal to number of leaf steps (non-refined steps)"
+        },
+        {
+          "id": "staleness-propagated",
+          "text": "stale.mem contains entries marking dependents of plan.mem as stale"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "memplan refine",
+      "description": "Refines the current step (from progress file). Validates idempotent behavior when step is already refined unless force=true.",
+      "setup": "mkdir -p /tmp/eval-refine-1/.memplan && cd /tmp/eval-refine-1 && cat > .memplan/plan.mem <<'EOF'\ntitle:build-frontend\nstep-count:#4\nstatus:in-progress\n~2026-05-28T11:00Z +step:id=1,text=create-react-components,atomic=false\n~2026-05-28T11:05Z +step:id=2,text=add-routing,atomic=true,deps=1\n~2026-05-28T11:10Z +step:id=3,text=style-with-css,atomic=true,deps=1\n~2026-05-28T11:15Z +step:id=4,text=write-e2e-tests,atomic=true,deps=2|3\nEOF\ncat > .memplan/progress <<'EOF'\n0/4 | not started\nEOF\ncat > .memplan/deps-closure.mem <<'EOF'\nplan.mem:slice.mem\nprogress:slice.mem\nEOF",
+      "expected_output": "Current step 1 is identified from progress. Step 1 is refined into 1.1–1.K sub-steps. Progress denominator updated. Sub-steps are atomic and have appropriate dependencies.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "current-step-identified",
+          "text": "Skill correctly identifies step 1 as the current step from progress"
+        },
+        {
+          "id": "sub-steps-created",
+          "text": "plan.mem contains sub-steps 1.1, 1.2, etc., all atomic=true"
+        },
+        {
+          "id": "progress-updated",
+          "text": "progress denominator reflects new leaf count"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "memplan refine step=2",
+      "description": "Idempotency check: attempting to refine an already-refined step without force=true should halt gracefully.",
+      "setup": "mkdir -p /tmp/eval-refine-2/.memplan && cd /tmp/eval-refine-2 && cat > .memplan/plan.mem <<'EOF'\ntitle:data-migration\nstep-count:#3\nstatus:in-progress\n~2026-05-28T12:00Z +step:id=1,text=backup-database,atomic=true\n~2026-05-28T12:05Z +step:id=2,text=run-migration-scripts,refined=true\n~2026-05-28T12:06Z +step:id=2.1,text=validate-schema,atomic=true\n~2026-05-28T12:07Z +step:id=2.2,text=migrate-data,atomic=true,deps=2.1\n~2026-05-28T12:08Z +step:id=2.3,text=verify-data-integrity,atomic=true,deps=2.2\n~2026-05-28T12:10Z +step:id=3,text=update-docs,atomic=true,deps=2\nEOF\ncat > .memplan/progress <<'EOF'\n1/5 | step 1 complete\nEOF\ncat > .memplan/deps-closure.mem <<'EOF'\nplan.mem:slice.mem\nEOF",
+      "expected_output": "Skill halts with message: 'Step 2 already refined — use force=true to re-refine.' No files are written.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "idempotency-check",
+          "text": "Skill detects refined=true on step 2 and halts without writing"
+        },
+        {
+          "id": "no-duplicate-sub-steps",
+          "text": "No new sub-steps are appended to plan.mem"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "memplan refine step=5 force=true",
+      "description": "Re-refining a step with force=true overwrites previous sub-steps. Validates that old sub-steps are replaced and progress is recalculated.",
+      "setup": "mkdir -p /tmp/eval-refine-3/.memplan && cd /tmp/eval-refine-3 && cat > .memplan/plan.mem <<'EOF'\ntitle:api-refactor\nstep-count:#3\nstatus:in-progress\n~2026-05-28T13:00Z +step:id=4,text=refactor-api,atomic=true\n~2026-05-28T13:05Z +step:id=5,text=update-tests,refined=true\n~2026-05-28T13:06Z +step:id=5.1,text=update-unit-tests,atomic=true\n~2026-05-28T13:07Z +step:id=5.2,text=update-integration-tests,atomic=true\n~2026-05-28T13:10Z +step:id=6,text=deploy,atomic=true,deps=5\nEOF\ncat > .memplan/progress <<'EOF'\n1/4 | step 4 complete\nEOF\ncat > .memplan/deps-closure.mem <<'EOF'\nplan.mem:slice.mem\nEOF",
+      "expected_output": "Step 5 is re-refined. New sub-steps replace the old ones. Progress denominator is recalculated to reflect the new leaf count. Note: This eval assumes the CLI supports updating sub-steps; if not, this tests the re-refine logic only.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "force-refine-allowed",
+          "text": "Skill proceeds despite refined=true because force=true was specified"
+        },
+        {
+          "id": "new-sub-steps-created",
+          "text": "New sub-steps are appended (may duplicate; compaction is a separate concern)"
+        },
+        {
+          "id": "progress-recalculated",
+          "text": "progress denominator reflects new leaf count"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "memplan refine step=7",
+      "description": "Atomic step check: attempting to refine a step already marked atomic=true should halt gracefully with no refinement needed.",
+      "setup": "mkdir -p /tmp/eval-refine-4/.memplan && cd /tmp/eval-refine-4 && cat > .memplan/plan.mem <<'EOF'\ntitle:simple-task\nstep-count:#2\nstatus:in-progress\n~2026-05-28T14:00Z +step:id=7,text=run-linter,atomic=true\n~2026-05-28T14:05Z +step:id=8,text=commit-changes,atomic=true,deps=7\nEOF\ncat > .memplan/progress <<'EOF'\n0/2 | not started\nEOF\ncat > .memplan/deps-closure.mem <<'EOF'\nplan.mem:slice.mem\nEOF",
+      "expected_output": "Skill halts with message: 'Step 7 is already atomic — no refinement needed.' No files are written.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "atomic-check",
+          "text": "Skill detects atomic=true on step 7 and halts without writing"
+        },
+        {
+          "id": "no-changes",
+          "text": "plan.mem is unchanged"
+        }
+      ]
+    }
+  ]
+}
