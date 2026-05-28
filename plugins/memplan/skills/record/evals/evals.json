@@ -6,7 +6,7 @@
       "prompt": "Record the session. Last thing I did was implement the inbox parser. Next up is writing the render command.",
       "description": "Happy path: session with stated last/next actions. Verifies checkpoint, session digest, hot files, and budget are all written.",
       "setup": "mkdir -p /tmp/eval-record-0/.memplan/memory /tmp/eval-record-0/.memplan/decisions /tmp/eval-record-0/.memplan/sessions && echo '4/10 | implement-inbox-parser' > /tmp/eval-record-0/.memplan/progress && touch /tmp/eval-record-0/.memplan/checkpoint.mem /tmp/eval-record-0/.memplan/hot.mem /tmp/eval-record-0/.memplan/budget.mem /tmp/eval-record-0/.memplan/memory/aliases.mem /tmp/eval-record-0/.memplan/memory/facts.mem /tmp/eval-record-0/.memplan/memory/failures.mem",
-      "expected_output": "checkpoint.mem updated with last-action and next-action. A YYYY-MM-DD.mem file written under sessions/. hot.mem updated. budget.mem gets a new session entry. Skill prints confirmation.",
+      "expected_output": "checkpoint.mem updated with last-action and next-action. A YYYY-MM-DD.mem file written under sessions/. hot.mem updated. budget.mem gets new load entries for files read during orient. Skill prints confirmation.",
       "files": [],
       "assertions": [
         {
@@ -23,7 +23,7 @@
         },
         {
           "id": "budget-appended",
-          "text": ".memplan/budget.mem contains a +session: entry"
+          "text": ".memplan/budget.mem contains +load: entries for files read during orient"
         }
       ]
     },
