@@ -23,7 +23,7 @@ After appending, renders `decisions/log.plan.md`.
 Before writing, grep for an existing entry with the same choice and because:
 
 ```bash
-grep -F "choice=<CHOICE_TEXT>,because=<BECAUSE_TEXT>" .memplan/decisions/log.mem 2>/dev/null
+grep -F "+decision:choice=<CHOICE_TEXT>,because=<BECAUSE_TEXT>" .memplan/decisions/log.mem 2>/dev/null
 ```
 
 Replace `<CHOICE_TEXT>` and `<BECAUSE_TEXT>` with the exact values you intend to write
