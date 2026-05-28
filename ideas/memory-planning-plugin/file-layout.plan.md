@@ -27,6 +27,7 @@ All files live under `.memplan/` in the project root.
     deps.json                           # hand-curated module dependency map — no dual, already structured
 
   deps.mem                              # dependency graph: dep:TARGET=SOURCE|SOURCE (no .plan.md counterpart — structural metadata)
+  deps-closure.mem                      # transitive closure of deps.mem, computed at init and updated incrementally (no .plan.md counterpart)
   stale.mem                             # append-only staleness log: +stale:file=F,because=F,session=DATE; cleared by memplan/review
     sessions/
       YYYY-MM-DD.plan.md                # per-session digest for human (≤10 bullets, prose)

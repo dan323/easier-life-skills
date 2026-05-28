@@ -26,21 +26,21 @@ staleness entries. All file operations go through `memplan-cli.js`.
 Run these checks in order. Any failure halts the skill immediately — do not execute
 the step until all three pass.
 
-**Check 1 — steps.mem exists:**
+**Check 1 — plan.mem exists:**
 
 ```bash
-test -f .memplan/steps.mem || echo "MISSING"
+test -f .memplan/plan.mem || echo "MISSING"
 ```
 
 If `MISSING`: halt and output:
-`⚠ Cannot act — .memplan/steps.mem is absent. Run memplan/plan first.`
+`⚠ Cannot act — .memplan/plan.mem is absent. Run memplan/plan first.`
 
 **Check 2 — determine execution mode (refined vs atomic):**
 
-Read the target step from `.memplan/steps.mem`. Check if it has `refined=true`:
+Read the target step from `.memplan/plan.mem`. Check if it has `refined=true`:
 
 ```bash
-cat .memplan/steps.mem
+cat .memplan/plan.mem
 ```
 
 If the step has `refined=true`:
@@ -54,11 +54,11 @@ If the step has `atomic=true` or no `refined` field:
 
 **Check 3 — deps satisfied (atomic steps only):**
 
-For atomic steps only: If the step has a `deps=` field, verify each listed dep ID is complete by reading `.memplan/progress` and `.memplan/steps.mem`:
+For atomic steps only: If the step has a `deps=` field, verify each listed dep ID is complete by reading `.memplan/progress` and `.memplan/plan.mem`:
 
 ```bash
 cat .memplan/progress
-cat .memplan/steps.mem
+cat .memplan/plan.mem
 ```
 
 Parse the progress to extract completed step IDs. For each dep that is not yet complete: halt and output:
@@ -68,10 +68,10 @@ Skip this check for refined steps (deps are verified per sub-step, not at parent
 
 **Check 3b — sub-steps exist (refined steps only):**
 
-For refined steps only: Verify that at least one sub-step exists. For a parent step with id=N and `refined=true`, there must be at least one sub-step with id=N.1 in `.memplan/steps.mem`.
+For refined steps only: Verify that at least one sub-step exists. For a parent step with id=N and `refined=true`, there must be at least one sub-step with id=N.1 in `.memplan/plan.mem`.
 
 ```bash
-cat .memplan/steps.mem | grep "^+step:id=${N}\."
+cat .memplan/plan.mem | grep "^+step:id=${N}\."
 ```
 
 If no sub-steps are found: halt and output:
@@ -101,7 +101,7 @@ Resume once resolved.
 
 **For atomic steps (atomic=true or no refined field):**
 
-Read the current step text from `.memplan/steps.mem` and `.memplan/progress`. Confirm
+Read the current step text from `.memplan/plan.mem` and `.memplan/progress`. Confirm
 the step number matches what the user intends.
 
 Execute the step. Use the standard project tools (Edit, Write, Bash, etc.) as required
@@ -115,7 +115,7 @@ is not reached): record the failure in Phase 3 and stop execution.
 
 Do **not** execute the parent step directly. Instead:
 
-1. Read `.memplan/steps.mem` to find all sub-steps with id=N.1, N.2, N.3, etc., where N is the parent step ID.
+1. Read `.memplan/plan.mem` to find all sub-steps with id=N.1, N.2, N.3, etc., where N is the parent step ID.
 
 2. Read `.memplan/progress` to determine the last completed step. The progress format is `M/N | <last-step-text>`. Parse `<last-step-text>` to extract the last completed step ID (e.g., if text is "sub-step 3.2 text", then step 3.2 is complete). Compare against the sub-step list to find the first incomplete sub-step.
 

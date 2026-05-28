@@ -1,7 +1,7 @@
 ---
 name: record
 description: >
-  End-of-session close: writes checkpoint.mem, per-session digest, hot.mem, budget.mem.
+  End-of-session close: writes checkpoint.mem, per-session digest, memory/hot.mem, budget.mem.
   Deletes risk files after a clean multi-file close. Appends session-discovered aliases
   and facts. Agent decides content; CLI handles file mechanics. Call at the end of every
   working session. Trigger phrases: "memplan record", "close session", "end session",
@@ -66,8 +66,8 @@ List the 5 most recently touched files from this session (use the files-touched 
 Phase 1, keeping the 5 most recently modified):
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . hot.mem hot-files "<file1>|<file2>|<file3>|<file4>|<file5>"
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . hot.mem last-updated "~$(date -u +%Y-%m-%d)"
+node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . memory/hot.mem hot-files "<file1>|<file2>|<file3>|<file4>|<file5>"
+node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . memory/hot.mem last-updated "~$(date -u +%Y-%m-%d)"
 ```
 
 Use a `|`-separated list. Omit if fewer than 5 files were touched — list what was touched.
@@ -77,7 +77,7 @@ Use a `|`-separated list. Omit if fewer than 5 files were touched — list what 
 ## Phase 5: Update budget
 
 Record the token cost for each `.mem` file loaded during this session's orient phase (from
-`memplan/start`). For each file that was read (progress, checkpoint.mem, persona.mem, hot.mem,
+`memplan/start`). For each file that was read (progress, checkpoint.mem, persona.mem, memory/hot.mem,
 plan.mem, slice.mem, etc.), append a load entry:
 
 ```bash
@@ -90,7 +90,7 @@ Use these token-cost estimates if exact costs are unavailable:
 - `progress`: ~10 tokens
 - `checkpoint.mem`: ~50 tokens
 - `persona.mem`: ~35 tokens
-- `hot.mem`: ~20 tokens
+- `memory/hot.mem`: ~20 tokens
 - `plan.mem`: ~70 tokens
 - `slice.mem`: ~30 tokens
 - `risk.mem`: ~20 tokens
@@ -148,7 +148,7 @@ them stale:
 cat .memplan/deps-closure.mem
 ```
 
-For each dependent of `checkpoint.mem`, `hot.mem`, `budget.mem`, or any session file:
+For each dependent of `checkpoint.mem`, `memory/hot.mem`, `budget.mem`, or any session file:
 
 ```bash
 node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" stale-mark . "<dependent>" "<source>"

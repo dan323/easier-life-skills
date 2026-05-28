@@ -8,7 +8,7 @@ const INITIAL_DEPS =
   'dep:slice.mem=steps.mem|progress\n' +
   'dep:checkpoint.mem=progress|plan.mem\n' +
   'dep:risk.mem=memory/failures.mem|plan.mem\n' +
-  'dep:budget.mem=hot.mem\n' +
+  'dep:budget.mem=memory/hot.mem\n' +
   'dep:memory/aliases.mem=memory/entities.mem\n' +
   'dep:memory/code-map.mem=plan.mem\n' +
   'dep:memory/facts.mem=plan.mem\n' +
@@ -20,7 +20,6 @@ const SCHEMAS = {
   'steps.mem':            { mutables: ['title', 'step-count', 'current', 'status'] },
   'checkpoint.mem':       { mutables: ['last-action', 'next-action', 'open-questions'] },
   'memory/persona.mem':   { mutables: ['style', 'test-policy', 'test-reason', 'commit-format', 'lang'] },
-  'hot.mem':              { mutables: ['hot-files', 'last-updated'] },
   'memory/hot.mem':       { mutables: ['hot-files', 'last-updated'] },
   'slice.mem':            { mutables: ['title', 'ready-steps'] },
   'risk.mem':             { mutables: ['what-could-break', 'irreversible', 'verify-first'] },

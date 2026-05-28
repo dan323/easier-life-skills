@@ -42,7 +42,7 @@ as soon as the file is absent or empty rather than erroring.
 1. Read `.memplan/progress` — current step fraction and step text (1 line).
 2. Read `.memplan/checkpoint.mem` — last action, next action, open questions.
 3. Read `.memplan/memory/persona.mem` — style rules and constraints.
-4. Read `.memplan/hot.mem` — 5 most recently touched files.
+4. Read `.memplan/memory/hot.mem` — 5 most recently touched files.
 
 Grep for aliases relevant to the user's first message (if any):
 
