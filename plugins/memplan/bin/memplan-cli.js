@@ -12,7 +12,7 @@
  * Commands: init, set, clear, append, render, render-all, lock, unlock,
  *           apply, inbox, deps-closure, deps-closure-append,
  *           stale-mark, stale-resolve, stale-list,
- *           overflow-check, progress, html
+ *           overflow-check, progress, hot-bump, html
  */
 
 const fs = require('fs');
@@ -235,6 +235,41 @@ function cmdProgress(dir, m, n, text) {
   fs.writeFileSync(path.join(memDir(dir), 'progress'), `${m}/${n} | ${text}\n`, 'utf8');
 }
 
+function cmdHotBump(dir, file) {
+  const fPath = memPath(dir, 'hot.mem');
+  const MAX_HOT = 5;
+
+  unlockFile(fPath);
+
+  // Read current hot-files list
+  let hotFiles = [];
+  if (fs.existsSync(fPath)) {
+    const lines = fs.readFileSync(fPath, 'utf8').split('\n');
+    for (const line of lines) {
+      const parsed = parseLine(line);
+      if (parsed && !parsed.appendOnly && parsed.key === 'hot-files' && parsed.rawValue) {
+        hotFiles = parsed.rawValue.split('|').map(f => f.trim()).filter(Boolean);
+        break;
+      }
+    }
+  }
+
+  // Add new file to front (most recent first), removing duplicates
+  if (hotFiles.includes(file)) {
+    hotFiles = hotFiles.filter(f => f !== file);
+  }
+  hotFiles.unshift(file);
+
+  // Keep only MAX_HOT most recent
+  hotFiles = hotFiles.slice(0, MAX_HOT);
+
+  // Write back atomically using cmdSet
+  cmdSet(dir, 'hot.mem', 'hot-files', hotFiles.join('|'));
+  cmdSet(dir, 'hot.mem', 'last-updated', `~${todayDate()}`);
+
+  lockFile(fPath);
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -259,6 +294,7 @@ try {
     case 'stale-list':            cmdStaleList(rest[0]); break;
     case 'overflow-check':        cmdOverflowCheck(rest[0], rest[1], rest[2]); break;
     case 'progress':              cmdProgress(rest[0], rest[1], rest[2], rest[3]); break;
+    case 'hot-bump':              cmdHotBump(rest[0], rest[1]); break;
     case 'html':                  cmdHtml(rest[0], rest.slice(1)); break;
     default:
       console.error(`Unknown command: ${cmd}`);

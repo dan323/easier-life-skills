@@ -1,0 +1,15 @@
+{
+  "description": "Updates code-map.mem and hot.mem after Write/Edit tool calls to track file modifications automatically.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/memplan-post-tooluse.py"
+          }
+        ]
+      }
+    ]
+  }
+}
