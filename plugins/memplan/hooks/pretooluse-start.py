@@ -21,20 +21,33 @@ def main() -> int:
     if not isinstance(data, dict):
         return 0
 
-    # Get working directory from hook context
-    working_directory = data.get("working_directory", os.getcwd())
+    # Get working directory from hook context.
+    # Claude Code provides the project directory as "cwd" in the hook payload.
+    working_directory = data.get("cwd", os.getcwd())
     memplan_dir = os.path.join(working_directory, ".memplan")
-    session_marker = os.path.join(memplan_dir, ".session")
 
     # Skip if memplan not initialized
     if not os.path.isdir(memplan_dir):
         return 0
 
-    # Skip if session marker already exists (not first tool call)
-    if os.path.exists(session_marker):
+    # Use session_id from the hook payload to detect new sessions.
+    # Store the last-seen session_id in a lightweight marker so the hook
+    # fires exactly once per session even across multiple tool calls.
+    session_id = data.get("session_id", "")
+    session_id_marker = os.path.join(memplan_dir, ".session_id")
+
+    last_session_id = ""
+    try:
+        with open(session_id_marker, encoding="utf-8") as f:
+            last_session_id = f.read().strip()
+    except OSError:
+        pass  # File absent on first run — treat as new session
+
+    # Skip if already handled this session
+    if session_id and session_id == last_session_id:
         return 0
 
-    # First tool call of session - invoke memplan/start logic
+    # First tool call of this session - invoke memplan/start logic
     # The hook cannot directly invoke the skill, but can replicate its core logic
     # or use the CLI to achieve the same effect.
 
@@ -49,6 +62,7 @@ def main() -> int:
         return 0
 
     # Phase 1: Process inbox (if needed)
+    inbox_ok = False
     try:
         result = subprocess.run(
             ["node", cli_path, "inbox", working_directory],
@@ -60,18 +74,19 @@ def main() -> int:
         # inbox output is printed by the CLI itself
         if result.returncode == 0 and result.stdout:
             print(result.stdout.rstrip())
+        inbox_ok = result.returncode == 0
     except Exception:
         pass  # Inbox processing is optional
 
-    # Phase 5: Write session marker
-    # Create the session marker to indicate orientation happened
-    try:
-        from datetime import datetime, timezone
-        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
-        with open(session_marker, "w", encoding="utf-8") as f:
-            f.write(timestamp + "\n")
-    except Exception:
-        pass  # Session marker write failure is non-fatal
+    # Only record the session_id after the full orientation (inbox processing)
+    # has completed. This prevents memplan/update-mem from treating partial
+    # hook runs as proof that memplan/start orientation happened.
+    if inbox_ok and session_id:
+        try:
+            with open(session_id_marker, "w", encoding="utf-8") as f:
+                f.write(session_id + "\n")
+        except Exception:
+            pass  # Session marker write failure is non-fatal
 
     return 0
 

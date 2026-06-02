@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- **memplan v1.4.0**: New `PreToolUse` hook (`pretooluse-start.py`) fires automatically on the first tool call of each Claude session. It reads the hook payload's `cwd` field to locate the project `.memplan/` directory, uses the `session_id` field to detect session boundaries (stored in `.memplan/.session_id`), and invokes `memplan-cli inbox` to process the inbox before recording the session. The session marker is only written after successful orientation, so `memplan/update-mem` cannot run without the hook having completed its work.
 - **memplan v1.3.0**: New `review` skill for weekly memory hygiene
   - Resolves all stale.mem entries in one pass
   - Compacts append-only files (entities.mem, facts.mem, code-map.mem, failures.mem, questions.mem, decisions/log.mem) by removing duplicates
