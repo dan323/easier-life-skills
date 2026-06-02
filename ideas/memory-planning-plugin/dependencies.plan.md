@@ -41,7 +41,7 @@ Rules:
 - Keep it sparse and stable: only add entries for meaningful boundaries (modules,
   subsystems, packages).
 
-**When it is read**
+**When it is read** _(planned — not yet implemented in skill SKILL.md files)_
 - **On demand** during `memplan/plan`, `memplan/act`, or `memplan/update-mem` when
   the agent needs architecture context or impact analysis.
 - **Not** read during `memplan/start` orient (keeps token cost flat).
