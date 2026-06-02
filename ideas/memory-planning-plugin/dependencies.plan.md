@@ -24,7 +24,7 @@ Location: `.memplan/memory/deps.json`.
 
 **Format (JSON):**
 
-```
+```json
 {
   "version": 1,
   "modules": {
