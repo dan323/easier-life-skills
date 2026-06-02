@@ -1,6 +1,16 @@
 {
-  "description": "Updates code-map.mem and hot.mem after Write/Edit tool calls to track file modifications automatically.",
+  "description": "Tracks file modifications after Write/Edit calls and auto-orients on the first tool use of each session.",
   "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/pretooluse-start.py"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "hooks": [
