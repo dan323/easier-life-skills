@@ -88,8 +88,8 @@ the executing skill must:
    The agent infers this from context (e.g. "a summary of plan.mem and facts.mem" → deps are `plan.mem|facts.mem`)
 3. Append to `deps.mem`: `dep:X.mem=source1|source2|…`
 4. Incrementally update `deps-closure.mem` via:
-   ```
-   memplan-cli.js deps-closure-append <dir> X.mem source1|source2|…
+   ```bash
+   node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" deps-closure-append <dir> X.mem source1|source2|…
    ```
    (see section below — no full recomputation needed)
 
