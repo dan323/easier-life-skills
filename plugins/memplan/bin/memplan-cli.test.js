@@ -83,7 +83,7 @@ test('init: deps-closure.mem is computed from initial deps.mem', () => {
   const dir = tmpDir();
   run(`init "${dir}"`);
   const closure = readFile(dir, 'deps-closure.mem');
-  // slice.mem depends on steps.mem which depends on plan.mem → closure should include plan.mem
+  // slice.mem depends on plan.mem directly → closure should include plan.mem
   assert.ok(closure.includes('slice.mem'), 'slice.mem in closure');
   assert.ok(closure.includes('plan.mem'), 'plan.mem appears in closure values');
 });
@@ -146,7 +146,7 @@ test('append: auto-renders .plan.md for plan.mem', () => {
   run(`init "${dir}"`);
   run(`append "${dir}" plan.mem step "id=1,text=write-layout,atomic=true"`);
   const planMd = readFile(dir, 'plan.plan.md');
-  assert.ok(planMd.includes('write-layout'), 'plan.plan.md updated after append');
+  assert.ok(planMd.includes('Write layout'), 'plan.plan.md updated after append');
 });
 
 test('append: overflow redirects to memory/overflow.mem', () => {
@@ -228,19 +228,19 @@ test('lock / unlock: round-trip', () => {
 test('stale-mark / stale-list: marks entry as stale', () => {
   const dir = tmpDir();
   run(`init "${dir}"`);
-  run(`stale-mark "${dir}" steps.mem plan.mem`);
+  run(`stale-mark "${dir}" slice.mem plan.mem`);
   const out = run(`stale-list "${dir}"`);
   const list = JSON.parse(out);
   assert.equal(list.length, 1);
-  assert.equal(list[0].file, 'steps.mem');
+  assert.equal(list[0].file, 'slice.mem');
   assert.equal(list[0].because, 'plan.mem');
 });
 
 test('stale-resolve: excludes resolved entries from stale-list', () => {
   const dir = tmpDir();
   run(`init "${dir}"`);
-  run(`stale-mark "${dir}" steps.mem plan.mem`);
-  run(`stale-resolve "${dir}" steps.mem`);
+  run(`stale-mark "${dir}" slice.mem plan.mem`);
+  run(`stale-resolve "${dir}" slice.mem`);
   const out = run(`stale-list "${dir}"`);
   const list = JSON.parse(out);
   assert.equal(list.length, 0, 'resolved entry excluded');
@@ -249,7 +249,7 @@ test('stale-resolve: excludes resolved entries from stale-list', () => {
 test('stale-list: correctly excludes resolved entries when stale and resolved both exist', () => {
   const dir = tmpDir();
   run(`init "${dir}"`);
-  run(`stale-mark "${dir}" slice.mem steps.mem`);
+  run(`stale-mark "${dir}" slice.mem plan.mem`);
   run(`stale-mark "${dir}" checkpoint.mem plan.mem`);
   run(`stale-resolve "${dir}" slice.mem`);
   const out = run(`stale-list "${dir}"`);
@@ -285,7 +285,7 @@ test('deps-closure: correctness on initial graph', () => {
   run(`init "${dir}"`);
   run(`deps-closure "${dir}"`);
   const closure = readFile(dir, 'deps-closure.mem');
-  // slice.mem depends on steps.mem which depends on plan.mem → transitive: plan.mem in slice's closure
+  // slice.mem depends on plan.mem directly → plan.mem in slice's closure
   assert.ok(closure.includes('slice.mem'), 'slice.mem present');
   const sliceLine = closure.split('\n').find(l => l.startsWith('dep:slice.mem='));
   assert.ok(sliceLine && sliceLine.includes('plan.mem'), 'plan.mem in slice.mem transitive closure');

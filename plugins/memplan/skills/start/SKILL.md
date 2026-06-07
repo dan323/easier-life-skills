@@ -56,8 +56,8 @@ Run one grep per meaningful term in the user's message. Skip if `aliases.mem` is
 
 ## Phase 3: Check warnings
 
-**Missing steps.mem**: If `.memplan/steps.mem` does not exist, prepare a warning line:
-`⚠ No steps.mem found — implementation cannot start until steps are defined.`
+**Missing plan.mem**: If `.memplan/plan.mem` does not exist, prepare a warning line:
+`⚠ No plan.mem found — implementation cannot start until steps are defined.`
 
 **Stale files**: Run:
 

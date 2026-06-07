@@ -23,7 +23,7 @@ this skill breaks the monotonic-append guarantee, so it must never run automatic
 Compaction writes use shell commands (`awk`, `mv`, `>`) directly for atomic bulk rewrites.
 This is an architectural exception (see Design Notes). Phase 5 (overflow merge) and Phase 2
 (stale resolution) route through `memplan-cli.js` to preserve cap checks and staleness propagation.
-This skill does NOT modify `plan.mem`, `steps.mem`, or any mutable-key files — it only
+This skill does NOT modify `plan.mem` or any mutable-key files — it only
 compacts append-only logs.
 
 ---

@@ -21,7 +21,6 @@ outputs a numbered list of actionable findings. **No files are written.**
 Read all plan files:
 
 ```bash
-cat .memplan/steps.mem 2>/dev/null
 cat .memplan/plan.mem 2>/dev/null
 cat .memplan/slice.mem 2>/dev/null
 cat .memplan/checkpoint.mem 2>/dev/null
@@ -69,8 +68,8 @@ appropriately" with no handler defined). Flag: `file: <source>, gap: condition '
 
 **Check 4 — Phase ordering violations**
 
-Check `steps.mem` for any step that depends on a skill, file, or concept not available
-until a later phase. Flag: `file: steps.mem, gap: step <N> uses '<X>' which is not available until phase <M>, fix: move step after phase <M> or introduce it earlier.`
+Check `plan.mem` for any step that depends on a skill, file, or concept not available
+until a later phase. Flag: `file: plan.mem, gap: step <N> uses '<X>' which is not available until phase <M>, fix: move step after phase <M> or introduce it earlier.`
 
 **Check 5 — Uncovered error paths**
 
@@ -90,10 +89,10 @@ depends on A, directly or transitively): flag it. Flag: `file: deps.mem, gap: ci
 
 **Check 8 — Missing documentation step**
 
-If `steps.mem` exists and any step text contains `api`, `export`, `command`, `skill`,
+If `plan.mem` exists and any step text contains `api`, `export`, `command`, `skill`,
 `agent`, or `endpoint`, OR if any step touches `README*`, `CHANGELOG*`, `SKILL.md`, or
 `*.plan.md` — check whether any step text contains `doc`, `readme`, `changelog`, or `spec`.
-If not: flag it. Flag: `file: steps.mem, gap: plan modifies public-facing files but has no documentation step, fix: add a doc step with deps pointing to the last step that settles the public shape.`
+If not: flag it. Flag: `file: plan.mem, gap: plan modifies public-facing files but has no documentation step, fix: add a doc step with deps pointing to the last step that settles the public shape.`
 
 ---
 
