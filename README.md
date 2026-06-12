@@ -13,7 +13,7 @@ A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](h
 /plugin install docs@easier-life-skills
 ```
 
-The marketplace browser at the bottom of this README also surfaces plugins from other Claude Code marketplaces. To install those, add each of their marketplaces alongside this one â€” for example:
+The marketplace browser at the bottom of this README also surfaces plugins from other Claude Code marketplaces. To install those, add each of their marketplaces alongside this one — for example:
 
 ```
 /plugin marketplace add anthropics/skills
