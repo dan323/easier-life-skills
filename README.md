@@ -21,7 +21,7 @@ The marketplace browser at the bottom of this README also surfaces plugins from 
 /plugin install document-skills@skills
 ```
 
-Or copy the right command directly from the [marketplace browser](#marketplace-browser): every source tag has a `+` button that copies its `/plugin marketplace add â€¦` line, and every plugin detail panel shows both the `marketplace add` and `plugin install` commands you need.
+Or copy the right command directly from the [marketplace browser](#marketplace-browser): every source tag has a `+` button that copies its `/plugin marketplace add …` line, and every plugin detail panel shows both the `marketplace add` and `plugin install` commands you need.
 
 ## Plugins
 
