@@ -2,7 +2,7 @@
 
 [![Claude Code Marketplace](https://ai.dan323.dev/badge.svg)](https://ai.dan323.dev/)
 
-A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](https://claude.ai/code) and GitHub Copilot. Each skill gives an AI agent detailed, phase-by-phase instructions for performing a specialized development task â€” generating changelogs, auditing logging, finding dead code, and more.
+A Claude Code plugin marketplace with reusable skill plugins for [Claude Code](https://claude.ai/code) and GitHub Copilot. Each skill gives an AI agent detailed, phase-by-phase instructions for performing a specialized development task — generating changelogs, auditing logging, finding dead code, and more.
 
 ## Quick Start
 
