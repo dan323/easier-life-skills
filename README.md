@@ -88,7 +88,7 @@ This marketplace follows the [Anthropic plugin schema](https://anthropic.com/cla
 }
 ```
 
-Sub-agents live in `plugins/<name>/agents/` and are auto-discovered by Claude Code from that directory â€” they do not need to be listed in `plugin.json`.
+Sub-agents live in `plugins/<name>/agents/` and are auto-discovered by Claude Code from that directory — they do not need to be listed in `plugin.json`.
 
 ## Documentation
 
