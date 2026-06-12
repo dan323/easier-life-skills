@@ -62,5 +62,5 @@ Browse all skills, agents, commands, hooks, and MCP servers at **https://ai.dan3
 
 ## See Also
 
-- [Architecture](architecture.md) â€” how skills are structured and how they work
-- [Contributing a Skill](contributing.md) â€” how to write and test your own skill
+- [Architecture](architecture.md) — how skills are structured and how they work
+- [Contributing a Skill](contributing.md) — how to write and test your own skill
