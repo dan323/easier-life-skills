@@ -52,9 +52,9 @@
     {
       "id": 2,
       "prompt": "Orient me. Where are we?",
-      "description": "Missing steps.mem: .memplan/ exists but steps.mem is absent. Verifies warning is appended to output and skill does not halt.",
+      "description": "Missing plan.mem: .memplan/ exists but plan.mem is absent. Verifies warning is appended to output and skill does not halt.",
       "setup": "mkdir -p /tmp/eval-start-2/.memplan/memory /tmp/eval-start-2/.memplan/decisions /tmp/eval-start-2/.memplan/inbox && echo \"0/0 | not started\" > /tmp/eval-start-2/.memplan/progress && printf \"last-action:initialised\nnext-action:define-steps\nopen-questions:none\n\" > /tmp/eval-start-2/.memplan/checkpoint.mem",
-      "expected_output": "3-line orient summary is printed. Output also includes a warning line about missing steps.mem. Skill does not hard-halt.",
+      "expected_output": "3-line orient summary is printed. Output also includes a warning line about missing plan.mem. Skill does not hard-halt.",
       "files": [],
       "assertions": [
         {
@@ -63,7 +63,7 @@
         },
         {
           "id": "steps-warning",
-          "text": "Output contains a warning about steps.mem being absent"
+          "text": "Output contains a warning about plan.mem being absent"
         },
         {
           "id": "no-halt",

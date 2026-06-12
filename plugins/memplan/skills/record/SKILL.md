@@ -70,33 +70,7 @@ Use a `|`-separated list. Omit if fewer than 5 files were touched — list what 
 
 ---
 
-## Phase 5: Update budget
-
-Record the token cost for each `.mem` file loaded during this session's orient phase (from
-`memplan/start`). For each file that was read (progress, checkpoint.mem, persona.mem, memory/hot.mem,
-plan.mem, slice.mem, etc.), append a load entry:
-
-```bash
-DATE=$(date -u +%Y-%m-%d)
-# For each file loaded during orient:
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . budget.mem "load" "file=<filename>,tokens=<T>,date=~${DATE}"
-```
-
-Use these token-cost estimates if exact costs are unavailable:
-- `progress`: ~10 tokens
-- `checkpoint.mem`: ~50 tokens
-- `persona.mem`: ~35 tokens
-- `memory/hot.mem`: ~20 tokens
-- `plan.mem`: ~70 tokens
-- `slice.mem`: ~30 tokens
-- `risk.mem`: ~20 tokens
-
-Only record files that were actually loaded this session. If a file was skipped or absent,
-do not record it.
-
----
-
-## Phase 6: Delete risk file (conditional)
+## Phase 5: Delete risk file (conditional)
 
 If a risk file exists and the change completed cleanly this session (all steps in
 `plan.mem` for the at-risk area are now complete, no failures recorded):
@@ -110,7 +84,7 @@ recorded, leave the risk file in place.
 
 ---
 
-## Phase 7: Append aliases and facts
+## Phase 6: Append aliases and facts
 
 For each new alias or fact the user stated (or that emerged clearly from code):
 
@@ -137,7 +111,7 @@ Staleness propagation is automatic on every CLI write — no manual `stale-mark`
 
 ---
 
-## Phase 8: Confirm
+## Phase 7: Confirm
 
 Print:
 `Session recorded. Next: <next-action>.`

@@ -7,7 +7,6 @@ const INITIAL_DEPS =
   'dep:slice.mem=plan.mem|progress\n' +
   'dep:checkpoint.mem=progress|plan.mem\n' +
   'dep:risk.mem=memory/failures.mem|plan.mem\n' +
-  'dep:budget.mem=memory/hot.mem\n' +
   'dep:memory/aliases.mem=memory/entities.mem\n' +
   'dep:memory/code-map.mem=plan.mem\n' +
   'dep:memory/facts.mem=plan.mem\n' +
@@ -21,7 +20,6 @@ const SCHEMAS = {
   'memory/hot.mem':       { mutables: ['hot-files', 'last-updated'] },
   'slice.mem':            { mutables: ['title', 'ready-steps'] },
   'risk.mem':             { mutables: ['what-could-break', 'irreversible', 'verify-first'] },
-  'budget.mem':           { mutables: [] },
   'memory/entities.mem':  { mutables: [] },
   'memory/aliases.mem':   { mutables: [], alphaKeys: true },
   'memory/code-map.mem':  { mutables: [] },
@@ -33,7 +31,7 @@ const SCHEMAS = {
 
 // Files whose .plan.md counterpart must be kept in sync.
 const PAIRED = new Set([
-  'plan.mem', 'slice.mem', 'checkpoint.mem', 'risk.mem', 'budget.mem',
+  'plan.mem', 'slice.mem', 'checkpoint.mem', 'risk.mem',
   'memory/persona.mem', 'memory/aliases.mem', 'memory/entities.mem', 'memory/code-map.mem',
   'memory/hot.mem', 'memory/facts.mem', 'memory/failures.mem', 'memory/questions.mem',
   'decisions/log.mem',

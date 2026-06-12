@@ -92,48 +92,6 @@ function formatLogEntry(key, rawValue, timestamp) {
 }
 
 /**
- * Custom rendering for budget.mem: aggregates load entries and ranks by total tokens per file.
- */
-function renderBudget(entries) {
-  const lines = [GENERATED_HEADER, '', '## Budget', ''];
-
-  const fileStats = {};
-  for (const entry of entries) {
-    if (entry.appendOnly && entry.key === 'load') {
-      const fileM = entry.rawValue.match(/(?:^|,)file=([^,]+)/);
-      const tokensM = entry.rawValue.match(/(?:^|,)tokens=([^,]+)/);
-      if (fileM && tokensM) {
-        const file = fileM[1];
-        const tokens = parseInt(tokensM[1], 10);
-        if (!isNaN(tokens)) {
-          if (!fileStats[file]) fileStats[file] = { totalTokens: 0, loadCount: 0 };
-          fileStats[file].totalTokens += tokens;
-          fileStats[file].loadCount += 1;
-        }
-      }
-    }
-  }
-
-  const ranked = Object.entries(fileStats)
-    .map(([file, stats]) => ({ file, ...stats }))
-    .sort((a, b) => b.totalTokens - a.totalTokens);
-
-  if (ranked.length > 0) {
-    lines.push('### File Load Costs (Ranked)', '');
-    for (let i = 0; i < ranked.length; i++) {
-      const { file, totalTokens, loadCount } = ranked[i];
-      const plural = loadCount === 1 ? 'load' : 'loads';
-      lines.push(`${i + 1}. **${file}**: ${totalTokens} tokens (${loadCount} ${plural})`);
-    }
-    lines.push('');
-  } else {
-    lines.push('*(no load entries recorded)*', '');
-  }
-
-  return lines.join('\n');
-}
-
-/**
  * Convert a .mem file to .plan.md markdown content.
  * Returns the rendered string (including GENERATED_HEADER).
  */
@@ -141,10 +99,6 @@ function renderMem(filePath, relFile) {
   const entries = fs.existsSync(filePath)
     ? fs.readFileSync(filePath, 'utf8').split('\n').map(parseLine).filter(Boolean)
     : [];
-
-  if (relFile === 'budget.mem') {
-    return renderBudget(entries);
-  }
 
   const schema = SCHEMAS[relFile] || { mutables: [] };
   const mutKeys = schema.mutables;

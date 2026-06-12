@@ -49,12 +49,18 @@ The memory format is cheap; the machinery around it is expensive. Four sinks:
       reader uses `.memplan/memory/hot.mem`; `append` failed with EPERM on files locked
       by a prior `set`.
 
-## Phase 3 — delete dead weight, fix docs ⏳
+## Phase 3 — delete dead weight, fix docs ✅ (done 2026-06-12, v2.2.0)
 
-- [ ] Drop `record` Phase 5 (`budget.mem`) — no consumer.
-- [ ] Fix `docs/usage.md`: `steps.mem` → `plan.mem`; honest token numbers; align
-      `start`'s 500-token output cap with the advertised 50–80.
-- [ ] Gitignore the stray `.memplan/` dogfooding dirs (repo root and `plugins/memplan/`).
+- [x] Drop `record` Phase 5 (`budget.mem`) — no consumer. Also removed from the CLI:
+      `INITIAL_DEPS`, `SCHEMAS`, `PAIRED`, and the custom `renderBudget` in render.js.
+- [x] Fix `docs/usage.md`: `steps.mem` → `plan.mem`; honest token numbers (3-line
+      summary ≈40–80 tokens, hard cap 200 with warnings — `start` SKILL aligned);
+      removed duplicated "External tool integration" section; PostToolUse hook
+      description corrected (invokes the CLI, not `memplan/act`).
+- [x] Fix stale `steps.mem` references in the act/gaps/start evals and remove the
+      budget assertion + root `hot.mem` paths from the record evals.
+- [x] Gitignore `.memplan/` and untrack the dogfooding dirs that had leaked into git
+      (repo root and `plugins/memplan/`).
 
 Estimated impact: Phase 1 ≈ 1k tokens saved per session globally; Phases 2–3 cut
 per-invocation cost ~50–70% for `plan`, `act`, `record`, `review`.
@@ -100,6 +106,39 @@ From the session transcript JSONL under `~/.claude/projects/<project-slug>/`
    wrong answer doesn't count.
 
 Repeat ×3 per arm (agent runs are nondeterministic) and average.
+
+### How to measure token cost (harness)
+
+The raw data is the session transcript: Claude Code writes one JSONL file per session
+under `~/.claude/projects/<project-path-slug>/<session-uuid>.jsonl` (the slug is the
+project path with separators replaced by `-`). Every assistant message line carries
+`message.usage` with `input_tokens`, `output_tokens`, `cache_creation_input_tokens`,
+and `cache_read_input_tokens`; tool calls appear as `tool_use` content blocks with
+`name` and `input`.
+
+Plan: a small read-only script, `plugins/memplan/scripts/measure-session.mjs
+<transcript.jsonl> [--project-root <path>]`, that emits one JSON row per session:
+
+- `inputTokens`, `outputTokens`, `cacheWriteTokens`, `cacheReadTokens` — straight sums
+  over all assistant messages.
+- `weightedCost` — single comparable number using API price ratios relative to input:
+  `input×1 + output×~5 + cacheWrite×1.25 + cacheRead×0.1`. Raw sums alone mislead:
+  arm A and arm B have very different cache profiles, and output tokens cost ~5×.
+- `toolCalls` — `{ total, byName: { Bash: n, Read: n, Edit: n, … } }`.
+- `tokensBeforeFirstEdit` — cumulative weighted cost of all messages up to (and
+  including) the first `Edit`/`Write` tool_use whose `file_path` is inside
+  `--project-root` and not under `.memplan/`. This is the re-orientation metric
+  for session 2.
+
+Procedure per run: note the session UUID after each of the four sessions (2 arms ×
+2 sessions; `/status` shows it, or take the newest file in the project's transcript
+dir), run the script on each, and paste the rows into the results table. The script
+sums what the harness logged — it never needs API access — and lives outside the
+plugin's skill payload, so it adds zero tokens to memplan itself.
+
+Static overhead (metric 4) needs no transcript: it is the byte count of all nine
+frontmatter `description` blocks ÷ 4, reported as a standing per-session tax in
+arm A's column.
 
 ### Report
 

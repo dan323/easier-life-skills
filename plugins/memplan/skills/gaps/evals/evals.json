@@ -5,13 +5,13 @@
       "id": 0,
       "prompt": "Find gaps in the plan.",
       "description": "Happy path with planted gaps: plan contains a circular dep and a missing documentation step. Verifies both are detected.",
-      "setup": "mkdir -p /tmp/eval-gaps-0/.memplan/memory /tmp/eval-gaps-0/.memplan/decisions && printf '+step:id=1,text=implement-api,atomic=true,deps=3\\n+step:id=2,text=write-tests,deps=1,atomic=true\\n+step:id=3,text=setup-db,deps=2,atomic=true\\n' > /tmp/eval-gaps-0/.memplan/steps.mem && printf 'dep:checkpoint.mem=persona.mem\\ndep:persona.mem=checkpoint.mem\\n' > /tmp/eval-gaps-0/.memplan/deps.mem && touch /tmp/eval-gaps-0/.memplan/plan.mem /tmp/eval-gaps-0/.memplan/memory/entities.mem /tmp/eval-gaps-0/.memplan/memory/failures.mem /tmp/eval-gaps-0/.memplan/decisions/log.mem",
+      "setup": "mkdir -p /tmp/eval-gaps-0/.memplan/memory /tmp/eval-gaps-0/.memplan/decisions && printf '+step:id=1,text=implement-api,atomic=true,deps=3\\n+step:id=2,text=write-tests,deps=1,atomic=true\\n+step:id=3,text=setup-db,deps=2,atomic=true\\n' > /tmp/eval-gaps-0/.memplan/plan.mem && printf 'dep:checkpoint.mem=persona.mem\\ndep:persona.mem=checkpoint.mem\\n' > /tmp/eval-gaps-0/.memplan/deps.mem && touch /tmp/eval-gaps-0/.memplan/plan.mem /tmp/eval-gaps-0/.memplan/memory/entities.mem /tmp/eval-gaps-0/.memplan/memory/failures.mem /tmp/eval-gaps-0/.memplan/decisions/log.mem",
       "expected_output": "Numbered gap list. Gap 1: circular dependency (step 1 deps=3, step 3 deps=2, step 2 deps=1). Gap 2: plan has API step but no documentation step. No prose padding.",
       "files": [],
       "assertions": [
         {
           "id": "circular-dep-detected",
-          "text": "Output includes a gap about a circular dependency in steps.mem or deps.mem"
+          "text": "Output includes a gap about a circular dependency in plan.mem or deps.mem"
         },
         {
           "id": "missing-doc-step-detected",
@@ -27,7 +27,7 @@
       "id": 1,
       "prompt": "Audit the plan for issues.",
       "description": "Contradiction detection: persona.mem says 'append-only' for a key, but another file references clearing it. Verifies Check 2 fires.",
-      "setup": "mkdir -p /tmp/eval-gaps-1/.memplan/memory /tmp/eval-gaps-1/.memplan/decisions && printf '+step:id=1,text=clear-facts-mem,atomic=true\\n+step:id=2,text=read-doc,atomic=true\\n' > /tmp/eval-gaps-1/.memplan/steps.mem && printf 'test-policy:append-only-facts\\n' > /tmp/eval-gaps-1/.memplan/memory/persona.mem && touch /tmp/eval-gaps-1/.memplan/plan.mem /tmp/eval-gaps-1/.memplan/deps.mem /tmp/eval-gaps-1/.memplan/decisions/log.mem",
+      "setup": "mkdir -p /tmp/eval-gaps-1/.memplan/memory /tmp/eval-gaps-1/.memplan/decisions && printf '+step:id=1,text=clear-facts-mem,atomic=true\\n+step:id=2,text=read-doc,atomic=true\\n' > /tmp/eval-gaps-1/.memplan/plan.mem && printf 'test-policy:append-only-facts\\n' > /tmp/eval-gaps-1/.memplan/memory/persona.mem && touch /tmp/eval-gaps-1/.memplan/plan.mem /tmp/eval-gaps-1/.memplan/deps.mem /tmp/eval-gaps-1/.memplan/decisions/log.mem",
       "expected_output": "Output includes a gap about a contradiction between persona.mem (append-only) and the step that clears facts.mem.",
       "files": [],
       "assertions": [
@@ -41,7 +41,7 @@
       "id": 2,
       "prompt": "Check the plan for gaps.",
       "description": "Clean plan: no gaps present. Verifies 'No gaps found.' is printed and the skill runs without error.",
-      "setup": "mkdir -p /tmp/eval-gaps-2/.memplan/memory /tmp/eval-gaps-2/.memplan/decisions && printf '+step:id=1,text=write-readme,atomic=true\\n+step:id=2,text=write-changelog,deps=1,atomic=true\\n' > /tmp/eval-gaps-2/.memplan/steps.mem && printf '' > /tmp/eval-gaps-2/.memplan/deps.mem && touch /tmp/eval-gaps-2/.memplan/plan.mem /tmp/eval-gaps-2/.memplan/memory/entities.mem /tmp/eval-gaps-2/.memplan/decisions/log.mem",
+      "setup": "mkdir -p /tmp/eval-gaps-2/.memplan/memory /tmp/eval-gaps-2/.memplan/decisions && printf '+step:id=1,text=write-readme,atomic=true\\n+step:id=2,text=write-changelog,deps=1,atomic=true\\n' > /tmp/eval-gaps-2/.memplan/plan.mem && printf '' > /tmp/eval-gaps-2/.memplan/deps.mem && touch /tmp/eval-gaps-2/.memplan/plan.mem /tmp/eval-gaps-2/.memplan/memory/entities.mem /tmp/eval-gaps-2/.memplan/decisions/log.mem",
       "expected_output": "'No gaps found.' is printed. Skill does not write any files.",
       "files": [],
       "assertions": [

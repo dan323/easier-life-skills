@@ -83,8 +83,9 @@ If inbox had entries (Phase 1 applied ops > 0), append:
 
 Append any warning lines from Phase 3 (one per line, prefixed `⚠`).
 
-Total output must fit in 500 tokens or less. Do not add prose, greetings, or summaries
-beyond the format above.
+Total output must fit in 200 tokens or less, warnings included — the 3-line summary
+alone should land around 40–80. Do not add prose, greetings, or summaries beyond the
+format above.
 
 ---
 

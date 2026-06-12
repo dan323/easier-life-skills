@@ -94,7 +94,7 @@ The agent deletes all lines for that key and writes one `key:` line. Append-only
 
 - **Key chars**: `[a-z][a-z0-9-]*` — lowercase, hyphens only, no underscores
 - **Max line length**: 200 chars
-- **Max lines per file**: enforced per-file cap (see token-budget.plan.md)
+- **Max lines per file**: 200 (enforced by the CLI on append; overflow entries are redirected to `memory/overflow.mem`)
 - **Encoding**: UTF-8, LF line endings, one trailing newline, no BOM
 - `|` `,` `=` are structural — escape as `\|` `\,` `\=` only if they appear in a text value that would otherwise be misread; prefer rewording to avoid
 

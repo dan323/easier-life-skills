@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Removed
+- **memplan v2.2.0 — token-cost reduction, phase 3 (dead weight).** `budget.mem` is
+  gone: `record` no longer writes per-session token estimates nothing ever read, and
+  the CLI drops its deps entry, schema, paired rendering, and the custom
+  `renderBudget` renderer. Workspaces initialised by older versions keep their
+  existing `budget.mem` untouched; it is simply ignored.
+
 ### Added
 - **memplan v2.1.0 — token-cost reduction, phase 2.** Mechanical work moves from
   SKILL.md prose (re-read by the agent on every invocation) into `memplan-cli.js`:
@@ -28,6 +35,15 @@
 - **memplan: CLI compaction preserves entry order and non-matching lines** — the awk
   scripts it replaces emitted entries in hash order and silently dropped lines that
   didn't match the expected `+key:` pattern (e.g. `+cap-warning:`).
+- **memplan: docs and evals referenced a nonexistent `steps.mem`** (the pre-1.0 name
+  for `plan.mem`) in `docs/usage.md` and the act/gaps/start evals; the record evals
+  also asserted the removed `budget.mem` and the old root `hot.mem` path. `usage.md`
+  token claims made honest (3-line orient summary ≈40–80 tokens, hard cap 200 —
+  `start` SKILL aligned from 500), duplicate "External tool integration" section
+  removed, PostToolUse hook description corrected.
+- **Repo: `.memplan/` dogfooding workspaces are now gitignored** and the two
+  accidentally committed `deps.mem` files (repo root and `plugins/memplan/`) are
+  untracked.
 
 ### Changed
 - **memplan v2.0.0 — token-cost reduction, phase 1.** The plugin's always-on context

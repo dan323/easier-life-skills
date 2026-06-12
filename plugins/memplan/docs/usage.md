@@ -55,7 +55,7 @@ At the beginning of any working session:
 
 or: **"orient me"**, **"where were we"**
 
-The skill prints a 3-line summary in ≤80 tokens:
+The skill prints a 3-line summary (≈40–80 tokens; hard cap 200 including warnings):
 
 ```
 Step: 3/12 | implement-feedscript-parse-loop
@@ -89,7 +89,7 @@ For each step:
 or: **"execute step 2"**, **"do the next step"**
 
 The skill runs three pre-flight checks before executing — it will hard-halt if:
-- `steps.mem` is absent
+- `plan.mem` is absent
 - A dependency of the target step is not yet complete
 - A file this step reads is marked stale
 
@@ -105,7 +105,7 @@ At the end of every session:
 
 or: **"close session"**, **"record session"**
 
-Writes checkpoint (last/next action), a session digest, hot files, and budget.
+Writes checkpoint (last/next action), a session digest, and hot files.
 Deletes the risk file if the current multi-file change completed cleanly.
 
 ---
@@ -184,9 +184,7 @@ See `references/feedscript-v1.md` for the FeedScript v1 language reference.
   checkpoint.mem              # last/next action, open questions
   plan.mem                    # full plan, ≤20 steps
   slice.mem                   # next ≤5 ready-to-act steps
-  steps.mem                   # ordered implementation steps (required by act)
   risk.mem                    # what could break / irreversible / verify-first
-  budget.mem                  # per-session token load costs
 
   memory/
     persona.mem               # style rules, constraints, preferences
@@ -242,16 +240,5 @@ memplan works manually without any hooks. For full automation, configure two hoo
 **PreToolUse** — calls `memplan/start` on the first tool call of every session, so
 orientation always happens before any work begins.
 
-**PostToolUse (Write/Edit)** — calls `memplan/act` after every file change, keeping
-`code-map.mem`, `hot.mem`, and `progress` in sync automatically.
-
----
-
-## External tool integration
-
-Any external tool becomes a memplan plugin by writing a valid `.feedback` file to
-`.memplan/inbox/<tool-name>.feedback`. No registration or manifest required.
-
-[Plannotator](https://github.com/backnotprop/plannotator) is a ready-made example:
-it renders `plan.plan.md` as a visual annotation UI, then writes the result as a
-`.feedback` file — the agent picks it up on next session start.
+**PostToolUse (Write/Edit)** — invokes the CLI directly after every file change,
+keeping `memory/code-map.mem` and `memory/hot.mem` in sync automatically.
