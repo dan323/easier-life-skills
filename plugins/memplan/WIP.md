@@ -61,43 +61,54 @@ per-invocation cost ~50–70% for `plan`, `act`, `record`, `review`.
 
 ## Cost-savings measurement plan ⏳
 
-Goal: verify each phase's savings with numbers, not estimates. Three measurements,
-cheapest first.
+Goal: measure whether memplan **pays for itself** — the same set of actions performed
+with the plugin vs without it. (Not a comparison between plugin versions: that only
+shows our refactor made memplan cheaper, not that memplan is worth installing.)
 
-### M1 — Static footprint (no sessions needed)
+### The experiment — with vs without
 
-What the plugin costs before any skill runs.
+Two arms, identical fixture repo (copy of a small real project), identical task,
+identical prompts wherever the arms allow:
 
-- **Always-on cost**: token-count every skill's frontmatter `description` (+ name)
-  across versions. Approximate tokens as `chars / 4`, or exactly via
-  `npx tiktoken` / the Anthropic `count_tokens` API.
-- **Per-invocation cost**: token-count each SKILL.md body (loaded on every invocation).
-- Script idea: `node scripts/measure-footprint.js <git-ref>` — checks out the plugin at
-  a ref, prints a table `skill | description tokens | body tokens`. Run for `v1.4.0`
-  (commit 98909b1), Phase 1, and Phase 2 refs; record the table here.
+- **Arm A (memplan)**: plugin installed. Session 1: `bootstrap` → `plan` the task →
+  `act` the first ~half of the steps → `record`. Session 2 (fresh context):
+  hook/`start` orients → `act` the remaining steps → `record`.
+- **Arm B (vanilla)**: plugin not installed. Session 1: same task prompt, implement
+  the first half, end session. Session 2 (fresh context): "continue the task" —
+  Claude must re-orient from the code, git log, and its own devices.
 
-### M2 — Scenario benchmark (controlled A/B)
+The task must span **two sessions** — cross-session continuity is memplan's value
+proposition. A single-session comparison only shows memplan's overhead (bootstrap +
+plan ceremony) with no chance for the payoff (cheap re-orientation).
 
-Fixed scripted scenario run against both plugin versions in a throwaway project:
+### Metrics, per arm
 
-1. `bootstrap` → 2. `plan` a fixed 6-step task (same prompt verbatim) →
-3. `act` ×3 → 4. one `update-mem` note → 5. `record`.
+From the session transcript JSONL under `~/.claude/projects/<project-slug>/`
+(each assistant message carries a `usage` block):
 
-For each run capture, per skill invocation:
-- **Total tokens**: sum `usage.input_tokens` + `usage.output_tokens` from the session
-  transcript JSONL under `~/.claude/projects/<project-slug>/` (each assistant message
-  carries a `usage` block). Cache reads/writes counted separately.
-- **Bash round-trips**: count of Bash tool_use blocks (proxy for CLI-call overhead —
-  Phase 2's batch commands should cut this hardest: plan ~25 → ~2, record ~15 → ~4).
-- Repeat ×3 per version and average — agent runs are nondeterministic.
+1. **Total tokens, both sessions** — input + output; cache reads/writes tallied
+   separately. The headline number.
+2. **Re-orientation cost** — session 2 tokens spent before the first productive edit
+   (first Edit/Write to a project file). This is where arm A should win.
+3. **Tool-call counts** — total, and Bash specifically (memplan's CLI ceremony shows
+   up here; vanilla's exploration shows up as Read/Grep).
+4. **Standing overhead (arm A only)** — the skill descriptions in the system prompt
+   (≈ chars/4 of all frontmatter descriptions) are paid in *every* session, including
+   ones that never touch memplan. Report it alongside, since the break-even depends
+   on it.
+5. **Outcome check** — did both arms actually complete the task correctly? A cheaper
+   wrong answer doesn't count.
 
-### M3 — In-the-wild telemetry (optional, longer term)
-
-Enable Claude Code OTEL metrics (`CLAUDE_CODE_ENABLE_TELEMETRY=1`) and compare
-`claude_code.token.usage` across a week of real sessions before/after upgrading the
-plugin. Only worth it if M2 results look surprising.
+Repeat ×3 per arm (agent runs are nondeterministic) and average.
 
 ### Report
 
-Add a `## Measured results` section here with one table per measurement:
-`metric | v1.4.0 | phase 1 | phase 2 | Δ%`. Done-when: M1 and M2 tables filled in.
+Add a `## Measured results` section here:
+`metric | vanilla | memplan | Δ` per session and total, plus the break-even note
+(how many memplan-using sessions are needed to amortise the standing overhead).
+Done-when: the table is filled in and the conclusion (worth it / not / only for
+long-running projects) is written down.
+
+Secondary (already-implemented optimisation): the same harness run against memplan
+v1.4.0 (commit 98909b1) vs v2.1.0 quantifies phases 1–2, but that is a nice-to-have,
+not the question this plan answers.
