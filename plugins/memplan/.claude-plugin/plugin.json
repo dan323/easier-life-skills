@@ -1,6 +1,6 @@
 {
   "name": "memplan",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Persistent low-token working memory and structured planning for Claude Code",
   "author": {
     "name": "dan323"

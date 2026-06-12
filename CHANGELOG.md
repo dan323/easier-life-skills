@@ -10,6 +10,16 @@
   existing `budget.mem` untouched; it is simply ignored.
 
 ### Added
+- **memplan v2.3.0 — cost-experiment measurement harness.** New read-only tooling
+  under `plugins/memplan/scripts/` (outside the skill payload — zero token cost):
+  `measure-session.mjs` parses a Claude Code session transcript JSONL and emits
+  per-session metrics (`inputTokens`/`outputTokens`/cache tokens, a price-ratio
+  `weightedCost`, tool-call counts by name, and `tokensBeforeFirstEdit` — the
+  re-orientation metric that excludes `.memplan/` writes), with an `--overhead`
+  mode that reports the standing per-session cost of the skill frontmatter
+  descriptions (currently ≈455 tokens). Covered by `measure-session.test.mjs`
+  (node:test). `experiment.md` documents the with-vs-without run protocol from
+  `WIP.md`.
 - **memplan v2.1.0 — token-cost reduction, phase 2.** Mechanical work moves from
   SKILL.md prose (re-read by the agent on every invocation) into `memplan-cli.js`:
   - New CLI commands: `compact [file]` and `stale-compact` (the bulk-rewrite half of

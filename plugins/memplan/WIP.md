@@ -65,7 +65,12 @@ The memory format is cheap; the machinery around it is expensive. Four sinks:
 Estimated impact: Phase 1 ≈ 1k tokens saved per session globally; Phases 2–3 cut
 per-invocation cost ~50–70% for `plan`, `act`, `record`, `review`.
 
-## Cost-savings measurement plan ⏳
+## Cost-savings measurement plan ⏳ (harness implemented 2026-06-12 — runs pending)
+
+Harness + runbook live in `scripts/`: `measure-session.mjs` (per-session metrics
+from a transcript JSONL, plus `--overhead` for metric 4; tested in
+`measure-session.test.mjs`) and `experiment.md` (step-by-step run protocol).
+What remains is executing the runs and filling in `## Measured results`.
 
 Goal: measure whether memplan **pays for itself** — the same set of actions performed
 with the plugin vs without it. (Not a comparison between plugin versions: that only
@@ -116,7 +121,7 @@ project path with separators replaced by `-`). Every assistant message line carr
 and `cache_read_input_tokens`; tool calls appear as `tool_use` content blocks with
 `name` and `input`.
 
-Plan: a small read-only script, `plugins/memplan/scripts/measure-session.mjs
+Implemented: a small read-only script, `plugins/memplan/scripts/measure-session.mjs
 <transcript.jsonl> [--project-root <path>]`, that emits one JSON row per session:
 
 - `inputTokens`, `outputTokens`, `cacheWriteTokens`, `cacheReadTokens` — straight sums
@@ -136,9 +141,17 @@ dir), run the script on each, and paste the rows into the results table. The scr
 sums what the harness logged — it never needs API access — and lives outside the
 plugin's skill payload, so it adds zero tokens to memplan itself.
 
-Static overhead (metric 4) needs no transcript: it is the byte count of all nine
-frontmatter `description` blocks ÷ 4, reported as a standing per-session tax in
-arm A's column.
+Static overhead (metric 4) needs no transcript: `measure-session.mjs --overhead
+plugins/memplan` sums the byte count of all nine frontmatter `description` blocks
+÷ 4 — currently ≈455 tokens — reported as a standing per-session tax in arm A's
+column.
+
+Two transcript-format gotchas the script handles (worth knowing if it ever reads
+a future format): the harness writes one JSONL line **per content block**, all
+sharing one `message.id` and carrying the *same* `usage` object, so usage must be
+deduplicated by id or totals inflate ~3–10×; and `file_path` values mix `C:\…`,
+`/c/…`, and `/mnt/c/…` spellings, which the script normalises before the
+project-root check.
 
 ### Report
 
