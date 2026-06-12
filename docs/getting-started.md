@@ -1,10 +1,10 @@
-[← Back to README](../README.md)
+﻿[â† Back to README](../README.md)
 
 # Getting Started
 
 ## Prerequisites
 
-- **Claude Code** (`claude` CLI) — [install guide](https://claude.ai/code) — or **GitHub Copilot** with skills support
+- **Claude Code** (`claude` CLI) â€” [install guide](https://claude.ai/code) â€” or **GitHub Copilot** with skills support
 - **Git** (required by several skills at runtime)
 - **Bash** (Unix) or **PowerShell** (Windows) to run the installer
 
@@ -25,7 +25,7 @@ Then install individual plugins:
 
 ## First Use
 
-Skills trigger automatically when Claude recognises a matching request — you do not need to name the skill explicitly. For example:
+Skills trigger automatically when Claude recognises a matching request â€” you do not need to name the skill explicitly. For example:
 
 | You say                          | Skill triggered          | Plugin |
 |----------------------------------|--------------------------|--------|
@@ -41,13 +41,13 @@ Each skill produces output in your current working directory (report files, upda
 
 ## Marketplace Browser
 
-Browse all skills, agents, commands, hooks, and MCP servers at **https://dan323.github.io/easier-life-skills/**
+Browse all skills, agents, commands, hooks, and MCP servers at **https://ai.dan323.dev/**
 
 | Shortcut | Action |
 |----------|--------|
 | Press `/` | Focus the search box |
-| Click **A→Z** button | Toggle sort direction |
-| Click a plugin card | Open the right-side detail panel with full description and install command (also shows `/plugin marketplace add …` for non-builtin sources) |
+| Click **Aâ†’Z** button | Toggle sort direction |
+| Click a plugin card | Open the right-side detail panel with full description and install command (also shows `/plugin marketplace add â€¦` for non-builtin sources) |
 | Click a skill / agent / MCP / command / hook card | Open the left-side detail panel with full description, tools or events, source link, and install command |
 | Click a source tag | Filter by marketplace |
 | Click the `+` on a source tag | Copy `/plugin marketplace add <owner>/<repo>` to your clipboard |
@@ -62,5 +62,5 @@ Browse all skills, agents, commands, hooks, and MCP servers at **https://dan323.
 
 ## See Also
 
-- [Architecture](architecture.md) — how skills are structured and how they work
-- [Contributing a Skill](contributing.md) — how to write and test your own skill
+- [Architecture](architecture.md) â€” how skills are structured and how they work
+- [Contributing a Skill](contributing.md) â€” how to write and test your own skill

@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Fixed
+- **Web UI broke on the new custom domain (`ai.dan323.dev`) — nothing loaded.**
+  `fetchIndex` only served the deploy-time `skills_index.json` same-origin when the
+  hostname was `localhost`/`127.0.0.1` or `dan323.github.io`; on any other host it
+  fell back to `raw.githubusercontent.com`, where the file is not committed, so every
+  lookup 404ed. The builtin index is now always fetched relative to the page first
+  (works on any host), with the raw fallback unchanged for external marketplaces.
+- **Old GitHub Pages URL replaced with `https://ai.dan323.dev/` everywhere it is
+  live-facing:** `index.html` canonical/OG/Twitter metadata, `robots.txt` sitemap
+  pointer, `BASE_URL` in `scripts/build-index.ts` (sitemap + og-image footer),
+  README badge/link, `docs/getting-started.md`, the ratings discussion template,
+  and the installer's default index URL (installer bumped to 1.9.1; the
+  `EASIER_LIFE_SKILLS_INDEX_URL` env var still overrides). Historical documents
+  (old CHANGELOG entries, `site-audit-report.md`, ADR 0009) keep the old URL.
+
 ### Removed
 - **memplan v2.2.0 — token-cost reduction, phase 3 (dead weight).** `budget.mem` is
   gone: `record` no longer writes per-session token estimates nothing ever read, and

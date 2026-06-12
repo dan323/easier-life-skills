@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://dan323.github.io/easier-life-skills/sitemap.xml
+Sitemap: https://ai.dan323.dev/sitemap.xml

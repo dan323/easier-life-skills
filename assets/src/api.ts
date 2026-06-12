@@ -5,12 +5,15 @@ const GITHUB_API  = 'https://api.github.com/repos';
 const BRANCH      = 'master';
 
 export async function fetchIndex(ownerRepo: string, builtin = false): Promise<SkillsIndex> {
-  if (builtin && ['localhost', '127.0.0.1'].includes(window.location.hostname)) {
-    const res = await fetch('/skills_index.json');
-    if (res.ok) return res.json() as Promise<SkillsIndex>;
-  } else if (builtin && window.location.hostname === 'dan323.github.io') {
-    const res = await fetch('/easier-life-skills/skills_index.json');
-    if (res.ok) return res.json() as Promise<SkillsIndex>;
+  if (builtin) {
+    // The builtin index is generated at deploy time and served same-origin
+    // (it is not committed to the repo, so the raw.githubusercontent.com
+    // fallback below 404s for it). Resolve relative to the page so this
+    // works on any host — localhost, *.github.io subpaths, custom domains.
+    try {
+      const res = await fetch('skills_index.json');
+      if (res.ok) return res.json() as Promise<SkillsIndex>;
+    } catch { /* fall through to the raw fetch */ }
   }
   const url = `${RAW_BASE}/${ownerRepo}/${BRANCH}/skills_index.json`;
   const res  = await fetch(url);

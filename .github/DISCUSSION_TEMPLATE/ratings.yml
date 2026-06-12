@@ -1,11 +1,11 @@
-title: "[Review] "
+﻿title: "[Review] "
 labels: []
 body:
   - type: markdown
     attributes:
       value: |
-        Rate any entity from the [easier-life-skills marketplace](https://dan323.github.io/easier-life-skills/).
-        One review per entity per person — duplicate submissions for the same entity will use the most recent one.
+        Rate any entity from the [easier-life-skills marketplace](https://ai.dan323.dev/).
+        One review per entity per person â€” duplicate submissions for the same entity will use the most recent one.
 
   - type: dropdown
     id: entity_type
