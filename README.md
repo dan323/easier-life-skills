@@ -54,7 +54,7 @@ Browse and search skills, agents, commands, hooks, and MCP servers from **multip
 | Action                          | What it does                                                                                          |
 |---------------------------------|-------------------------------------------------------------------------------------------------------|
 | Press **`/`**                   | Focus the search box                                                                                  |
-| Toggle **Aâ†’Z / Zâ†’A**             | Flip sort direction                                                                                   |
+| Toggle **A→Z / Z→A**             | Flip sort direction                                                                                   |
 | Click a **source tag**           | Filter results down to that marketplace                                                              |
 | Click the **`+`** on a tag       | Copy `/plugin marketplace add <owner>/<repo>` to your clipboard                                       |
 | Click a **plugin card**          | Open a detail panel; for non-builtin sources the panel shows both the `marketplace add` and `plugin install` commands |
