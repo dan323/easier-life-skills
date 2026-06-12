@@ -46,8 +46,8 @@ Browse all skills, agents, commands, hooks, and MCP servers at **https://ai.dan3
 | Shortcut | Action |
 |----------|--------|
 | Press `/` | Focus the search box |
-| Click **Aâ†’Z** button | Toggle sort direction |
-| Click a plugin card | Open the right-side detail panel with full description and install command (also shows `/plugin marketplace add â€¦` for non-builtin sources) |
+| Click **A→Z** button | Toggle sort direction |
+| Click a plugin card | Open the right-side detail panel with full description and install command (also shows `/plugin marketplace add …` for non-builtin sources) |
 | Click a skill / agent / MCP / command / hook card | Open the left-side detail panel with full description, tools or events, source link, and install command |
 | Click a source tag | Filter by marketplace |
 | Click the `+` on a source tag | Copy `/plugin marketplace add <owner>/<repo>` to your clipboard |
