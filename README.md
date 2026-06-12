@@ -61,7 +61,7 @@ Browse and search skills, agents, commands, hooks, and MCP servers from **multip
 
 The list of aggregated marketplaces is defined in [`marketplaces.json`](marketplaces.json); a PR adding your own marketplace there will surface it on the next build.
 
-The deployed site uses **Google Analytics 4** for aggregate engagement metrics (panel opens and install-command copies). Visitors see a consent banner on first visit with equally-prominent Accept / Decline buttons (Consent Mode v2; default-denied until accepted; revocable from the footer at any time). No PII is captured and forks/local dev have it off by default â€” see [`docs/architecture.md` â†’ Analytics](docs/architecture.md#analytics) for details and how to wire your own GA4 id.
+The deployed site uses **Google Analytics 4** for aggregate engagement metrics (panel opens and install-command copies). Visitors see a consent banner on first visit with equally-prominent Accept / Decline buttons (Consent Mode v2; default-denied until accepted; revocable from the footer at any time). No PII is captured and forks/local dev have it off by default — see [`docs/architecture.md` → Analytics](docs/architecture.md#analytics) for details and how to wire your own GA4 id.
 
 ## Bundles
 
