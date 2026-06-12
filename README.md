@@ -1,4 +1,4 @@
-﻿# easier-life-skills
+# easier-life-skills
 
 [![Claude Code Marketplace](https://ai.dan323.dev/badge.svg)](https://ai.dan323.dev/)
 
