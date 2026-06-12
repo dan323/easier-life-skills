@@ -25,7 +25,7 @@ Then install individual plugins:
 
 ## First Use
 
-Skills trigger automatically when Claude recognises a matching request â€” you do not need to name the skill explicitly. For example:
+Skills trigger automatically when Claude recognises a matching request — you do not need to name the skill explicitly. For example:
 
 | You say                          | Skill triggered          | Plugin |
 |----------------------------------|--------------------------|--------|
