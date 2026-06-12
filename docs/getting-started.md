@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-- **Claude Code** (`claude` CLI) â€” [install guide](https://claude.ai/code) â€” or **GitHub Copilot** with skills support
+- **Claude Code** (`claude` CLI) — [install guide](https://claude.ai/code) — or **GitHub Copilot** with skills support
 - **Git** (required by several skills at runtime)
 - **Bash** (Unix) or **PowerShell** (Windows) to run the installer
 
