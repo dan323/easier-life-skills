@@ -250,7 +250,7 @@ console.log(`✓ CATALOG.md`);
 writeFileSync(join(ROOT, 'catalog.html'), generateCatalogHtml(allSkills, allAgents, allMcpServers, allCommands, allHooks, allPlugins, BUNDLES, marketplaces, sourceInfo));
 console.log(`✓ catalog.html`);
 
-const BASE_URL = 'https://dan323.github.io/easier-life-skills';
+const BASE_URL = 'https://ai.dan323.dev';
 const today    = new Date().toISOString().slice(0, 10);
 
 // --- Search index (BM25 with Robertson IDF²) ---
@@ -394,7 +394,7 @@ const ogSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"
   <text x="620" y="390" font-size="24" font-family="system-ui,sans-serif" fill="#58a6ff" font-weight="600">${marketplaces.length}</text>
   <text x="620" y="420" font-size="18" font-family="system-ui,sans-serif" fill="#8b949e">marketplaces</text>
   <!-- url -->
-  <text x="80" y="570" font-size="20" font-family="system-ui,sans-serif" fill="#30363d">dan323.github.io/easier-life-skills</text>
+  <text x="80" y="570" font-size="20" font-family="system-ui,sans-serif" fill="#30363d">ai.dan323.dev</text>
 </svg>`;
 writeFileSync(join(ROOT, 'assets', 'og-image.svg'), ogSvg);
 console.log(`✓ assets/og-image.svg`);

@@ -41,7 +41,7 @@ Each skill produces output in your current working directory (report files, upda
 
 ## Marketplace Browser
 
-Browse all skills, agents, commands, hooks, and MCP servers at **https://dan323.github.io/easier-life-skills/**
+Browse all skills, agents, commands, hooks, and MCP servers at **https://ai.dan323.dev/**
 
 | Shortcut | Action |
 |----------|--------|

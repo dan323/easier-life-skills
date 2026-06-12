@@ -2,7 +2,7 @@
 // @dan323/easier-life-skills CLI installer
 //
 // Discovery uses the marketplace index at
-//   https://dan323.github.io/easier-life-skills/skills_index.json
+//   https://ai.dan323.dev/skills_index.json
 //
 // Installation always goes through Claude Code's own `claude plugin` CLI so
 // every install lands in `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`
@@ -37,7 +37,7 @@ import { installItemsRespectingSource } from '../lib/actions.js';
 import type { Index, Plugin } from '../lib/types.js';
 
 const INDEX_URL = process.env.EASIER_LIFE_SKILLS_INDEX_URL
-  || 'https://dan323.github.io/easier-life-skills/skills_index.json';
+  || 'https://ai.dan323.dev/skills_index.json';
 const LOCAL_MARKETPLACE = 'easier-life-skills';
 
 // ── CLI args ──────────────────────────────────────────────────────────────────
