@@ -1,11 +1,8 @@
 ---
 name: record
 description: >
-  End-of-session close: writes checkpoint.mem, per-session digest, memory/hot.mem, budget.mem.
-  Deletes risk files after a clean multi-file close. Appends session-discovered aliases
-  and facts. Agent decides content; CLI handles file mechanics. Call at the end of every
-  working session. Trigger phrases: "memplan record", "close session", "end session",
-  "record session", "save session state".
+  End-of-session close: write checkpoint, session digest, and hot files; record new
+  aliases and facts. Trigger: "memplan record", "close session".
 tools: Bash, Read, Grep
 ---
 

@@ -1,11 +1,9 @@
 ---
 name: refine
 description: >
-  Decomposes coarse steps into atomic sub-steps: reads plan.mem, checks atomicity
-  criteria (>2 files, >1 verb clause, no single done-condition), generates sub-steps
-  (N → N.1, N.2, ..., N.K), marks parent refined=true, updates progress denominator
-  to count only leaf steps. Idempotent: skips already-refined unless force=true.
-  Trigger phrases: "memplan refine", "refine step N", "break down step", "decompose step".
+  Decompose a coarse plan step into ≤5 atomic sub-steps (N.1…N.K), mark the parent
+  refined=true, and recount the progress denominator. Idempotent. Trigger:
+  "memplan refine", "refine step N".
 tools: Bash, Read, Grep
 ---
 

@@ -1,13 +1,10 @@
 ---
 name: update-mem
 description: >
-  Apply any mid-session learning or plan change to the right .mem file(s), then
-  propagate staleness to dependents. Triggered whenever a prompt contains new
-  information that should be persisted: a plan step change, a new entity, a fact,
-  a constraint, an alias, a persona preference, or an open question. Trigger phrases:
-  "add X to the plan", "remove step N", "note that", "remember that", "we discovered",
-  "X is short for Y", "from now on", "the entity X is", "there's a new concept",
-  "update the plan to", "add a fact", "add an alias", "I prefer", "add a question".
+  Persist a mid-session memplan update to the right .mem file: plan step changes,
+  entities, facts, aliases, persona preferences, open questions, decisions, failures.
+  Deduplicates and propagates staleness. Trigger: "memplan note", "memplan remember",
+  "add step N to the plan", "record decision", "log an open question".
 tools: Bash, Read, Grep
 ---
 
@@ -51,6 +48,7 @@ multiple updates — handle each in turn.
 | Short-form → full meaning | `memory/aliases.mem` | `set` |
 | Style rule, tool preference, workflow constraint | `memory/persona.mem` | `set` |
 | Unanswered question for the human | `memory/questions.mem` | `append … question` |
+| Non-obvious decision with rationale | `decisions/log.mem` | `append … decision` + `render` |
 | Known failure or dead end | `memory/failures.mem` | `append … failure` |
 
 If the update does not fit any category, skip it and tell the user what was not
@@ -61,7 +59,8 @@ persisted and why.
 - Aliases: `grep "^<key>:" .memplan/memory/aliases.mem` — skip if key already exists with same value.
 - Facts: `grep "<tag>" .memplan/memory/facts.mem` — skip if a fact with matching tag already exists.
 - Entities: `grep "name=<name>" .memplan/memory/entities.mem` — skip if already recorded.
-- Questions: `grep "<text>" .memplan/memory/questions.mem` — skip if an open question with matching text exists.
+- Questions: `grep "status=open" .memplan/memory/questions.mem | grep -F "text=<text>"` — skip if an open question with matching text exists (closed/answered questions do not block a new ask).
+- Decisions: `grep -F "+decision:choice=<choice>,because=<because>" .memplan/decisions/log.mem` — skip if the same choice+because pair exists.
 
 ---
 
@@ -127,6 +126,17 @@ node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . memory/persona.mem "<key>" "
 node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/questions.mem question \
   "id=$(date -u +%Y-%m-%dT%H:%MZ),text=<text>,status=open"
 ```
+
+**Decision:**
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . decisions/log.mem decision \
+  "choice=<choice>,because=<because>"
+# decisions/log.mem is not auto-rendered on append — trigger it explicitly:
+node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" render . decisions/log.mem
+```
+
+Ensure neither value contains unescaped `,` or `|` — reword slightly, or escape with `\,` / `\|`.
 
 **Failure:**
 

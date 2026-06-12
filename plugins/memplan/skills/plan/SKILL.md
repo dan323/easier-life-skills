@@ -1,11 +1,9 @@
 ---
 name: plan
 description: >
-  Create or update the implementation plan: writes plan.mem + plan.plan.md (≤20 numbered
-  steps) and slice.mem + slice.plan.md (next ≤5 atomic steps). Checks prior failures,
-  risks, entities, and decisions. Infers step dependencies. Initialises progress. Writes
-  risk files when needed. Sub-agents launched in plan mode. Trigger phrases: "plan this",
-  "create a plan", "memplan plan", "define steps", "what are the steps for", "write a plan for".
+  Create or update plan.mem and slice.mem (≤20 numbered steps with inferred
+  dependencies), initialise progress, write risk files when needed. Trigger:
+  "memplan plan", "plan this task".
 tools: Bash, Read, Grep, TaskCreate, TaskUpdate, EnterPlanMode, ExitPlanMode
 ---
 

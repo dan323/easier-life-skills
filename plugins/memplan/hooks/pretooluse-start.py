@@ -71,9 +71,11 @@ def main() -> int:
             cwd=working_directory,
             timeout=5
         )
-        # inbox output is printed by the CLI itself
-        if result.returncode == 0 and result.stdout:
-            print(result.stdout.rstrip())
+        # Only surface inbox output when ops were actually applied — printing
+        # "inbox: 0 ops applied" would inject useless tokens into every session.
+        stdout = result.stdout.rstrip() if result.stdout else ""
+        if result.returncode == 0 and stdout and not stdout.startswith("inbox: 0 ops applied"):
+            print(stdout)
         inbox_ok = result.returncode == 0
     except Exception:
         pass  # Inbox processing is optional

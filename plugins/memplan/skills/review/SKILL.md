@@ -1,11 +1,9 @@
 ---
 name: review
 description: >
-  Weekly memory hygiene: resolves stale.mem entries, compacts append-only files
-  (entities.mem, facts.mem, etc.), merges overflow.mem, removes duplicates across all
-  files, regenerates all .plan.md files via render-all, produces human-readable summary.
-  Human-initiated only — never automatic. This is the ONLY skill that bulk-rewrites
-  .plan.md files and resolves stale.mem entries.
+  Weekly memory hygiene: resolve stale entries, compact append-only .mem files,
+  merge overflow, regenerate all .plan.md files. Human-initiated only — never
+  automatic. Trigger: "memplan review".
 tools: Bash, Read, Grep
 ---
 
@@ -34,7 +32,7 @@ Before starting:
 
 1. **Check .memplan/ exists:**
    ```bash
-   [ -d .memplan ] || { echo "No .memplan/ directory — run memplan/init first"; exit 1; }
+   [ -d .memplan ] || { echo "No .memplan/ directory — run memplan/bootstrap first"; exit 1; }
    ```
 
 2. **List unresolved stale entries:**

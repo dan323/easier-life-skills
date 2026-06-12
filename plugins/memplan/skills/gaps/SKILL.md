@@ -1,11 +1,9 @@
 ---
 name: gaps
 description: >
-  Read-only analysis skill: scans .memplan/ plan files for undefined references,
-  contradictions, missing behaviours, phase ordering violations, uncovered error paths,
-  format inconsistencies, circular deps, and missing documentation steps. Outputs a
-  numbered gap list — no files written. Trigger phrases: "memplan gaps", "find gaps",
-  "audit the plan", "check the plan for issues", "what's missing from the plan".
+  Read-only audit of .memplan/ plan files across 8 gap categories (contradictions,
+  circular deps, missing behaviours, uncovered error paths, …). Outputs a numbered
+  gap list; writes nothing. Trigger: "memplan gaps", "audit the plan".
 tools: Bash, Read, Grep
 ---
 

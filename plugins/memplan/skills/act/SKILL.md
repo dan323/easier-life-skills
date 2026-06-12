@@ -1,11 +1,9 @@
 ---
 name: act
 description: >
-  Execute a single plan step or refined step with sub-steps: pre-flight checks (missing steps,
-  unmet deps, stale reads), run atomic steps directly or iterate through sub-steps for refined
-  steps, update progress, record entities/code-map, record failures, propagate staleness to
-  dependents. All I/O via memplan-cli.js. Hard-halts on pre-flight failures. Trigger phrases:
-  "memplan act", "execute next step", "run step N", "do the next step", "act on step".
+  Execute one plan step (or a refined step's sub-steps) with pre-flight dependency
+  and staleness checks, then update progress and memory. Trigger: "memplan act",
+  "do the next step", "run step N".
 tools: Bash, Read, Grep, Edit, Write, TaskCreate, TaskUpdate
 ---
 
@@ -84,7 +82,7 @@ node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" stale-list .
 ```
 
 If any unresolved stale entry affects a file this step will read: halt and output:
-`⚠ <file> is stale — resolve via memplan/inbox or memplan/review before proceeding.`
+`⚠ <file> is stale — resolve inline (below) or via memplan/review before proceeding.`
 
 To resolve inline: read the stale file and all its sources from `deps.mem`, update the
 file if needed, then:

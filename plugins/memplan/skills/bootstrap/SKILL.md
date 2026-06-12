@@ -1,14 +1,12 @@
 ---
-name: init
+name: bootstrap
 description: >
-  Bootstrap a new .memplan/ workspace in the current project. Run once when .memplan/ does not
-  exist. Creates all directories, stub .mem files, deps.mem, deps-closure.mem, and
-  generates locked .plan.md counterparts. Idempotent — safe to re-run. Trigger phrases:
-  "initialise memplan", "set up memplan", "bootstrap memplan", "init memplan", "create .memplan".
+  Bootstrap a new .memplan/ workspace (directories, stub .mem files, locked .plan.md
+  counterparts). Idempotent. Trigger: "init memplan", "set up memplan".
 tools: Bash, Read
 ---
 
-# memplan/init
+# memplan/bootstrap
 
 Creates the full `.memplan/` workspace for the current project. Delegates all directory
 creation and file writing to `memplan-cli.js init` — the agent adds only the

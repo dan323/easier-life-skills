@@ -1,11 +1,9 @@
 ---
 name: start
 description: >
-  Orient at the start of a session: process inbox, read progress/checkpoint/persona/hot,
-  surface relevant aliases, print a 3-line summary. Token target 50–80 tokens (+ 30 if
-  inbox had entries). No file writes. Triggered manually or by PreToolUse hook on the first
-  tool call of a session. Trigger phrases: "orient", "start session", "memplan start",
-  "where were we", "what's the current plan status".
+  Orient at session start: process pending inbox feedback, read
+  progress/checkpoint/persona/hot files, print a 3-line summary. Trigger:
+  "memplan start", "where were we", "process feedback".
 tools: Bash, Read, Grep
 ---
 
@@ -16,7 +14,7 @@ session can begin with full context at minimum token cost.
 
 **This skill writes one file:** `.memplan/.session` — a session marker read by
 `memplan/update-mem` to confirm orientation happened before any writes. All other
-writes are delegated to `memplan/inbox` when the inbox is non-empty.
+writes are CLI side-effects of inbox processing (Phase 1).
 
 ---
 

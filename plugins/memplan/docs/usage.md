@@ -14,16 +14,18 @@ init → plan → act → record → start → plan → act → record → …
 
 | Skill | When to call |
 |-------|-------------|
-| `memplan/init` | Once, on a new project |
+| `memplan/bootstrap` | Once, on a new project |
 | `memplan/start` | At the top of every session |
 | `memplan/plan` | When starting a new task |
 | `memplan/act` | To execute each plan step |
-| `memplan/update-mem` | Any time new information or a plan change comes up mid-session |
-| `memplan/inbox` | Automatically by `start`; or manually to flush feedback |
+| `memplan/update-mem` | Any time new information, a plan change, a decision, or an open question comes up mid-session |
 | `memplan/record` | At the end of every session |
 | `memplan/gaps` | On demand, to audit the plan for issues |
-| `memplan/decide` | To record a non-obvious decision with rationale |
 | `memplan/review` | Weekly, for memory hygiene (human-initiated only) |
+
+> Inbox feedback is processed automatically by `memplan/start` (or the PreToolUse hook);
+> decisions and open questions are recorded via `memplan/update-mem`. The former
+> standalone `inbox`, `decide`, and `ask` skills were merged in v2.0.0.
 
 ---
 
@@ -34,7 +36,7 @@ init → plan → act → record → start → plan → act → record → …
 Run once in the project root:
 
 ```
-/init
+/bootstrap
 ```
 
 or type: **"initialise memplan for this project"**
@@ -150,6 +152,7 @@ propagates staleness to any dependent files automatically:
 | Short-form → full meaning | `memory/aliases.mem` |
 | Style or workflow preference | `memory/persona.mem` |
 | Unanswered question | `memory/questions.mem` |
+| Non-obvious decision with rationale | `decisions/log.mem` |
 
 Duplicates are silently skipped — the same entity or fact is never recorded twice.
 

@@ -80,6 +80,46 @@
           "text": ".memplan/memory/facts.mem remains empty — no fact was written"
         }
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Record decision: we chose Postgres over SQLite because the team already runs Postgres in production.",
+      "description": "Decision recording (merged from the former memplan/decide skill). Verifies the decision is appended to decisions/log.mem, log.plan.md is rendered, and a re-run with the same choice+because pair is skipped as a duplicate.",
+      "setup": "mkdir -p /tmp/eval-update-mem-4/.memplan/memory /tmp/eval-update-mem-4/.memplan/decisions && touch /tmp/eval-update-mem-4/.memplan/decisions/log.mem && printf '' > /tmp/eval-update-mem-4/.memplan/deps-closure.mem && printf '' > /tmp/eval-update-mem-4/.memplan/stale.mem && date -u +%Y-%m-%dT%H:%MZ > /tmp/eval-update-mem-4/.memplan/.session",
+      "expected_output": "decisions/log.mem gains a timestamped +decision:choice=...,because=... entry and decisions/log.plan.md is regenerated. Running the skill again with the same prompt skips the write and reports a duplicate.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "decision-written",
+          "text": ".memplan/decisions/log.mem contains a +decision: entry with a choice mentioning Postgres and a because mentioning production"
+        },
+        {
+          "id": "plan-md-rendered",
+          "text": ".memplan/decisions/log.plan.md exists and reflects the new decision"
+        },
+        {
+          "id": "no-duplicate-on-rerun",
+          "text": "Running the skill again with the same prompt does not create a second +decision: entry"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Log an open question: should the installer support offline mode?",
+      "description": "Question recording (merged from the former memplan/ask skill). Verifies dedup against open questions only — a closed question with the same text does not block a new ask.",
+      "setup": "mkdir -p /tmp/eval-update-mem-5/.memplan/memory /tmp/eval-update-mem-5/.memplan/decisions && printf '~2026-01-01T10:00Z +question:id=~2026-01-01T10:00Z,text=should the installer support offline mode?,status=closed\\n' > /tmp/eval-update-mem-5/.memplan/memory/questions.mem && printf '' > /tmp/eval-update-mem-5/.memplan/deps-closure.mem && printf '' > /tmp/eval-update-mem-5/.memplan/stale.mem && date -u +%Y-%m-%dT%H:%MZ > /tmp/eval-update-mem-5/.memplan/.session",
+      "expected_output": "questions.mem gains a new +question: entry with status=open despite the closed question with identical text. A second run with the same prompt is skipped (open duplicate now exists).",
+      "files": [],
+      "assertions": [
+        {
+          "id": "question-written-despite-closed",
+          "text": ".memplan/memory/questions.mem contains a new status=open question about installer offline mode, in addition to the pre-existing closed one"
+        },
+        {
+          "id": "open-duplicate-skipped",
+          "text": "Running the skill again with the same prompt does not append a third entry"
+        }
+      ]
     }
   ]
 }

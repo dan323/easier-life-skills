@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Changed
+- **memplan v2.0.0 — token-cost reduction, phase 1.** The plugin's always-on context
+  footprint (skill descriptions loaded into every session's system prompt) is cut
+  roughly in half:
+  - All skill frontmatter descriptions rewritten to 1–2 sentences with trimmed
+    trigger-phrase lists.
+  - `update-mem` no longer triggers on generic phrases ("note that", "I prefer",
+    "from now on") that fired in conversations unrelated to memplan — triggers are now
+    memplan-explicit.
+  - **Breaking:** the `ask`, `decide`, and `inbox` skills are removed. `ask` and
+    `decide` are merged into `update-mem` (which now routes decisions to
+    `decisions/log.mem` with dedup and explicit render, and dedups questions against
+    open entries only); `inbox` was a thin wrapper around `memplan-cli.js inbox`,
+    which `memplan/start` and the PreToolUse hook already invoke directly. 12 skills → 9.
+  - **Breaking:** the `init` skill is renamed to `bootstrap` — `/init` clashed with
+    Claude Code's built-in `/init` (CLAUDE.md generator). The `memplan-cli.js init`
+    subcommand keeps its name (no clash at the CLI level).
+  - The PreToolUse hook no longer prints `inbox: 0 ops applied, 0 errors` into the
+    session context when the inbox is empty.
+  - Remaining phases (CLI batch commands, auto-staleness propagation, `compact`
+    subcommand, dead-weight removal) are tracked in `plugins/memplan/WIP.md`.
+
 ### Added
 - **memplan v1.4.0**: New `PreToolUse` hook (`pretooluse-start.py`) fires automatically on the first tool call of each Claude session. It reads the hook payload's `cwd` field to locate the project `.memplan/` directory, uses the `session_id` field to detect session boundaries (stored in `.memplan/.session_id`), and invokes `memplan-cli inbox` to process the inbox before recording the session. The session marker is only written after successful orientation, so `memplan/update-mem` cannot run without the hook having completed its work.
 - **memplan v1.3.0**: New `review` skill for weekly memory hygiene
