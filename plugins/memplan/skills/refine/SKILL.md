@@ -152,26 +152,11 @@ node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" progress . <M> <L> "<current-step-
 Only steps **without** `refined=true` are counted. If step 3 is refined into 3.1–3.5,
 the denominator counts 3.1, 3.2, 3.3, 3.4, 3.5 (5 steps), not 6 (3 + 3.1–3.5).
 
----
-
-## Phase 5: Propagate staleness
-
-For every file written in Phase 3 (`plan.mem` and `progress`), look up dependents in
-`deps-closure.mem` and mark them stale:
-
-```bash
-cat .memplan/deps-closure.mem
-```
-
-For each dependent of `plan.mem` or `progress`:
-
-```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" stale-mark . "<dependent>" "plan.mem"
-```
+Staleness propagation is automatic on every CLI write — no manual `stale-mark` calls.
 
 ---
 
-## Phase 6: Confirm
+## Phase 5: Confirm
 
 Print:
 

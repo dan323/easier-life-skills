@@ -50,8 +50,8 @@ Produce a numbered list of steps for the task. Rules:
 - Two steps executable in parallel after a shared predecessor get no `deps` on each other.
 - Identify `atomic=true` steps (touch ≤2 files, one verb clause, single verifiable done-condition).
 
-Also draft `slice`: the ≤5 steps on the ready frontier (steps whose `deps` are all
-complete, or steps with no deps). These are the first actions to take.
+The slice (ready frontier) is computed automatically by `plan-write` in Phase 3 —
+do not draft it by hand.
 
 **Risk check**: If the task touches ≥3 files or any irreversible operation (delete, drop,
 force-push, migrate), set `needs-risk=true` and draft risk content for risk.mem/risk.plan.md:
@@ -63,63 +63,32 @@ force-push, migrate), set `needs-risk=true` and draft risk content for risk.mem/
 
 ## Phase 3: Write plan files
 
-Write each step to `plan.mem`:
+One CLI call writes everything — plan.mem, progress, slice.mem (ready frontier),
+optional risk.mem — and propagates staleness automatically:
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . plan.mem title "<task-title>"
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . plan.mem step-count "#<N>"
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . plan.mem status not-started
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . plan.mem step "id=1,text=<text>,atomic=true"
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . plan.mem step "id=2,text=<text>,deps=1,atomic=true"
-# ... repeat for each step
+node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" plan-write . << 'EOF'
+{
+  "title": "<task-title>",
+  "steps": [
+    { "id": "1", "text": "<text>", "atomic": true },
+    { "id": "2", "text": "<text>", "deps": "1", "atomic": true }
+  ],
+  "risk": {
+    "what-could-break": "<text>",
+    "irreversible": "<text>",
+    "verify-first": "<text>"
+  }
+}
+EOF
 ```
 
-Initialise progress:
-
-```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" progress . 0 <N> "not started"
-```
-
-Write slice:
-
-```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . slice.mem title "next-steps"
-# For each ready step:
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . slice.mem step "id=<ID>,text=<text>"
-```
-
-Write risk files if `needs-risk=true` (paired risk.mem + risk.plan.md):
-
-```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . risk.mem what-could-break "<text>"
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . risk.mem irreversible "<text>"
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . risk.mem verify-first "<text>"
-```
-
-These `set` commands render `.memplan/risk.plan.md` automatically (paired file).
-
-Halt and report error if any CLI command exits non-zero.
+Omit the `"risk"` key when `needs-risk=false`. The command prints
+`plan-write: <N> steps, <K> ready` on success. Halt and report error on non-zero exit.
 
 ---
 
-## Phase 4: Propagate staleness
-
-For every file written in Phase 3, look up its dependents in `deps-closure.mem` and
-mark them stale:
-
-```bash
-cat .memplan/deps-closure.mem
-```
-
-For each dependent of `plan.mem`, `slice.mem`, `progress`, or `risk.mem` that was written:
-
-```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" stale-mark . "<dependent>" "<source>"
-```
-
----
-
-## Phase 5: Confirm
+## Phase 4: Confirm
 
 Print:
 

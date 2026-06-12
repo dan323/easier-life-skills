@@ -147,27 +147,12 @@ node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/failures.mem failu
 
 Halt and report if any CLI command exits non-zero.
 
----
-
-## Phase 3: Propagate staleness
-
-For every file written in Phase 2, look up its dependents in `deps-closure.mem`:
-
-```bash
-cat .memplan/deps-closure.mem
-```
-
-For each dependent of a file that was written:
-
-```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" stale-mark . "<dependent>" "<source>"
-```
-
-Skip propagation only if no file tracked in `deps.mem` was touched.
+Staleness propagation is automatic — every `set`/`append` write marks dependents
+stale via `deps-closure.mem` inside the CLI.
 
 ---
 
-## Phase 4: Confirm
+## Phase 3: Confirm
 
 Print a one-line summary per update applied:
 

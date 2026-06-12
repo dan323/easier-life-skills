@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+### Added
+- **memplan v2.1.0 — token-cost reduction, phase 2.** Mechanical work moves from
+  SKILL.md prose (re-read by the agent on every invocation) into `memplan-cli.js`:
+  - New CLI commands: `compact [file]` and `stale-compact` (the bulk-rewrite half of
+    `memplan/review`, previously ~300 lines of awk/jq embedded in the skill — see
+    `plugins/memplan/skills/review/adr/0001-compaction-moved-into-cli.md`);
+    `plan-write` (plan + progress + slice + risk from one stdin JSON, replacing ~25
+    per-step CLI calls); `checkpoint` (all three keys in one call); `digest`
+    (session summary + bullets via stdin); `status` (one compact JSON snapshot of
+    progress, plan steps, checkpoint, and unresolved stale entries).
+  - Staleness propagation is now automatic inside the CLI: every `set`/`append`/
+    `progress` write stale-marks its dependents per `deps-closure.mem`, deduplicated
+    against already-unresolved entries. The manual "Propagate staleness" phase is
+    deleted from the `plan`, `act`, `record`, `update-mem`, and `refine` skills.
+  - `review/SKILL.md` shrinks 17.5KB → ~4KB; `act` pre-flight uses one `status` call
+    instead of repeatedly `cat`-ing `plan.mem` and `progress`.
+
+### Fixed
+- **memplan: `hot-bump` wrote `.memplan/hot.mem`** while all readers (`start`,
+  `record`) use `.memplan/memory/hot.mem` — hot-file tracking from the PostToolUse
+  hook never reached orientation. Now writes `memory/hot.mem`.
+- **memplan: `append` failed with EPERM** on a `.mem` file previously locked (0444)
+  by `set`; `append` now unlocks/re-locks symmetrically with `set`.
+- **memplan: CLI compaction preserves entry order and non-matching lines** — the awk
+  scripts it replaces emitted entries in hash order and silently dropped lines that
+  didn't match the expected `+key:` pattern (e.g. `+cap-warning:`).
+
 ### Changed
 - **memplan v2.0.0 — token-cost reduction, phase 1.** The plugin's always-on context
   footprint (skill descriptions loaded into every session's system prompt) is cut

@@ -538,3 +538,211 @@ test('html: max-width is 800px', () => {
 
   assert.ok(html.includes('max-width: 800px'), 'max-width set to 800px per spec');
 });
+
+// ─── auto-staleness propagation ──────────────────────────────────────────────
+
+test('set: auto-propagates staleness to dependents', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  // slice.mem and checkpoint.mem both depend on plan.mem
+  run(`set "${dir}" plan.mem title "my-task"`);
+  const list = JSON.parse(run(`stale-list "${dir}"`));
+  const files = list.map(e => e.file);
+  assert.ok(files.includes('slice.mem'), 'slice.mem marked stale');
+  assert.ok(files.includes('checkpoint.mem'), 'checkpoint.mem marked stale');
+  assert.ok(list.every(e => e.because === 'plan.mem'), 'because=plan.mem');
+});
+
+test('set: propagation deduplicates — no repeat marks for already-stale files', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  run(`set "${dir}" plan.mem title "first"`);
+  run(`set "${dir}" plan.mem title "second"`);
+  const stale = readFile(dir, 'stale.mem');
+  const sliceMarks = stale.split('\n').filter(l => l.includes('file=slice.mem'));
+  assert.equal(sliceMarks.length, 1, 'slice.mem marked exactly once');
+});
+
+test('append: auto-propagates staleness', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  run(`append "${dir}" plan.mem step "id=1,text=demo,atomic=true"`);
+  const list = JSON.parse(run(`stale-list "${dir}"`));
+  assert.ok(list.some(e => e.file === 'slice.mem'), 'append to plan.mem stales slice.mem');
+});
+
+// ─── stale-compact ───────────────────────────────────────────────────────────
+
+test('stale-compact: keeps only unresolved entries, writes backup', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  run(`stale-mark "${dir}" slice.mem plan.mem`);
+  run(`stale-mark "${dir}" checkpoint.mem plan.mem`);
+  run(`stale-resolve "${dir}" slice.mem`);
+  run(`stale-compact "${dir}"`);
+  const stale = readFile(dir, 'stale.mem');
+  assert.ok(stale.includes('file=checkpoint.mem'), 'unresolved entry kept');
+  assert.ok(!stale.includes('file=slice.mem'), 'resolved entry removed');
+  assert.ok(!stale.includes('stale-resolved'), 'resolution markers removed');
+  assert.ok(fileExists(dir, 'stale.mem.backup'), 'backup written');
+});
+
+// ─── compact ─────────────────────────────────────────────────────────────────
+
+test('compact: dedups entities by (name, type), keeps last occurrence', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  const p = path.join(dir, '.memplan', 'memory/entities.mem');
+  fs.writeFileSync(p, [
+    '~2026-01-01T10:00Z +entity:name=Router,type=class,desc=old',
+    '~2026-01-02T10:00Z +entity:name=Parser,type=module,desc=keep',
+    '~2026-01-03T10:00Z +entity:name=Router,type=class,desc=new',
+  ].join('\n') + '\n', 'utf8');
+  const out = run(`compact "${dir}" memory/entities.mem`);
+  assert.ok(out.includes('compacted 3 -> 2'), 'reports compaction');
+  const content = readFile(dir, 'memory/entities.mem');
+  assert.ok(content.includes('desc=new'), 'last occurrence kept');
+  assert.ok(!content.includes('desc=old'), 'earlier duplicate removed');
+  assert.ok(content.includes('name=Parser'), 'non-duplicate preserved');
+  assert.ok(fileExists(dir, 'memory/entities.mem.backup'), 'backup written');
+});
+
+test('compact: questions dedup by text keeps first occurrence', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  const p = path.join(dir, '.memplan', 'memory/questions.mem');
+  fs.writeFileSync(p, [
+    '~2026-01-01T10:00Z +question:id=~2026-01-01T10:00Z,text=use-redis?,status=open',
+    '~2026-01-02T10:00Z +question:id=~2026-01-02T10:00Z,text=use-redis?,status=open',
+  ].join('\n') + '\n', 'utf8');
+  run(`compact "${dir}" memory/questions.mem`);
+  const content = readFile(dir, 'memory/questions.mem');
+  assert.equal(content.trim().split('\n').length, 1, 'one entry survives');
+  assert.ok(content.includes('~2026-01-01T10:00Z +question'), 'first occurrence kept');
+});
+
+test('compact: preserves non-matching lines (cap-warnings)', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  const p = path.join(dir, '.memplan', 'memory/questions.mem');
+  fs.writeFileSync(p, [
+    '~2026-01-01T10:00Z +question:id=x,text=q1,status=open',
+    '~2026-01-01T11:00Z +cap-warning:file=memory/facts.mem,redirected-to=memory/overflow.mem',
+    '~2026-01-02T10:00Z +question:id=y,text=q1,status=open',
+  ].join('\n') + '\n', 'utf8');
+  run(`compact "${dir}" memory/questions.mem`);
+  const content = readFile(dir, 'memory/questions.mem');
+  assert.ok(content.includes('+cap-warning:'), 'cap-warning line preserved');
+});
+
+test('compact: no-file argument compacts all known files without error', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  const out = run(`compact "${dir}"`);
+  assert.ok(out.includes('memory/entities.mem'), 'entities reported');
+  assert.ok(out.includes('decisions/log.mem'), 'decisions reported');
+});
+
+// ─── plan-write ──────────────────────────────────────────────────────────────
+
+test('plan-write: writes plan, progress, and slice in one call', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  const input = JSON.stringify({
+    title: 'add-auth',
+    steps: [
+      { id: '1', text: 'add-user-model', atomic: true },
+      { id: '2', text: 'write-middleware', deps: '1', atomic: true },
+      { id: '3', text: 'add-endpoints', deps: '1|2', atomic: true },
+    ],
+  });
+  const out = run(`plan-write "${dir}"`, { input });
+  assert.ok(out.includes('3 steps, 1 ready'), 'summary line');
+  const plan = readFile(dir, 'plan.mem');
+  assert.ok(plan.includes('title:add-auth'), 'title written');
+  assert.ok(plan.includes('step-count:#3'), 'step count written');
+  assert.ok(plan.includes('+step:id=3,text=add-endpoints,deps=1|2,atomic=true'), 'step with deps');
+  assert.equal(readFile(dir, 'progress').trim(), '0/3 | not started', 'progress initialised');
+  const slice = readFile(dir, 'slice.mem');
+  assert.ok(slice.includes('id=1,text=add-user-model'), 'ready step in slice');
+  assert.ok(!slice.includes('id=2'), 'dependent step not in slice');
+});
+
+test('plan-write: replaces an existing plan and writes risk', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  run(`plan-write "${dir}"`, { input: JSON.stringify({ title: 'old', steps: [{ id: '1', text: 'old-step' }] }) });
+  run(`plan-write "${dir}"`, {
+    input: JSON.stringify({
+      title: 'new',
+      steps: [{ id: '1', text: 'new-step', atomic: true }],
+      risk: { 'what-could-break': 'migrations', irreversible: 'none', 'verify-first': 'backup-db' },
+    }),
+  });
+  const plan = readFile(dir, 'plan.mem');
+  assert.ok(!plan.includes('old-step'), 'old plan replaced');
+  assert.ok(plan.includes('new-step'), 'new plan written');
+  const risk = readFile(dir, 'risk.mem');
+  assert.ok(risk.includes('what-could-break:migrations'), 'risk written');
+});
+
+// ─── checkpoint ──────────────────────────────────────────────────────────────
+
+test('checkpoint: writes all three keys in one call', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  run(`checkpoint "${dir}" "wrote-cli" "write-tests" "none"`);
+  const content = readFile(dir, 'checkpoint.mem');
+  assert.ok(content.includes('last-action:wrote-cli'));
+  assert.ok(content.includes('next-action:write-tests'));
+  assert.ok(content.includes('open-questions:none'));
+});
+
+// ─── digest ──────────────────────────────────────────────────────────────────
+
+test('digest: writes session entry plus bullets from stdin', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  const out = run(`digest "${dir}" "implemented-batch-commands"`, {
+    input: 'added plan-write\nadded checkpoint\nadded digest\n',
+  });
+  assert.ok(out.includes('3 bullets'), 'bullet count reported');
+  const files = fs.readdirSync(path.join(dir, '.memplan', 'sessions'));
+  assert.equal(files.length, 1, 'one session file');
+  const content = readFile(dir, `sessions/${files[0]}`);
+  assert.ok(content.includes('summary=implemented-batch-commands'), 'summary written');
+  assert.ok(content.includes('+bullet:text=added plan-write'), 'bullet written');
+});
+
+// ─── status ──────────────────────────────────────────────────────────────────
+
+test('status: emits compact JSON snapshot of progress, plan, checkpoint, stale', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  run(`plan-write "${dir}"`, {
+    input: JSON.stringify({
+      title: 'demo',
+      steps: [{ id: '1', text: 'one', atomic: true }, { id: '2', text: 'two', deps: '1' }],
+    }),
+  });
+  run(`checkpoint "${dir}" "did-one" "do-two" "none"`);
+  const status = JSON.parse(run(`status "${dir}"`));
+  assert.equal(status.progress, '0/2 | not started');
+  assert.equal(status.plan.title, 'demo');
+  assert.equal(status.plan.steps.length, 2);
+  assert.equal(status.plan.steps[1].deps, '1');
+  assert.equal(status.checkpoint['last-action'], 'did-one');
+  assert.ok(Array.isArray(status.stale));
+});
+
+// ─── hot-bump path ───────────────────────────────────────────────────────────
+
+test('hot-bump: writes memory/hot.mem (not a stray root hot.mem)', () => {
+  const dir = tmpDir();
+  run(`init "${dir}"`);
+  run(`hot-bump "${dir}" src/api.ts`);
+  run(`hot-bump "${dir}" src/main.ts`);
+  assert.ok(!fileExists(dir, 'hot.mem'), 'no stray .memplan/hot.mem at root');
+  const hot = readFile(dir, 'memory/hot.mem');
+  assert.ok(hot.includes('hot-files:src/main.ts|src/api.ts'), 'LRU order, most recent first');
+});

@@ -2,17 +2,17 @@
 name: act
 description: >
   Execute one plan step (or a refined step's sub-steps) with pre-flight dependency
-  and staleness checks, then update progress and memory. Trigger: "memplan act",
-  "do the next step", "run step N".
+  and staleness checks via the CLI status snapshot, then update progress and memory.
+  Trigger: "memplan act", "do the next step", "run step N".
 tools: Bash, Read, Grep, Edit, Write, TaskCreate, TaskUpdate
 ---
 
 # memplan/act
 
-Executes a single plan step with pre-flight safety checks and post-write staleness
-propagation. Supports both **atomic steps** (executed directly) and **refined steps**
-(parent step with sub-steps that are executed in order). The agent provides reasoning;
-the CLI handles all file mechanics.
+Executes a single plan step with pre-flight safety checks. Supports both **atomic
+steps** (executed directly) and **refined steps** (parent step with sub-steps that
+are executed in order). The agent provides reasoning; the CLI handles all file
+mechanics, including automatic staleness propagation on every write.
 
 **This skill is mutating.** It writes progress, code-map, entities, failures, and
 staleness entries. All file operations go through `memplan-cli.js`.
@@ -21,67 +21,35 @@ staleness entries. All file operations go through `memplan-cli.js`.
 
 ## Phase 1: Pre-flight checks (hard halts)
 
-Run these checks in order. Any failure halts the skill immediately — do not execute
-the step until all three pass.
-
-**Check 1 — plan.mem exists:**
+Get the full snapshot in one call — progress, all plan steps (with `deps`, `atomic`,
+`refined` fields), checkpoint, and unresolved stale entries as compact JSON:
 
 ```bash
-test -f .memplan/plan.mem || echo "MISSING"
+node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" status .
 ```
 
-If `MISSING`: halt and output:
+Run these checks against the JSON. Any failure halts the skill immediately.
+
+**Check 1 — plan exists:** If `plan` is null or `plan.steps` is empty: halt and output:
 `⚠ Cannot act — .memplan/plan.mem is absent. Run memplan/plan first.`
 
-**Check 2 — determine execution mode (refined vs atomic):**
+**Check 2 — execution mode:** Find the target step in `plan.steps`. If it has
+`refined: "true"`, execution mode is **refined** (sub-steps id=N.1, N.2, … will be
+executed in order, not the parent). Otherwise mode is **atomic**.
 
-Read the target step from `.memplan/plan.mem`. Check if it has `refined=true`:
-
-```bash
-cat .memplan/plan.mem
-```
-
-If the step has `refined=true`:
-- Set execution mode to **refined**
-- The step will not be executed directly; instead, sub-steps (id=N.1, N.2, etc.) will be executed in order
-- Continue with remaining pre-flight checks below (do NOT skip to Phase 2)
-
-If the step has `atomic=true` or no `refined` field:
-- Set execution mode to **atomic**
-- Continue with remaining pre-flight checks below
-
-**Check 3 — deps satisfied (atomic steps only):**
-
-For atomic steps only: If the step has a `deps=` field, verify each listed dep ID is complete by reading `.memplan/progress` and `.memplan/plan.mem`:
-
-```bash
-cat .memplan/progress
-cat .memplan/plan.mem
-```
-
-Parse the progress to extract completed step IDs. For each dep that is not yet complete: halt and output:
+**Check 3 — deps satisfied (atomic steps only):** Use `progress` (format `M/N | <text>`)
+to determine completed step IDs. For each `deps` entry of the target step not yet
+complete: halt and output:
 `⚠ Step <N> cannot start — deps [<X>, <Y>] not complete.`
 
-Skip this check for refined steps (deps are verified per sub-step, not at parent level).
+Skip for refined steps (deps are verified per sub-step).
 
-**Check 3b — sub-steps exist (refined steps only):**
-
-For refined steps only: Verify that at least one sub-step exists. For a parent step with id=N and `refined=true`, there must be at least one sub-step with id=N.1 in `.memplan/plan.mem`.
-
-```bash
-cat .memplan/plan.mem | grep "^+step:id=${N}\."
-```
-
-If no sub-steps are found: halt and output:
+**Check 3b — sub-steps exist (refined steps only):** There must be at least one step
+with id `N.1` in `plan.steps`. If not: halt and output:
 `⚠ Refined step <N> has no sub-steps (no N.1, N.2, etc. found). Run memplan/refine first.`
 
-**Check 4 — no stale reads:**
-
-```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" stale-list .
-```
-
-If any unresolved stale entry affects a file this step will read: halt and output:
+**Check 4 — no stale reads:** If any entry in `stale` affects a file this step will
+read: halt and output:
 `⚠ <file> is stale — resolve inline (below) or via memplan/review before proceeding.`
 
 To resolve inline: read the stale file and all its sources from `deps.mem`, update the
@@ -99,8 +67,8 @@ Resume once resolved.
 
 **For atomic steps (atomic=true or no refined field):**
 
-Read the current step text from `.memplan/plan.mem` and `.memplan/progress`. Confirm
-the step number matches what the user intends.
+Use the step text from the Phase 1 `status` JSON. Confirm the step number matches
+what the user intends.
 
 Execute the step. Use the standard project tools (Edit, Write, Bash, etc.) as required
 by the step content. Do not modify any `.memplan/` files manually during execution —
@@ -111,11 +79,12 @@ is not reached): record the failure in Phase 3 and stop execution.
 
 **For refined steps (refined=true):**
 
-Do **not** execute the parent step directly. Instead:
+Do **not** execute the parent step directly. Instead (reusing the Phase 1 `status`
+JSON — no extra reads needed):
 
-1. Read `.memplan/plan.mem` to find all sub-steps with id=N.1, N.2, N.3, etc., where N is the parent step ID.
+1. Find all sub-steps with id=N.1, N.2, N.3, etc. in `plan.steps`, where N is the parent step ID.
 
-2. Read `.memplan/progress` to determine the last completed step. The progress format is `M/N | <last-step-text>`. Parse `<last-step-text>` to extract the last completed step ID (e.g., if text is "sub-step 3.2 text", then step 3.2 is complete). Compare against the sub-step list to find the first incomplete sub-step.
+2. Use `progress` to determine the last completed step. The progress format is `M/N | <last-step-text>`. Parse `<last-step-text>` to extract the last completed step ID (e.g., if text is "sub-step 3.2 text", then step 3.2 is complete). Compare against the sub-step list to find the first incomplete sub-step.
 
    **Resume logic:** If the progress text matches a sub-step text (e.g., contains "3.1" or matches the sub-step 3.1 text verbatim), that sub-step and all preceding sub-steps are complete. Start from the next sub-step.
 
@@ -206,28 +175,12 @@ node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . memory/questions.mem "que
 
 Halt on non-zero CLI exit.
 
----
-
-## Phase 4: Post-write staleness propagation
-
-For every `.memplan/` file written or affected this step, look up dependents in
-`deps-closure.mem` and mark them stale:
-
-```bash
-cat .memplan/deps-closure.mem
-```
-
-For each dependent file whose source was modified:
-
-```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" stale-mark . "<dependent-file>" "<source-file>"
-```
-
-Skip staleness propagation if the step made no changes to files tracked in `deps.mem`.
+Staleness propagation is automatic — every `set`/`append`/`progress` CLI write
+marks its dependents stale. No manual `stale-mark` calls are needed.
 
 ---
 
-## Phase 5: Confirm
+## Phase 4: Confirm
 
 **For atomic steps:**
 

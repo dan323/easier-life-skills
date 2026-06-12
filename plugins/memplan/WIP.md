@@ -31,18 +31,23 @@ The memory format is cheap; the machinery around it is expensive. Four sinks:
 - [x] Rename `init` → `bootstrap` (clashed with Claude Code's built-in `/init`).
       The `memplan-cli.js init` subcommand keeps its name.
 
-## Phase 2 — move mechanics from SKILL.md into the CLI ⏳
+## Phase 2 — move mechanics from SKILL.md into the CLI ✅ (done 2026-06-12, v2.1.0)
 
-- [ ] Add `memplan-cli.js compact <file> <key-fields>` (the awk logic from `review`
-      Phase 4 — its own Design Notes already propose this). `review` shrinks ~17.5KB → ~3KB.
-      Move its Design Notes to `adr/` per repo convention.
-- [ ] Make `set` / `append` / `progress` auto-propagate staleness using the deps closure
-      the CLI already computes (`lib/deps.js`). Then delete the "Propagate staleness"
-      phase from `plan`, `act`, `record`, `update-mem`, `refine`.
-- [ ] Batch commands: `plan-write` (steps via stdin, 1 call instead of ~25),
-      `checkpoint <last> <next> <questions>`, `digest` (bullets via stdin).
-- [ ] Read-side `status` command emitting one compact JSON snapshot (progress + current
-      step + deps state) so `act` stops `cat`-ing `plan.mem` three times per run.
+- [x] `memplan-cli.js compact [file]` (table-driven specs in `bin/lib/compact.js`) and
+      `stale-compact`. `review` shrank 17.5KB → ~4KB; Design Notes moved to
+      `skills/review/adr/0001-compaction-moved-into-cli.md`. Fixes two awk bugs:
+      hash-order output and dropped non-matching lines.
+- [x] `set` / `append` / `progress` auto-propagate staleness via `deps-closure.mem`
+      (deduplicated against already-unresolved entries). "Propagate staleness" phases
+      deleted from `plan`, `act`, `record`, `update-mem`, `refine`.
+- [x] Batch commands: `plan-write` (JSON via stdin — plan + progress + slice + risk in
+      1 call instead of ~25), `checkpoint <last> <next> <questions>`, `digest <summary>`
+      (bullets via stdin).
+- [x] `status` command: one compact JSON snapshot (progress, plan steps, checkpoint,
+      unresolved stale) replacing `act`'s repeated full-file `cat`s.
+- [x] Bug fixes found along the way: `hot-bump` wrote `.memplan/hot.mem` while every
+      reader uses `.memplan/memory/hot.mem`; `append` failed with EPERM on files locked
+      by a prior `set`.
 
 ## Phase 3 — delete dead weight, fix docs ⏳
 

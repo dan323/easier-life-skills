@@ -32,27 +32,26 @@ Before writing, determine:
 
 ## Phase 2: Write checkpoint
 
+One call writes all three keys:
+
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . checkpoint.mem last-action "<text>"
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . checkpoint.mem next-action "<text>"
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" set . checkpoint.mem open-questions "<text or 'none'>"
+node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" checkpoint . "<last-action>" "<next-action>" "<open-questions or 'none'>"
 ```
 
-Use plain text values. For `open-questions`, list items separated with `;` if more than one.
+Use plain text values. For open questions, separate items with `;` if more than one.
 
 ---
 
 ## Phase 3: Write session digest
 
 Create a per-session digest (≤10 bullets). Each bullet is a completed action, decision,
-or fact worth remembering. Omit routine tool invocations.
+or fact worth remembering. Omit routine tool invocations. One call, bullets on stdin:
 
 ```bash
-# Set DATE to today's date in YYYY-MM-DD format
-DATE=$(date -u +%Y-%m-%d)
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . "sessions/${DATE}.mem" "session" "date=~${DATE},summary=<10-word-summary>"
-# For each bullet (max 10):
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" append . "sessions/${DATE}.mem" "bullet" "text=<bullet-text>"
+node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" digest . "<10-word-summary>" << 'EOF'
+<bullet 1>
+<bullet 2>
+EOF
 ```
 
 ---
@@ -134,26 +133,11 @@ grep -Fq "+fact:tag=<tag>,text=<text>" .memplan/memory/facts.mem 2>/dev/null || 
 
 Skip the entire phase if no new aliases or facts were discovered this session.
 
----
-
-## Phase 8: Propagate staleness
-
-For every file written this session, look up dependents in `deps-closure.mem` and mark
-them stale:
-
-```bash
-cat .memplan/deps-closure.mem
-```
-
-For each dependent of `checkpoint.mem`, `memory/hot.mem`, `budget.mem`, or any session file:
-
-```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/memplan-cli.js" stale-mark . "<dependent>" "<source>"
-```
+Staleness propagation is automatic on every CLI write — no manual `stale-mark` calls.
 
 ---
 
-## Phase 9: Confirm
+## Phase 8: Confirm
 
 Print:
 `Session recorded. Next: <next-action>.`
