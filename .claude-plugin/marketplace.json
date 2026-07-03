@@ -62,13 +62,6 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/find-skills"
     },
     {
-      "name": "memplan",
-      "source": "./plugins/memplan",
-      "description": "Persistent low-token working memory and structured planning for Claude Code",
-      "category": "productivity",
-      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/memplan"
-    },
-    {
       "name": "scaffold",
       "source": "./plugins/scaffold",
       "description": "Generate a new plugin skeleton (plugin.json, SKILL.md, evals.json, optional agents/references) from a single prompt",

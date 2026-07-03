@@ -18,6 +18,8 @@
   (old CHANGELOG entries, `site-audit-report.md`, ADR 0009) keep the old URL.
 
 ### Removed
+- **memplan plugin removed entirely.** It did not work out in practice; all
+  skills, hooks, scripts, and docs under `plugins/memplan/` are gone.
 - **memplan v2.2.0 — token-cost reduction, phase 3 (dead weight).** `budget.mem` is
   gone: `record` no longer writes per-session token estimates nothing ever read, and
   the CLI drops its deps entry, schema, paired rendering, and the custom
