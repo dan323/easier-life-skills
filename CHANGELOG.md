@@ -17,8 +17,10 @@
   agents (a clone and a branch do not need fresh context), so the implementer sits
   one level deep instead of two.
   Phase 2 also runs `git clean -fd` after `reset --hard` (the reused clone kept
-  untracked leftovers from earlier runs), and the implementer stages files by path
-  instead of `git add -A`.
+  untracked leftovers from earlier runs), but only in clones task-agent owns: ones
+  it created (marked by `.git/task-agent-clone`) or any in the default temp workdir.
+  A clone under a custom `TASK_AGENT_WORKDIR` is never cleaned. The implementer
+  stages files by path instead of `git add -A`.
 - **workflow v1.2.0: per-step `agent:` and `inline:`.** Every step used to run in a
   fresh `claude` subagent. A step can now name the agent type to spawn
   (`agent: pr-reviewer`, `agent: my-plugin:my-agent`), or set `inline: true` to run

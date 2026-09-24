@@ -120,12 +120,19 @@ if [ -d "$LOCAL_PATH/.git" ]; then
   git -C "$LOCAL_PATH" fetch origin
   git -C "$LOCAL_PATH" checkout DEFAULT_BRANCH
   git -C "$LOCAL_PATH" reset --hard origin/DEFAULT_BRANCH
-  # reset --hard keeps untracked files; drop leftovers from earlier runs so they
-  # cannot end up in this task's commit (ignored files such as node_modules stay).
-  git -C "$LOCAL_PATH" clean -fd
+  # reset --hard keeps untracked files. Drop leftovers from earlier runs so they
+  # cannot end up in this task's commit, but only in a clone task-agent owns:
+  # one it created (marker file), or any clone in the default temp workdir, which
+  # Phase 5 deletes anyway. A clone the user keeps under a custom
+  # TASK_AGENT_WORKDIR is never cleaned; the implementer's by-path staging still
+  # keeps its untracked files out of the commit.
+  if [ -f "$LOCAL_PATH/.git/task-agent-clone" ] || [ -z "$TASK_AGENT_WORKDIR" ]; then
+    git -C "$LOCAL_PATH" clean -fd   # ignored files such as node_modules stay
+  fi
 else
   mkdir -p "$WORKDIR"
   git clone "https://github.com/OWNER/REPO_NAME.git" "$LOCAL_PATH"
+  touch "$LOCAL_PATH/.git/task-agent-clone"   # marks the clone as task-agent-owned
 fi
 ```
 
