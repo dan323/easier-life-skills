@@ -84,6 +84,50 @@
           "text": "Both run directories have a workflow-output.json with `status: success`."
         }
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "workflow /tmp/eval-workflow-4/agent-inline.yaml",
+      "description": "Per-step placement — one step with `inline: true`, one with `agent: <type>`, one with neither. The runner must run the inline step through the Skill tool itself, spawn the second step with the named agent type, and spawn the third as `claude`.",
+      "setup": "mkdir -p /tmp/eval-workflow-4 && cat > /tmp/eval-workflow-4/agent-inline.yaml << 'EOF'\nname: agent-inline\ndescription: Step placement demo.\nsteps:\n  - id: sync\n    skill: stub-pick\n    inline: true\n  - id: typed\n    skill: stub-render\n    agent: general-purpose\n  - id: default\n    skill: stub-pick\nEOF",
+      "expected_output": "workflow-output.json has `status: success` with three steps. The transcript shows no Agent call for `sync`, an Agent call with subagent_type `general-purpose` for `typed`, and one with subagent_type `claude` for `default`.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "inline-no-agent",
+          "text": "The `sync` step is run via a Skill tool call made by the runner itself, with no Agent tool call for it."
+        },
+        {
+          "id": "typed-agent",
+          "text": "The Agent call for step `typed` uses subagent_type `general-purpose`."
+        },
+        {
+          "id": "default-claude",
+          "text": "The Agent call for step `default` uses subagent_type `claude`."
+        },
+        {
+          "id": "all-succeed",
+          "text": "workflow-output.json has top-level `status: success`."
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "workflow /tmp/eval-workflow-5/conflict.yaml",
+      "description": "Validation — a step sets both `inline: true` and `agent`. The runner must reject the workflow before running any step.",
+      "setup": "mkdir -p /tmp/eval-workflow-5 && cat > /tmp/eval-workflow-5/conflict.yaml << 'EOF'\nname: conflict\ndescription: Invalid step placement.\nsteps:\n  - id: both\n    skill: stub-pick\n    inline: true\n    agent: general-purpose\nEOF",
+      "expected_output": "The runner reports `Step 'both': inline: true and agent are mutually exclusive.` and runs nothing.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "error-mutually-exclusive",
+          "text": "The output contains `mutually exclusive`."
+        },
+        {
+          "id": "no-steps-run",
+          "text": "No Skill or Agent call is made for step `both`, and no `output.json` exists under `.workflow-runs/conflict-*`."
+        }
+      ]
     }
   ]
 }
