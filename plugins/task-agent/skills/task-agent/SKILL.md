@@ -103,7 +103,8 @@ WORKDIR="${TASK_AGENT_WORKDIR:-$(python3 -c 'import os,tempfile;print(os.path.jo
 Override with the `TASK_AGENT_WORKDIR` env var if you need a different location (e.g. a
 persistent disk on a build agent).
 
-Spawn a new agent to do this phase.
+Run this phase inline. It is a lookup and a `git clone`/`fetch`, which does not need a
+fresh agent's context.
 
 ### 2.1 Determine the default branch
 
@@ -119,9 +120,19 @@ if [ -d "$LOCAL_PATH/.git" ]; then
   git -C "$LOCAL_PATH" fetch origin
   git -C "$LOCAL_PATH" checkout DEFAULT_BRANCH
   git -C "$LOCAL_PATH" reset --hard origin/DEFAULT_BRANCH
+  # reset --hard keeps untracked files. Drop leftovers from earlier runs so they
+  # cannot end up in this task's commit, but only in a clone task-agent owns:
+  # one it created (marker file), or any clone in the default temp workdir, which
+  # Phase 5 deletes anyway. A clone the user keeps under a custom
+  # TASK_AGENT_WORKDIR is never cleaned; the implementer's by-path staging still
+  # keeps its untracked files out of the commit.
+  if [ -f "$LOCAL_PATH/.git/task-agent-clone" ] || [ -z "$TASK_AGENT_WORKDIR" ]; then
+    git -C "$LOCAL_PATH" clean -fd   # ignored files such as node_modules stay
+  fi
 else
   mkdir -p "$WORKDIR"
   git clone "https://github.com/OWNER/REPO_NAME.git" "$LOCAL_PATH"
+  touch "$LOCAL_PATH/.git/task-agent-clone"   # marks the clone as task-agent-owned
 fi
 ```
 
@@ -129,7 +140,8 @@ fi
 
 ## Phase 3 — Execute the task
 
-Spawn a new agent to do this phase.
+Run 3.1, 3.2, 3.4 and 3.5 inline. Only the implementation itself (3.3) goes to a
+subagent, so the code-writing agent is one level deep, not two.
 
 ### 3.1 Create a branch name
 
@@ -151,26 +163,41 @@ git -C "$LOCAL_PATH" checkout DEFAULT_BRANCH
 git -C "$LOCAL_PATH" checkout -B "$BRANCH"
 ```
 
-### 3.3 Spawn a new subagent to implement the task
+### 3.3 Spawn the implementer agent
+
+Spawn the plugin's dedicated agent, `task-agent:task-implementer` (defined in
+[`../../agents/task-implementer.md`](../../agents/task-implementer.md)). Its role
+instructions live there: read the repo's CLAUDE.md/CONTRIBUTING/CI config, implement,
+**run the repo's own checks**, and commit only when they pass. It has no `Agent` tool
+and never pushes. Pass only the context:
 
 ```
-You are working on a git repository located at: LOCAL_PATH
-Repository: OWNER/REPO_NAME
-Current branch: BRANCH_NAME
-
-Your task:
-TASK_DESCRIPTION
-
-Instructions:
-1. Read the codebase to understand its structure and conventions.
-2. Implement the task — be focused, do only what is asked.
-3. Stage your changes: git -C LOCAL_PATH add -A
-4. Commit with a clear message: git -C LOCAL_PATH commit -m "YOUR_MESSAGE"
-   If nothing needed to change (task already done), say so explicitly instead.
-5. Do NOT push — the caller handles that.
-
-Return a short paragraph summarising what you changed and why.
+Agent(
+  subagent_type: "task-agent:task-implementer",
+  description: "Implement task <TASK_ID>",
+  prompt: """
+    LOCAL_PATH: <LOCAL_PATH>
+    Repository: <OWNER/REPO_NAME>
+    BRANCH: <BRANCH>
+    REFERENCES_DIR: ${CLAUDE_PLUGIN_ROOT}/references
+    Task: <TASK_DESCRIPTION>
+  """
+)
 ```
+
+Resolve `${CLAUDE_PLUGIN_ROOT}` to an absolute path before passing it; the agent
+cannot expand it.
+
+Read the `STATUS:` line at the end of its reply:
+
+| STATUS | What to do next |
+|---|---|
+| `committed` | Continue to 3.4. The rest of the reply is `AGENT_SUMMARY`. |
+| `nothing-to-do` | Skip 3.4/3.5. Record `done` with `branch` and `date` and no `pr_url` (Phase 4). |
+| `checks-failing` | Do **not** push. Record `failed` with `error: "checks failing: <command>"`. |
+| `blocked` | Do **not** push. Record `failed` with `error: "<reason from the reply>"`. |
+
+A missing `STATUS:` line counts as `blocked`.
 
 ### 3.4 Push the branch
 
@@ -178,8 +205,8 @@ Return a short paragraph summarising what you changed and why.
 git -C "$LOCAL_PATH" push origin "$BRANCH" --force-with-lease
 ```
 
-If there are no commits to push, mark the task as "nothing to commit" and skip to Phase 4
-(still update state so we don't retry it tomorrow).
+Only reached on `STATUS: committed`. If there are unexpectedly no commits to push,
+treat it like `nothing-to-do` (still update state so we don't retry it tomorrow).
 
 ### 3.5 Open the PR
 
@@ -214,10 +241,10 @@ key the user (or an external sync tool) put on the task — never drop unknown f
 ### 4.1 Determine the outcome status
 
 Pick one of:
-- `done` — the agent committed changes and a PR was opened (or the task was already done
-  and there was nothing to commit). Always sets `branch`, `date`. Sets `pr_url` when a PR
-  was opened.
-- `failed` — the agent could not complete the task. Sets `error: "<short reason>"`.
+- `done` — the implementer reported `committed` and a PR was opened, or it reported
+  `nothing-to-do`. Always sets `branch`, `date`. Sets `pr_url` when a PR was opened.
+- `failed` — the implementer reported `checks-failing` or `blocked`, or a later step
+  (push, PR creation) failed. Sets `error: "<short reason>"`. Nothing unverified is pushed.
 - `skipped` — the task is no longer applicable (e.g. repo gone). Sets `reason: "<why>"`.
 
 ### 4.2 Write back via tasks_io.py
@@ -295,4 +322,5 @@ rm -rf "$WORKDIR"
 
 ## Rules
 - There are 2 mcps for GitHub. One is `github` and the other is `github2`. Use `github2` only to create and manage PRs into repos that are not owned by me.
-- In /references there are more context to read. These files relate to programming languages, package manager, etc. Read only those that make sense for the task at hand.
+- In /references there are more context to read. These files relate to programming languages, package manager, etc. The implementer agent reads the ones that match the repo (it gets the directory as `REFERENCES_DIR`).
+- Never push a branch the implementer did not report as `committed`. A PR whose checks were never run locally just moves the failure to CI.

@@ -35,6 +35,8 @@ steps:                             # required — at least one step
   - id: string                     # required — unique kebab-case id within this workflow
     skill: string                  # required — name of an installed skill in the marketplace
     description: string            # optional — surfaced in the panel
+    agent: string                  # optional — agent type the step runs as (default: claude)
+    inline: boolean                # optional — true runs the skill in the runner's own context
     args:                          # optional — free-form args object passed to the step's skill
       <key>: <value>               # values may use ${{ … }} interpolation
     inputs:                        # optional — synonym for `args`, kept for readability
@@ -54,6 +56,26 @@ the workflow. The id is used in three places:
   lands (`$WORKFLOW_DIR/<id>/output.json`).
 - As the key in `steps.<id>.output` for downstream interpolation.
 - As the heading printed in the final summary report.
+
+### Where a step runs: `agent` and `inline`
+
+By default the runner spawns a fresh `claude` subagent for each step
+and tells it to invoke the step's skill. Two optional fields change
+that:
+
+- `agent: <type>` — spawn this agent type instead of `claude`. Use it
+  when a dedicated agent definition (e.g. one with a narrower tool
+  list) fits the step better than the catch-all. The type must be one
+  the session knows (project `.claude/agents/`, user agents, or a
+  plugin agent as `<plugin>:<agent>`) and must have the `Skill` tool.
+- `inline: true` — run the skill in the runner's own conversation, no
+  subagent. Cheap, since there is no fresh context to rebuild. Use it for small,
+  mechanical steps (syncing a file, a single API call). Avoid it for
+  long skills: their instructions and tool output then stay in the
+  runner's context for every later step.
+
+`agent` and `inline: true` are mutually exclusive; the runner rejects a
+step that sets both. Neither field changes how outputs are captured.
 
 ### Interpolation: `${{ … }}`
 

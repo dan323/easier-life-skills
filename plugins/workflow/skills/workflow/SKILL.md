@@ -15,8 +15,10 @@ tools: Bash, PowerShell, Read, Write, Glob, Grep, Agent, TaskCreate, TaskUpdate
 
 # Workflow Runner
 
-Execute a workflow YAML file step-by-step. Each step spawns a
-subagent for one skill, captures its output, and threads it forward
+Execute a workflow YAML file step-by-step. Each step runs one skill,
+by default in a fresh subagent (`claude` type, or the step's `agent:`),
+or in this conversation when the step sets `inline: true`. The runner
+captures each step's output and threads it forward
 through `${{ steps.<id>.output }}` interpolation. The full format is
 specified in [`references/format.md`](../../references/format.md) —
 read that file first if the user's workflow uses features that aren't
@@ -246,6 +248,12 @@ else:
                 seen_ids.add(sid)
             if not step.get("skill"):
                 errors.append(f"Step '{sid or idx}' missing `skill`.")
+            if "agent" in step and (not isinstance(step["agent"], str) or not step["agent"].strip()):
+                errors.append(f"Step '{sid or idx}': `agent` must be a non-empty agent type name.")
+            if "inline" in step and not isinstance(step["inline"], bool):
+                errors.append(f"Step '{sid or idx}': `inline` must be true or false.")
+            if step.get("inline") is True and "agent" in step:
+                errors.append(f"Step '{sid or idx}': `inline: true` and `agent` are mutually exclusive.")
 
 # ───── Resolve inputs ─────
 defaults = {}
@@ -353,6 +361,8 @@ for idx, step in enumerate(steps):
         "id": step["id"],
         "skill": step["skill"],
         "description": step.get("description", ""),
+        "agent": step.get("agent") or "claude",
+        "inline": step.get("inline") is True,
         "args": resolved,
     })
 
@@ -397,11 +407,19 @@ For each step in the plan, in order:
    STEP_STDERR="$WORKFLOW_DIR/$STEP_ID/stderr.log"
    ```
 
-2. Spawn the subagent via the `Agent` tool. Always use `claude` as
-   the `subagent_type` — skills are not agent types. Pass the
-   resolved arguments in the prompt so the matching skill picks them
-   up via the `Skill` tool. The agent gets `$WORKFLOW_OUTPUT=$STEP_OUTPUT`
-   and `$WORKFLOW_DIR=$WORKFLOW_DIR` exported via the prompt context.
+2. Run the step. How depends on the plan entry's `inline` and `agent`:
+
+   **Default (`inline: false`) — spawn a subagent** via the `Agent`
+   tool with `subagent_type` set to the plan entry's `agent` (`claude`
+   unless the step named another agent type). Never use the skill
+   name as the agent type — skills are not agent types. A step sets
+   `agent:` when a dedicated agent definition fits it better than the
+   catch-all, e.g. one with a narrower tool list. Whatever the type,
+   it must have the `Skill` tool, because the prompt below tells it
+   to invoke the skill. Pass the resolved arguments in the prompt so
+   the matching skill picks them up via the `Skill` tool. The agent
+   gets `$WORKFLOW_OUTPUT=$STEP_OUTPUT` and `$WORKFLOW_DIR=$WORKFLOW_DIR`
+   exported via the prompt context.
 
    The prompt template looks like:
 
@@ -428,7 +446,26 @@ For each step in the plan, in order:
    Halt with a non-zero exit if you cannot complete the step.
    ```
 
-3. After the agent returns, capture its output:
+   **`inline: true` — run the skill in this conversation.** Invoke
+   the `Skill` tool yourself with the step's skill and its arguments
+   as space-separated `key=value` pairs. No subagent is spawned, so
+   the step costs no fresh context; use it for small, mechanical
+   skills (a sync, a file rewrite). Shell state does not persist
+   between tool calls, so start **every** shell command you run for
+   the skill with the concrete paths, e.g.
+   `export WORKFLOW_OUTPUT="<STEP_OUTPUT path>" WORKFLOW_DIR="<WORKFLOW_DIR path>"; …`
+   (PowerShell: `$env:WORKFLOW_OUTPUT = "<path>"; …`). The skill's own
+   `$WORKFLOW_OUTPUT` checks then work unchanged.
+
+   When the skill finishes, write its final report (the text you would
+   otherwise have printed as the step's result) to `$STEP_STDOUT`, so
+   the stdout fallback in step 3 has something to capture when the
+   skill wrote no `output.json`. Then return to this loop: the next
+   action is step 3 below, not anything the skill's own report
+   suggests. If the skill fails, write the error to `$STEP_STDERR` and
+   treat it exactly like a subagent that exited non-zero.
+
+3. After the step returns, capture its output:
 
    ```bash
    if [ -s "$STEP_OUTPUT" ]; then
@@ -444,7 +481,7 @@ For each step in the plan, in order:
    fi
    ```
 
-4. If the agent exited non-zero, stop the loop immediately. Record
+4. If the step failed (agent exited non-zero, or the inline skill failed), stop the loop immediately. Record
    the failure for the summary in Phase 5.
 
 Steps must run **strictly sequentially** — do not request parallel

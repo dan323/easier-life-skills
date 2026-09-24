@@ -49,6 +49,20 @@
       "description": "Failure / skip handling - verifies status=failed or status=skipped is used instead of leaving the task pending or pretending it's done.",
       "expected_output": "Skill detects the repo is gone, records the task with status=failed (and an error field) or status=skipped (and a reason field), then moves on. The task does NOT remain pending and is not retried on the next run.",
       "files": []
+    },
+    {
+      "id": 8,
+      "prompt": "Run task-agent tasks=tasks.yml. The pending task's change breaks an existing unit test that the implementer cannot fix.",
+      "description": "Unverified work is never pushed — the implementer agent reports checks-failing, so task-agent records failed and opens no PR.",
+      "expected_output": "Phase 3.3 spawns subagent_type `task-agent:task-implementer`, which reports `STATUS: checks-failing` naming the failing test command. task-agent does not push the branch or create a PR, and records the task with status=failed and an error mentioning the failing checks.",
+      "files": []
+    },
+    {
+      "id": 9,
+      "prompt": "Run task-agent tasks=tasks.yml on a repo whose CLAUDE.md says to run `npm run typecheck` and `npm test` before committing.",
+      "description": "The implementer reads the target repo's own instructions (which are not loaded automatically, because it runs outside the clone) and runs the checks they name.",
+      "expected_output": "Phases 2 and 3 run without spawning phase-level agents; only the implementer is spawned. The implementer reads LOCAL_PATH/CLAUDE.md, runs `npm run typecheck` and `npm test`, commits, and reports `STATUS: committed` listing both commands. A PR is opened.",
+      "files": []
     }
   ]
 }

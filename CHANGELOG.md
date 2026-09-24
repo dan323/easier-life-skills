@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+### Changed
+- **task-agent v1.3.0: the code is written by a dedicated `task-implementer`
+  agent, which runs the repo's checks before committing.** Phase 3.3 used to spawn
+  an untyped (general-purpose) agent with a generic prompt that never ran tests, and
+  Phase 3.4 pushed whatever it committed, so every PR was opened unverified. The new
+  `agents/task-implementer.md` has no `Agent` tool. It reads the target repo's
+  `CLAUDE.md`/`AGENTS.md`/`CONTRIBUTING.md`/CI workflows (not loaded automatically,
+  since it runs outside the clone) and the matching `references/*.md`, runs the
+  documented build/test/type-check, and commits only when they pass. It ends with a
+  `STATUS:` line (`committed | nothing-to-do | checks-failing | blocked`).
+  task-agent pushes and opens a PR only on `committed`; `checks-failing`/`blocked`
+  record the task as `failed`. Phases 2 and 3 no longer spawn their own phase
+  agents (a clone and a branch do not need fresh context), so the implementer sits
+  one level deep instead of two.
+  Phase 2 also runs `git clean -fd` after `reset --hard` (the reused clone kept
+  untracked leftovers from earlier runs), but only in clones task-agent owns: ones
+  it created (marked by `.git/task-agent-clone`) or any in the default temp workdir.
+  A clone under a custom `TASK_AGENT_WORKDIR` is never cleaned. The implementer
+  stages files by path instead of `git add -A`.
+- **workflow v1.2.0: per-step `agent:` and `inline:`.** Every step used to run in a
+  fresh `claude` subagent. A step can now name the agent type to spawn
+  (`agent: pr-reviewer`, `agent: my-plugin:my-agent`), or set `inline: true` to run
+  its skill in the runner's own conversation with no subagent (for small mechanical
+  steps like a sync). The two are mutually exclusive and validated before any step
+  runs. Workflows without either field behave exactly as before. Inline steps get the
+  concrete `WORKFLOW_OUTPUT`/`WORKFLOW_DIR` paths exported in every command and their
+  final report saved to `stdout.log`, so the stdout fallback still works. Spec in
+  `plugins/workflow/references/format.md`; evals 4-5 added.
+
 ### Fixed
 - **Web UI broke on the new custom domain (`ai.dan323.dev`) — nothing loaded.**
   `fetchIndex` only served the deploy-time `skills_index.json` same-origin when the
