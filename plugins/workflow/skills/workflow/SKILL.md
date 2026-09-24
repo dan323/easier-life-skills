@@ -451,12 +451,19 @@ For each step in the plan, in order:
    as space-separated `key=value` pairs. No subagent is spawned, so
    the step costs no fresh context; use it for small, mechanical
    skills (a sync, a file rewrite). Shell state does not persist
-   between tool calls, so wherever the skill's instructions use
-   `$WORKFLOW_OUTPUT` or `$WORKFLOW_DIR`, substitute the literal
-   `$STEP_OUTPUT` / `$WORKFLOW_DIR` paths. When the skill finishes, return to
-   this loop: the next action is step 3 below, not anything the
-   skill's own report suggests. If the skill fails, treat it exactly
-   like a subagent that exited non-zero.
+   between tool calls, so start **every** shell command you run for
+   the skill with the concrete paths, e.g.
+   `export WORKFLOW_OUTPUT="<STEP_OUTPUT path>" WORKFLOW_DIR="<WORKFLOW_DIR path>"; …`
+   (PowerShell: `$env:WORKFLOW_OUTPUT = "<path>"; …`). The skill's own
+   `$WORKFLOW_OUTPUT` checks then work unchanged.
+
+   When the skill finishes, write its final report (the text you would
+   otherwise have printed as the step's result) to `$STEP_STDOUT`, so
+   the stdout fallback in step 3 has something to capture when the
+   skill wrote no `output.json`. Then return to this loop: the next
+   action is step 3 below, not anything the skill's own report
+   suggests. If the skill fails, write the error to `$STEP_STDERR` and
+   treat it exactly like a subagent that exited non-zero.
 
 3. After the step returns, capture its output:
 

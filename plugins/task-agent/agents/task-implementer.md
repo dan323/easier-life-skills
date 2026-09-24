@@ -20,7 +20,7 @@ only change code, verify it and commit.
 You run from the caller's working directory, not from the clone, so the repo's own
 instructions are **not** loaded for you. Read these from LOCAL_PATH first, if they
 exist: `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, and the CI workflow files
-(`.github/workflows/*.yml`). They say how the repo builds, tests and type-checks,
+(`.github/workflows/*.yml` and `*.yaml`). They say how the repo builds, tests and type-checks,
 and which conventions must hold.
 
 Then read only the files in REFERENCES_DIR that match this repo's stack (for example
@@ -45,8 +45,13 @@ weaken or delete a test just to make it pass.
 
 ## Step 4 — Commit
 
+Stage only the files this task changed, by path. The clone is reused across runs,
+so `git add -A` could pick up leftovers that are not yours. Check `git status` first
+and leave anything you did not create or edit unstaged.
+
 ```bash
-git -C LOCAL_PATH add -A
+git -C LOCAL_PATH status --short
+git -C LOCAL_PATH add -- <each file this task changed>
 git -C LOCAL_PATH diff --cached --stat   # there must be something to commit
 git -C LOCAL_PATH commit -m "<clear message>"
 ```
@@ -55,7 +60,8 @@ Do **not** push and do not open a PR; the caller does both.
 
 ## Report
 
-End your reply with exactly one status line, then a short summary:
+Write a short summary first, then end your reply with exactly one status line. It
+must be the last line, because the caller parses it from the end of the reply:
 
 ```
 STATUS: committed | nothing-to-do | checks-failing | blocked

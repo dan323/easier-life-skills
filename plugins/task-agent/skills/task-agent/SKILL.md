@@ -120,6 +120,9 @@ if [ -d "$LOCAL_PATH/.git" ]; then
   git -C "$LOCAL_PATH" fetch origin
   git -C "$LOCAL_PATH" checkout DEFAULT_BRANCH
   git -C "$LOCAL_PATH" reset --hard origin/DEFAULT_BRANCH
+  # reset --hard keeps untracked files; drop leftovers from earlier runs so they
+  # cannot end up in this task's commit (ignored files such as node_modules stay).
+  git -C "$LOCAL_PATH" clean -fd
 else
   mkdir -p "$WORKDIR"
   git clone "https://github.com/OWNER/REPO_NAME.git" "$LOCAL_PATH"
