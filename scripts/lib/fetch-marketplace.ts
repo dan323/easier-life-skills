@@ -170,6 +170,7 @@ type PluginSourceDecl =
   | string
   | { source: 'url'; url: string; ref?: string; sha?: string }
   | { source: 'git-subdir'; url: string; path?: string; ref?: string; sha?: string }
+  | { source: 'github'; repo: string; path?: string; ref?: string; sha?: string }
   | null
   | undefined;
 
@@ -235,6 +236,12 @@ function resolveSource(
     return { pluginRoot: subPath, remoteBase: base ?? url, external: true };
   }
 
+  if (source && source.source === 'github') {
+    const extBranch = source.sha || source.ref || 'main';
+    const base = parseGitHubBase(source.repo, extBranch);
+    return { pluginRoot: normalisePath(source.path), remoteBase: base ?? repoBase, external: true };
+  }
+
   return { pluginRoot: `plugins/${pluginEntry.name}`, remoteBase: repoBase };
 }
 
@@ -259,7 +266,9 @@ async function parseSkill(
   const frontmatter = parseFrontmatter(content);
   const tools       = Array.isArray(frontmatter.tools) ? frontmatter.tools as string[] : [];
   const WRITE_TOOLS = new Set(['Write', 'Edit', 'NotebookEdit']);
-  const readOnly    = tools.length > 0 && !tools.some(t => WRITE_TOOLS.has(t));
+  // `allowed-tools` is normalised into `tools` by parseFrontmatter. Entries may carry
+  // a scope (e.g. `Edit(src/**)`), so compare on the bare tool name.
+  const readOnly    = tools.length > 0 && !tools.some(t => WRITE_TOOLS.has(t.replace(/\(.*$/, '')));
   const version     = String(frontmatter.version ?? '1.0');
 
   // Apply length limits before storing or scanning metadata
@@ -744,10 +753,19 @@ interface MarketplaceJson {
 }
 
 export async function fetchMarketplaceSkills(owner: string, repo: string, root: string | null): Promise<MarketplaceResult> {
-  const branch  = 'main';
-  const baseUrl = `${RAW_BASE}/${owner}/${repo}/${branch}`;
-
   console.log(`  Fetching ${owner}/${repo}…`);
+
+  // Repos may use either default branch name; probe remotely when no local copy exists.
+  let branch = 'main';
+  if (!root) {
+    for (const candidate of ['main', 'master']) {
+      const base = `${RAW_BASE}/${owner}/${repo}/${candidate}`;
+      const found = await readFile('.claude-plugin/marketplace.json', base, null)
+        ?? await readFile('.claude-plugin/plugin.json', base, null);
+      if (found) { branch = candidate; break; }
+    }
+  }
+  const baseUrl = `${RAW_BASE}/${owner}/${repo}/${branch}`;
 
   let marketplaceJson: MarketplaceJson;
   let isMarketplace = true;

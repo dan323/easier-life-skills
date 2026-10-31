@@ -25,20 +25,25 @@ export function parseFrontmatter(content: string): Frontmatter {
 
     const [, key, val] = keyMatch as [string, string, string];
 
-    if (val.trim() === '>') {
+    if (/^[>|][+-]?$/.test(val.trim())) {
+      const literal = val.trim().startsWith('|');
       i++;
       const parts: string[] = [];
       while (i < lines.length && /^\s/.test(lines[i]!)) parts.push(lines[i++]!.trim());
-      result[key] = parts.join(' ');
+      result[key] = parts.join(literal ? '\n' : ' ');
 
     } else if (val.trim() === '') {
       i++;
       const children: Record<string, string> = {};
+      const items: string[] = [];
       while (i < lines.length && /^\s/.test(lines[i]!)) {
-        const child = lines[i++]!.match(/^\s+(\w[\w-]*):\s*(.*)/);
+        const line = lines[i++]!;
+        const item = line.match(/^\s*-\s+(.*)/);
+        if (item) { items.push(unquote(item[1]!.trim())); continue; }
+        const child = line.match(/^\s+(\w[\w-]*):\s*(.*)/);
         if (child) children[child[1]!] = child[2]!.trim();
       }
-      result[key] = children;
+      result[key] = items.length > 0 ? items : children;
 
     } else {
       result[key] = parseScalar(val.trim());
@@ -46,8 +51,12 @@ export function parseFrontmatter(content: string): Frontmatter {
     }
   }
 
+  // `allowed-tools` is the Agent Skills spelling of `tools`; keep an explicit `tools` if both exist.
+  if (result['tools'] === undefined && result['allowed-tools'] !== undefined) {
+    result['tools'] = result['allowed-tools'];
+  }
   if (typeof result['tools'] === 'string') {
-    result['tools'] = result['tools'].split(',').map(t => t.trim()).filter(Boolean);
+    result['tools'] = splitTools(result['tools']);
   }
 
   const metadata = result['metadata'];
@@ -56,6 +65,23 @@ export function parseFrontmatter(content: string): Frontmatter {
   }
 
   return result as Frontmatter;
+}
+
+/** Split a tool list on commas and/or whitespace, keeping scoped entries like `Bash(git add:*)` whole. */
+function splitTools(s: string): string[] {
+  const out: string[] = [];
+  let cur = '';
+  let depth = 0;
+  for (const ch of s) {
+    if (ch === '(') depth++;
+    else if (ch === ')') depth = Math.max(0, depth - 1);
+    if (depth === 0 && (ch === ',' || /\s/.test(ch))) {
+      if (cur) out.push(cur);
+      cur = '';
+    } else cur += ch;
+  }
+  if (cur) out.push(cur);
+  return out;
 }
 
 function parseScalar(val: string): unknown {
