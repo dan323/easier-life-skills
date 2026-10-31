@@ -8,8 +8,8 @@ Day-to-day backlog and ticket status live on the GitHub Project board:
 fields. Add new ideas as draft cards there.
 
 This document keeps the prose the board can't carry: the design notes for
-prioritised features that haven't shipped yet, plus a one-line history of
-prioritised features that have.
+prioritized features that haven't shipped yet, plus a one-line history of
+prioritized features that have.
 
 ---
 
