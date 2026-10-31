@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { bootApp, cardLabel, cardNames, click, typeIntoSearch } from './harness.ts';
+import { bootApp, cardLabel, cardNames, click, flush, typeIntoSearch } from './harness.ts';
 
 function press(target: Element | Document, key: string, init: KeyboardEventInit = {}): KeyboardEvent {
   const ev = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init });
@@ -133,5 +133,35 @@ describe('keyboard shortcuts: j / k / Enter', () => {
     const ev = press(first, 'j');
     expect(ev.defaultPrevented).toBe(false);
     expect(document.activeElement).toBe(first);
+  });
+
+  describe('with the bundle drawer open', () => {
+    async function openDrawer(): Promise<void> {
+      await bootApp();
+      click('#view-skills');
+      await flush();
+      click(document.querySelector('#skills-grid .skill-card .bundle-add-btn'));
+      await flush();
+      expect(document.querySelector('#bundle-drawer')!.classList.contains('bundle-drawer--open')).toBe(true);
+    }
+
+    it('is ignored when focus is inside the drawer', async () => {
+      await openDrawer();
+      const drawerBtn = document.querySelector<HTMLButtonElement>('#bundle-drawer button')!;
+      drawerBtn.focus();
+
+      const ev = press(drawerBtn, 'j');
+      expect(ev.defaultPrevented).toBe(false);
+      expect(document.activeElement).toBe(drawerBtn);
+    });
+
+    it('still navigates cards when focus is outside the drawer', async () => {
+      await openDrawer();
+      document.body.focus();
+
+      const ev = press(document.body, 'j');
+      expect(ev.defaultPrevented).toBe(true);
+      expect(focusedCardName()).not.toBeNull();
+    });
   });
 });

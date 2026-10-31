@@ -153,7 +153,7 @@ export function App() {
 
   // j / k move focus between the visible cards' title buttons; Enter on a
   // focused card title opens its detail panel. Ignored while typing, while a
-  // modifier key is held, and while a detail panel is open.
+  // modifier key is held, while a detail panel is open, and while focus is inside the bundle drawer.
   // Panel state is read from the DOM so the handler stays stateless.
   useLayoutEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -164,6 +164,9 @@ export function App() {
       const target = e.target as HTMLElement | null;
       const tag = target?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
+      // The bundle drawer is a non-modal tray (open whenever a bundle has items), so only
+      // keys pressed from inside it are skipped; card navigation keeps working elsewhere.
+      if (target?.closest('#bundle-drawer')) return;
 
       const cards = Array.from(document.querySelectorAll<HTMLButtonElement>('#main .skill-card .card-name'));
       const active = document.activeElement as HTMLButtonElement | null;
