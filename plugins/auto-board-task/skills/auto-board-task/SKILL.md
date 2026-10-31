@@ -4,7 +4,7 @@ description: >
   Process the top Todo card on a GitHub Project (v2) board end-to-end:
   pull the board into a task-agent `tasks.yml`, run `task-agent` to
   open a PR for the top pending task, sync the PR back to the card,
-  then wait for Copilot to review the PR and apply fixes for
+  then review the PR with the `pr-reviewer` agent and apply fixes for
   actionable comments. Use when the user says "work on the next
   task", "do the next board task", "pick up the next GitHub project
   item", "process the next card", "work on the next item in github
@@ -12,8 +12,8 @@ description: >
   the top board todo", "auto-process the next card", or any phrasing
   that means "take the next pending item from a GitHub Project board
   and implement it". Composes `gh-project-sync` → `task-agent` →
-  `gh-project-sync` → `copilot-review-fixer` (skill wrapper shipped
-  by `task-agent`) via the `workflow` skill against the fixed YAML at
+  `gh-project-sync` → `pr-reviewer` → `copilot-review-fixer` (skill
+  wrappers shipped by `task-agent`) via the `workflow` skill against the fixed YAML at
   `${CLAUDE_PLUGIN_ROOT}/workflows/auto-board-task.yaml`. All
   arguments are forwarded verbatim to the workflow runner;
   validation happens there and inside the composed sub-skills.
@@ -32,7 +32,8 @@ The workflow chains:
 1. `gh-project-sync` — reconcile the board into `tasks.yml`.
 2. `task-agent` — open a PR for the top pending task.
 3. `gh-project-sync` — sync the PR back to its card.
-4. `copilot-review-fixer` — wait for Copilot's review, then fix actionable comments.
+4. `pr-reviewer` — review the PR, verify its checks, and post the findings as one review.
+5. `copilot-review-fixer` — fix the actionable comments from that review.
 
 ## What to do
 

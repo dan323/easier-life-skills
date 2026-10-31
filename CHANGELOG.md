@@ -3,6 +3,17 @@
 ## [Unreleased]
 
 ### Added
+- **task-agent v1.4.0: `pr-reviewer` agent and skill, replacing the wait for
+  Copilot review.** Copilot no longer reviews these PRs, so the pipeline's review
+  step never had anything to fix. The new `pr-reviewer` reads the PR diff and the
+  changed files in full, runs the repo's own build / type-check / tests in a
+  throwaway worktree (a PR body saying "tests pass" is a claim, not evidence), and
+  posts one `COMMENT` review with inline comments marked `<!-- pr-reviewer -->`. It
+  never edits the PR branch, approves, requests changes, pushes or merges, and it
+  skips findings it already raised on an earlier run. `skills/pr-reviewer` wraps it
+  as a workflow step (`pr_url`, `repo`, `branch`, optional `checks=false`) with
+  five evals that run against a local bare repo and a stub `gh`. See
+  [ADR-0012](adr/0012-own-pr-reviewer-instead-of-waiting-for-copilot.md).
 - **Web UI: `j` / `k` / `Enter` keyboard shortcuts.** `j` and `k` move focus to the
   next / previous visible card (the first card when none is focused, clamped at the
   ends) and `Enter` opens the detail panel of the focused card. The keys are ignored
@@ -19,6 +30,12 @@
   `plugins/new-issue/evals/evals.json`.
 
 ### Changed
+- **auto-board-task v1.3.0 and task-agent v1.4.0: the workflow reviews the PR itself.**
+  A new `review` step runs `pr-reviewer` between `sync-out` and `review-fix`.
+  `copilot-review-fixer` now also acts on `<!-- pr-reviewer -->` comments (high and
+  medium findings, trivial low ones), skips its Copilot wait when a pr-reviewer
+  review already exists, and treats a failing check reported in the review body as
+  a high item to fix.
 - **task-agent v1.3.0: the code is written by a dedicated `task-implementer`
   agent, which runs the repo's checks before committing.** Phase 3.3 used to spawn
   an untyped (general-purpose) agent with a generic prompt that never ran tests, and

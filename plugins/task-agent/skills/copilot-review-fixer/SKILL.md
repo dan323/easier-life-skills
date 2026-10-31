@@ -1,6 +1,6 @@
 ---
 name: copilot-review-fixer
-description: Reads unresolved Copilot review comments on a pull request and applies code fixes for actionable ones. Thin skill wrapper around the `copilot-review-fixer` sub-agent — callable as a workflow step.
+description: Reads unresolved review comments on a pull request — from the `pr-reviewer` agent or Copilot — and applies code fixes for actionable ones. Thin skill wrapper around the `copilot-review-fixer` sub-agent — callable as a workflow step.
 tools: Bash, PowerShell, Read, Edit, Glob, Grep, Agent, mcp__github__pull_request_read
 ---
 

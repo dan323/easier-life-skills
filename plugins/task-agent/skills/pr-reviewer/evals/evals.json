@@ -1,0 +1,115 @@
+{
+  "skill_name": "pr-reviewer",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Review the PR on branch task/change in /tmp/eval-pr-reviewer-0/work: pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change",
+      "description": "Clean PR whose checks pass. The reviewer must not invent findings or post an empty review.",
+      "setup": "rm -rf /tmp/eval-pr-reviewer-0 /tmp/eval-pr-reviewer-0-remote.git && mkdir -p /tmp/eval-pr-reviewer-0/bin && cd /tmp/eval-pr-reviewer-0 && git init --bare -q /tmp/eval-pr-reviewer-0-remote.git && git init -q -b main work && cd work && git config user.email e@e && git config user.name e && printf '{\"scripts\":{\"test\":\"node t.js\"}}' > package.json && printf 'process.exit(0)' > t.js && printf 'function add(a,b){return a+b}\n' > lib.js && git add -A && git commit -qm base && git remote add origin /tmp/eval-pr-reviewer-0-remote.git && git push -q origin main && git checkout -qb task/change && printf '// docs\nfunction add(a,b){return a+b}\n' > lib.js && git commit -qam 'docs: comment'  && git push -q origin task/change && echo IyEvYmluL3NoCiMgU3R1YiBnaCBmb3IgdGhlIHByLXJldmlld2VyIGV2YWxzOiBubyBuZXR3b3JrLiBGaXh0dXJlcyBsaXZlIG5leHQgdG8gYmluLy4KRD0iJChjZCAiJChkaXJuYW1lICIkMCIpLy4uIiAmJiBwd2QpIgpjYXNlICIkMSAkMiIgaW4KICAicHIgdmlldyIpIHByaW50ZiAneyJ0aXRsZSI6ImNoYW5nZSIsImJvZHkiOiJBbGwgdGVzdHMgcGFzcy4iLCJoZWFkUmVmT2lkIjoiJXMiLCJyZXZpZXdzIjpbXSwiY29tbWVudHMiOltdfQonICIkKGdpdCAtQyAiJEQvd29yayIgcmV2LXBhcnNlIEhFQUQpIiA7OwogICJwciBkaWZmIikgZ2l0IC1DICIkRC93b3JrIiBkaWZmIG1haW4uLkhFQUQgOzsKICAiYXBpICIqKQogICAgY2FzZSAiJCoiIGluCiAgICAgICoiLS1tZXRob2QgUE9TVCIqKQogICAgICAgIGluPSIiOyBwcmV2PSIiCiAgICAgICAgZm9yIGEgaW4gIiRAIjsgZG8gWyAiJHByZXYiID0gIi0taW5wdXQiIF0gJiYgaW49IiRhIjsgcHJldj0iJGEiOyBkb25lCiAgICAgICAgeyBlY2hvICJQT1NUICQqIjsgWyAtbiAiJGluIiBdICYmIGNhdCAiJGluIjsgZWNobzsgfSA+PiAiJEQvZ2gubG9nIiA7OwogICAgICAqKSBpZiBbIC1mICIkRC9leGlzdGluZy1jb21tZW50cy5qc29uIiBdOyB0aGVuIGNhdCAiJEQvZXhpc3RpbmctY29tbWVudHMuanNvbiI7IGVsc2UgZWNobyAnW10nOyBmaSA7OwogICAgZXNhYyA7Owplc2FjCg== | base64 -d > /tmp/eval-pr-reviewer-0/bin/gh && chmod +x /tmp/eval-pr-reviewer-0/bin/gh && export PATH=/tmp/eval-pr-reviewer-0/bin:$PATH",
+      "expected_output": "The report lists the checks as passing, says there were no findings, and no review is posted.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-review-posted",
+          "text": "/tmp/eval-pr-reviewer-0/gh.log does not exist or contains no POST to a /reviews endpoint"
+        },
+        {
+          "id": "checks-reported",
+          "text": "The report lists the test command with exit code 0"
+        },
+        {
+          "id": "clean-stated",
+          "text": "The report states that no findings were raised"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Review the PR on branch task/change in /tmp/eval-pr-reviewer-1/work: pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change",
+      "description": "PR seeds a real bug (add() now subtracts). The reviewer must post exactly one COMMENT review anchored to the head commit.",
+      "setup": "rm -rf /tmp/eval-pr-reviewer-1 /tmp/eval-pr-reviewer-1-remote.git && mkdir -p /tmp/eval-pr-reviewer-1/bin && cd /tmp/eval-pr-reviewer-1 && git init --bare -q /tmp/eval-pr-reviewer-1-remote.git && git init -q -b main work && cd work && git config user.email e@e && git config user.name e && printf '{\"scripts\":{\"test\":\"node t.js\"}}' > package.json && printf 'process.exit(0)' > t.js && printf 'function add(a,b){return a+b}\n' > lib.js && git add -A && git commit -qm base && git remote add origin /tmp/eval-pr-reviewer-1-remote.git && git push -q origin main && git checkout -qb task/change && printf 'function add(a,b){return a-b}\n' > lib.js && git commit -qam 'feat: change'  && git push -q origin task/change && echo IyEvYmluL3NoCiMgU3R1YiBnaCBmb3IgdGhlIHByLXJldmlld2VyIGV2YWxzOiBubyBuZXR3b3JrLiBGaXh0dXJlcyBsaXZlIG5leHQgdG8gYmluLy4KRD0iJChjZCAiJChkaXJuYW1lICIkMCIpLy4uIiAmJiBwd2QpIgpjYXNlICIkMSAkMiIgaW4KICAicHIgdmlldyIpIHByaW50ZiAneyJ0aXRsZSI6ImNoYW5nZSIsImJvZHkiOiJBbGwgdGVzdHMgcGFzcy4iLCJoZWFkUmVmT2lkIjoiJXMiLCJyZXZpZXdzIjpbXSwiY29tbWVudHMiOltdfQonICIkKGdpdCAtQyAiJEQvd29yayIgcmV2LXBhcnNlIEhFQUQpIiA7OwogICJwciBkaWZmIikgZ2l0IC1DICIkRC93b3JrIiBkaWZmIG1haW4uLkhFQUQgOzsKICAiYXBpICIqKQogICAgY2FzZSAiJCoiIGluCiAgICAgICoiLS1tZXRob2QgUE9TVCIqKQogICAgICAgIGluPSIiOyBwcmV2PSIiCiAgICAgICAgZm9yIGEgaW4gIiRAIjsgZG8gWyAiJHByZXYiID0gIi0taW5wdXQiIF0gJiYgaW49IiRhIjsgcHJldj0iJGEiOyBkb25lCiAgICAgICAgeyBlY2hvICJQT1NUICQqIjsgWyAtbiAiJGluIiBdICYmIGNhdCAiJGluIjsgZWNobzsgfSA+PiAiJEQvZ2gubG9nIiA7OwogICAgICAqKSBpZiBbIC1mICIkRC9leGlzdGluZy1jb21tZW50cy5qc29uIiBdOyB0aGVuIGNhdCAiJEQvZXhpc3RpbmctY29tbWVudHMuanNvbiI7IGVsc2UgZWNobyAnW10nOyBmaSA7OwogICAgZXNhYyA7Owplc2FjCg== | base64 -d > /tmp/eval-pr-reviewer-1/bin/gh && chmod +x /tmp/eval-pr-reviewer-1/bin/gh && export PATH=/tmp/eval-pr-reviewer-1/bin:$PATH",
+      "expected_output": "One COMMENT review with an inline comment on lib.js, carrying the pr-reviewer marker, never APPROVE or REQUEST_CHANGES.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "single-review",
+          "text": "gh.log contains exactly one POST to /pulls/7/reviews"
+        },
+        {
+          "id": "event-comment",
+          "text": "The posted payload has \"event\": \"COMMENT\" and neither APPROVE nor REQUEST_CHANGES appears anywhere in gh.log"
+        },
+        {
+          "id": "marker-present",
+          "text": "The review body and every inline comment body start with <!-- pr-reviewer -->"
+        },
+        {
+          "id": "anchored",
+          "text": "commit_id equals the work repo's HEAD and an inline comment targets lib.js on side RIGHT"
+        },
+        {
+          "id": "no-branch-writes",
+          "text": "The work repo's HEAD and the remote task/change ref are unchanged after the run"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Review the PR on branch task/change in /tmp/eval-pr-reviewer-2/work: pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change",
+      "description": "Idempotent re-run: the bug was already raised by a previous run (marked comment on the same path and first line). Nothing may be duplicated.",
+      "setup": "rm -rf /tmp/eval-pr-reviewer-2 /tmp/eval-pr-reviewer-2-remote.git && mkdir -p /tmp/eval-pr-reviewer-2/bin && cd /tmp/eval-pr-reviewer-2 && git init --bare -q /tmp/eval-pr-reviewer-2-remote.git && git init -q -b main work && cd work && git config user.email e@e && git config user.name e && printf '{\"scripts\":{\"test\":\"node t.js\"}}' > package.json && printf 'process.exit(0)' > t.js && printf 'function add(a,b){return a+b}\n' > lib.js && git add -A && git commit -qm base && git remote add origin /tmp/eval-pr-reviewer-2-remote.git && git push -q origin main && git checkout -qb task/change && printf 'function add(a,b){return a-b}\n' > lib.js && git commit -qam 'feat: change'  && git push -q origin task/change && echo IyEvYmluL3NoCiMgU3R1YiBnaCBmb3IgdGhlIHByLXJldmlld2VyIGV2YWxzOiBubyBuZXR3b3JrLiBGaXh0dXJlcyBsaXZlIG5leHQgdG8gYmluLy4KRD0iJChjZCAiJChkaXJuYW1lICIkMCIpLy4uIiAmJiBwd2QpIgpjYXNlICIkMSAkMiIgaW4KICAicHIgdmlldyIpIHByaW50ZiAneyJ0aXRsZSI6ImNoYW5nZSIsImJvZHkiOiJBbGwgdGVzdHMgcGFzcy4iLCJoZWFkUmVmT2lkIjoiJXMiLCJyZXZpZXdzIjpbXSwiY29tbWVudHMiOltdfQonICIkKGdpdCAtQyAiJEQvd29yayIgcmV2LXBhcnNlIEhFQUQpIiA7OwogICJwciBkaWZmIikgZ2l0IC1DICIkRC93b3JrIiBkaWZmIG1haW4uLkhFQUQgOzsKICAiYXBpICIqKQogICAgY2FzZSAiJCoiIGluCiAgICAgICoiLS1tZXRob2QgUE9TVCIqKQogICAgICAgIGluPSIiOyBwcmV2PSIiCiAgICAgICAgZm9yIGEgaW4gIiRAIjsgZG8gWyAiJHByZXYiID0gIi0taW5wdXQiIF0gJiYgaW49IiRhIjsgcHJldj0iJGEiOyBkb25lCiAgICAgICAgeyBlY2hvICJQT1NUICQqIjsgWyAtbiAiJGluIiBdICYmIGNhdCAiJGluIjsgZWNobzsgfSA+PiAiJEQvZ2gubG9nIiA7OwogICAgICAqKSBpZiBbIC1mICIkRC9leGlzdGluZy1jb21tZW50cy5qc29uIiBdOyB0aGVuIGNhdCAiJEQvZXhpc3RpbmctY29tbWVudHMuanNvbiI7IGVsc2UgZWNobyAnW10nOyBmaSA7OwogICAgZXNhYyA7Owplc2FjCg== | base64 -d > /tmp/eval-pr-reviewer-2/bin/gh && chmod +x /tmp/eval-pr-reviewer-2/bin/gh && printf '[{\"path\":\"lib.js\",\"body\":\"<!-- pr-reviewer -->\\\\n**[high]** add() subtracts instead of adding.\"}]' > /tmp/eval-pr-reviewer-2/existing-comments.json && export PATH=/tmp/eval-pr-reviewer-2/bin:$PATH",
+      "expected_output": "The finding is listed under 'Already raised' and no second review is posted.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-duplicate-post",
+          "text": "gh.log contains no POST to /reviews"
+        },
+        {
+          "id": "listed-as-raised",
+          "text": "The report lists the lib.js finding under 'Already raised'"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Review the PR on branch task/change in /tmp/eval-pr-reviewer-3/work: pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change",
+      "description": "The PR body claims tests pass but the test command exits 1. Checks must run in a throwaway worktree and the failure must be a high finding.",
+      "setup": "rm -rf /tmp/eval-pr-reviewer-3 /tmp/eval-pr-reviewer-3-remote.git && mkdir -p /tmp/eval-pr-reviewer-3/bin && cd /tmp/eval-pr-reviewer-3 && git init --bare -q /tmp/eval-pr-reviewer-3-remote.git && git init -q -b main work && cd work && git config user.email e@e && git config user.name e && printf '{\"scripts\":{\"test\":\"node t.js\"}}' > package.json && printf 'process.exit(1)' > t.js && printf 'function add(a,b){return a+b}\n' > lib.js && git add -A && git commit -qm base && git remote add origin /tmp/eval-pr-reviewer-3-remote.git && git push -q origin main && git checkout -qb task/change && printf '// docs\nfunction add(a,b){return a+b}\n' > lib.js && git commit -qam 'docs: comment'  && git push -q origin task/change && echo IyEvYmluL3NoCiMgU3R1YiBnaCBmb3IgdGhlIHByLXJldmlld2VyIGV2YWxzOiBubyBuZXR3b3JrLiBGaXh0dXJlcyBsaXZlIG5leHQgdG8gYmluLy4KRD0iJChjZCAiJChkaXJuYW1lICIkMCIpLy4uIiAmJiBwd2QpIgpjYXNlICIkMSAkMiIgaW4KICAicHIgdmlldyIpIHByaW50ZiAneyJ0aXRsZSI6ImNoYW5nZSIsImJvZHkiOiJBbGwgdGVzdHMgcGFzcy4iLCJoZWFkUmVmT2lkIjoiJXMiLCJyZXZpZXdzIjpbXSwiY29tbWVudHMiOltdfQonICIkKGdpdCAtQyAiJEQvd29yayIgcmV2LXBhcnNlIEhFQUQpIiA7OwogICJwciBkaWZmIikgZ2l0IC1DICIkRC93b3JrIiBkaWZmIG1haW4uLkhFQUQgOzsKICAiYXBpICIqKQogICAgY2FzZSAiJCoiIGluCiAgICAgICoiLS1tZXRob2QgUE9TVCIqKQogICAgICAgIGluPSIiOyBwcmV2PSIiCiAgICAgICAgZm9yIGEgaW4gIiRAIjsgZG8gWyAiJHByZXYiID0gIi0taW5wdXQiIF0gJiYgaW49IiRhIjsgcHJldj0iJGEiOyBkb25lCiAgICAgICAgeyBlY2hvICJQT1NUICQqIjsgWyAtbiAiJGluIiBdICYmIGNhdCAiJGluIjsgZWNobzsgfSA+PiAiJEQvZ2gubG9nIiA7OwogICAgICAqKSBpZiBbIC1mICIkRC9leGlzdGluZy1jb21tZW50cy5qc29uIiBdOyB0aGVuIGNhdCAiJEQvZXhpc3RpbmctY29tbWVudHMuanNvbiI7IGVsc2UgZWNobyAnW10nOyBmaSA7OwogICAgZXNhYyA7Owplc2FjCg== | base64 -d > /tmp/eval-pr-reviewer-3/bin/gh && chmod +x /tmp/eval-pr-reviewer-3/bin/gh && export PATH=/tmp/eval-pr-reviewer-3/bin:$PATH",
+      "expected_output": "A high finding quoting the failing test command, a posted COMMENT review, and the clone left untouched with no leftover worktree.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "failure-is-high",
+          "text": "The posted review body or an inline comment is marked [high] and names the failing test command with exit code 1"
+        },
+        {
+          "id": "clone-untouched",
+          "text": "`git -C <clone> status --porcelain` is empty after the run"
+        },
+        {
+          "id": "worktree-removed",
+          "text": "`git -C <clone> worktree list` shows only the main worktree after the run"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Review the PR: pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change checks=maybe",
+      "description": "Degenerate input: an invalid checks value. The skill must stop before cloning or spawning anything.",
+      "setup": "rm -rf /tmp/eval-pr-reviewer-4 && mkdir -p /tmp/eval-pr-reviewer-4",
+      "expected_output": "An error naming the invalid checks value; no clone, no agent, no review.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "error-names-checks",
+          "text": "The output reports that checks must be true or false"
+        },
+        {
+          "id": "nothing-spawned",
+          "text": "No sub-agent is spawned and no clone directory is created"
+        }
+      ]
+    }
+  ]
+}
