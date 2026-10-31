@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.32.0] - 2026-10-31
+
 ### Added
 - **task-agent v2.0.0: `pr-reviewer` agent and skill, replacing the wait for
   Copilot review.** Copilot no longer reviews these PRs, so the pipeline's review
