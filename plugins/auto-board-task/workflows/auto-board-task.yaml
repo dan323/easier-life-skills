@@ -19,8 +19,9 @@
 #                              with inline comments marked `<!-- pr-reviewer -->`.
 #                              Replaces waiting on Copilot, which no longer
 #                              reviews these PRs.
-#   5. copilot-review-fixer  — applies fixes for the actionable comments from
-#                              step 4 (and Copilot's, if any ever appear). Runs
+#   5. review-fixer          — applies fixes for the actionable comments from
+#                              step 4 (and from other trusted reviewers, if any
+#                              appear), runs the repo's checks, pushes. Runs
 #                              at the workflow level so the Agent tool is
 #                              available (subagents cannot spawn further
 #                              agents).
@@ -81,9 +82,10 @@ steps:
       branch: ${{ steps.run-task.output.branch }}
 
   - id: review-fix
-    skill: copilot-review-fixer
-    description: Apply fixes for the actionable review comments (pr-reviewer's, and Copilot's if present).
+    skill: review-fixer
+    description: Apply fixes for the actionable review comments from trusted reviewers, run the repo's checks, and push.
     args:
       pr_url: ${{ steps.run-task.output.pr_url }}
       repo: ${{ steps.run-task.output.repo }}
       branch: ${{ steps.run-task.output.branch }}
+      poll: 0

@@ -12,7 +12,7 @@ description: >
   the top board todo", "auto-process the next card", or any phrasing
   that means "take the next pending item from a GitHub Project board
   and implement it". Composes `gh-project-sync` → `task-agent` →
-  `gh-project-sync` → `pr-reviewer` → `copilot-review-fixer` (skill
+  `gh-project-sync` → `pr-reviewer` → `review-fixer` (skill
   wrappers shipped by `task-agent`) via the `workflow` skill against the fixed YAML at
   `${CLAUDE_PLUGIN_ROOT}/workflows/auto-board-task.yaml`. All
   arguments are forwarded verbatim to the workflow runner;
@@ -33,7 +33,7 @@ The workflow chains:
 2. `task-agent` — open a PR for the top pending task.
 3. `gh-project-sync` — sync the PR back to its card.
 4. `pr-reviewer` — review the PR, verify its checks, and post the findings as one review.
-5. `copilot-review-fixer` — fix the actionable comments from that review.
+5. `review-fixer` — fix the actionable comments from that review, run the repo's checks, and push.
 
 ## What to do
 

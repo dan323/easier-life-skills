@@ -58,6 +58,6 @@ Spawn the `pr-reviewer` sub-agent via the `Agent` tool
 
 ### Step 4 — Relay the report
 
-Print the agent's report verbatim. The review comments it posts are marked `<!-- pr-reviewer -->`, which is how `copilot-review-fixer` finds them in the next workflow step.
+Print the agent's report verbatim. The review comments it posts are marked `<!-- pr-reviewer -->`, which is how `review-fixer` finds them in the next workflow step.
 
 If the agent could not post (for example `gh` is not authenticated), surface that error and stop — do not retry with a different mechanism.

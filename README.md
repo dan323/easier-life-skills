@@ -44,7 +44,7 @@ Or copy the right command directly from the [marketplace browser](#marketplace-b
 
 | Agent                                                                       | Plugin       | What it does                                                                          |
 |-----------------------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------|
-| [`copilot-review-fixer`](plugins/task-agent/agents/copilot-review-fixer.md) | `task-agent` | Reads unresolved review comments on a PR (from `pr-reviewer` or Copilot) and applies code fixes automatically |
+| [`review-fixer`](plugins/task-agent/agents/review-fixer.md)                 | `task-agent` | Applies fixes for unresolved PR review comments from trusted reviewers (repo members, `pr-reviewer`, allowlisted bots), runs the repo's checks, and pushes |
 | [`pr-reviewer`](plugins/task-agent/agents/pr-reviewer.md)                   | `task-agent` | Reviews a PR (correctness, tests, repo conventions, safety), verifies its checks in a throwaway worktree, and posts one `COMMENT` review with inline comments |
 
 ### Commands

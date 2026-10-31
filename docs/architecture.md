@@ -456,9 +456,9 @@ Skills can spawn sub-agents for complex or parallelisable work. Sub-agent defini
 
 ```markdown
 ---
-name: copilot-review-fixer
+name: review-fixer
 description: What this agent does and when it should be used.
-tools: Bash, Read, Edit, mcp__github__pull_request_read
+tools: Bash, Read, Edit
 background: true
 ---
 
@@ -469,7 +469,7 @@ PLACEHOLDER variables are substituted by the caller before spawning.
 The skill spawns them via the Agent tool:
 
 ```
-subagent_type: "copilot-review-fixer"
+subagent_type: "review-fixer"
 prompt: "OWNER=dan323\nREPO_NAME=my-repo\n..."
 run_in_background: true   # if the agent can run in parallel
 ```

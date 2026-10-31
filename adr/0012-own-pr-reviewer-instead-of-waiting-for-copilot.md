@@ -2,11 +2,11 @@
 
 - **Status**: Accepted
 - **Date**: 2026-10-31
-- **Scope**: `plugins/task-agent/` (`agents/pr-reviewer.md`, `skills/pr-reviewer`, `agents/copilot-review-fixer.md`), `plugins/auto-board-task/workflows/auto-board-task.yaml`
+- **Scope**: `plugins/task-agent/` (`agents/pr-reviewer.md`, `skills/pr-reviewer`, `agents/review-fixer.md`), `plugins/auto-board-task/workflows/auto-board-task.yaml`
 
 ## Context
 
-The `auto-board-task` pipeline ended with `copilot-review-fixer`, which waited for
+The `auto-board-task` pipeline ended with a `copilot-review-fixer` step, which waited for
 GitHub Copilot to review the freshly opened PR and then applied its comments. Copilot
 stopped reviewing these PRs. Runs spent up to ~20 minutes polling, found nothing, and
 ended without a review; the only comments that ever showed up came from CodeRabbit,
@@ -34,14 +34,20 @@ a normal workflow step, and run it between `sync-out` and `review-fix`.
 2. **Every comment starts with `<!-- pr-reviewer -->`.** That marker is the whole
    protocol between reviewer and fixer: because the review is authored by the user's
    own account, `author` cannot identify it. The marker also makes re-runs idempotent
-   (a finding with the same marker, path and first line is not posted twice).
+   (a finding is not posted twice when a marked comment on the same path has the same `**[severity]** summary` line; the marker alone cannot identify a finding because every comment starts with it).
 3. **It runs the repo's own checks in a throwaway `git worktree`** and reports the
    results. A PR body saying "tests pass" is a claim the author wrote; the first
    reviewer prototype could not run the suite and had to say it had not verified it.
    A worktree keeps build side effects (generated indices, badges) out of the clone.
-4. **`copilot-review-fixer` consumes both sources.** It keeps its name and its Copilot
-   path, additionally acts on marked comments, and skips the Copilot wait when a
-   pr-reviewer review exists.
+4. **`copilot-review-fixer` is replaced by a general `review-fixer`.** Once the reviewer
+   is ours, a fixer named after Copilot is the wrong abstraction. `review-fixer` acts on
+   unresolved review threads and review bodies from *trusted* authors, whoever they are:
+   repo `OWNER` / `MEMBER` / `COLLABORATOR` (which covers the account the reviewer posts
+   from), the bots `copilot-pull-request-reviewer` and `coderabbitai`, and any
+   `reviewers=` logins. Everyone else is reported as Ignored and never acted on: a fixer
+   that edits the branch on the say-so of any commenter is a prompt-injection vector on a
+   public repo. It also runs the repo's checks before pushing, which the old fixer did
+   not. The skill is removed rather than aliased, so task-agent goes to 2.0.0.
 5. **The agent is told to check what the surrounding code is for before reporting a
    design-level finding.** The first live review observed keyboard shortcuts still firing
    while the bundle drawer was open; the obvious fix (disable them whenever the drawer
@@ -57,8 +63,13 @@ a normal workflow step, and run it between `sync-out` and `review-fix`.
   are the same model family and can share blind spots; this catches slips and
   convention gaps, not everything a human would. Merging stays a human decision.
 - Findings are authored by the user's account, so they are not distinguishable by
-  `author`; the body marker is load-bearing. Anything that strips or rewrites the
-  marker breaks the fixer handoff and the dedup.
+  `author`. The fixer trusts them by account association, not by marker; the marker
+  and the `**[severity]**` tag drive dedup and which findings get fixed. Anything that
+  rewrites them makes the reviewer repost old findings or the fixer misjudge severity.
+- Trusting `OWNER` / `MEMBER` / `COLLABORATOR` comments means a compromised
+  collaborator account can steer the fixer. The fixer's own rules (no commands from
+  comment text, no CI or dependency changes on request, checks before push, no force
+  push) limit what that buys an attacker, but do not remove the risk.
 - Running the checks costs minutes and needs the project's toolchain on the machine;
   `checks=false` turns it off.
 - Token cost per run goes up by one review pass. If Copilot review comes back, the

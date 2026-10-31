@@ -219,7 +219,7 @@ The current set of plugins is documented in `README.md`'s plugins table — don'
 
 ## task-agent Plugin Details
 
-`task-agent` has extra structure beyond the standard layout: `agents/copilot-review-fixer.md` (background sub-agent that polls open PRs and applies fixes for unresolved Copilot comments), `examples/tasks.yml` (unified-mode sample) plus `examples/agent-tasks.yml` + `agent-tasks-state.yml` (legacy two-file sample), and `references/` (per-language/build-tool quick-reference docs read at runtime — includes `isabelle.md` / `IsarMathLib.md` for theorem-prover work).
+`task-agent` has extra structure beyond the standard layout: `agents/review-fixer.md` (background sub-agent that applies fixes for unresolved review comments from trusted reviewers, runs the repo's checks, and pushes), `agents/pr-reviewer.md` (reviews the PR and posts one `COMMENT` review), `examples/tasks.yml` (unified-mode sample) plus `examples/agent-tasks.yml` + `agent-tasks-state.yml` (legacy two-file sample), and `references/` (per-language/build-tool quick-reference docs read at runtime — includes `isabelle.md` / `IsarMathLib.md` for theorem-prover work).
 
 ## Web UI and GitHub Pages
 

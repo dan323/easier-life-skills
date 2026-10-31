@@ -1,8 +1,8 @@
 {
   "name": "task-agent",
-  "version": "1.4.0",
-  "description": "Read tasks from a YAML file (unified or legacy two-file format), implement one per run via an agent, and open a PR. Also ships `pr-reviewer` and `copilot-review-fixer` skills callable as workflow steps.",
+  "version": "2.0.0",
+  "description": "Read tasks from a YAML file (unified or legacy two-file format), implement one per run via an agent, and open a PR. Also ships `pr-reviewer` and `review-fixer` skills callable as workflow steps.",
   "author": { "name": "dan323" },
   "category": "automation",
-  "skills": ["./skills/task-agent", "./skills/copilot-review-fixer", "./skills/pr-reviewer"]
+  "skills": ["./skills/task-agent", "./skills/review-fixer", "./skills/pr-reviewer"]
 }

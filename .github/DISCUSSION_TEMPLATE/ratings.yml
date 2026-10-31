@@ -26,7 +26,7 @@ body:
     id: entity_name
     attributes:
       label: Entity name
-      description: "Exact name as shown in the marketplace, e.g. `changelog`, `docs`, `copilot-review-fixer`"
+      description: "Exact name as shown in the marketplace, e.g. `changelog`, `docs`, `review-fixer`"
       placeholder: changelog
     validations:
       required: true

@@ -70,7 +70,7 @@ Do not report formatting, naming taste, or anything a linter already enforces. I
 
 ## Step 4 — Post one review
 
-Skip any finding already raised: fetch existing review comments and drop a finding when a comment starting with `<!-- pr-reviewer -->` already exists on the same `path` with the same first line.
+Skip any finding already raised: fetch existing review comments (`gh api repos/OWNER/REPO_NAME/pulls/PR_NUMBER/comments --paginate`) and drop a finding when a comment starting with `<!-- pr-reviewer -->` already exists on the same `path` whose `**[severity]** summary` line (the line after the marker) is identical. The marker alone never identifies a finding — every comment starts with it — so a new finding on a path that already has an older one must still be posted.
 
 Build one payload and post it as a single review with `event: COMMENT` — never `APPROVE` or `REQUEST_CHANGES`:
 
