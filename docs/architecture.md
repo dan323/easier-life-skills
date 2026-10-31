@@ -101,7 +101,7 @@ easier-life-skills/
 
 ## Web UI Architecture
 
-The web UI uses **Preact** (3 KB) with the automatic JSX runtime. State lives in the top-level `<App>` component via `useState` hooks; URL state sync, the `/` keyboard shortcut, and the panels' Escape handlers use `useLayoutEffect` so behavior is observable synchronously after each event. Tests verify this contract: the regression tests in `tests/` boot the real bundle against a fixture and assert on user-visible DOM. `panel-interactivity.test.ts` additionally asserts DOM invariants (no `inert`/`aria-hidden="true"` ancestor of open panels, clean `#root` after close) — happy-dom silently ignores `inert`, so this attribute-level assertion is the only way to regression-test against accidentally freezing the app when a panel opens.
+The web UI uses **Preact** (3 KB) with the automatic JSX runtime. State lives in the top-level `<App>` component via `useState` hooks; URL state sync, the `/` and `j`/`k`/`Enter` keyboard shortcuts, and the panels' Escape handlers use `useLayoutEffect` so behavior is observable synchronously after each event. Tests verify this contract: the regression tests in `tests/` boot the real bundle against a fixture and assert on user-visible DOM. `panel-interactivity.test.ts` additionally asserts DOM invariants (no `inert`/`aria-hidden="true"` ancestor of open panels, clean `#root` after close) — happy-dom silently ignores `inert`, so this attribute-level assertion is the only way to regression-test against accidentally freezing the app when a panel opens.
 
 State flow:
 
