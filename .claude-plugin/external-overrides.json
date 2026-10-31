@@ -3,6 +3,8 @@
     "plugins": {
       "document-skills": { "category": "productivity" },
       "example-skills":  { "category": "productivity" },
+      "academy-guide":   { "category": "productivity" },
+      "discernment-nudge": { "category": "productivity" },
       "claude-api":      { "category": "documentation" }
     },
     "skills": {
@@ -22,7 +24,9 @@
       "pdf":                   { "category": "documentation" },
       "pptx":                  { "category": "productivity" },
       "slack-gif-creator":     { "category": "productivity" },
-      "xlsx":                  { "category": "documentation" }
+      "xlsx":                  { "category": "documentation" },
+      "academy-guide":         { "category": "productivity" },
+      "discernment-nudge":     { "category": "productivity" }
     }
   },
   "mattpocock/skills": {
@@ -100,6 +104,13 @@
       "verification-before-completion": { "category": "code-quality" },
       "writing-plans":                  { "category": "productivity" },
       "writing-skills":                 { "category": "development"  }
+    },
+    "hooks": {
+      "session-start": { "category": "productivity" }
     }
+  },
+  "backnotprop/plannotator": {
+    "plugins": { "plannotator": { "category": "productivity" } },
+    "hooks":   { "plannotator": { "category": "productivity" } }
   }
 }

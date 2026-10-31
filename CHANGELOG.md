@@ -84,6 +84,11 @@
   `plugins/workflow/references/format.md`; evals 4-5 added.
 
 ### Fixed
+- **Uncategorized external entities on the web UI.** Added
+  `external-overrides.json` categories (all `productivity`) for the
+  `academy-guide` and `discernment-nudge` skills/plugins from `anthropics/skills`,
+  the `plannotator` plugin and hook from `backnotprop/plannotator`, and the
+  `session-start` hook from `obra/superpowers`.
 - **Web UI broke on the new custom domain (`ai.dan323.dev`) — nothing loaded.**
   `fetchIndex` only served the deploy-time `skills_index.json` same-origin when the
   hostname was `localhost`/`127.0.0.1` or `dan323.github.io`; on any other host it
