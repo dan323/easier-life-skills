@@ -46,6 +46,12 @@ Or copy the right command directly from the [marketplace browser](#marketplace-b
 |-----------------------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------|
 | [`copilot-review-fixer`](plugins/task-agent/agents/copilot-review-fixer.md) | `task-agent` | Reads unresolved Copilot review comments on a PR and applies code fixes automatically |
 
+### Commands
+
+| Command                                                 | Plugin      | What it does                                                                                                                                                    |
+|---------------------------------------------------------|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`/new-issue`](plugins/new-issue/commands/new-issue.md) | `new-issue` | Create a GitHub issue from the current conversation — title, body and labels (from the repo's existing set) inferred from what was discussed; wraps `gh issue create` |
+
 ## Marketplace Browser
 
 Browse and search skills, agents, commands, hooks, and MCP servers from **multiple Claude Code marketplaces** (currently `dan323/easier-life-skills`, `anthropics/skills`, and `mattpocock/skills`) at the interactive marketplace:

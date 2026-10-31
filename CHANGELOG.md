@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+- **`new-issue` plugin v1.0.0 with a `/new-issue` slash command**, the first
+  command shipped by this marketplace. It turns the current conversation into a
+  GitHub issue via `gh issue create`: it infers the type (bug / enhancement / docs /
+  question / task), drafts a title and a structured Markdown body from what was
+  discussed (no invented details; secrets and personal paths stripped), picks 1-3
+  labels only from the repository's existing `gh label list`, searches open issues
+  for duplicates, and asks for confirmation unless `--yes` is passed. Accepts an
+  optional focus hint and `--repo owner/name`. Evals in
+  `plugins/new-issue/evals/evals.json`.
+
 ### Changed
 - **task-agent v1.3.0: the code is written by a dedicated `task-implementer`
   agent, which runs the repo's checks before committing.** Phase 3.3 used to spawn
