@@ -46,6 +46,9 @@ Browse all skills, agents, commands, hooks, and MCP servers at **https://ai.dan3
 | Shortcut | Action |
 |----------|--------|
 | Press `/` | Focus the search box |
+| Press `j` / `k` | Move focus to the next / previous visible card (starts at the first card) |
+| Press `Enter` on a focused card | Open its detail panel |
+| Press `Escape` | Close the open detail panel |
 | Click **A→Z** button | Toggle sort direction |
 | Click a plugin card | Open the right-side detail panel with full description and install command (also shows `/plugin marketplace add …` for non-builtin sources) |
 | Click a skill / agent / MCP / command / hook card | Open the left-side detail panel with full description, tools or events, source link, and install command |

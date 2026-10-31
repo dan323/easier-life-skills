@@ -151,6 +151,43 @@ export function App() {
     return () => document.removeEventListener('keydown', handler);
   }, []);
 
+  // j / k move focus between the visible cards' title buttons; Enter on a
+  // focused card title opens its detail panel. Ignored while typing, while a
+  // modifier key is held, and while a detail panel is open.
+  // Panel state is read from the DOM so the handler stays stateless.
+  useLayoutEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.defaultPrevented) return;
+      if (e.key !== 'j' && e.key !== 'k' && e.key !== 'Enter') return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+      if (document.querySelector('#plugin-panel.open, #entity-panel.open')) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
+
+      const cards = Array.from(document.querySelectorAll<HTMLButtonElement>('#main .skill-card .card-name'));
+      const active = document.activeElement as HTMLButtonElement | null;
+      const idx = active ? cards.indexOf(active) : -1;
+
+      if (e.key === 'Enter') {
+        if (idx === -1) return;
+        // Suppress the native button activation so the panel opens exactly once.
+        e.preventDefault();
+        cards[idx]!.click();
+        return;
+      }
+
+      if (cards.length === 0) return;
+      e.preventDefault();
+      const next = idx === -1
+        ? 0
+        : Math.max(0, Math.min(cards.length - 1, idx + (e.key === 'j' ? 1 : -1)));
+      cards[next]!.focus();
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+
   const categories = useMemo(() => {
     const srcByView: Record<ViewKey, Array<{ category?: string | null; _repo?: string }>> = {
       plugins,

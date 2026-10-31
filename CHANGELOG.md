@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Web UI: `j` / `k` / `Enter` keyboard shortcuts.** `j` and `k` move focus to the
+  next / previous visible card (the first card when none is focused, clamped at the
+  ends) and `Enter` opens the detail panel of the focused card. The keys are ignored
+  while typing in an input/textarea/select, while a modifier key is held, and while a
+  detail panel is open. Tests in `tests/keyboard-shortcuts.test.ts`.
 - **`new-issue` plugin v1.0.0 with a `/new-issue` slash command**, the first
   command shipped by this marketplace. It turns the current conversation into a
   GitHub issue via `gh issue create`: it infers the type (bug / enhancement / docs /
