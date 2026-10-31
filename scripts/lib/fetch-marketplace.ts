@@ -3,7 +3,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 'fs';
 import { join, dirname, basename }                                          from 'path';
 import { fileURLToPath }                                                    from 'url';
-import { parseFrontmatter }                                                 from './frontmatter.js';
+import { parseFrontmatter, isWriteTool }                                                 from './frontmatter.js';
 import { scanBody, mergeMetadataScan, truncate, FIELD_LIMITS }               from './injection-scan.js';
 import type { Skill, Agent, McpServer, Command, Plugin, Bundle, MarketplaceResult, Hook } from './types.js';
 
@@ -265,10 +265,9 @@ async function parseSkill(
 
   const frontmatter = parseFrontmatter(content);
   const tools       = Array.isArray(frontmatter.tools) ? frontmatter.tools as string[] : [];
-  const WRITE_TOOLS = new Set(['Write', 'Edit', 'NotebookEdit']);
   // `allowed-tools` is normalised into `tools` by parseFrontmatter. Entries may carry
-  // a scope (e.g. `Edit(src/**)`), so compare on the bare tool name.
-  const readOnly    = tools.length > 0 && !tools.some(t => WRITE_TOOLS.has(t.replace(/\(.*$/, '')));
+  // a scope (e.g. `Edit(src/**)`, `Bash(git add:*)`); isWriteTool handles both.
+  const readOnly    = tools.length > 0 && !tools.some(isWriteTool);
   const version     = String(frontmatter.version ?? '1.0');
 
   // Apply length limits before storing or scanning metadata

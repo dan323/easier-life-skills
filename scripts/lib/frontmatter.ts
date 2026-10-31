@@ -36,10 +36,11 @@ export function parseFrontmatter(content: string): Frontmatter {
       i++;
       const children: Record<string, string> = {};
       const items: string[] = [];
-      while (i < lines.length && /^\s/.test(lines[i]!)) {
+      // YAML allows sequence items at the same column as their parent key.
+      while (i < lines.length && (/^\s/.test(lines[i]!) || /^-(\s|$)/.test(lines[i]!))) {
         const line = lines[i++]!;
         const item = line.match(/^\s*-\s+(.*)/);
-        if (item) { items.push(unquote(item[1]!.trim())); continue; }
+        if (item) { items.push(unquote(stripComment(item[1]!).trim())); continue; }
         const child = line.match(/^\s+(\w[\w-]*):\s*(.*)/);
         if (child) children[child[1]!] = child[2]!.trim();
       }
@@ -56,7 +57,12 @@ export function parseFrontmatter(content: string): Frontmatter {
     result['tools'] = result['allowed-tools'];
   }
   if (typeof result['tools'] === 'string') {
-    result['tools'] = splitTools(result['tools']);
+    let raw = stripComment(result['tools']).trim();
+    // Whole value quoted, e.g. `allowed-tools: "Write"`
+    if (raw.length >= 2 && (raw[0] === '"' || raw[0] === "'") && raw[raw.length - 1] === raw[0] && !raw.slice(1, -1).includes(raw[0])) {
+      raw = raw.slice(1, -1);
+    }
+    result['tools'] = splitTools(raw).map(unquote);
   }
 
   const metadata = result['metadata'];
@@ -91,6 +97,30 @@ function parseScalar(val: string): unknown {
     return inner.split(',').map(s => unquote(s.trim())).filter(Boolean);
   }
   return val;
+}
+
+/** Remove a trailing YAML comment (` #...`), ignoring `#` inside quotes. */
+function stripComment(s: string): string {
+  let quote = '';
+  for (let k = 0; k < s.length; k++) {
+    const ch = s[k]!;
+    if (quote) { if (ch === quote) quote = ''; }
+    else if (ch === '"' || ch === "'") quote = ch;
+    else if (ch === '#' && (k === 0 || /\s/.test(s[k - 1]!))) return s.slice(0, k);
+  }
+  return s;
+}
+
+const WRITE_TOOLS = new Set(['Write', 'Edit', 'NotebookEdit']);
+const READONLY_BASH = /^(git\s+(log|diff|status|show|blame|branch|rev-parse|ls-files|describe)|ls|cat|head|tail|wc|grep|rg|pwd)(\s|:|$)/;
+
+/** True if a tool entry can modify files. Scoped `Bash(...)` counts as writable unless its scope is a known read-only command. */
+export function isWriteTool(entry: string): boolean {
+  const m = entry.trim().match(/^([^(]*)\((.*)\)$/s);
+  const name = (m ? m[1]! : entry).trim();
+  if (WRITE_TOOLS.has(name)) return true;
+  if (name === 'Bash' && m) return !READONLY_BASH.test(m[2]!.trim());
+  return false;
 }
 
 function unquote(s: string): string {

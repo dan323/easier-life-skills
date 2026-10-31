@@ -9,6 +9,7 @@
 ### Fixed
 - Build: `allowed-tools` frontmatter (string or list) is now read as `tools`, so third-party skills are correctly tagged read-only; block lists and `>-`/`|` block scalars are parsed.
 - Build: marketplace fetch probes `main` then `master`, and supports the `{ source: "github", repo, ref }` plugin source (fixes `planning-with-files` and `Jeffallan/claude-skills` importing 0 skills).
+- Build: frontmatter parser accepts block-list items at the key's indentation, strips YAML comments from list items, and unquotes scalar `allowed-tools`; scoped `Bash(...)` entries (e.g. `Bash(git add:*)`) no longer count as read-only unless the scope is a known read-only command.
 
 ## [1.32.0] - 2026-10-31
 
