@@ -62,6 +62,13 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/find-skills"
     },
     {
+      "name": "new-issue",
+      "source": "./plugins/new-issue",
+      "description": "Slash command that turns the current conversation into a GitHub issue — title, description and labels inferred from what was discussed, created via gh issue create",
+      "category": "automation",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/new-issue"
+    },
+    {
       "name": "scaffold",
       "source": "./plugins/scaffold",
       "description": "Generate a new plugin skeleton (plugin.json, SKILL.md, evals.json, optional agents/references) from a single prompt",

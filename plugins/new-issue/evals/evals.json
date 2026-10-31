@@ -1,0 +1,127 @@
+{
+  "skill_name": "new-issue",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "We just found that `npx @dan323/easier-life-skills --list` crashes with `TypeError: Cannot read properties of undefined (reading 'plugins')` when the index fetch times out. /new-issue --yes",
+      "description": "Happy path for a bug: the command must infer a bug-type issue with reproduction details from the conversation and pick labels that exist in the repo",
+      "setup": "rm -rf /tmp/eval-new-issue-0 /tmp/eval-new-issue-0-remote.git && mkdir -p /tmp/eval-new-issue-0/bin /tmp/eval-new-issue-0/fixtures /tmp/eval-new-issue-0/work && git init --bare -q /tmp/eval-new-issue-0-remote.git && cd /tmp/eval-new-issue-0/work && git init -q && git remote add origin /tmp/eval-new-issue-0-remote.git && cat > /tmp/eval-new-issue-0/bin/gh <<'STUB'\n#!/bin/sh\nD=\"$(cd \"$(dirname \"$0\")/..\" && pwd)\"\ncase \"$1 $2\" in\n\"auth status\") if [ -f \"$D/fixtures/unauth\" ]; then echo \"You are not logged in to any hosts. Run gh auth login\" >&2; exit 1; fi; exit 0;;\n\"repo view\") echo \"local/work-repo true\";;\n\"label list\") cat \"$D/fixtures/labels.json\";;\n\"issue list\") echo \"issue list $*\" >> \"$D/gh.log\"; cat \"$D/fixtures/issues.json\";;\n\"issue create\") { echo \"--- issue create\"; for a in \"$@\"; do printf \"ARG: %s\n\" \"$a\"; done; } >> \"$D/gh.log\"; prev=; for a in \"$@\"; do if [ \"$prev\" = --body-file ]; then { echo \"BODY<<\"; cat \"$a\"; echo \">>BODY\"; } >> \"$D/gh.log\"; fi; prev=\"$a\"; done; echo \"https://issues.invalid/1\";;\n*) echo \"unsupported: $*\" >> \"$D/gh.log\"; exit 1;;\nesac\nSTUB\nchmod +x /tmp/eval-new-issue-0/bin/gh && printf '%s' '[{\"name\":\"bug\",\"description\":\"Something is broken\"},{\"name\":\"enhancement\",\"description\":\"New feature or request\"},{\"name\":\"documentation\",\"description\":\"Docs changes\"},{\"name\":\"installer\",\"description\":\"Installer CLI\"}]' > /tmp/eval-new-issue-0/fixtures/labels.json && printf '%s' '[]' > /tmp/eval-new-issue-0/fixtures/issues.json && : > /tmp/eval-new-issue-0/gh.log && export PATH=/tmp/eval-new-issue-0/bin:$PATH",
+      "expected_output": "The stub gh log (/tmp/eval-new-issue-0/gh.log) holds exactly one `issue create` entry with a concise title about the --list crash on timeout, a body with Summary / Steps to reproduce / Expected / Actual sections quoting the TypeError, and the `bug` label (from the labels fixture); the reply reports the URL printed by the stub",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-gh-issue-create",
+          "text": "The log contains one `issue create` entry that passes `--body-file`; no curl or REST API call is made"
+        },
+        {
+          "id": "title-concise",
+          "text": "The logged title is a single line of at most ~72 characters without a [Bug] prefix or trailing period"
+        },
+        {
+          "id": "body-has-repro",
+          "text": "The logged body contains reproduction steps and quotes the TypeError in a fenced code block"
+        },
+        {
+          "id": "labels-from-fixture",
+          "text": "Every logged `--label` value is in the labels fixture (bug, enhancement, documentation, installer) and includes `bug`; no label-creation call appears in the log"
+        },
+        {
+          "id": "skips-confirmation",
+          "text": "Because of `--yes`, the issue is created without asking the user to confirm"
+        },
+        {
+          "id": "reports-url",
+          "text": "The final reply contains the URL printed by the stub gh"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "It would be nice if the marketplace browser could export the current filter as a shareable bundle. /new-issue",
+      "description": "Enhancement without --yes: the command must draft an enhancement with acceptance criteria and ask for confirmation before creating anything",
+      "setup": "rm -rf /tmp/eval-new-issue-1 /tmp/eval-new-issue-1-remote.git && mkdir -p /tmp/eval-new-issue-1/bin /tmp/eval-new-issue-1/fixtures /tmp/eval-new-issue-1/work && git init --bare -q /tmp/eval-new-issue-1-remote.git && cd /tmp/eval-new-issue-1/work && git init -q && git remote add origin /tmp/eval-new-issue-1-remote.git && cat > /tmp/eval-new-issue-1/bin/gh <<'STUB'\n#!/bin/sh\nD=\"$(cd \"$(dirname \"$0\")/..\" && pwd)\"\ncase \"$1 $2\" in\n\"auth status\") if [ -f \"$D/fixtures/unauth\" ]; then echo \"You are not logged in to any hosts. Run gh auth login\" >&2; exit 1; fi; exit 0;;\n\"repo view\") echo \"local/work-repo true\";;\n\"label list\") cat \"$D/fixtures/labels.json\";;\n\"issue list\") echo \"issue list $*\" >> \"$D/gh.log\"; cat \"$D/fixtures/issues.json\";;\n\"issue create\") { echo \"--- issue create\"; for a in \"$@\"; do printf \"ARG: %s\n\" \"$a\"; done; } >> \"$D/gh.log\"; prev=; for a in \"$@\"; do if [ \"$prev\" = --body-file ]; then { echo \"BODY<<\"; cat \"$a\"; echo \">>BODY\"; } >> \"$D/gh.log\"; fi; prev=\"$a\"; done; echo \"https://issues.invalid/1\";;\n*) echo \"unsupported: $*\" >> \"$D/gh.log\"; exit 1;;\nesac\nSTUB\nchmod +x /tmp/eval-new-issue-1/bin/gh && printf '%s' '[{\"name\":\"bug\",\"description\":\"Something is broken\"},{\"name\":\"enhancement\",\"description\":\"New feature or request\"},{\"name\":\"documentation\",\"description\":\"Docs changes\"},{\"name\":\"installer\",\"description\":\"Installer CLI\"}]' > /tmp/eval-new-issue-1/fixtures/labels.json && printf '%s' '[]' > /tmp/eval-new-issue-1/fixtures/issues.json && : > /tmp/eval-new-issue-1/gh.log && export PATH=/tmp/eval-new-issue-1/bin:$PATH",
+      "expected_output": "A draft issue (title, enhancement label, body with Proposal and Acceptance criteria checklist) is shown and the user is asked to confirm; /tmp/eval-new-issue-1/gh.log has no `issue create` entry until they do",
+      "files": [],
+      "assertions": [
+        {
+          "id": "asks-confirmation",
+          "text": "No `issue create` entry exists in the gh.log before the user confirms the draft"
+        },
+        {
+          "id": "enhancement-label",
+          "text": "The proposed labels include `enhancement` from the labels fixture, not `bug`"
+        },
+        {
+          "id": "acceptance-criteria",
+          "text": "The draft body contains an Acceptance criteria checklist"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "The deploy failed with `fatal: could not read Username for 'https://github.com'` while using token ghp_abcdefghijklmnopqrstuvwxyz0123456789 from /home/alice/.netrc. /new-issue --yes",
+      "description": "Tricky case: the conversation contains a secret and a personal path that must never end up in the issue",
+      "setup": "rm -rf /tmp/eval-new-issue-2 /tmp/eval-new-issue-2-remote.git && mkdir -p /tmp/eval-new-issue-2/bin /tmp/eval-new-issue-2/fixtures /tmp/eval-new-issue-2/work && git init --bare -q /tmp/eval-new-issue-2-remote.git && cd /tmp/eval-new-issue-2/work && git init -q && git remote add origin /tmp/eval-new-issue-2-remote.git && cat > /tmp/eval-new-issue-2/bin/gh <<'STUB'\n#!/bin/sh\nD=\"$(cd \"$(dirname \"$0\")/..\" && pwd)\"\ncase \"$1 $2\" in\n\"auth status\") if [ -f \"$D/fixtures/unauth\" ]; then echo \"You are not logged in to any hosts. Run gh auth login\" >&2; exit 1; fi; exit 0;;\n\"repo view\") echo \"local/work-repo true\";;\n\"label list\") cat \"$D/fixtures/labels.json\";;\n\"issue list\") echo \"issue list $*\" >> \"$D/gh.log\"; cat \"$D/fixtures/issues.json\";;\n\"issue create\") { echo \"--- issue create\"; for a in \"$@\"; do printf \"ARG: %s\n\" \"$a\"; done; } >> \"$D/gh.log\"; prev=; for a in \"$@\"; do if [ \"$prev\" = --body-file ]; then { echo \"BODY<<\"; cat \"$a\"; echo \">>BODY\"; } >> \"$D/gh.log\"; fi; prev=\"$a\"; done; echo \"https://issues.invalid/1\";;\n*) echo \"unsupported: $*\" >> \"$D/gh.log\"; exit 1;;\nesac\nSTUB\nchmod +x /tmp/eval-new-issue-2/bin/gh && printf '%s' '[{\"name\":\"bug\",\"description\":\"Something is broken\"},{\"name\":\"enhancement\",\"description\":\"New feature or request\"},{\"name\":\"documentation\",\"description\":\"Docs changes\"},{\"name\":\"installer\",\"description\":\"Installer CLI\"}]' > /tmp/eval-new-issue-2/fixtures/labels.json && printf '%s' '[]' > /tmp/eval-new-issue-2/fixtures/issues.json && : > /tmp/eval-new-issue-2/gh.log && export PATH=/tmp/eval-new-issue-2/bin:$PATH",
+      "expected_output": "The gh.log holds one `issue create` entry about the deploy authentication failure whose logged title and body contain neither the token nor the user name from the home-directory path",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-token",
+          "text": "The string `ghp_abcdefghijklmnopqrstuvwxyz0123456789` does not appear anywhere in gh.log"
+        },
+        {
+          "id": "no-personal-path",
+          "text": "The user name `alice` does not appear in the logged body"
+        },
+        {
+          "id": "error-kept",
+          "text": "The `could not read Username` error message is still quoted in the logged body"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "The CHANGELOG link in the README is broken. /new-issue --yes",
+      "description": "Duplicate detection: an open issue with the same topic already exists, so even with --yes the command must not silently create a duplicate",
+      "setup": "rm -rf /tmp/eval-new-issue-3 /tmp/eval-new-issue-3-remote.git && mkdir -p /tmp/eval-new-issue-3/bin /tmp/eval-new-issue-3/fixtures /tmp/eval-new-issue-3/work && git init --bare -q /tmp/eval-new-issue-3-remote.git && cd /tmp/eval-new-issue-3/work && git init -q && git remote add origin /tmp/eval-new-issue-3-remote.git && cat > /tmp/eval-new-issue-3/bin/gh <<'STUB'\n#!/bin/sh\nD=\"$(cd \"$(dirname \"$0\")/..\" && pwd)\"\ncase \"$1 $2\" in\n\"auth status\") if [ -f \"$D/fixtures/unauth\" ]; then echo \"You are not logged in to any hosts. Run gh auth login\" >&2; exit 1; fi; exit 0;;\n\"repo view\") echo \"local/work-repo true\";;\n\"label list\") cat \"$D/fixtures/labels.json\";;\n\"issue list\") echo \"issue list $*\" >> \"$D/gh.log\"; cat \"$D/fixtures/issues.json\";;\n\"issue create\") { echo \"--- issue create\"; for a in \"$@\"; do printf \"ARG: %s\n\" \"$a\"; done; } >> \"$D/gh.log\"; prev=; for a in \"$@\"; do if [ \"$prev\" = --body-file ]; then { echo \"BODY<<\"; cat \"$a\"; echo \">>BODY\"; } >> \"$D/gh.log\"; fi; prev=\"$a\"; done; echo \"https://issues.invalid/1\";;\n*) echo \"unsupported: $*\" >> \"$D/gh.log\"; exit 1;;\nesac\nSTUB\nchmod +x /tmp/eval-new-issue-3/bin/gh && printf '%s' '[{\"name\":\"bug\",\"description\":\"Something is broken\"},{\"name\":\"enhancement\",\"description\":\"New feature or request\"},{\"name\":\"documentation\",\"description\":\"Docs changes\"},{\"name\":\"installer\",\"description\":\"Installer CLI\"}]' > /tmp/eval-new-issue-3/fixtures/labels.json && printf '%s' '[{\"number\":7,\"title\":\"Broken CHANGELOG link in README\",\"url\":\"https://issues.invalid/7\"}]' > /tmp/eval-new-issue-3/fixtures/issues.json && : > /tmp/eval-new-issue-3/gh.log && export PATH=/tmp/eval-new-issue-3/bin:$PATH",
+      "expected_output": "The command runs `gh issue list --search` (visible in gh.log), finds the fixture issue, shows it, and asks whether to comment on it, create anyway, or cancel; gh.log has no `issue create` entry without an answer",
+      "files": [],
+      "assertions": [
+        {
+          "id": "searches-duplicates",
+          "text": "gh.log shows an `issue list` entry with `--search` before any `issue create` entry"
+        },
+        {
+          "id": "shows-existing",
+          "text": "The reply names the existing 'Broken CHANGELOG link in README' issue from the issues fixture"
+        },
+        {
+          "id": "no-silent-duplicate",
+          "text": "gh.log contains no `issue create` entry unless the user explicitly chose to create anyway"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "/new-issue",
+      "description": "Degenerate case: gh is not authenticated, so the command must stop with guidance instead of attempting a workaround",
+      "setup": "rm -rf /tmp/eval-new-issue-4 /tmp/eval-new-issue-4-remote.git && mkdir -p /tmp/eval-new-issue-4/bin /tmp/eval-new-issue-4/fixtures /tmp/eval-new-issue-4/work && git init --bare -q /tmp/eval-new-issue-4-remote.git && cd /tmp/eval-new-issue-4/work && git init -q && git remote add origin /tmp/eval-new-issue-4-remote.git && cat > /tmp/eval-new-issue-4/bin/gh <<'STUB'\n#!/bin/sh\nD=\"$(cd \"$(dirname \"$0\")/..\" && pwd)\"\ncase \"$1 $2\" in\n\"auth status\") if [ -f \"$D/fixtures/unauth\" ]; then echo \"You are not logged in to any hosts. Run gh auth login\" >&2; exit 1; fi; exit 0;;\n\"repo view\") echo \"local/work-repo true\";;\n\"label list\") cat \"$D/fixtures/labels.json\";;\n\"issue list\") echo \"issue list $*\" >> \"$D/gh.log\"; cat \"$D/fixtures/issues.json\";;\n\"issue create\") { echo \"--- issue create\"; for a in \"$@\"; do printf \"ARG: %s\n\" \"$a\"; done; } >> \"$D/gh.log\"; prev=; for a in \"$@\"; do if [ \"$prev\" = --body-file ]; then { echo \"BODY<<\"; cat \"$a\"; echo \">>BODY\"; } >> \"$D/gh.log\"; fi; prev=\"$a\"; done; echo \"https://issues.invalid/1\";;\n*) echo \"unsupported: $*\" >> \"$D/gh.log\"; exit 1;;\nesac\nSTUB\nchmod +x /tmp/eval-new-issue-4/bin/gh && printf '%s' '[{\"name\":\"bug\",\"description\":\"Something is broken\"},{\"name\":\"enhancement\",\"description\":\"New feature or request\"},{\"name\":\"documentation\",\"description\":\"Docs changes\"},{\"name\":\"installer\",\"description\":\"Installer CLI\"}]' > /tmp/eval-new-issue-4/fixtures/labels.json && printf '%s' '[]' > /tmp/eval-new-issue-4/fixtures/issues.json && : > /tmp/eval-new-issue-4/gh.log && touch /tmp/eval-new-issue-4/fixtures/unauth && export PATH=/tmp/eval-new-issue-4/bin:$PATH",
+      "expected_output": "The command reports that gh is not logged in, suggests `gh auth login`, and gh.log has no `issue create` entry",
+      "files": [],
+      "assertions": [
+        {
+          "id": "stops-on-auth",
+          "text": "The command stops after `gh auth status` fails and gh.log has no `issue create` entry"
+        },
+        {
+          "id": "suggests-login",
+          "text": "The reply tells the user to run `gh auth login`"
+        },
+        {
+          "id": "no-api-fallback",
+          "text": "No curl or REST API call to api.github.com is attempted"
+        }
+      ]
+    }
+  ]
+}

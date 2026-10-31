@@ -1,0 +1,8 @@
+{
+  "name": "new-issue",
+  "version": "1.0.0",
+  "description": "Slash command that turns the current conversation into a GitHub issue — title, description and labels inferred from what was discussed, created via gh issue create",
+  "author": { "name": "dan323" },
+  "category": "automation",
+  "commands": ["./commands/new-issue.md"]
+}
