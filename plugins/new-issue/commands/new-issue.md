@@ -19,6 +19,9 @@ Arguments passed by the user: `$ARGUMENTS`
 
 In the commands below, `${REPO:+--repo "$REPO"}` stands for `--repo <owner/name>`
 when `--repo` was given and for nothing otherwise; substitute it accordingly.
+Shell-quote every value you substitute (title, labels, search words, repo) with
+single quotes, escaping any embedded single quote as `'''`, so backticks, `$(...)`
+and double quotes in them cannot be interpreted by the shell.
 
 ## 1. Check the environment
 
@@ -26,7 +29,7 @@ Run these and stop with a clear message if one fails:
 
 ```bash
 gh auth status
-gh repo view ${REPO:+--repo "$REPO"} --json nameWithOwner,hasIssuesEnabled -q '.nameWithOwner + " " + (.hasIssuesEnabled|tostring)'
+gh repo view ${REPO:+"$REPO"} --json nameWithOwner,hasIssuesEnabled -q '.nameWithOwner + " " + (.hasIssuesEnabled|tostring)'
 ```
 
 - `gh` missing or not logged in → tell the user to install it / run `gh auth login`. Do not fall back to the REST API with a hand-made token.
@@ -81,7 +84,9 @@ gh issue list ${REPO:+--repo "$REPO"} --state open --search "<2-4 key words from
 ```
 
 If an open issue already covers the same problem, show it to the user and ask
-whether to comment on it instead (`gh issue comment <number> --body-file -`),
+whether to comment on it instead (`gh issue comment <issue-url> --body-file -`,
+using the duplicate's full URL so it cannot resolve to a same-numbered issue in
+another repository),
 create a new issue anyway, or cancel. Do not create a duplicate silently — this
 also applies with `--yes`.
 
@@ -93,20 +98,25 @@ ask the user to confirm or edit. Apply any edits they ask for before creating.
 ## 6. Create the issue
 
 Write the body to a temporary file so Markdown, quotes and backticks survive the
-shell unchanged, then create the issue:
+shell unchanged, then create the issue. Use a heredoc delimiter that does not
+occur as a line in the body (the random-looking one below; pick another if the
+body contains it), otherwise the body would end early and the rest would run as
+shell commands:
 
 ```bash
 BODY_FILE="$(mktemp)"
-cat > "$BODY_FILE" <<'EOF'
+cat > "$BODY_FILE" <<'ISSUE_BODY_7f3a9c'
 <body>
-EOF
-gh issue create ${REPO:+--repo "$REPO"} --title "<title>" --body-file "$BODY_FILE" --label "<label1>" --label "<label2>"
-rm -f "$BODY_FILE"
+ISSUE_BODY_7f3a9c
+gh issue create ${REPO:+--repo "$REPO"} --title '<title>' --body-file "$BODY_FILE" --label '<label1>' --label '<label2>'
+STATUS=$?
 ```
 
 Omit `--label` entirely when no labels were chosen. If the command fails because
-of a label (for example it was deleted in the meantime), retry once without that
-label and tell the user.
+of a label (for example it was deleted in the meantime), retry once with the same
+`$BODY_FILE` and without that label, and tell the user. Only after the creation
+(or the retry) has finished, run `rm -f "$BODY_FILE"` and report failure if
+`STATUS` was non-zero and the retry did not succeed.
 
 ## 7. Report
 
