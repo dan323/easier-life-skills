@@ -64,7 +64,7 @@ Never discard local work. Refuse a dirty or diverged clone instead of resetting 
 
 ```bash
 git -C "$LOCAL_PATH" fetch origin
-[ -z "$(git -C "$LOCAL_PATH" status --porcelain --untracked-files=no)" ] || { echo "$LOCAL_PATH has uncommitted changes; refusing to reset"; exit 1; }
+[ -z "$(git -C "$LOCAL_PATH" status --porcelain)" ] || { echo "$LOCAL_PATH has uncommitted changes; refusing to reset"; exit 1; }
 git -C "$LOCAL_PATH" checkout "$BRANCH"
 git -C "$LOCAL_PATH" merge --ff-only "origin/$BRANCH" || { echo "local $BRANCH has diverged from origin; refusing to reset"; exit 1; }
 ```
