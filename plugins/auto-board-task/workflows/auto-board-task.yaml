@@ -21,10 +21,10 @@
 #                              reviews these PRs.
 #   5. review-fixer          — applies fixes for the actionable comments from
 #                              step 4 (and from other trusted reviewers, if any
-#                              appear), runs the repo's checks, pushes. Runs
-#                              at the workflow level so the Agent tool is
-#                              available (subagents cannot spawn further
-#                              agents).
+#                              appear), runs the repo's checks, pushes.
+#
+# Steps 2, 4 and 5 set `inline: true`: each spawns its own sub-agent, and a
+# workflow step that runs as a subagent cannot spawn further agents.
 #
 # See ../skills/auto-board-task/SKILL.md for the user-facing flow,
 # and ../../workflow/references/format.md for the workflow YAML schema.
@@ -60,6 +60,7 @@ steps:
   - id: run-task
     skill: task-agent
     description: Pick up the next pending task and open a PR.
+    inline: true   # task-agent spawns the implementer; subagents cannot spawn agents
     args:
       tasks: ${{ inputs.tasks }}
 
@@ -76,6 +77,7 @@ steps:
   - id: review
     skill: pr-reviewer
     description: Review the PR, run its checks in a throwaway worktree, and post the findings as one review.
+    inline: true   # spawns the pr-reviewer agent
     args:
       pr_url: ${{ steps.run-task.output.pr_url }}
       repo: ${{ steps.run-task.output.repo }}
@@ -84,6 +86,7 @@ steps:
   - id: review-fix
     skill: review-fixer
     description: Apply fixes for the actionable review comments from trusted reviewers, run the repo's checks, and push.
+    inline: true   # spawns the review-fixer agent
     args:
       pr_url: ${{ steps.run-task.output.pr_url }}
       repo: ${{ steps.run-task.output.repo }}

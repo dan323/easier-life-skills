@@ -15,6 +15,12 @@
   as a workflow step (`pr_url`, `repo`, `branch`, optional `checks=false`) with
   five evals that run against a local bare repo and a stub `gh`. See
   [ADR-0012](adr/0012-own-pr-reviewer-instead-of-waiting-for-copilot.md).
+  Hardening: the reviewer pins to `headRefOid` in a detached worktree (never resets
+  the clone, works for fork PRs), runs checks with a scrubbed environment and
+  `--ignore-scripts`, and only dedups against open (unresolved, non-outdated)
+  threads; `review-fixer` also fixes findings in review bodies, validates the PR
+  URL / head branch / clone origin, and refuses dirty or diverged clones; the
+  `auto-board-task` workflow runs its agent-spawning steps with `inline: true`.
 - **Web UI: `j` / `k` / `Enter` keyboard shortcuts.** `j` and `k` move focus to the
   next / previous visible card (the first card when none is focused, clamped at the
   ends) and `Enter` opens the detail panel of the focused card. The keys are ignored

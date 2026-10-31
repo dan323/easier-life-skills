@@ -27,6 +27,16 @@ Derive:
 
 If any required argument is missing or cannot be parsed, stop and report the error clearly. If `poll` is not a non-negative integer, stop and report it.
 
+Validate the target before touching any clone:
+
+```bash
+case "$PR_URL" in "https://github.com/$OWNER/$REPO_NAME/pull/"*) ;; *) echo "pr_url does not belong to $repo"; exit 1;; esac
+gh pr view "$PR_NUMBER" --repo "$repo" --json headRefName,headRepository,headRepositoryOwner,state
+```
+
+Stop unless the PR is open, `headRefName` equals `branch`, and the head repository is `repo` itself (the fixer pushes to `origin/BRANCH`, which a fork PR does not have).
+
+
 ### Step 2 — Prepare the local clone
 
 Reuse the `task-agent` workdir convention so the clone is shared with a preceding `task-agent` step in the same workflow:
@@ -34,16 +44,31 @@ Reuse the `task-agent` workdir convention so the clone is shared with a precedin
 ```bash
 WORKDIR="${TASK_AGENT_WORKDIR:-$(python3 -c 'import os,tempfile;print(os.path.join(tempfile.gettempdir(),"task-agent"))')}"
 LOCAL_PATH="$WORKDIR/$REPO_NAME"
-if [ -d "$LOCAL_PATH/.git" ]; then
-  git -C "$LOCAL_PATH" fetch origin
-  git -C "$LOCAL_PATH" checkout "$BRANCH"
-  git -C "$LOCAL_PATH" reset --hard "origin/$BRANCH"
-else
+if [ ! -d "$LOCAL_PATH/.git" ]; then
   mkdir -p "$WORKDIR"
   git clone "https://github.com/$OWNER/$REPO_NAME.git" "$LOCAL_PATH"
-  git -C "$LOCAL_PATH" checkout "$BRANCH"
 fi
 ```
+
+Verify the reused clone is this repository before using it (clones of different owners can share a name). A GitHub `origin` for a different `owner/repo` is an error; non-GitHub origins (local mirrors) are accepted:
+
+```bash
+ORIGIN=$(git -C "$LOCAL_PATH" remote get-url origin)
+case "$ORIGIN" in
+  *github.com[:/]*) SLUG=$(printf '%s' "$ORIGIN" | sed -E 's#.*github.com[:/]##; s#\.git$##')
+    [ "$(printf '%s' "$SLUG" | tr A-Z a-z)" = "$(printf '%s' "$repo" | tr A-Z a-z)" ] || { echo "$LOCAL_PATH is a clone of $SLUG, not $repo"; exit 1; } ;;
+esac
+```
+
+Never discard local work. Refuse a dirty or diverged clone instead of resetting it:
+
+```bash
+git -C "$LOCAL_PATH" fetch origin
+[ -z "$(git -C "$LOCAL_PATH" status --porcelain --untracked-files=no)" ] || { echo "$LOCAL_PATH has uncommitted changes; refusing to reset"; exit 1; }
+git -C "$LOCAL_PATH" checkout "$BRANCH"
+git -C "$LOCAL_PATH" merge --ff-only "origin/$BRANCH" || { echo "local $BRANCH has diverged from origin; refusing to reset"; exit 1; }
+```
+
 
 Detect the default branch:
 

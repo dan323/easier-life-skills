@@ -49,9 +49,9 @@ Do not wait when comments are already there.
 
 ## Step 3 — Fix applicable comments
 
-Make sure LOCAL_PATH is on BRANCH and up to date before editing (`git fetch origin`, `git checkout BRANCH`, `git merge --ff-only origin/BRANCH`).
+Make sure LOCAL_PATH is on BRANCH and up to date before editing (`git fetch origin`, `git checkout BRANCH`, `git merge --ff-only origin/BRANCH`; never `reset --hard`, and stop if the tree is dirty or the branch has diverged).
 
-For each kept thread:
+For each kept thread **and each actionable item in a trusted review `body`** (a failing check, or a finding about code outside the diff, which the reviewer reports in the body because it has no diff line — fix these against the file and code the body names):
 
 1. Read the comment carefully.
 2. Decide if it is **code-fixable** — the fix must only touch files that exist in LOCAL_PATH and stay inside the PR's scope. Skip comments that:

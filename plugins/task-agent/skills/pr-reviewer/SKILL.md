@@ -26,6 +26,14 @@ Derive:
 
 If any required argument is missing or cannot be parsed, stop and report the error clearly. If `checks` is anything other than `true` or `false`, stop and report it.
 
+Validate the target before touching any clone:
+
+```bash
+case "$PR_URL" in "https://github.com/$OWNER/$REPO_NAME/pull/"*) ;; *) echo "pr_url does not belong to $repo"; exit 1;; esac
+gh pr view "$PR_NUMBER" --repo "$repo" --json headRefName,headRepositoryOwner,headRepository,state
+```
+
+
 ### Step 2 — Prepare the local clone
 
 Reuse the `task-agent` workdir convention so the clone is shared with a preceding `task-agent` step in the same workflow:
@@ -33,16 +41,24 @@ Reuse the `task-agent` workdir convention so the clone is shared with a precedin
 ```bash
 WORKDIR="${TASK_AGENT_WORKDIR:-$(python3 -c 'import os,tempfile;print(os.path.join(tempfile.gettempdir(),"task-agent"))')}"
 LOCAL_PATH="$WORKDIR/$REPO_NAME"
-if [ -d "$LOCAL_PATH/.git" ]; then
-  git -C "$LOCAL_PATH" fetch origin
-  git -C "$LOCAL_PATH" checkout "$BRANCH"
-  git -C "$LOCAL_PATH" reset --hard "origin/$BRANCH"
-else
+if [ ! -d "$LOCAL_PATH/.git" ]; then
   mkdir -p "$WORKDIR"
   git clone "https://github.com/$OWNER/$REPO_NAME.git" "$LOCAL_PATH"
-  git -C "$LOCAL_PATH" checkout "$BRANCH"
 fi
+git -C "$LOCAL_PATH" fetch origin
 ```
+
+Verify the reused clone is this repository before using it (clones of different owners can share a name). A GitHub `origin` for a different `owner/repo` is an error; non-GitHub origins (local mirrors) are accepted:
+
+```bash
+ORIGIN=$(git -C "$LOCAL_PATH" remote get-url origin)
+case "$ORIGIN" in
+  *github.com[:/]*) SLUG=$(printf '%s' "$ORIGIN" | sed -E 's#.*github.com[:/]##; s#\.git$##')
+    [ "$(printf '%s' "$SLUG" | tr A-Z a-z)" = "$(printf '%s' "$repo" | tr A-Z a-z)" ] || { echo "$LOCAL_PATH is a clone of $SLUG, not $repo"; exit 1; } ;;
+esac
+```
+
+The reviewer never checks out, resets or otherwise modifies `LOCAL_PATH`: the sub-agent fetches the PR head (`refs/pull/PR_NUMBER/head`, which also works for fork PRs) and reviews a detached worktree at the exact `headRefOid`, so uncommitted work in a reused clone is safe and `branch` is informational.
 
 Detect the default branch:
 
