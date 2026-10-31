@@ -33,7 +33,7 @@ Or copy the right command directly from the [marketplace browser](#marketplace-b
 | [`docs`](plugins/docs/.claude-plugin/plugin.json)                                                  | Documentation bundle â€” `changelog` ([SKILL](plugins/docs/skills/changelog/SKILL.md)) and `document-project` ([SKILL](plugins/docs/skills/document-project/SKILL.md))   |
 | [`code-audit`](plugins/code-audit/.claude-plugin/plugin.json)                                      | Code-quality bundle â€” `find-dead-code` ([SKILL](plugins/code-audit/skills/find-dead-code/SKILL.md)), `find-breaking-rest-api` ([SKILL](plugins/code-audit/skills/find-breaking-rest-api/SKILL.md)), and `improve-logging` ([SKILL](plugins/code-audit/skills/improve-logging/SKILL.md)) |
 | [`brainstorm`](plugins/brainstorm/skills/brainstorm/SKILL.md)                                     | Suggest the 5 most valuable features or improvements to build next                                                      |
-| [`task-agent`](plugins/task-agent/skills/task-agent/SKILL.md)                                     | Read tasks from a YAML file (unified single-file format with `id`/`status`, or legacy two-file mode), implement one per run via an agent, open a PR, and fix Copilot review comments automatically |
+| [`task-agent`](plugins/task-agent/skills/task-agent/SKILL.md)                                     | Read tasks from a YAML file (unified single-file format with `id`/`status`, or legacy two-file mode), implement one per run via an agent and open a PR; the `pr-reviewer` and `review-fixer` skills (run by the `auto-board-task` workflow, or on their own) then review the PR and fix the review comments |
 | [`find-skills`](plugins/find-skills/skills/find-skills/SKILL.md)                                  | Analyze the active repository and recommend relevant Claude Code skills from known marketplaces                         |
 | [`scaffold`](plugins/scaffold/skills/scaffold/SKILL.md)                                           | Generate a complete plugin skeleton (`plugin.json`, `SKILL.md`, evals, optional agents/references) from a single prompt |
 | [`workflow`](plugins/workflow/skills/workflow/SKILL.md)                                           | Run multi-step skill workflows declared in workflow YAML — sequential execution with `${{ … }}` interpolation          |
@@ -44,7 +44,8 @@ Or copy the right command directly from the [marketplace browser](#marketplace-b
 
 | Agent                                                                       | Plugin       | What it does                                                                          |
 |-----------------------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------|
-| [`copilot-review-fixer`](plugins/task-agent/agents/copilot-review-fixer.md) | `task-agent` | Reads unresolved Copilot review comments on a PR and applies code fixes automatically |
+| [`review-fixer`](plugins/task-agent/agents/review-fixer.md)                 | `task-agent` | Applies fixes for unresolved PR review comments from trusted reviewers (repo members, `pr-reviewer`, allowlisted bots), runs the repo's checks, and pushes |
+| [`pr-reviewer`](plugins/task-agent/agents/pr-reviewer.md)                   | `task-agent` | Reviews a PR (correctness, tests, repo conventions, safety), verifies its checks in a throwaway worktree, and posts one `COMMENT` review with inline comments |
 
 ### Commands
 

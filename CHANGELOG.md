@@ -3,6 +3,24 @@
 ## [Unreleased]
 
 ### Added
+- **task-agent v2.0.0: `pr-reviewer` agent and skill, replacing the wait for
+  Copilot review.** Copilot no longer reviews these PRs, so the pipeline's review
+  step never had anything to fix. The new `pr-reviewer` reads the PR diff and the
+  changed files in full, runs the repo's own build / type-check / tests in a
+  throwaway worktree (a PR body saying "tests pass" is a claim, not evidence), and
+  posts one `COMMENT` review with inline comments marked `<!-- pr-reviewer -->`. It
+  never edits the PR branch, approves, requests changes, pushes or merges, and it
+  skips findings it already raised on an earlier run (same path and same
+  `**[severity]** summary` line, not just the marker). `skills/pr-reviewer` wraps it
+  as a workflow step (`pr_url`, `repo`, `branch`, optional `checks=false`) with
+  five evals that run against a local bare repo and a stub `gh`. See
+  [ADR-0012](adr/0012-own-pr-reviewer-instead-of-waiting-for-copilot.md).
+  Hardening: the reviewer pins to `headRefOid` in a detached worktree (never resets
+  the clone, works for fork PRs), runs checks with a scrubbed environment and
+  `--ignore-scripts`, and only dedups against open (unresolved, non-outdated)
+  threads; `review-fixer` also fixes findings in review bodies, validates the PR
+  URL / head branch / clone origin, and refuses dirty or diverged clones; the
+  `auto-board-task` workflow runs its agent-spawning steps with `inline: true`.
 - **Web UI: `j` / `k` / `Enter` keyboard shortcuts.** `j` and `k` move focus to the
   next / previous visible card (the first card when none is focused, clamped at the
   ends) and `Enter` opens the detail panel of the focused card. The keys are ignored
@@ -19,6 +37,24 @@
   `plugins/new-issue/evals/evals.json`.
 
 ### Changed
+- **BREAKING — task-agent v2.0.0: `copilot-review-fixer` is replaced by a general
+  `review-fixer` skill and agent.** Anything that invokes the `copilot-review-fixer`
+  skill or the `task-agent:copilot-review-fixer` agent type must switch to
+  `review-fixer` (same `pr_url`, `repo`, `branch` arguments; new optional
+  `reviewers=` and `poll=`). It no longer cares who reviewed: it acts on unresolved,
+  non-outdated review threads **and** on review bodies (where `pr-reviewer` reports
+  failing checks) from trusted authors — repo `OWNER` / `MEMBER` / `COLLABORATOR`,
+  which includes the account `pr-reviewer` posts from, plus the bots
+  `copilot-pull-request-reviewer` and `coderabbitai` and any `reviewers=` logins.
+  Comments from anyone else are listed as Ignored and never acted on, since anyone
+  can comment on a public PR. It now runs the repo's checks before pushing and
+  restores the tree without pushing if they fail (the old agent pushed unchecked,
+  with `--force-with-lease`; it now pushes without force). It reads GitHub through
+  `gh api graphql` instead of the GitHub MCP, and no longer sleeps 10 minutes for
+  Copilot: it polls only when nothing is there yet (`poll=`, default 3, 60 s apart).
+- **auto-board-task v1.3.0: the workflow reviews the PR itself.** A new `review`
+  step runs `pr-reviewer` between `sync-out` and `review-fix`; `review-fix` runs
+  `review-fixer` with `poll: 0`, because the review is already posted by then.
 - **task-agent v1.3.0: the code is written by a dedicated `task-implementer`
   agent, which runs the repo's checks before committing.** Phase 3.3 used to spawn
   an untyped (general-purpose) agent with a generic prompt that never ran tests, and

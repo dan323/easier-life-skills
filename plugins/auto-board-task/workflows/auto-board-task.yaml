@@ -14,17 +14,23 @@
 #                              to In Review (or In Progress if the board has
 #                              no In Review column) and the PR link is posted
 #                              as a comment on the card.
-#   4. copilot-review-fixer  — waits for Copilot to post review comments on
-#                              the new PR, then applies fixes for actionable
-#                              ones. Runs at the workflow level so the Agent
-#                              tool is available (subagents cannot spawn
-#                              further agents).
+#   4. pr-reviewer           — reviews the new PR, verifies its checks in a
+#                              throwaway worktree, and posts one COMMENT review
+#                              with inline comments marked `<!-- pr-reviewer -->`.
+#                              Replaces waiting on Copilot, which no longer
+#                              reviews these PRs.
+#   5. review-fixer          — applies fixes for the actionable comments from
+#                              step 4 (and from other trusted reviewers, if any
+#                              appear), runs the repo's checks, pushes.
+#
+# Steps 2, 4 and 5 set `inline: true`: each spawns its own sub-agent, and a
+# workflow step that runs as a subagent cannot spawn further agents.
 #
 # See ../skills/auto-board-task/SKILL.md for the user-facing flow,
 # and ../../workflow/references/format.md for the workflow YAML schema.
 
 name: auto-board-task
-description: Drain the top Todo card from a GitHub Project — sync in, run task-agent, sync out, fix Copilot review comments.
+description: Drain the top Todo card from a GitHub Project — sync in, run task-agent, sync out, review the PR, fix the review comments.
 category: automation
 
 inputs:
@@ -54,6 +60,7 @@ steps:
   - id: run-task
     skill: task-agent
     description: Pick up the next pending task and open a PR.
+    inline: true   # task-agent spawns the implementer; subagents cannot spawn agents
     args:
       tasks: ${{ inputs.tasks }}
 
@@ -67,10 +74,21 @@ steps:
       project_number: ${{ inputs.project_number }}
       default_repo: ${{ inputs.default_repo }}
 
-  - id: review-fix
-    skill: copilot-review-fixer
-    description: Wait for Copilot to review the PR, then apply fixes for actionable comments.
+  - id: review
+    skill: pr-reviewer
+    description: Review the PR, run its checks in a throwaway worktree, and post the findings as one review.
+    inline: true   # spawns the pr-reviewer agent
     args:
       pr_url: ${{ steps.run-task.output.pr_url }}
       repo: ${{ steps.run-task.output.repo }}
       branch: ${{ steps.run-task.output.branch }}
+
+  - id: review-fix
+    skill: review-fixer
+    description: Apply fixes for the actionable review comments from trusted reviewers, run the repo's checks, and push.
+    inline: true   # spawns the review-fixer agent
+    args:
+      pr_url: ${{ steps.run-task.output.pr_url }}
+      repo: ${{ steps.run-task.output.repo }}
+      branch: ${{ steps.run-task.output.branch }}
+      poll: 0
