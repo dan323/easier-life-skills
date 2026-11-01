@@ -47,7 +47,7 @@ If no trusted, unresolved, non-outdated thread or review body exists, wait 60 se
 
 Do not wait when comments are already there.
 
-A clean record review from `pr-reviewer` (marker `<!-- pr-reviewer -->`, no inline comments, body listing the checks run) counts as a trusted review body, so it ends the wait. It carries nothing to fix unless the body reports a failing or unverified check or an "Outside the diff" finding; if it does not, exit with a note that the review was clean.
+A clean record review from `pr-reviewer` (marker `<!-- pr-reviewer -->`, no inline comments, body listing the checks run) counts as a trusted review body, so it ends the wait. It carries nothing to fix unless the body reports a failing or unverified check or an "Outside the diff" finding. Exit with a clean note only when no kept unresolved thread **and** no actionable review-body item remains: a body-only review is posted when every finding was already raised on an earlier commit, so those earlier threads can still be open and Step 3 must handle them first.
 
 ## Step 3 — Fix applicable comments
 

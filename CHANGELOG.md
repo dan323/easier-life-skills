@@ -17,7 +17,9 @@
   "unverified". Review suppression now requires a marker review on the same `commit_id` from the
   reviewing account or an OWNER/MEMBER/COLLABORATOR. Things truly unverifiable are reported as
   limitations. New evals cover these rules; eval 0 now expects a record review. A clean record review
-  counts as a trusted review body for `review-fixer` polling (see ADR 0014).
+  counts as a trusted review body for `review-fixer` polling (see ADR 0014). `review-fixer` exits as clean only when no open trusted thread remains either; unverified checks are
+  classified **medium** consistently in the severity list; evals 6 and 7 were made reliable (a `timeout` shim
+  instead of a bad `TMPDIR`, and a stated contract for `first()`).
 - **task-agent v2.1.0: `review-fixer` resolves the threads it addressed.** After a successful push it replies
   with the commit SHA and resolves each trusted thread it fixed (or confirmed already fixed), via the
   `addPullRequestReviewThreadReply` / `resolveReviewThread` GraphQL mutations. Threads it skipped, only partly

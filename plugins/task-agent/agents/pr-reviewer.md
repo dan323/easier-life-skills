@@ -87,7 +87,7 @@ Also test the PR body's concrete claims (counts, "no behaviour change", "all tes
 
 ## Step 3 — Review
 
-Read each changed file in full from `$CHECK_DIR`, not only the diff hunks, and read the callers and consumers of anything the PR changes. Be adversarial: look hard for what the author may have missed, but only report what you can point to. Report every concrete issue you can point to a line for, ordered by severity (**high** = wrong behaviour, failing or unverified checks, security; **medium** = missing tests, convention gaps, real edge-case bugs; **low** = cheap hardening and small robustness gaps that are still real):
+Read each changed file in full from `$CHECK_DIR`, not only the diff hunks, and read the callers and consumers of anything the PR changes. Be adversarial: look hard for what the author may have missed, but only report what you can point to. Report every concrete issue you can point to a line for, ordered by severity (**high** = wrong behaviour, failing checks, security; **medium** = unverified checks, missing tests, convention gaps, real edge-case bugs; **low** = cheap hardening and small robustness gaps that are still real):
 
 1. **Correctness** — logic errors, wrong flags or arguments, unhandled failure paths, shell quoting or injection, race conditions, off-by-one. For each new function or branch, name the inputs that would break it (empty, missing/optional fields, very large, Unicode, CRLF, Windows paths, nested or mismatched delimiters) and check the code against them.
 2. **Tests** — new behaviour without a test, tests that cannot fail (would they still pass if the feature were deleted?), missing negative and edge-case tests, evals whose setup depends on resources that may not exist.
