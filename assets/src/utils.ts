@@ -38,3 +38,25 @@ export function makeExpandable<T>(
   }
   draw();
 }
+
+const RUNTIME_LABELS: Record<string, string> = {
+  npx:    'Node.js (npm)',
+  npm:    'Node.js (npm)',
+  node:   'Node.js',
+  bunx:   'Bun',
+  bun:    'Bun',
+  deno:   'Deno',
+  uvx:    'Python (uv)',
+  uv:     'Python (uv)',
+  pipx:   'Python (pipx)',
+  python: 'Python',
+  python3: 'Python',
+  docker: 'Docker',
+  podman: 'Podman',
+};
+
+/** Human-readable runtime an MCP server's launch command needs, or null if unknown. */
+export function mcpRuntimeLabel(command: string): string | null {
+  const exe = command.trim().split(/\s+/)[0]?.split(/[\/]/).pop()?.replace(/\.(exe|cmd)$/i, '').toLowerCase();
+  return (exe && RUNTIME_LABELS[exe]) || null;
+}

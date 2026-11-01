@@ -26,7 +26,17 @@
   fixed or ignored stay open and are listed under `Not resolved`; the report gains `Resolved threads` / `Not resolved`
   sections. New eval 5.
 
+### Changed
+- Web UI: the MCP server panel's bare "Command" (`npx`, `uvx`) is now "How it runs", with a plain-language note of the runtime required (Node.js, Python (uv), Docker, ...).
+
 ### Added
+- **auto-board-task v1.4.0: `claim` step.** The card is now moved to In Progress
+  before `task-agent` starts, instead of staying in Todo until the PR opens.
+  `gh-project-sync` gains `claim=true` (and `in_progress_column=`): it picks the top
+  Todo card that has a pending entry, moves the card, and moves its entry to the
+  front of `tasks.yml`, so `task-agent` (first pending wins) implements exactly the
+  claimed task. New eval and self-test cases. See
+  [ADR-0002](plugins/auto-board-task/skills/gh-project-sync/adr/0002-claim-reorders-tasks-yml.md).
 - New external marketplaces: `wshobson/agents`, `trailofbits/skills`, `OthmanAdi/planning-with-files`, `alirezarezvani/claude-skills`, `Jeffallan/claude-skills`, with per-plugin category overrides in `external-overrides.json`.
 - New categories `business` and `marketing` for non-engineering plugins.
 - Web UI: SKILL.md preview in the detail panels. The build stores the opening of each SKILL.md (frontmatter stripped, up to the first `Phase`/`Step` heading, at most 1000 characters) as `skills[].excerpt` in `skills_index.json`; the skill panel shows it, and the plugin panel shows the excerpt of the plugin's primary skill. The text is rendered as plain text, never as HTML, and is left out for skills that fail the injection scan. Fence tracking follows CommonMark (closes only on the same character and at least the opener's length), indented headings and empty frontmatter are handled, and truncation never splits a surrogate pair.

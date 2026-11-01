@@ -83,6 +83,7 @@ describe('entity panel — MCP server', () => {
     const section = document.getElementById('entity-panel-command-section') as HTMLElement;
     expect(section.hidden).toBe(false);
     expect(document.getElementById('entity-panel-command')!.textContent).toBe('npx -y @slack/mcp');
+    expect(document.getElementById('entity-panel-command-help')!.textContent).toContain('Node.js (npm)');
   });
 });
 

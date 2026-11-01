@@ -14,8 +14,9 @@ description: >
   `todo_column=…`, `in_review_column=…`, `done_column=…`,
   `wont_do_column=…` (default: `Todo` / `In Review` (falling back to
   `In Progress` if the board has no `In Review` column) / `Done` /
-  `Won't Do`). Idempotent — running it any number of times converges
-  to the same state.
+  `Won't Do`). Optional `claim=true` (with `in_progress_column=…`,
+  default `In Progress`) additionally claims the top Todo card.
+  Reconciliation is idempotent; a claim moves one more card each time.
 tools: Bash, PowerShell, Read, Write, Edit, Glob, Grep
 ---
 
@@ -74,6 +75,19 @@ This skill never deletes a card, never reopens a closed issue, and
 never edits a task's `description`. It only flips `status`, manages
 `external_ref`, drops entries, and appends to card bodies / posts
 comments.
+
+## Claim (`claim=true`)
+
+After the reconciliation above, `claim=true` picks the **top Todo card
+(board order) that has a `pending` entry**, moves it to `In Progress`,
+and moves its entry to the very front of `tasks.yml`. `task-agent`
+implements the first `pending` entry in file order and takes no task
+id, so the reorder is what guarantees the claimed card is the one that
+gets implemented. If no Todo card has a pending entry it claims nothing
+and says so. The board needs an `In Progress` column (or pass
+`in_progress_column=…`); otherwise the run fails before changing
+anything. Claiming is not idempotent by design: each run claims the next
+card, so call it once per task.
 
 ## Required tools
 
@@ -146,6 +160,7 @@ tasks file: <path>
     - <external_ref> — <reason>
   Cards moved to In Review:  K
     - <PVTI_…> ← <pr_url>
+  Claimed (-> In Progress):  <PVTI_…> <repo> <id> "<desc>"   (only with claim=true)
   Skipped:                   S
     - <item> — <reason>
 

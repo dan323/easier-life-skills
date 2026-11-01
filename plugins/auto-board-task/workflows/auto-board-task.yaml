@@ -5,21 +5,28 @@
 #   1. gh-project-sync       — reconcile the board into `tasks.yml`. New Todo
 #                              cards land as `status: pending`; stale Done /
 #                              Won't Do entries are dropped.
-#   2. task-agent            — pick the first pending task in `tasks.yml`
-#                              (i.e. the top of the Todo column after step 1),
-#                              clone the repo, do the work, open a PR, and mark
-#                              the entry `status: done` with a `pr_url`.
-#   3. gh-project-sync       — reconcile again. Rule 4 fires for the entry
+#   2. claim                 — gh-project-sync with `claim=true`: picks the top Todo
+#                              card that has a pending entry, moves it to In
+#                              Progress, and moves its entry to the front of
+#                              `tasks.yml`. task-agent implements the first
+#                              pending entry in file order and takes no task id,
+#                              so this reorder is what guarantees the claimed
+#                              card is the one implemented.
+#   3. task-agent            — pick the first pending task in `tasks.yml`
+#                              (the claimed one), clone the repo, do the work,
+#                              open a PR, and mark the entry `status: done` with
+#                              a `pr_url`.
+#   4. gh-project-sync       — reconcile again. Rule 4 fires for the entry
 #                              freshly marked `done + pr_url`: the card moves
 #                              to In Review (or In Progress if the board has
 #                              no In Review column) and the PR link is posted
 #                              as a comment on the card.
-#   4. pr-reviewer           — reviews the new PR, verifies its checks in a
+#   5. pr-reviewer           — reviews the new PR, verifies its checks in a
 #                              throwaway worktree, and posts one COMMENT review
 #                              with inline comments marked `<!-- pr-reviewer -->`.
 #                              Replaces waiting on Copilot, which no longer
 #                              reviews these PRs.
-#   5. review-fixer          — applies fixes for the actionable comments from
+#   6. review-fixer          — applies fixes for the actionable comments from
 #                              step 4 (and from other trusted reviewers, if any
 #                              appear), runs the repo's checks, pushes.
 #
@@ -57,9 +64,20 @@ steps:
       project_number: ${{ inputs.project_number }}
       default_repo: ${{ inputs.default_repo }}
 
+  - id: claim
+    skill: gh-project-sync
+    description: Claim the top Todo card — move it to In Progress and put its entry first in tasks.yml so task-agent implements exactly it.
+    args:
+      tasks: ${{ inputs.tasks }}
+      project_url: ${{ inputs.project_url }}
+      project_owner: ${{ inputs.project_owner }}
+      project_number: ${{ inputs.project_number }}
+      default_repo: ${{ inputs.default_repo }}
+      claim: "true"
+
   - id: run-task
     skill: task-agent
-    description: Pick up the next pending task and open a PR.
+    description: Implement the claimed task (first pending entry in tasks.yml) and open a PR.
     inline: true   # task-agent spawns the implementer; subagents cannot spawn agents
     args:
       tasks: ${{ inputs.tasks }}
