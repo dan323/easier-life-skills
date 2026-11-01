@@ -7,7 +7,7 @@ export const EXCERPT_LIMIT = 1000;
 const HIDDEN_CHARS = /[​-‏‪-‮﻿]/g;
 
 /** A heading that opens the step-by-step part of a skill: `## Phase 1: …`, `### Step 2 — …`. */
-const PHASE_HEADING = /^#{1,6}\s+(phase|step)\b/i;
+const PHASE_HEADING = /^ {0,3}#{1,6}\s+(phase|step)\b/i;
 
 /**
  * Return the opening part of a SKILL.md body (frontmatter stripped): everything
@@ -21,20 +21,35 @@ const PHASE_HEADING = /^#{1,6}\s+(phase|step)\b/i;
  */
 export function extractExcerpt(content: string, limit: number = EXCERPT_LIMIT): string {
   const normalized = content.replace(/\r\n?/g, '\n').replace(HIDDEN_CHARS, '');
-  const body = normalized.replace(/^---\n[\s\S]*?\n---[^\n]*(\n|$)/, '');
+  const body = normalized.replace(/^---\n(?:[\s\S]*?\n)?---[ \t]*(\n|$)/, '');
 
   const kept: string[] = [];
-  let inFence = false;
+  // CommonMark: a fence closes only on the same character, at least as long as
+  // the opener, with nothing but whitespace after it.
+  let fence: { ch: string; len: number } | null = null;
   for (const line of body.split('\n')) {
-    if (/^\s*(```|~~~)/.test(line)) inFence = !inFence;
-    else if (!inFence && PHASE_HEADING.test(line)) break;
+    if (fence) {
+      const close = /^ {0,3}(`{3,}|~{3,})[ \t]*$/.exec(line);
+      const run = close?.[1] ?? '';
+      if (run && run[0] === fence.ch && run.length >= fence.len) fence = null;
+    } else {
+      const open = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
+      const run = open?.[1] ?? '';
+      if (run && !(run.startsWith('`') && (open?.[2] ?? '').includes('`'))) {
+        fence = { ch: run.charAt(0), len: run.length };
+      } else if (PHASE_HEADING.test(line)) {
+        break;
+      }
+    }
     kept.push(line);
   }
 
   const text = kept.join('\n').replace(/\n{3,}/g, '\n\n').trim();
   if (text.length <= limit) return text;
 
-  const hard = text.slice(0, limit - 1);
+  let hard = text.slice(0, limit - 1);
+  // Don't leave half of a surrogate pair at the cut.
+  if (/[\uD800-\uDBFF]$/.test(hard)) hard = hard.slice(0, -1);
   const minCut = Math.floor(limit / 2);
   const nl = hard.lastIndexOf('\n');
   const sp = hard.lastIndexOf(' ');

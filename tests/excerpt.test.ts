@@ -55,6 +55,33 @@ describe('extractExcerpt', () => {
     expect(extractExcerpt('## Phase 1\nbody')).toBe('');
   });
 
+  it('keeps a ~~~ block with a sample phase heading inside a ``` block', () => {
+    const md = '# X\n\n```md\n~~~\n## Phase 1\n~~~\n## Phase 2\n```\n\nAfter.\n\n## Phase 1\nhidden';
+    expect(extractExcerpt(md)).toBe('# X\n\n```md\n~~~\n## Phase 1\n~~~\n## Phase 2\n```\n\nAfter.');
+  });
+
+  it('handles a 4-backtick wrapper around a 3-backtick block', () => {
+    const md = '# X\n\n````md\n```\n## Phase 1\n```\n## Phase 2\n````\nAfter\n## Step 1\nhidden';
+    expect(extractExcerpt(md)).toBe('# X\n\n````md\n```\n## Phase 1\n```\n## Phase 2\n````\nAfter');
+  });
+
+  it('does not close a fence on a line with trailing text', () => {
+    const md = '# X\n```\n``` not a close\n## Phase 1\n```\nAfter\n## Phase 1\nhidden';
+    expect(extractExcerpt(md)).toBe('# X\n```\n``` not a close\n## Phase 1\n```\nAfter');
+  });
+
+  it('does not split a surrogate pair when truncating', () => {
+    expect(extractExcerpt('\u{1F600}'.repeat(20), 10)).toBe('\u{1F600}'.repeat(4) + '…');
+  });
+
+  it('stops at indented (up to 3 spaces) phase headings', () => {
+    expect(extractExcerpt('# X\nintro\n  ## Phase 1\nhidden')).toBe('# X\nintro');
+  });
+
+  it('strips empty frontmatter blocks', () => {
+    expect(extractExcerpt('---\n---\n# X\nbody')).toBe('# X\nbody');
+  });
+
   it('leaves HTML-looking text untouched (escaping is the renderer\'s job)', () => {
     expect(extractExcerpt('# X\n<script>alert(1)</script>')).toBe('# X\n<script>alert(1)</script>');
   });
