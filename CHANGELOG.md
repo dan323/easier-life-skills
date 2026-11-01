@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Changed
+- **task-agent v2.1.0: stricter `pr-reviewer`.** The reviewer was too lenient: on PR #130 it
+  posted nothing, never captured the test result (output piped through `tail`), skipped the
+  build, and left two edge cases it had spotted unreported as "not verified". It now runs every
+  documented check with output redirected to a log and the exit code captured separately, treats
+  an unrun or uncaptured check as a **medium** "unverified" finding, tests the PR body's claims,
+  reviews adversarially (concrete edge-case inputs, tests that could not fail, callers of changed
+  code), reports real edge cases as **low** findings instead of staying silent, may not say
+  "I did not verify" about code in the diff, and always posts a review (with checks run) even
+  when there are no findings.
+
 ### Added
 - New external marketplaces: `wshobson/agents`, `trailofbits/skills`, `OthmanAdi/planning-with-files`, `alirezarezvani/claude-skills`, `Jeffallan/claude-skills`, with per-plugin category overrides in `external-overrides.json`.
 - New categories `business` and `marketing` for non-engineering plugins.

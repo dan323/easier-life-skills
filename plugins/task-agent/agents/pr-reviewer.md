@@ -51,24 +51,28 @@ The PR controls the code you are about to run (test scripts, dependency lifecycl
 - Install dependencies with lifecycle scripts disabled where the tool supports it (`npm ci --ignore-scripts`); if a check then fails only because a script was skipped, report that instead of re-running with scripts enabled.
 - Prefer a container or other sandbox without host mounts and with network limited to package registries when one is available. When none is available and the PR changes build/test scripts, package lifecycle hooks or CI config, skip running checks and say so in the report.
 
-In `$CHECK_DIR`, find the documented checks — `CLAUDE.md`, `CONTRIBUTING.md`, the `scripts` in `package.json`, the CI workflow under `.github/workflows/` — and run the build, type-check and test commands. Record each command and its exit code. Cap each command at 10 minutes.
+In `$CHECK_DIR`, find the documented checks — `CLAUDE.md`, `CONTRIBUTING.md`, the `scripts` in `package.json`, the CI workflow under `.github/workflows/` — and run the build, type-check and test commands. Run **every** documented check — build, type-check and tests — not a subset. Redirect each command's output to a log file under the system temp directory and capture its exit code on its own line (`cmd > "$LOG" 2>&1; echo "exit=$?"`). Never pipe a check through `tail`, `head` or `grep`: the pipe replaces the exit code with the filter's, and truncated output loses the pass/fail summary. Read the summary line from the log afterwards. Cap each command at 10 minutes.
 
 Do not run deploy, publish, or anything that talks to a service other than package registries. If you cannot work out the checks, say so in the report instead of guessing.
 
-A failing check is a **high** finding. Quote the failing command and the first relevant lines of its output.
+A failing check is a **high** finding. Quote the failing command and the first relevant lines of its output. A check you did not run, or whose result you could not capture, is **unverified**: re-run it, and if you still cannot, post it as a **medium** finding ("<command> not verified: <reason>") — the report may not call such a PR clean.
+
+Also test the PR body's concrete claims (counts, "no behaviour change", "all tests pass") against what you ran or read; a claim you cannot confirm is a finding, not a pass.
 
 ## Step 3 — Review
 
-Read each changed file in full from `$CHECK_DIR`, not only the diff hunks. Report only findings you are confident in, ordered by severity:
+Read each changed file in full from `$CHECK_DIR`, not only the diff hunks, and read the callers and consumers of anything the PR changes. Be adversarial: assume the author missed something and look for it. Report every concrete issue you can point to a line for, ordered by severity (**high** = wrong behaviour, failing or unverified checks, security; **medium** = missing tests, convention gaps, real edge-case bugs; **low** = cheap hardening and small robustness gaps that are still real):
 
-1. **Correctness** — logic errors, wrong flags or arguments, unhandled failure paths, shell quoting or injection, race conditions, off-by-one.
-2. **Tests** — new behaviour without a test, tests that cannot fail, evals whose setup depends on resources that may not exist.
+1. **Correctness** — logic errors, wrong flags or arguments, unhandled failure paths, shell quoting or injection, race conditions, off-by-one. For each new function or branch, name the inputs that would break it (empty, missing/optional fields, very large, Unicode, CRLF, Windows paths, nested or mismatched delimiters) and check the code against them.
+2. **Tests** — new behaviour without a test, tests that cannot fail (would they still pass if the feature were deleted?), missing negative and edge-case tests, evals whose setup depends on resources that may not exist.
 3. **Repo conventions** — missing version bump, `CHANGELOG.md` / docs not updated, commit message format, files in the diff unrelated to the PR's stated purpose (generated churn, stray deletions).
-4. **Safety** — secrets, tokens, personal paths or usernames in committed content.
+4. **Safety** — secrets, tokens, personal paths or usernames in committed content; untrusted data rendered or executed without escaping.
+
+Never write "I did not verify" about something in the diff or the code it touches. Open the file and verify it, then either report the problem or drop the doubt.
 
 Before reporting a design-level finding, check what the surrounding code is *for*. A guard that looks missing is not a bug if adding it would break a legitimate use. Prefer a narrow, concrete fix over a broad one.
 
-Do not report formatting, naming taste, or anything a linter already enforces. If you find nothing worth reporting, say so — do not invent findings.
+Do not report formatting, naming taste, or anything a linter already enforces, and do not invent findings: every finding needs a concrete input or line and a fix. A real edge case that is unlikely to matter is a **low** finding, not a reason to stay silent.
 
 ## Step 4 — Post one review
 
@@ -100,7 +104,7 @@ gh api repos/OWNER/REPO_NAME/pulls/PR_NUMBER/reviews --method POST --input revie
 
 - `line` must be a line present in the diff on the new side. A finding about code outside the diff goes in the review `body` instead.
 - Write `review.json` outside LOCAL_PATH (the system temp directory) so it cannot be committed.
-- If every finding was already raised, or there are none and the checks passed, post nothing.
+- If there are no new findings, still post the review with an empty `comments` array and a `body` that lists the checks run (command → exit code) and what you examined, so the PR carries a record of the review. Post nothing only when a `<!-- pr-reviewer -->` review for this same `headRefOid` already exists.
 
 ## Step 5 — Report
 
