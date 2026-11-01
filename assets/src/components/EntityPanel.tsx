@@ -3,6 +3,7 @@ import { titleCase } from '../utils.ts';
 import { BUILTIN_REPO } from '../constants.ts';
 import { CopyButton } from './CopyButton.tsx';
 import { ReviewsBlock, rateUrl } from './ReviewsBlock.tsx';
+import { SkillPreview } from './SkillPreview.tsx';
 import type { Skill, Agent, McpServer, Command, Hook, Bundle } from '../types.ts';
 
 export type EntityKind = 'skill' | 'agent' | 'mcpServer' | 'command' | 'hook';
@@ -170,6 +171,10 @@ function EntityPanelBody({
             )
           }
         </div>
+      )}
+
+      {kind === 'skill' && (
+        <SkillPreview idPrefix="entity-panel" excerpt={(entity as Skill).excerpt} href={href} />
       )}
 
       <ChipSection

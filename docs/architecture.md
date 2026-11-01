@@ -48,6 +48,7 @@ easier-life-skills/
 │   └── lib/
 │       ├── fetch-marketplace.ts  Fetches plugins from one repo; discovers skills/agents/mcpServers
 │       ├── catalog.ts            Generates CATALOG.md (markdown) and catalog.html (styled standalone page)
+│       ├── excerpt.ts            extractExcerpt() — SKILL.md preview (body up to the first Phase/Step heading, max 1000 chars) stored as `skill.excerpt`
 │       ├── frontmatter.ts        YAML frontmatter parser for SKILL.md files (scalars, inline `[a, b]` arrays, block-mapping children, `>`-folded multi-line strings)
 │       └── types.ts              Shared TypeScript types (Skill, Agent, Plugin, McpServer, Bundle…)
 ├── assets/
@@ -69,8 +70,9 @@ easier-life-skills/
 │   │       ├── MarketplaceBar.tsx Source tag row + Add-your-marketplace CTA
 │   │       ├── Footer.tsx       Generated date + nav links
 │   │       ├── Grid.tsx         Per-view grid (plugins / skills / agents / mcp / commands / hooks / bundles)
-│   │       ├── PluginPanel.tsx  Plugin detail slide-in (right side); related skills/agents/MCP/commands/hooks, bundles, install rows
-│   │       ├── EntityPanel.tsx  Skill/agent/MCP/command/hook detail slide-in (left side); tools, events, keywords, command, bundles
+│   │       ├── PluginPanel.tsx  Plugin detail slide-in (right side); SKILL.md preview of the primary skill, related skills/agents/MCP/commands/hooks, bundles, install rows
+│   │       ├── EntityPanel.tsx  Skill/agent/MCP/command/hook detail slide-in (left side); SKILL.md preview, tools, events, keywords, command, bundles
+│   │       ├── SkillPreview.tsx Truncated SKILL.md excerpt rendered as plain text in a <pre> (never as HTML — the text is untrusted)
 │   │       ├── CopyButton.tsx   Reusable copy-to-clipboard button with "Copied!" feedback
 │   │       ├── Expandable.tsx   Reusable "+N more / Show less" wrapper
 │   │       └── cards/           PluginCard, SkillCard, AgentCard, McpCard, CommandCard, HookCard, BundleCard

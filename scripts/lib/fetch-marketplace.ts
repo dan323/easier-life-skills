@@ -5,6 +5,7 @@ import { join, dirname, basename }                                          from
 import { fileURLToPath }                                                    from 'url';
 import { parseFrontmatter, isWriteTool }                                                 from './frontmatter.js';
 import { scanBody, mergeMetadataScan, truncate, FIELD_LIMITS }               from './injection-scan.js';
+import { extractExcerpt }                                                   from './excerpt.js';
 import type { Skill, Agent, McpServer, Command, Plugin, Bundle, MarketplaceResult, Hook } from './types.js';
 
 const __dirname  = dirname(fileURLToPath(import.meta.url));
@@ -294,6 +295,10 @@ async function parseSkill(
     console.warn(`  [security] ${owner}/${repo} skill "${skillName}": ${scanResult.flags.map(f => `[${f.field}] ${f.detail}`).join('; ')}`);
   }
 
+  // Preview text for the web UI. Withheld for flagged skills so the index never
+  // republishes body text the scanner considers suspicious.
+  const excerpt = scanResult.passed ? extractExcerpt(content) : '';
+
   return {
     name:           skillName,
     pluginName:     pluginEntry.name,
@@ -308,6 +313,7 @@ async function parseSkill(
     installCommand: `/plugin install ${pluginEntry.name}@${repo}`,
     source:         { owner, repo, repoUrl: `https://github.com/${owner}/${repo}` },
     scanResult,
+    ...(excerpt ? { excerpt } : {}),
   };
 }
 
