@@ -2,8 +2,9 @@
 name: auto-board-task
 description: >
   Process the top Todo card on a GitHub Project (v2) board end-to-end:
-  pull the board into a task-agent `tasks.yml`, run `task-agent` to
-  open a PR for the top pending task, sync the PR back to the card,
+  pull the board into a task-agent `tasks.yml`, claim the top Todo card
+  (moved to In Progress), run `task-agent` to open a PR for exactly that
+  task, sync the PR back to the card,
   then review the PR with the `pr-reviewer` agent and apply fixes for
   actionable comments. Use when the user says "work on the next
   task", "do the next board task", "pick up the next GitHub project
@@ -11,8 +12,8 @@ description: >
   project", "run the next board task", "drain the top todo", "process
   the top board todo", "auto-process the next card", or any phrasing
   that means "take the next pending item from a GitHub Project board
-  and implement it". Composes `gh-project-sync` → `task-agent` →
-  `gh-project-sync` → `pr-reviewer` → `review-fixer` (skill
+  and implement it". Composes `gh-project-sync` → `gh-project-sync` (claim) →
+  `task-agent` → `gh-project-sync` → `pr-reviewer` → `review-fixer` (skill
   wrappers shipped by `task-agent`) via the `workflow` skill against the fixed YAML at
   `${CLAUDE_PLUGIN_ROOT}/workflows/auto-board-task.yaml`. All
   arguments are forwarded verbatim to the workflow runner;
@@ -26,14 +27,6 @@ Invoke the `workflow` skill **in the current conversation** on the
 bundled
 [`workflows/auto-board-task.yaml`](../../workflows/auto-board-task.yaml),
 passing the resolved project coordinates as explicit `key=value` args.
-
-The workflow chains:
-
-1. `gh-project-sync` — reconcile the board into `tasks.yml`.
-2. `task-agent` — open a PR for the top pending task.
-3. `gh-project-sync` — sync the PR back to its card.
-4. `pr-reviewer` — review the PR, verify its checks, and post the findings as one review.
-5. `review-fixer` — fix the actionable comments from that review, run the repo's checks, and push.
 
 ## What to do
 

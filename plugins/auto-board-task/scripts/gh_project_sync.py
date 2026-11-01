@@ -17,6 +17,10 @@ Subcommands:
     5. Computes the reconciliation plan against the four rules.
     6. Applies the plan: yml first, then board mutations.
 
+`claim=true` (an arg of `sync`) additionally picks the top Todo card with
+a pending entry, moves it to In Progress, and moves its yml entry to the
+front of the file so task-agent (first pending wins) implements it.
+
 `self-test` exercises the pure logic (arg parser, column resolver,
 yml loader, plan computer, yml writer) against in-memory fixtures —
 no `gh` calls, no network. Exits non-zero on any failure.
@@ -62,6 +66,7 @@ _VALID_KEYS = {
     "tasks", "project_url", "project_owner", "project_number",
     "default_repo",
     "todo_column", "in_review_column", "done_column", "wont_do_column",
+    "in_progress_column", "claim",
 }
 
 
@@ -79,8 +84,10 @@ def parse_args_raw(raw: str) -> dict:
         "default_repo": None,
         # `in_review` is left None on default — Phase "resolve columns"
         # treats None as "try In Review then In Progress".
-        "columns": {"todo": "Todo", "in_review": None, "done": "Done", "wont_do": "Won't Do"},
+        "columns": {"todo": "Todo", "in_review": None, "done": "Done", "wont_do": "Won't Do",
+                    "in_progress": "In Progress"},
         "in_review_explicit": False,
+        "claim": False,
         "errors": [],
     }
 
@@ -120,6 +127,13 @@ def parse_args_raw(raw: str) -> dict:
             result["columns"]["done"] = v
         elif k == "wont_do_column":
             result["columns"]["wont_do"] = v
+        elif k == "in_progress_column":
+            result["columns"]["in_progress"] = v
+        elif k == "claim":
+            if v.lower() not in ("true", "false"):
+                result["errors"].append(f"claim must be true or false, got `{v}`.")
+            else:
+                result["claim"] = v.lower() == "true"
 
     m = re.match(
         r"https?://github\.com/(?:users|orgs)/([^/]+)/projects/(\d+)/?",
@@ -185,6 +199,11 @@ def resolve_columns(args: dict, fields: list[dict]) -> dict:
             if name and name.lower() in opt_by_name_lc:
                 opt_by_role[role] = opt_by_name_lc[name.lower()]
                 break
+
+    # `in_progress` is only needed by `claim=true`; sync() checks for it there.
+    ip_name = args["columns"].get("in_progress")
+    if ip_name and ip_name.lower() in opt_by_name_lc:
+        opt_by_role["in_progress"] = opt_by_name_lc[ip_name.lower()]
 
     missing = [r for r in ("todo", "in_review", "done", "wont_do") if r not in opt_by_role]
     if missing:
@@ -366,6 +385,67 @@ def compute_plan(args: dict, columns: dict, items: list[dict], by_ref: dict) -> 
 
 
 # ---------------------------------------------------------------------------
+# Claim — pick the one task that will be implemented
+# ---------------------------------------------------------------------------
+
+
+def by_ref_from_cfg(cfg: dict) -> dict:
+    by_ref: dict[str, dict] = {}
+    for proj in cfg.get("projects") or []:
+        for t in proj.get("tasks") or []:
+            if isinstance(t, dict) and t.get("external_ref"):
+                by_ref[t["external_ref"]] = {"repo": proj.get("repo"), **t}
+    return by_ref
+
+
+def pick_claim(columns: dict, items: list[dict], by_ref: dict) -> dict | None:
+    """The top Todo card (board order) that has a `pending` yml entry."""
+    todo = (columns["todo"].get("name") or "").lower()
+    for it in items:
+        if (it.get("status") or "").lower() != todo:
+            continue
+        entry = by_ref.get(it["id"])
+        if entry and entry.get("status") == "pending":
+            return {"item_id": it["id"], "repo": entry["repo"],
+                    "id": entry.get("id"), "description": entry.get("description")}
+    return None
+
+
+def apply_claim_to_yml(cfg: dict, item_id: str) -> dict:
+    """Move the claimed entry to the very front of the file.
+
+    `task-agent` implements the first `pending` entry in file order, so
+    putting the claimed one first is what guarantees it is the one
+    implemented. Idempotent.
+    """
+    new_cfg = json.loads(json.dumps(cfg))
+    projs = new_cfg.get("projects") or []
+    for pi, proj in enumerate(projs):
+        tasks = proj.get("tasks") or []
+        for ti, t in enumerate(tasks):
+            if isinstance(t, dict) and t.get("external_ref") == item_id:
+                proj["tasks"] = [t] + tasks[:ti] + tasks[ti + 1:]
+                new_cfg["projects"] = [proj] + projs[:pi] + projs[pi + 1:]
+                return new_cfg
+    return new_cfg
+
+
+def apply_claim_to_board(project_id: str, status_field_id: str, in_progress_option_id: str,
+                         item_id: str) -> dict:
+    try:
+        _gh(
+            "project", "item-edit",
+            "--project-id", project_id,
+            "--id", item_id,
+            "--field-id", status_field_id,
+            "--single-select-option-id", in_progress_option_id,
+        )
+        return {"item_id": item_id, "status": "ok"}
+    except subprocess.CalledProcessError as exc:
+        return {"item_id": item_id, "status": "error", "error": str(exc)}
+
+
+# ---------------------------------------------------------------------------
 # Apply yml changes
 # ---------------------------------------------------------------------------
 
@@ -503,7 +583,8 @@ def apply_board_plan(project_id: str, status_field_id: str, in_review_option_id:
 # ---------------------------------------------------------------------------
 
 
-def _format_report(args: dict, plan: dict, board_results: list[dict] | None) -> str:
+def _format_report(args: dict, plan: dict, board_results: list[dict] | None,
+                   claim: dict | None = None) -> str:
     lines = [f"## gh-project-sync — {args['project_owner']}/projects/{args['project_number']}",
              "", f"tasks file: {args['tasks_path']}", ""]
     lines.append(f"  Added to tasks.yml:        {len(plan['add_to_yml'])}")
@@ -515,6 +596,12 @@ def _format_report(args: dict, plan: dict, board_results: list[dict] | None) -> 
     lines.append(f"  Cards moved to In Review:  {len(plan['move_to_in_review'])}")
     for m in plan["move_to_in_review"]:
         lines.append(f"    - {m['item_id']} ← {m['pr_url']}")
+    if args.get("claim"):
+        if claim:
+            lines.append(f"  Claimed (-> In Progress):  {claim['item_id']} "
+                         f"{claim['repo']} {claim['id']} \"{claim['description']}\"")
+        else:
+            lines.append("  Claimed (-> In Progress):  nothing - no Todo card with a pending entry")
     if plan["skipped"]:
         lines.append(f"  Skipped:                   {len(plan['skipped'])}")
         for s in plan["skipped"]:
@@ -568,22 +655,32 @@ def sync(raw: str, dry_run: bool = False) -> int:
         return 1
 
     plan = compute_plan(args, columns["options"], items, yml["by_ref"])
+    new_cfg = apply_yml_plan(yml["cfg"], plan)
+
+    claim = None
+    if args["claim"]:
+        if "in_progress" not in columns["options"]:
+            print(f"ERROR: claim=true needs a `{args['columns']['in_progress']}` Status "
+                  "column on the board (override with in_progress_column=).", file=sys.stderr)
+            return 1
+        claim = pick_claim(columns["options"], items, by_ref_from_cfg(new_cfg))
+        if claim:
+            new_cfg = apply_claim_to_yml(new_cfg, claim["item_id"])
 
     empty = (
         not plan["add_to_yml"]
         and not plan["drop_from_yml"]
         and not plan["move_to_in_review"]
     )
-    if empty and not plan["skipped"]:
+    if empty and not plan["skipped"] and not args["claim"]:
         print("Already in sync.")
         return 0
 
-    print(_format_report(args, plan, None))
+    print(_format_report(args, plan, None, claim))
     if dry_run:
         print("\n(dry-run — no mutations applied.)")
         return 0
 
-    new_cfg = apply_yml_plan(yml["cfg"], plan)
     write_yml(args["tasks_path"], new_cfg)
 
     board_results = apply_board_plan(
@@ -592,9 +689,14 @@ def sync(raw: str, dry_run: bool = False) -> int:
         in_review_option_id=columns["options"]["in_review"]["id"],
         plan=plan,
     )
+    if claim:
+        board_results.append(apply_claim_to_board(
+            proj["id"], columns["status_field_id"],
+            columns["options"]["in_progress"]["id"], claim["item_id"],
+        ))
 
     print()
-    print(_format_report(args, plan, board_results))
+    print(_format_report(args, plan, board_results, claim))
     return 0 if all(r["status"] == "ok" for r in board_results) else 3
 
 
@@ -748,6 +850,37 @@ def _self_test() -> int:  # noqa: C901 — single-purpose test runner
     plan2 = compute_plan(a4, cols2["options"], items_terminal, by_ref_terminal)
     check(not plan2["move_to_in_review"],
           "card already in In Review must not be re-moved")
+
+    # ---- claim ----
+    ac = parse_args_raw("tasks=t.yml project_owner=acme project_number=7 claim=true")
+    check(ac["claim"] is True, "claim=true not parsed")
+    check(parse_args_raw("tasks=t.yml project_owner=a project_number=1 claim=maybe")["errors"],
+          "bad claim value must error")
+    cols_claim = resolve_columns(ac, fields_both)["options"]
+    check(cols_claim["in_progress"]["id"] == "opt_in_prog", "in_progress option not resolved")
+    claim_cfg = {"projects": [
+        {"repo": "acme/web", "tasks": [
+            {"id": "w1", "description": "old", "status": "pending", "external_ref": "PVTI_old"}]},
+        {"repo": "acme/api", "tasks": [
+            {"id": "a0", "description": "done", "status": "done", "external_ref": "PVTI_fin"},
+            {"id": "a1", "description": "top", "status": "pending", "external_ref": "PVTI_top"}]},
+    ]}
+    claim_items = [
+        {"id": "PVTI_fin", "status": "Todo", "content": {"type": "DraftIssue"}},
+        {"id": "PVTI_top", "status": "Todo", "content": {"type": "DraftIssue"}},
+        {"id": "PVTI_old", "status": "Todo", "content": {"type": "DraftIssue"}},
+    ]
+    picked = pick_claim(cols_claim, claim_items, by_ref_from_cfg(claim_cfg))
+    check(picked and picked["item_id"] == "PVTI_top",
+          "claim must pick the top Todo card (board order) with a pending entry")
+    reordered = apply_claim_to_yml(claim_cfg, "PVTI_top")
+    first = reordered["projects"][0]["tasks"][0]
+    check(first["external_ref"] == "PVTI_top" and reordered["projects"][0]["repo"] == "acme/api",
+          "claimed entry must be first in file order (task-agent picks first pending)")
+    check(apply_claim_to_yml(reordered, "PVTI_top") == reordered,
+          "claim reorder must be idempotent")
+    check(len(by_ref_from_cfg(reordered)) == 3, "reorder must not lose entries")
+    check(pick_claim(cols_claim, [], {}) is None, "no cards -> no claim")
 
     # ---- Legacy mode refusal ----
     with tempfile.TemporaryDirectory() as tmp:

@@ -120,6 +120,32 @@
           "text": "On a board that has both 'In Review' and 'In Progress', the skill picks 'In Review'"
         }
       ]
+    },
+    {
+      "id": 6,
+      "prompt": "gh-project-sync tasks=tasks.yml project_owner=acme project_number=7 claim=true",
+      "description": "Claim picks the top Todo card in board order, not the first entry in tasks.yml. tasks.yml already holds an older pending entry for a card lower on the board; the claimed card must end up first in the file so task-agent implements it.",
+      "setup": "mkdir -p /tmp/eval-ghps-6 && cd /tmp/eval-ghps-6 && printf 'projects:\\n  - repo: acme/api\\n    tasks:\\n      - id: older\\n        description: Lower on the board\\n        status: pending\\n        external_ref: PVTI_older\\n' > tasks.yml",
+      "expected_output": "The top Todo card (listed above PVTI_older on the board) is added to tasks.yml, placed first in file order, and moved to In Progress. The older entry stays pending, after it.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "claims-top-board-card",
+          "text": "The card at the top of the Todo column is the one reported as Claimed, even though another pending entry already existed in tasks.yml"
+        },
+        {
+          "id": "claimed-entry-first",
+          "text": "After the run, the claimed entry is the first entry in tasks.yml so task-agent (first pending wins) picks it"
+        },
+        {
+          "id": "card-moved-in-progress",
+          "text": "The claimed card is moved to the In Progress column; the other Todo card is left in Todo"
+        },
+        {
+          "id": "no-in-progress-column-fails-clean",
+          "text": "On a board without an In Progress column, claim=true exits with an error before modifying tasks.yml or the board"
+        }
+      ]
     }
   ]
 }
