@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
-import { titleCase } from '../utils.ts';
+import { titleCase, mcpRuntimeLabel } from '../utils.ts';
 import { BUILTIN_REPO } from '../constants.ts';
 import { CopyButton } from './CopyButton.tsx';
 import { ReviewsBlock, rateUrl } from './ReviewsBlock.tsx';
@@ -98,6 +98,7 @@ function EntityPanelBody({
   const scanResult = (kind === 'skill' || kind === 'agent') ? (entity as Skill | Agent).scanResult : undefined;
 
   const mcpCommand = kind === 'mcpServer' ? (entity as McpServer).command : '';
+  const mcpRuntime = mcpCommand ? mcpRuntimeLabel(mcpCommand) : null;
 
   const skillBundles = kind === 'skill'
     ? bundles.filter(b => (b.skills ?? []).includes(entity.name))
@@ -221,7 +222,12 @@ function EntityPanelBody({
       </div>
 
       <div id="entity-panel-command-section" class="panel-section" hidden={kind !== 'mcpServer' || !mcpCommand}>
-        <h3 class="panel-section-title">Command</h3>
+        <h3 class="panel-section-title">How it runs</h3>
+        <p id="entity-panel-command-help" class="panel-hint">
+          This server runs locally on your machine
+          {mcpRuntime ? <> and needs <strong>{mcpRuntime}</strong> installed</> : null}.
+          Installing it registers it with Claude Code.
+        </p>
         <code id="entity-panel-command" class="panel-code-block">{mcpCommand}</code>
       </div>
 

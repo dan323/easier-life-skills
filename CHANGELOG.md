@@ -26,6 +26,9 @@
   fixed or ignored stay open and are listed under `Not resolved`; the report gains `Resolved threads` / `Not resolved`
   sections. New eval 5.
 
+### Changed
+- Web UI: the MCP server panel's bare "Command" (`npx`, `uvx`) is now "How it runs", with a plain-language note of the runtime required (Node.js, Python (uv), Docker, ...).
+
 ### Added
 - **auto-board-task v1.4.0: `claim` step.** The card is now moved to In Progress
   before `task-agent` starts, instead of staying in Todo until the PR opens.

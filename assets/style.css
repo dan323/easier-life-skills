@@ -1281,6 +1281,8 @@ body.catalog-page footer {
 
 .panel-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 
+.panel-hint { margin: 0 0 8px; font-size: 0.82rem; color: var(--text-muted, var(--text)); }
+
 .panel-code-block {
   display: block;
   background: var(--bg);
