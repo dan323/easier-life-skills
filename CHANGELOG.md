@@ -5,6 +5,7 @@
 ### Added
 - New external marketplaces: `wshobson/agents`, `trailofbits/skills`, `OthmanAdi/planning-with-files`, `alirezarezvani/claude-skills`, `Jeffallan/claude-skills`, with per-plugin category overrides in `external-overrides.json`.
 - New categories `business` and `marketing` for non-engineering plugins.
+- Web UI: SKILL.md preview in the detail panels. The build stores the opening of each SKILL.md (frontmatter stripped, up to the first `Phase`/`Step` heading, at most 1000 characters) as `skills[].excerpt` in `skills_index.json`; the skill panel shows it, and the plugin panel shows the excerpt of the plugin's primary skill. The text is rendered as plain text, never as HTML, and is left out for skills that fail the injection scan.
 
 ### Fixed
 - Build: `allowed-tools` frontmatter (string or list) is now read as `tools`, so third-party skills are correctly tagged read-only; block lists and `>-`/`|` block scalars are parsed.

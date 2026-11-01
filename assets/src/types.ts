@@ -72,6 +72,8 @@ export interface Skill {
   bundles?:       string[];
   rating?:        Rating;
   scanResult?:    ScanResult;
+  /** Opening part of SKILL.md (raw markdown). Untrusted — render as plain text only. */
+  excerpt?:       string;
   _repo?:         string;
 }
 

@@ -81,6 +81,7 @@
       "installCommand": "/plugin install docs@easier-life-skills",
       "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" },
       "scanResult": { "passed": true, "flags": [], "scannedVersion": "1.2" },
+      "excerpt": "# Changelog\n\nGenerate release notes. <script>window.__xss = 1</script> <b>not bold</b>",
       "rating": {
         "avg": 4.5,
         "count": 2,
@@ -113,7 +114,8 @@
       "readOnly": false,
       "rawSkillUrl": "https://raw.githubusercontent.com/dan323/easier-life-skills/master/plugins/docs/skills/document-project/SKILL.md",
       "installCommand": "/plugin install docs@easier-life-skills",
-      "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" }
+      "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" },
+      "excerpt": "# Document Project\n\nWrites project docs."
     }
   ],
   "agents": [

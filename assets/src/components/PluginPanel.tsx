@@ -9,6 +9,7 @@ import { CommandCard } from './cards/CommandCard.tsx';
 import { HookCard }    from './cards/HookCard.tsx';
 import { refMatchesSkill } from '../bundle-resolve.ts';
 import { ReviewsBlock, rateUrl } from './ReviewsBlock.tsx';
+import { SkillPreview } from './SkillPreview.tsx';
 import type { Plugin, Skill, Agent, McpServer, Command, Hook, Bundle } from '../types.ts';
 
 interface Props {
@@ -108,6 +109,10 @@ function PluginPanelBody({
   const memberBundles = bundles.filter(b =>
     (b.skills ?? []).some(ref =>
       relatedSkills.some(s => refMatchesSkill(ref, s))));
+  // Preview the plugin's primary skill: the one named after the plugin, else the
+  // first bundled skill that carries an excerpt.
+  const previewSkill = relatedSkills.find(s => s.name === plugin.name && s.excerpt)
+    ?? relatedSkills.find(s => s.excerpt);
   const sourceKey = `${plugin.source.owner}/${plugin.source.repo}`;
   const isBuiltin = sourceKey === BUILTIN_REPO;
   const marketplaceCmd = `/plugin marketplace add ${sourceKey}`;
@@ -156,6 +161,13 @@ function PluginPanelBody({
         <span id="panel-prompt-text" class="panel-prompt-text">{promptText}</span>
         <CopyButton id="panel-prompt-copy" text={promptText} className="panel-copy-btn" />
       </div>
+
+      <SkillPreview
+        idPrefix="panel"
+        excerpt={previewSkill?.excerpt}
+        skillName={previewSkill?.name}
+        href={previewSkill?.rawSkillUrl}
+      />
 
       <CardSection
         id="panel-skills-section" listId="panel-skills-list" countId="panel-skills-count"

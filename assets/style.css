@@ -1294,6 +1294,22 @@ body.catalog-page footer {
   white-space: pre-wrap;
 }
 
+.panel-preview {
+  margin: 0 0 8px;
+  max-height: 260px;
+  overflow: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .panel-source-link {
   font-size: 0.83rem;
   color: var(--accent);

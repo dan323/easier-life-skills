@@ -70,6 +70,11 @@ export interface Skill {
   rating?: Rating;
   /** Injection scan result for this skill's SKILL.md content. */
   scanResult?: ScanResult;
+  /**
+   * Opening part of the SKILL.md body (see `extractExcerpt`). Untrusted text
+   * for external repos; omitted when empty or when the injection scan failed.
+   */
+  excerpt?: string;
   _repo?: string;
 }
 
