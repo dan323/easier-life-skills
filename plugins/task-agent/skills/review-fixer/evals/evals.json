@@ -110,6 +110,36 @@
           "text": "No sub-agent is spawned and no clone directory is created"
         }
       ]
+    },
+    {
+      "id": 5,
+      "prompt": "Fix the review comments on the PR: pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change",
+      "description": "Resolving addressed threads: after fixing a trusted pr-reviewer comment, checks passing and the push succeeding, the fixer must reply to and resolve exactly that thread (by node id) via the GraphQL mutations, and list it under Resolved threads. It must not resolve anything it did not fix.",
+      "setup": "rm -rf /tmp/eval-review-fixer-5 && mkdir -p /tmp/eval-review-fixer-5/bin /tmp/eval-review-fixer-5/workdir && git init --bare -q /tmp/eval-review-fixer-5/remote.git && git -C /tmp/eval-review-fixer-5/remote.git symbolic-ref HEAD refs/heads/main && git init -q -b main /tmp/eval-review-fixer-5/seed && cd /tmp/eval-review-fixer-5/seed && git config user.email e@e && git config user.name e && printf '{\"scripts\":{\"test\":\"node t.js\"}}' > package.json && printf 'process.exit(0)' > t.js && printf 'function add(a,b){return a+b}\n' > lib.js && git add -A && git commit -qm base && git remote add origin /tmp/eval-review-fixer-5/remote.git && git push -q origin main && git checkout -qb task/change && printf 'function add(a,b){return a-b}\n' > lib.js && git commit -qam 'feat: change' && git push -q origin task/change && git clone -q /tmp/eval-review-fixer-5/remote.git /tmp/eval-review-fixer-5/workdir/demo && git -C /tmp/eval-review-fixer-5/workdir/demo config user.email e@e && git -C /tmp/eval-review-fixer-5/workdir/demo config user.name e && echo IyEvYmluL3NoCiMgU3R1YiBnaCBmb3IgdGhlIHJldmlldy1maXhlciBldmFsczogbm8gbmV0d29yay4gRml4dHVyZXMgbGl2ZSBuZXh0IHRvIGJpbi8uCkQ9IiQoY2QgIiQoZGlybmFtZSAiJDAiKS8uLiIgJiYgcHdkKSIKZWNobyAiJEAiID4+ICIkRC9jYWxscy5sb2ciCmNhc2UgIiQxICQyIiBpbgogICJhcGkgZ3JhcGhxbCIpCiAgICBjYXNlICIkKiIgaW4KICAgICAgKm11dGF0aW9uKikgZWNobyAneyJkYXRhIjp7fX0nIDs7CiAgICAgICopIGNhdCAiJEQvdGhyZWFkcy5qc29uIiA7OwogICAgZXNhYyA7OwogICopIGVjaG8gJ3t9JyA7Owplc2FjCg== | base64 -d > /tmp/eval-review-fixer-5/bin/gh && chmod +x /tmp/eval-review-fixer-5/bin/gh && echo eyJkYXRhIjogeyJyZXBvc2l0b3J5IjogeyJwdWxsUmVxdWVzdCI6IHsicmV2aWV3cyI6IHsibm9kZXMiOiBbXX0sICJyZXZpZXdUaHJlYWRzIjogeyJwYWdlSW5mbyI6IHsiaGFzTmV4dFBhZ2UiOiBmYWxzZX0sICJub2RlcyI6IFt7ImlzUmVzb2x2ZWQiOiBmYWxzZSwgImlzT3V0ZGF0ZWQiOiBmYWxzZSwgInBhdGgiOiAibGliLmpzIiwgImxpbmUiOiAxLCAiY29tbWVudHMiOiB7Im5vZGVzIjogW3siYm9keSI6ICI8IS0tIHByLXJldmlld2VyIC0tPlxuKipbaGlnaF0qKiBhZGQoKSBzdWJ0cmFjdHMgaW5zdGVhZCBvZiBhZGRpbmcuIFVzZSBhICsgYi4iLCAiYXV0aG9yIjogeyJsb2dpbiI6ICJkYW4zMjMifSwgImF1dGhvckFzc29jaWF0aW9uIjogIk9XTkVSIiwgInVybCI6ICJodHRwczovL2dpdGh1Yi5jb20vZXhhbXBsZS9kZW1vL3B1bGwvNyNkaXNjdXNzaW9uX3IxIn1dfSwgImlkIjogIlBSUlRfZXZhbDVfdGhyZWFkMSJ9XX19fX19 | base64 -d > /tmp/eval-review-fixer-5/threads.json && export PATH=/tmp/eval-review-fixer-5/bin:$PATH TASK_AGENT_WORKDIR=/tmp/eval-review-fixer-5/workdir",
+      "expected_output": "lib.js is fixed and pushed, then addReplyThread and resolveReviewThread mutations are issued for thread PRRT_eval5_thread1, and the report lists it under Resolved threads.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "bug-fixed",
+          "text": "On the remote task/change branch, lib.js contains a+b and no longer a-b"
+        },
+        {
+          "id": "resolve-called",
+          "text": "/tmp/eval-review-fixer-5/calls.log contains a resolveReviewThread mutation with threadId PRRT_eval5_thread1"
+        },
+        {
+          "id": "reply-called",
+          "text": "/tmp/eval-review-fixer-5/calls.log contains an addPullRequestReviewThreadReply mutation for PRRT_eval5_thread1 whose body cites the new commit SHA"
+        },
+        {
+          "id": "resolve-after-push",
+          "text": "The resolveReviewThread mutation was issued after the push to task/change, never before it"
+        },
+        {
+          "id": "report-lists-resolved",
+          "text": "The report lists lib.js under Resolved threads"
+        }
+      ]
     }
   ]
 }

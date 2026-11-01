@@ -18,6 +18,11 @@
   reviewing account or an OWNER/MEMBER/COLLABORATOR. Things truly unverifiable are reported as
   limitations. New evals cover these rules; eval 0 now expects a record review. A clean record review
   counts as a trusted review body for `review-fixer` polling (see ADR 0014).
+- **task-agent v2.1.0: `review-fixer` resolves the threads it addressed.** After a successful push it replies
+  with the commit SHA and resolves each trusted thread it fixed (or confirmed already fixed), via the
+  `addPullRequestReviewThreadReply` / `resolveReviewThread` GraphQL mutations. Threads it skipped, only partly
+  fixed or ignored stay open and are listed under `Not resolved`; the report gains `Resolved threads` / `Not resolved`
+  sections. New eval 5.
 
 ### Added
 - New external marketplaces: `wshobson/agents`, `trailofbits/skills`, `OthmanAdi/planning-with-files`, `alirezarezvani/claude-skills`, `Jeffallan/claude-skills`, with per-plugin category overrides in `external-overrides.json`.
