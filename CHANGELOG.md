@@ -11,7 +11,13 @@
   reviews adversarially (concrete edge-case inputs, tests that could not fail, callers of changed
   code), reports real edge cases as **low** findings instead of staying silent, may not say
   "I did not verify" about code in the diff, and always posts a review (with checks run) even
-  when there are no findings.
+  when there are no findings. Check recipes are given for both bash and PowerShell (`timeout 600`, `sh -c`,
+  `$LASTEXITCODE`), and the scrubbed environment is an allowlist so it works on Windows. A check
+  skipped by instruction is `skipped (<reason>)`, not a finding; only an uncaptured check is
+  "unverified". Review suppression now requires a marker review on the same `commit_id` from the
+  reviewing account or an OWNER/MEMBER/COLLABORATOR. Things truly unverifiable are reported as
+  limitations. New evals cover these rules; eval 0 now expects a record review. A clean record review
+  counts as a trusted review body for `review-fixer` polling (see ADR 0014).
 
 ### Added
 - New external marketplaces: `wshobson/agents`, `trailofbits/skills`, `OthmanAdi/planning-with-files`, `alirezarezvani/claude-skills`, `Jeffallan/claude-skills`, with per-plugin category overrides in `external-overrides.json`.

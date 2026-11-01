@@ -47,6 +47,8 @@ If no trusted, unresolved, non-outdated thread or review body exists, wait 60 se
 
 Do not wait when comments are already there.
 
+A clean record review from `pr-reviewer` (marker `<!-- pr-reviewer -->`, no inline comments, body listing the checks run) counts as a trusted review body, so it ends the wait. It carries nothing to fix unless the body reports a failing or unverified check or an "Outside the diff" finding; if it does not, exit with a note that the review was clean.
+
 ## Step 3 — Fix applicable comments
 
 Make sure LOCAL_PATH is on BRANCH and up to date before editing (`git fetch origin`, `git checkout BRANCH`, `git merge --ff-only origin/BRANCH`; never `reset --hard`, and stop if the tree is dirty or the branch has diverged).
