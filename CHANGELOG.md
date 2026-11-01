@@ -94,6 +94,10 @@
   final report saved to `stdout.log`, so the stdout fallback still works. Spec in
   `plugins/workflow/references/format.md`; evals 4-5 added.
 
+### Changed
+- Docs: `docs/plan.md` now treats the Skill Rating & Review System (#7) as shipped (moved to "Previously shipped" with a list of deviations from the original design); telemetry (#9) is the only active plan. `docs/architecture.md` "Ratings & Reviews" now describes the real pipeline: Discussions category + form template, ingest as a `pages.yml` step (every deploy + daily cron), `ratings.json` keyed `{entityType}/{owner}/{repo}/{name}`, any entity type and marketplace rateable. This supersedes the v1.30.0 entries that described `pluginName/skillName` keys, local-only skills and a thread-per-skill flow.
+- Docs: new [ADR-0013](adr/0013-ratings-via-discussions-category-and-ci-ingest.md) recording the ratings submission/ingestion design.
+
 ### Fixed
 - **Uncategorized external entities on the web UI.** Added
   `external-overrides.json` categories (all `productivity`) for the

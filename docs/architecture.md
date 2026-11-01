@@ -205,27 +205,27 @@ This file is committed to the repo (not gitignored) and kept up to date by CI on
 
 ## Ratings & Reviews
 
-The marketplace browser surfaces a per-skill star rating and short reviews so users can pick between superficially-similar skills without trying each one. The data flow is intentionally static — no backend, no third-party API at page load, no anonymous form submissions:
+The marketplace browser surfaces a per-entity star rating and short reviews so users can pick between superficially-similar entities without trying each one. The data flow is intentionally static — no backend, no third-party API at page load. Rationale: [ADR-0013](../adr/0013-ratings-via-discussions-category-and-ci-ingest.md).
 
 ```
-GitHub Discussions  →  scripts/ingest-ratings.ts (scheduled)  →  ratings.json (committed)
-ratings.json        →  scripts/build-index.ts (build time)    →  skills_index.json[skills[*].rating]
-skills_index.json   →  assets/src/components/cards/SkillCard.tsx + EntityPanel.tsx (runtime)
+GitHub Discussions ("Ratings" category)  →  scripts/ingest-ratings.ts (CI)  →  ratings.json
+ratings.json       →  scripts/build-index.ts (build time)  →  skills_index.json[<entities>[*].rating]
+skills_index.json  →  SkillCard.tsx + EntityPanel.tsx / ReviewsBlock.tsx (runtime)
 ```
 
-1. **Submit** — Users open a "Rate this skill" link from the detail panel that takes them to a per-skill GitHub Discussions thread (one thread per skill, auto-created on first rating). They reply in a structured format (`★★★★☆ — body text…`).
-2. **Ingest** — A scheduled GitHub Action runs `scripts/ingest-ratings.ts` (Phase 5 of the design, not yet shipped). It walks `Ratings: *` threads via `gh api`, parses each reply, applies an anti-spam filter (reviewer must have ≥ 1 public commit), and writes `ratings.json` at the repo root. The file is keyed by `<pluginName>/<skillName>`; the value is `{ avg, count, reviews[] }`.
-3. **Merge** — On every build, `scripts/build-index.ts` reads `ratings.json` and attaches each matching entry to the corresponding skill via the pure-logic helper `scripts/lib/merge-ratings.ts`. Only **local-marketplace** skills (i.e. `source.owner === LOCAL_OWNER && source.repo === LOCAL_REPO`) are merged; external-marketplace skills are unrated in v1 because the Discussions thread lives in this repo. The merge is fail-soft: a missing or malformed `ratings.json` warns but does not deploy-block the site.
-4. **Render** — `SkillCard.tsx` shows a compact `★ 4.3 (12)` badge when `skill.rating` is present; `EntityPanel.tsx` shows the aggregate stars plus individual reviews and a "Rate this skill" link. The `Rating` sort option in `Controls.tsx` orders skills by `avg` descending with `count = 0` last.
+1. **Submit** — The detail panel's "Rate this" link opens `discussions/new` in the `Ratings` category with the entity pre-filled. The category uses the structured form template `.github/DISCUSSION_TEMPLATE/ratings.yml` (entity type, entity name, stars, review text). Submitting requires a GitHub account.
+2. **Ingest** — `npm run ingest` (`scripts/ingest-ratings.ts`) runs as a step in `.github/workflows/pages.yml`, before `npm run build`, on every deploy and on a daily 03:00 UTC cron. It resolves the category by name via GraphQL, paginates all discussions, parses each form body, keeps the **latest review per author per entity**, and rewrites `ratings.json`. It is fail-soft: a missing token, missing category or API error warns and leaves `ratings.json` unchanged. The rewritten file feeds that CI build; the workflow does not push it back, so the committed copy is only a fallback/seed.
+3. **Merge** — `scripts/build-index.ts` reads `ratings.json` and attaches each matching entry through the pure helper `scripts/lib/merge-ratings.ts`. The file is keyed `{entityType}/{owner}/{repo}/{name}` (e.g. `skill/dan323/easier-life-skills/changelog`); the value is `{ avg, count, reviews[] }`. **Any entity type from any marketplace** can be rated (skill, agent, plugin, hook, command, mcp-server, bundle). The merge is fail-soft: missing or malformed entries warn and are skipped.
+4. **Render** — `SkillCard.tsx` shows a compact `★ 4.3 (12)` badge when `rating` is present; `EntityPanel.tsx` / `ReviewsBlock.tsx` show the aggregate stars, individual reviews and the "Rate this" link. The sort button cycles `A→Z → Z→A → Rating`; in Rating mode skills are ordered by `avg` descending with unrated last (`#sort=rating` in the URL hash).
 
-The shape lives in two parallel TypeScript modules, kept in sync by review (one file is small, the duplication is intentional — the script-side and web-side type trees do not share imports):
+The shape lives in two parallel TypeScript modules, kept in sync by review (the script-side and web-side type trees do not share imports):
 
-- `scripts/lib/types.ts` defines `Review`, `Rating`, and adds `rating?: Rating` to `Skill`.
+- `scripts/lib/types.ts` defines `Review`, `Rating`, and the optional `rating` field on entities.
 - `assets/src/types.ts` mirrors the same shape for the web UI.
 
-The "skip if not local + skip if malformed" rules are unit-tested in `tests/merge-ratings.test.ts`. The fixture at `tests/fixtures/skills_index.json` carries a rating on the `changelog` skill so any UI test that hits that card exercises the path where the optional field is present.
+Not implemented: a reviewer-reputation (anti-spam) filter. "Latest review per author" bounds one account to one vote per entity but does not stop throwaway accounts.
 
-The phased rollout intentionally lands the data model and the build merge first (this PR) so subsequent UI / sort / ingestion PRs can be reviewed in isolation. See [issue #7](https://github.com/dan323/easier-life-skills/issues/7) for the full plan.
+Tests: `tests/merge-ratings.test.ts` covers the merge rules; `tests/fixtures/skills_index.json` carries a rating on the `changelog` skill so UI tests exercise the rated path.
 
 ## How Skills Work
 

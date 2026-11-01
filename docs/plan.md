@@ -15,103 +15,13 @@ prioritized features that have.
 
 ## Active prioritised plans
 
-The features below have full design notes — goal, architecture, file-level
-plan, phases, risks, and done-when criteria. Each one is also tracked as
-an issue on the board.
+The feature below has full design notes — goal, architecture, file-level
+plan, phases, risks, and done-when criteria. It is also tracked as an issue
+on the board.
 
-| # | Feature                                                                             | Effort   | Status   | Issue |
-|----|-------------------------------------------------------------------------------------|----------|----------|-------|
-| 1  | [Skill Rating & Review System](#1-skill-rating--review-system)                       | 2–3 days | Todo     | [#7](https://github.com/dan323/easier-life-skills/issues/7) |
-| 3b | [Skill-execution telemetry](#3b-skill-execution-telemetry-deferred)                  | 3–4 days | Deferred | [#9](https://github.com/dan323/easier-life-skills/issues/9) |
-
-### 1. Skill Rating & Review System
-
-#### Goal
-
-Let users rate and review skills directly in the marketplace browser. Surface
-the aggregate score and most-helpful reviews on each card and in the detail
-panel. Add `rating` as a sortable dimension alongside `A→Z` / `Z→A`.
-
-#### Why now
-
-Adoption is currently bottlenecked on trust — a user scrolling 11+ local
-plugins and an unknown number of external plugins has no signal about which
-ones are reliable. Ratings and reviews are the cheapest, most effective trust
-mechanism, and the UI already has the panel/card structure to host them.
-
-#### Constraints / non-goals
-
-- **No backend server.** Ratings must live in the repo (a static JSON file)
-  to keep the marketplace deployable as static GitHub Pages.
-- **No anonymous spam vector.** Reviewing requires GitHub auth — we delegate
-  to GitHub Discussions or the GitHub API, not a free-form form.
-- **External marketplaces** (e.g. `anthropics/skills`) cannot be rated in this
-  iteration. We only collect ratings for items local to this repo. Cross-repo
-  ratings are a v2 problem.
-
-#### Architecture
-
-Two halves:
-
-1. **Submission flow** — opens a GitHub Discussions thread per skill.
-   - First time anyone rates a skill, a Discussions thread is auto-created
-     (`Ratings: <skill-name>`).
-   - Subsequent ratings are posted as replies in a structured comment format
-     (`★★★★☆ — body…`).
-   - A scheduled GitHub Action parses replies into `ratings.json`.
-
-2. **Display flow** — the web UI reads `ratings.json` at build time.
-   - The build script merges ratings into `skills_index.json` so the runtime
-     code stays a pure read.
-
-#### File-level plan
-
-| File                                                | Change                                                                                                               |
-|-----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
-| `ratings.json` (new, repo root)                     | Source of truth: `{ "<skill-id>": { "avg": 4.3, "count": 12, "reviews": [...] } }`.                                  |
-| `.github/workflows/ingest-ratings.yml` (new)        | Hourly cron — runs `scripts/ingest-ratings.ts`.                                                                      |
-| `scripts/ingest-ratings.ts` (new)                   | Walks `Ratings: *` Discussion threads via `gh api`, parses the structured body of each reply, writes `ratings.json`. |
-| `scripts/lib/types.ts`                              | Add `rating?: { avg: number; count: number; reviews: Review[] }` to the relevant entity types.                       |
-| `scripts/build-index.ts`                            | Read `ratings.json` and merge into the generated `skills_index.json`.                                                |
-| `assets/src/components/cards/SkillCard.tsx`         | Render a compact `★ 4.3 (12)` badge in the card footer.                                                              |
-| `assets/src/components/EntityPanel.tsx`             | Add a Reviews section: aggregate stars, individual reviews, "Rate this skill" button linking to the Discussion.      |
-| `assets/src/components/Controls.tsx`                | Add `Rating` to the sort options.                                                                                    |
-| `assets/src/url-state.ts`                           | Allow `sort=rating` in the URL hash.                                                                                 |
-| `tests/sort.test.ts` / `tests/entity-panel.test.ts` | Cover the new sort option and the rating display.                                                                    |
-| `tests/fixtures/skills_index.json`                  | Add ratings to a couple of fixture skills.                                                                           |
-| `docs/architecture.md`                              | New section: "Ratings & Reviews".                                                                                    |
-| `CHANGELOG.md`                                      | Unreleased entry.                                                                                                    |
-
-#### Phases
-
-1. **Schema & fixtures** (½ day) — define the `rating` shape, update types,
-   add fixtures, get tests passing with hardcoded ratings.
-2. **UI rendering** (½ day) — `SkillCard` badge + `EntityPanel` reviews
-   section. Tests for both.
-3. **Sort dimension** (¼ day) — add to `Controls.tsx` + `url-state.ts` +
-   tests.
-4. **Build merge** (¼ day) — extend `build-index.ts` to merge `ratings.json`.
-5. **Ingestion pipeline** (1 day) — `scripts/ingest-ratings.ts`, the
-   workflow, and a structured reply template stored in the Discussion's
-   first post.
-
-#### Risks
-
-- **Discussions API rate limits.** Mitigation: cache last-seen comment IDs in
-  `ratings.json`, paginate, and skip threads we've already fully ingested.
-- **Spam / abuse.** Mitigation: require ≥ 1 public commit history on the
-  reviewer's account (cheap filter in the ingestion script).
-- **External marketplaces don't get ratings.** Accepted for v1 — the UI
-  should render the rating section only when `entity.rating` is present, not
-  blow up otherwise.
-
-#### Done when
-
-- `npm test` passes.
-- A skill with ≥ 1 rating renders the badge on its card.
-- Sorting by `Rating` orders skills by `avg` desc, with `count = 0` last.
-- The detail panel shows aggregate stars and a "Rate this" link.
-- `docs/architecture.md` describes the pipeline.
+| #  | Feature                                                             | Effort   | Status   | Issue                                                       |
+|----|---------------------------------------------------------------------|----------|----------|-------------------------------------------------------------|
+| 3b | [Skill-execution telemetry](#3b-skill-execution-telemetry-deferred) | 3–4 days | Deferred | [#9](https://github.com/dan323/easier-life-skills/issues/9) |
 
 ### 3b. Skill-execution telemetry (deferred)
 
@@ -121,8 +31,13 @@ Two halves:
 > data GA literally cannot see — skills run on user laptops, not in
 > browsers. Unblock when there is concrete user-facing demand for the
 > `Used 5.2k times this month` / `98% success rate` badges; until then,
-> GA + the rating system (Feature 1) are expected to cover the
+> GA + the shipped rating system are expected to cover the
 > trust-and-direction use cases.
+>
+> **Status:** nothing is built yet — no `telemetry/`, `analytics.json`,
+> `docs/privacy.md`, or `telemetry` installer subcommand. The board card for
+> [#9](https://github.com/dan323/easier-life-skills/issues/9) is the source
+> of truth for its column.
 
 #### Goal
 
@@ -217,13 +132,11 @@ PII or any per-user identifier.
 
 ### Sequencing recommendation
 
-1. **Feature 1 (Ratings)** — bounded surface area, exercises the build
-   pipeline's "merge external data into the index" pattern, which Feature
-   3b would also reuse.
-2. **Feature 3b (Execution telemetry)** — only when there's a concrete
-   user-facing reason for the popularity badges; until then GA (3a) +
-   ratings (1) carry the "trust and direction" signal at a fraction of
-   the cost.
+Telemetry is the only active plan. Start it only when there is a concrete
+user-facing reason for the popularity badges; until then GA (3a) and the
+shipped ratings carry the "trust and direction" signal at a fraction of the
+cost. Begin with its Phase 1 (privacy doc + CLI flags) so the social contract
+exists before anything emits data.
 
 ---
 
@@ -241,6 +154,21 @@ original design" subsection) live in [`docs/plan.md` at commit
 | Usage Analytics 3a — GA4 wiring on the deployed site          | [v1.17.0][changelog] (extended in [v1.17.1][changelog] / [v1.23.1][changelog])   |
 | Installer `--search <query>`                                  | [v1.18.0][changelog]                                                             |
 | Installer `--update [name]`                                   | [v1.20.0][changelog]                                                             |
+| Skill Rating & Review System ([#7][issue-7]) — see note below  | [v1.30.0][changelog] (data model, UI, sort and ingestion landed across several PRs) |
+
+**Ratings: how it differs from the original design.** Ratings shipped with
+a different shape than first planned; the rationale is in
+[ADR-0013](../adr/0013-ratings-via-discussions-category-and-ci-ingest.md).
+
+- Submission uses one GitHub Discussions **category** ("Ratings") with a
+  structured issue-form template, not one auto-created thread per skill.
+- Ingestion is a step in `pages.yml` (`npm run ingest`, on every deploy plus
+  a daily 03:00 UTC cron), not a separate hourly `ingest-ratings.yml`.
+- `ratings.json` is keyed `{entityType}/{owner}/{repo}/{name}` and any entity
+  type from any marketplace can be rated — not only local skills.
+- The sort control is a three-state cycle (A→Z → Z→A → Rating) on one button.
+- The "reviewer needs ≥ 1 public commit" anti-spam filter was not implemented;
+  the ingest script keeps only the latest review per author per entity.
 
 Everything else — Web UI tweaks, new skills / agents / commands / hooks /
 MCPs, installer ergonomics — lives on the [Roadmap board][board].
@@ -248,6 +176,7 @@ MCPs, installer ergonomics — lives on the [Roadmap board][board].
 [prior-plan]: https://github.com/dan323/easier-life-skills/blob/ac56d2f/docs/plan.md
 [changelog]: ../CHANGELOG.md
 [board]: https://github.com/users/dan323/projects/4
+[issue-7]: https://github.com/dan323/easier-life-skills/issues/7
 
 ---
 
