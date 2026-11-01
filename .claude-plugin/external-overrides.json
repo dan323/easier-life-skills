@@ -1,116 +1,1041 @@
 {
   "anthropics/skills": {
     "plugins": {
-      "document-skills": { "category": "productivity" },
-      "example-skills":  { "category": "productivity" },
-      "academy-guide":   { "category": "productivity" },
-      "discernment-nudge": { "category": "productivity" },
-      "claude-api":      { "category": "documentation" }
+      "document-skills": {
+        "category": "productivity"
+      },
+      "example-skills": {
+        "category": "productivity"
+      },
+      "academy-guide": {
+        "category": "productivity"
+      },
+      "discernment-nudge": {
+        "category": "productivity"
+      },
+      "claude-api": {
+        "category": "documentation"
+      }
     },
     "skills": {
-      "algorithmic-art":       { "category": "design" },
-      "brand-guidelines":      { "category": "design" },
-      "canvas-design":         { "category": "design" },
-      "frontend-design":       { "category": "design" },
-      "theme-factory":         { "category": "design" },
-      "claude-api":            { "category": "development" },
-      "mcp-builder":           { "category": "development" },
-      "skill-creator":         { "category": "development" },
-      "web-artifacts-builder": { "category": "development" },
-      "webapp-testing":        { "category": "testing"     },
-      "doc-coauthoring":       { "category": "productivity" },
-      "docx":                  { "category": "documentation" },
-      "internal-comms":        { "category": "productivity" },
-      "pdf":                   { "category": "documentation" },
-      "pptx":                  { "category": "productivity" },
-      "slack-gif-creator":     { "category": "productivity" },
-      "xlsx":                  { "category": "documentation" },
-      "academy-guide":         { "category": "productivity" },
-      "discernment-nudge":     { "category": "productivity" }
+      "algorithmic-art": {
+        "category": "design"
+      },
+      "brand-guidelines": {
+        "category": "design"
+      },
+      "canvas-design": {
+        "category": "design"
+      },
+      "frontend-design": {
+        "category": "design"
+      },
+      "theme-factory": {
+        "category": "design"
+      },
+      "claude-api": {
+        "category": "development"
+      },
+      "mcp-builder": {
+        "category": "development"
+      },
+      "skill-creator": {
+        "category": "development"
+      },
+      "web-artifacts-builder": {
+        "category": "development"
+      },
+      "webapp-testing": {
+        "category": "testing"
+      },
+      "doc-coauthoring": {
+        "category": "productivity"
+      },
+      "docx": {
+        "category": "documentation"
+      },
+      "internal-comms": {
+        "category": "productivity"
+      },
+      "pdf": {
+        "category": "documentation"
+      },
+      "pptx": {
+        "category": "productivity"
+      },
+      "slack-gif-creator": {
+        "category": "productivity"
+      },
+      "xlsx": {
+        "category": "documentation"
+      },
+      "academy-guide": {
+        "category": "productivity"
+      },
+      "discernment-nudge": {
+        "category": "productivity"
+      }
     }
   },
   "mattpocock/skills": {
     "skills": {
-      "diagnose":                      { "category": "code-quality"  },
-      "improve-codebase-architecture": { "category": "code-quality"  },
-      "tdd":                           { "category": "testing"       },
-      "grill-with-docs":               { "category": "documentation" },
-      "to-prd":                        { "category": "documentation" },
-      "to-issues":                     { "category": "automation"    },
-      "triage":                        { "category": "automation"    },
-      "setup-matt-pocock-skills":      { "category": "automation"    },
-      "caveman":                       { "category": "productivity"  },
-      "grill-me":                      { "category": "productivity"  },
-      "zoom-out":                      { "category": "productivity"  },
-      "handoff":                       { "category": "productivity"  },
-      "prototype":                     { "category": "development"   },
-      "write-a-skill":                 { "category": "development"   }
+      "diagnose": {
+        "category": "code-quality"
+      },
+      "improve-codebase-architecture": {
+        "category": "code-quality"
+      },
+      "tdd": {
+        "category": "testing"
+      },
+      "grill-with-docs": {
+        "category": "documentation"
+      },
+      "to-prd": {
+        "category": "documentation"
+      },
+      "to-issues": {
+        "category": "automation"
+      },
+      "triage": {
+        "category": "automation"
+      },
+      "setup-matt-pocock-skills": {
+        "category": "automation"
+      },
+      "caveman": {
+        "category": "productivity"
+      },
+      "grill-me": {
+        "category": "productivity"
+      },
+      "zoom-out": {
+        "category": "productivity"
+      },
+      "handoff": {
+        "category": "productivity"
+      },
+      "prototype": {
+        "category": "development"
+      },
+      "write-a-skill": {
+        "category": "development"
+      }
     }
   },
   "DustyWalker/claude-code-marketplace": {
     "plugins": {
-      "production-agents-suite": { "category": "mixed" }
+      "production-agents-suite": {
+        "category": "mixed"
+      }
     },
     "agents": {
-      "code-reviewer":                { "category": "code-quality" },
-      "security-auditor":             { "category": "security"     },
-      "test-suite-generator":         { "category": "testing"      },
-      "performance-optimizer":        { "category": "performance"  },
-      "test-automator":               { "category": "testing"      },
-      "qa-engineer":                  { "category": "testing"      },
-      "architecture-checker":         { "category": "code-quality" },
-      "refactoring-specialist":       { "category": "code-quality" },
-      "backend-typescript-architect": { "category": "development"  },
-      "frontend-developer":           { "category": "development"  },
-      "api-designer":                 { "category": "development"  },
-      "database-architect":           { "category": "development"  },
-      "deployment-engineer":          { "category": "devops"       },
-      "cicd-automation":              { "category": "devops"       },
-      "docker-specialist":            { "category": "devops"       },
-      "prompt-builder":               { "category": "productivity" }
+      "code-reviewer": {
+        "category": "code-quality"
+      },
+      "security-auditor": {
+        "category": "security"
+      },
+      "test-suite-generator": {
+        "category": "testing"
+      },
+      "performance-optimizer": {
+        "category": "performance"
+      },
+      "test-automator": {
+        "category": "testing"
+      },
+      "qa-engineer": {
+        "category": "testing"
+      },
+      "architecture-checker": {
+        "category": "code-quality"
+      },
+      "refactoring-specialist": {
+        "category": "code-quality"
+      },
+      "backend-typescript-architect": {
+        "category": "development"
+      },
+      "frontend-developer": {
+        "category": "development"
+      },
+      "api-designer": {
+        "category": "development"
+      },
+      "database-architect": {
+        "category": "development"
+      },
+      "deployment-engineer": {
+        "category": "devops"
+      },
+      "cicd-automation": {
+        "category": "devops"
+      },
+      "docker-specialist": {
+        "category": "devops"
+      },
+      "prompt-builder": {
+        "category": "productivity"
+      }
     },
     "commands": {
-      "review":        { "category": "code-quality" },
-      "test":          { "category": "testing"      },
-      "security-scan": { "category": "security"     },
-      "deploy":        { "category": "devops"       },
-      "build-prompt":  { "category": "productivity" }
+      "review": {
+        "category": "code-quality"
+      },
+      "test": {
+        "category": "testing"
+      },
+      "security-scan": {
+        "category": "security"
+      },
+      "deploy": {
+        "category": "devops"
+      },
+      "build-prompt": {
+        "category": "productivity"
+      }
     }
   },
   "marcusabu/claude-code-docs-plugin": {
     "plugins": {
-      "claude-code-docs": { "category": "documentation" }
+      "claude-code-docs": {
+        "category": "documentation"
+      }
     },
     "skills": {
-      "claude-code": { "category": "documentation" }
+      "claude-code": {
+        "category": "documentation"
+      }
     }
   },
   "obra/superpowers": {
     "plugins": {
-      "superpowers": { "category": "mixed" }
+      "superpowers": {
+        "category": "mixed"
+      }
     },
     "skills": {
-      "brainstorming":                  { "category": "productivity" },
-      "dispatching-parallel-agents":    { "category": "automation"   },
-      "executing-plans":                { "category": "automation"   },
-      "finishing-a-development-branch": { "category": "automation"   },
-      "receiving-code-review":          { "category": "code-quality" },
-      "requesting-code-review":         { "category": "code-quality" },
-      "subagent-driven-development":    { "category": "automation"   },
-      "systematic-debugging":           { "category": "code-quality" },
-      "test-driven-development":        { "category": "testing"      },
-      "using-git-worktrees":            { "category": "automation"   },
-      "using-superpowers":              { "category": "productivity" },
-      "verification-before-completion": { "category": "code-quality" },
-      "writing-plans":                  { "category": "productivity" },
-      "writing-skills":                 { "category": "development"  }
+      "brainstorming": {
+        "category": "productivity"
+      },
+      "dispatching-parallel-agents": {
+        "category": "automation"
+      },
+      "executing-plans": {
+        "category": "automation"
+      },
+      "finishing-a-development-branch": {
+        "category": "automation"
+      },
+      "receiving-code-review": {
+        "category": "code-quality"
+      },
+      "requesting-code-review": {
+        "category": "code-quality"
+      },
+      "subagent-driven-development": {
+        "category": "automation"
+      },
+      "systematic-debugging": {
+        "category": "code-quality"
+      },
+      "test-driven-development": {
+        "category": "testing"
+      },
+      "using-git-worktrees": {
+        "category": "automation"
+      },
+      "using-superpowers": {
+        "category": "productivity"
+      },
+      "verification-before-completion": {
+        "category": "code-quality"
+      },
+      "writing-plans": {
+        "category": "productivity"
+      },
+      "writing-skills": {
+        "category": "development"
+      }
     },
     "hooks": {
-      "session-start": { "category": "productivity" }
+      "session-start": {
+        "category": "productivity"
+      }
     }
   },
   "backnotprop/plannotator": {
-    "plugins": { "plannotator": { "category": "productivity" } },
-    "hooks":   { "plannotator": { "category": "productivity" } }
+    "plugins": {
+      "plannotator": {
+        "category": "productivity"
+      }
+    },
+    "hooks": {
+      "plannotator": {
+        "category": "productivity"
+      }
+    }
+  },
+  "wshobson/agents": {
+    "plugins": {
+      "documentation-standards": {
+        "category": "documentation"
+      },
+      "code-documentation": {
+        "category": "documentation"
+      },
+      "debugging-toolkit": {
+        "category": "development"
+      },
+      "git-pr-workflows": {
+        "category": "automation"
+      },
+      "operating-kit": {
+        "category": "automation"
+      },
+      "backend-development": {
+        "category": "development"
+      },
+      "frontend-mobile-development": {
+        "category": "development"
+      },
+      "full-stack-orchestration": {
+        "category": "automation"
+      },
+      "unit-testing": {
+        "category": "testing"
+      },
+      "tdd-workflows": {
+        "category": "testing"
+      },
+      "code-refactoring": {
+        "category": "code-quality"
+      },
+      "dependency-management": {
+        "category": "code-quality"
+      },
+      "error-debugging": {
+        "category": "code-quality"
+      },
+      "team-collaboration": {
+        "category": "code-quality"
+      },
+      "llm-application-dev": {
+        "category": "development"
+      },
+      "llm-finetuning": {
+        "category": "development"
+      },
+      "agent-orchestration": {
+        "category": "development"
+      },
+      "context-management": {
+        "category": "development"
+      },
+      "machine-learning-ops": {
+        "category": "development"
+      },
+      "data-engineering": {
+        "category": "development"
+      },
+      "incident-response": {
+        "category": "devops"
+      },
+      "error-diagnostics": {
+        "category": "devops"
+      },
+      "distributed-debugging": {
+        "category": "devops"
+      },
+      "observability-monitoring": {
+        "category": "devops"
+      },
+      "deployment-strategies": {
+        "category": "devops"
+      },
+      "deployment-validation": {
+        "category": "devops"
+      },
+      "kubernetes-operations": {
+        "category": "devops"
+      },
+      "cloud-infrastructure": {
+        "category": "devops"
+      },
+      "cicd-automation": {
+        "category": "devops"
+      },
+      "application-performance": {
+        "category": "performance"
+      },
+      "database-cloud-optimization": {
+        "category": "performance"
+      },
+      "comprehensive-review": {
+        "category": "code-quality"
+      },
+      "performance-testing-review": {
+        "category": "code-quality"
+      },
+      "framework-migration": {
+        "category": "code-quality"
+      },
+      "codebase-cleanup": {
+        "category": "code-quality"
+      },
+      "database-design": {
+        "category": "development"
+      },
+      "database-migrations": {
+        "category": "development"
+      },
+      "security-scanning": {
+        "category": "security"
+      },
+      "security-compliance": {
+        "category": "security"
+      },
+      "backend-api-security": {
+        "category": "security"
+      },
+      "frontend-mobile-security": {
+        "category": "security"
+      },
+      "data-validation-suite": {
+        "category": "development"
+      },
+      "api-scaffolding": {
+        "category": "development"
+      },
+      "api-testing-observability": {
+        "category": "development"
+      },
+      "seo-content-creation": {
+        "category": "marketing"
+      },
+      "seo-technical-optimization": {
+        "category": "marketing"
+      },
+      "seo-analysis-monitoring": {
+        "category": "marketing"
+      },
+      "documentation-generation": {
+        "category": "documentation"
+      },
+      "c4-architecture": {
+        "category": "documentation"
+      },
+      "avoid-ai-writing": {
+        "category": "documentation"
+      },
+      "multi-platform-apps": {
+        "category": "development"
+      },
+      "business-analytics": {
+        "category": "business"
+      },
+      "startup-business-analyst": {
+        "category": "business"
+      },
+      "before-you-build": {
+        "category": "business"
+      },
+      "hr-legal-compliance": {
+        "category": "business"
+      },
+      "customer-sales-automation": {
+        "category": "business"
+      },
+      "content-marketing": {
+        "category": "marketing"
+      },
+      "social-publishing": {
+        "category": "marketing"
+      },
+      "hermes-tweet": {
+        "category": "marketing"
+      },
+      "blockchain-web3": {
+        "category": "development"
+      },
+      "quantitative-trading": {
+        "category": "business"
+      },
+      "payment-processing": {
+        "category": "business"
+      },
+      "game-development": {
+        "category": "development"
+      },
+      "accessibility-compliance": {
+        "category": "code-quality"
+      },
+      "python-development": {
+        "category": "development"
+      },
+      "javascript-typescript": {
+        "category": "development"
+      },
+      "systems-programming": {
+        "category": "development"
+      },
+      "jvm-languages": {
+        "category": "development"
+      },
+      "web-scripting": {
+        "category": "development"
+      },
+      "functional-programming": {
+        "category": "development"
+      },
+      "julia-development": {
+        "category": "development"
+      },
+      "arm-cortex-microcontrollers": {
+        "category": "development"
+      },
+      "shell-scripting": {
+        "category": "development"
+      },
+      "developer-essentials": {
+        "category": "development"
+      },
+      "dgx-spark-ops": {
+        "category": "development"
+      },
+      "reverse-engineering": {
+        "category": "security"
+      },
+      "conductor": {
+        "category": "automation"
+      },
+      "superself": {
+        "category": "automation"
+      },
+      "ui-design": {
+        "category": "development"
+      },
+      "agent-teams": {
+        "category": "automation"
+      },
+      "dotnet-contribution": {
+        "category": "development"
+      },
+      "meigen-ai-design": {
+        "category": "design"
+      },
+      "brand-landingpage": {
+        "category": "design"
+      },
+      "plugin-eval": {
+        "category": "code-quality"
+      },
+      "block-no-verify": {
+        "category": "security"
+      },
+      "pensyve": {
+        "category": "productivity"
+      },
+      "hol-guard": {
+        "category": "security"
+      },
+      "protect-mcp": {
+        "category": "security"
+      },
+      "signed-audit-trails": {
+        "category": "security"
+      },
+      "review-agent-governance": {
+        "category": "security"
+      },
+      "ship-mate": {
+        "category": "automation"
+      },
+      "file-conversion": {
+        "category": "code-quality"
+      },
+      "skill-forge-essentials": {
+        "category": "code-quality"
+      },
+      "pptx-deck-creation": {
+        "category": "design"
+      }
+    }
+  },
+  "trailofbits/skills": {
+    "plugins": {
+      "audit-context-building": {
+        "category": "security"
+      },
+      "building-secure-contracts": {
+        "category": "security"
+      },
+      "burpsuite-project-parser": {
+        "category": "security"
+      },
+      "chrome-mcp-troubleshooting": {
+        "category": "development"
+      },
+      "constant-time-analysis": {
+        "category": "security"
+      },
+      "culture-index": {
+        "category": "productivity"
+      },
+      "devcontainer-setup": {
+        "category": "devops"
+      },
+      "differential-review": {
+        "category": "security"
+      },
+      "firebase-apk-scanner": {
+        "category": "security"
+      },
+      "gh-cli": {
+        "category": "automation"
+      },
+      "dwarf-expert": {
+        "category": "security"
+      },
+      "entry-point-analyzer": {
+        "category": "security"
+      },
+      "mutation-testing": {
+        "category": "testing"
+      },
+      "patching-bugs": {
+        "category": "security"
+      },
+      "post-patch-validation": {
+        "category": "security"
+      },
+      "property-based-testing": {
+        "category": "testing"
+      },
+      "regression-hunt": {
+        "category": "security"
+      },
+      "semgrep-rule-creator": {
+        "category": "security"
+      },
+      "semgrep-rule-variant-creator": {
+        "category": "security"
+      },
+      "sharp-edges": {
+        "category": "security"
+      },
+      "static-analysis": {
+        "category": "security"
+      },
+      "spec-to-code-compliance": {
+        "category": "security"
+      },
+      "testing-handbook-skills": {
+        "category": "security"
+      },
+      "trailmark": {
+        "category": "security"
+      },
+      "variant-analysis": {
+        "category": "security"
+      },
+      "c-review": {
+        "category": "security"
+      },
+      "rust-review": {
+        "category": "security"
+      },
+      "modern-python": {
+        "category": "code-quality"
+      },
+      "insecure-defaults": {
+        "category": "security"
+      },
+      "review-walkthrough": {
+        "category": "documentation"
+      },
+      "second-opinion": {
+        "category": "security"
+      },
+      "yara-authoring": {
+        "category": "security"
+      },
+      "git-cleanup": {
+        "category": "automation"
+      },
+      "goal-prompt": {
+        "category": "productivity"
+      },
+      "supply-chain-risk-auditor": {
+        "category": "security"
+      },
+      "zeroize-audit": {
+        "category": "security"
+      },
+      "let-fate-decide": {
+        "category": "productivity"
+      },
+      "agentic-actions-auditor": {
+        "category": "security"
+      },
+      "code-improver": {
+        "category": "code-quality"
+      },
+      "fp-check": {
+        "category": "security"
+      },
+      "dimensional-analysis": {
+        "category": "security"
+      },
+      "vulnerability-triage-brocards": {
+        "category": "security"
+      },
+      "github-triage": {
+        "category": "automation"
+      },
+      "open-sourcing": {
+        "category": "security"
+      },
+      "writing-lean-proofs": {
+        "category": "security"
+      },
+      "modern-cpp": {
+        "category": "code-quality"
+      }
+    }
+  },
+  "alirezarezvani/claude-skills": {
+    "plugins": {
+      "marketing-skills": {
+        "category": "marketing"
+      },
+      "c-level-skills": {
+        "category": "business"
+      },
+      "c-level-agents": {
+        "category": "business"
+      },
+      "general-counsel-advisor": {
+        "category": "business"
+      },
+      "arquiteto-de-empresa": {
+        "category": "business"
+      },
+      "chief-data-officer-advisor": {
+        "category": "business"
+      },
+      "vpe-advisor": {
+        "category": "business"
+      },
+      "chief-customer-officer-advisor": {
+        "category": "business"
+      },
+      "chief-ai-officer-advisor": {
+        "category": "business"
+      },
+      "engineering-advanced-skills": {
+        "category": "development"
+      },
+      "engineering-skills": {
+        "category": "development"
+      },
+      "ra-qm-skills": {
+        "category": "business"
+      },
+      "product-skills": {
+        "category": "business"
+      },
+      "pm-skills": {
+        "category": "business"
+      },
+      "business-growth-skills": {
+        "category": "business"
+      },
+      "finance-skills": {
+        "category": "business"
+      },
+      "pw": {
+        "category": "testing"
+      },
+      "self-improving-agent": {
+        "category": "development"
+      },
+      "autoresearch-agent": {
+        "category": "development"
+      },
+      "google-workspace-cli": {
+        "category": "productivity"
+      },
+      "code-to-prd": {
+        "category": "documentation"
+      },
+      "agenthub": {
+        "category": "development"
+      },
+      "a11y-audit": {
+        "category": "code-quality"
+      },
+      "executive-mentor": {
+        "category": "business"
+      },
+      "docker-development": {
+        "category": "devops"
+      },
+      "helm-chart-builder": {
+        "category": "devops"
+      },
+      "terraform-patterns": {
+        "category": "devops"
+      },
+      "research-summarizer": {
+        "category": "business"
+      },
+      "code-tour": {
+        "category": "documentation"
+      },
+      "demo-video": {
+        "category": "design"
+      },
+      "data-quality-auditor": {
+        "category": "development"
+      },
+      "statistical-analyst": {
+        "category": "development"
+      },
+      "apple-hig-expert": {
+        "category": "design"
+      },
+      "design-qa": {
+        "category": "testing"
+      },
+      "llm-wiki": {
+        "category": "productivity"
+      },
+      "karpathy-coder": {
+        "category": "code-quality"
+      },
+      "feature-flags-architect": {
+        "category": "development"
+      },
+      "kubernetes-operator": {
+        "category": "devops"
+      },
+      "chaos-engineering": {
+        "category": "devops"
+      },
+      "slo-architect": {
+        "category": "devops"
+      },
+      "write-a-skill": {
+        "category": "development"
+      },
+      "book-to-skill": {
+        "category": "development"
+      },
+      "workflow-builder": {
+        "category": "development"
+      },
+      "caveman": {
+        "category": "development"
+      },
+      "hivemind": {
+        "category": "development"
+      },
+      "zero-hallucination-coder": {
+        "category": "code-quality"
+      },
+      "agent-harness": {
+        "category": "development"
+      },
+      "memory-engineering": {
+        "category": "development"
+      },
+      "skill-retro": {
+        "category": "development"
+      },
+      "grill-me": {
+        "category": "development"
+      },
+      "handoff-engineering": {
+        "category": "development"
+      },
+      "agile-product-owner": {
+        "category": "business"
+      },
+      "capture-skill": {
+        "category": "productivity"
+      },
+      "email-pair": {
+        "category": "productivity"
+      },
+      "reflect-skill": {
+        "category": "productivity"
+      },
+      "handoff-productivity": {
+        "category": "productivity"
+      },
+      "andreessen": {
+        "category": "productivity"
+      },
+      "roast": {
+        "category": "productivity"
+      },
+      "fable-goal": {
+        "category": "productivity"
+      },
+      "weekly-review": {
+        "category": "productivity"
+      },
+      "deep-work": {
+        "category": "productivity"
+      },
+      "meetings": {
+        "category": "productivity"
+      },
+      "swedish-mentor": {
+        "category": "productivity"
+      },
+      "landing": {
+        "category": "marketing"
+      },
+      "linkedin": {
+        "category": "marketing"
+      },
+      "pulse": {
+        "category": "productivity"
+      },
+      "deep-research": {
+        "category": "productivity"
+      },
+      "litreview": {
+        "category": "productivity"
+      },
+      "grants": {
+        "category": "productivity"
+      },
+      "dossier": {
+        "category": "productivity"
+      },
+      "patent": {
+        "category": "productivity"
+      },
+      "syllabus": {
+        "category": "productivity"
+      },
+      "notebooklm": {
+        "category": "productivity"
+      },
+      "research-orchestrator": {
+        "category": "productivity"
+      },
+      "deepread": {
+        "category": "productivity"
+      },
+      "aeo": {
+        "category": "marketing"
+      },
+      "security-guidance": {
+        "category": "security"
+      },
+      "skillopt-sleep": {
+        "category": "development"
+      },
+      "business-operations-skills": {
+        "category": "business"
+      },
+      "commercial-skills": {
+        "category": "business"
+      },
+      "universal-scraping-architect": {
+        "category": "development"
+      },
+      "research-ops-skills": {
+        "category": "productivity"
+      },
+      "markdown-html-skills": {
+        "category": "documentation"
+      },
+      "youtube-full": {
+        "category": "marketing"
+      },
+      "compliance-os": {
+        "category": "business"
+      },
+      "snowflake-development": {
+        "category": "development"
+      },
+      "behuman": {
+        "category": "development"
+      },
+      "power-user-coach": {
+        "category": "development"
+      },
+      "grill-with-docs": {
+        "category": "development"
+      },
+      "llm-cost-optimizer": {
+        "category": "development"
+      },
+      "prompt-governance": {
+        "category": "development"
+      },
+      "business-investment-advisor": {
+        "category": "business"
+      },
+      "video-content-strategist": {
+        "category": "marketing"
+      },
+      "compliance-team-eu-ai-act": {
+        "category": "business"
+      },
+      "compliance-team-iso42001": {
+        "category": "business"
+      },
+      "access-lifecycle": {
+        "category": "business"
+      },
+      "cmmc-readiness": {
+        "category": "business"
+      },
+      "agent-memory": {
+        "category": "development"
+      },
+      "spinning-up-deep-rl": {
+        "category": "development"
+      },
+      "deep-learning-book": {
+        "category": "development"
+      },
+      "loop-library": {
+        "category": "development"
+      },
+      "agent-regression-evals": {
+        "category": "development"
+      },
+      "commit-craft": {
+        "category": "development"
+      },
+      "coding-agent-rollout": {
+        "category": "development"
+      },
+      "month-end-close": {
+        "category": "business"
+      }
+    }
+  },
+  "OthmanAdi/planning-with-files": {
+    "plugins": {
+      "planning-with-files": {
+        "category": "productivity"
+      }
+    }
+  },
+  "Jeffallan/claude-skills": {
+    "plugins": {
+      "fullstack-dev-skills": {
+        "category": "development"
+      }
+    }
   }
 }

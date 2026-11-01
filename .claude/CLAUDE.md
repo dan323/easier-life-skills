@@ -131,6 +131,8 @@ skills_index.json           ← Generated index; rebuild with: npm run build
 | `devops`        | CI/CD, containers, deployment, infrastructure                                                                                                                                                                                                                                     |
 | `development`   | Building apps / skills / APIs / databases / MCP servers                                                                                                                                                                                                                           |
 | `design`        | Visual art, theming, canvas, brand, frontend design                                                                                                                                                                                                                               |
+| `business`      | Business operations, leadership/executive advisory, product and project management, finance, compliance |
+| `marketing`     | SEO, content, social, and growth marketing |
 | `mixed`         | Reserved for plugin bundles with no single goal — a collection of unrelated entities. The build also auto-assigns this to any plugin whose skills span more than one category and that does not declare one explicitly. Do not use `mixed` for individual skills/agents/commands. |
 
 When adding a new plugin or override, pick the closest fit — keep this list short on purpose. If nothing fits, prefer leaving the entity uncategorised over inventing a one-off label. The build script reads `plugin.json` to generate `.claude-plugin/marketplace.json` automatically — no separate registry file needed.

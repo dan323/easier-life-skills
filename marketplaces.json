@@ -5,5 +5,10 @@
   { "owner": "DustyWalker", "repo": "claude-code-marketplace" },
   { "owner": "marcusabu", "repo": "claude-code-docs-plugin" },
   { "owner": "obra", "repo": "superpowers" },
-  {"owner":"backnotprop", "repo":"plannotator"}
+  { "owner":"backnotprop", "repo":"plannotator" },
+  { "owner": "wshobson", "repo": "agents" },
+  { "owner": "trailofbits", "repo": "skills" },
+  { "owner": "OthmanAdi", "repo": "planning-with-files" },
+  { "owner": "alirezarezvani", "repo": "claude-skills" },
+  { "owner": "Jeffallan", "repo": "claude-skills" }
 ]
