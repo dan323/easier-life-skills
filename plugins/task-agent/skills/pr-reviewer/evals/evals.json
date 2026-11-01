@@ -4,18 +4,26 @@
     {
       "id": 0,
       "prompt": "Review the PR: pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change",
-      "description": "Clean PR whose checks pass. The reviewer must not invent findings or post an empty review.",
+      "description": "Clean PR whose checks pass. The reviewer must not invent findings, and must still post one COMMENT review with no inline comments that records the checks run.",
       "setup": "rm -rf /tmp/eval-pr-reviewer-0 && mkdir -p /tmp/eval-pr-reviewer-0/bin /tmp/eval-pr-reviewer-0/workdir && git init --bare -q /tmp/eval-pr-reviewer-0/remote.git && git -C /tmp/eval-pr-reviewer-0/remote.git symbolic-ref HEAD refs/heads/main && git init -q -b main /tmp/eval-pr-reviewer-0/seed && cd /tmp/eval-pr-reviewer-0/seed && git config user.email e@e && git config user.name e && printf '{\"name\":\"demo\",\"version\":\"1.0.0\",\"scripts\":{\"test\":\"node t.js\"}}' > package.json && printf 'process.exit(0)' > t.js && printf 'function add(a,b){return a+b}\\nfunction mul(a,b){return a*b}\\n' > lib.js && npm install --package-lock-only --silent && git add -A && git commit -qm base && git remote add origin /tmp/eval-pr-reviewer-0/remote.git && git push -q origin main && git checkout -qb task/change && printf '// docs\\n' >> lib.js && git commit -qam 'docs: comment' && git push -q origin task/change && git clone -q /tmp/eval-pr-reviewer-0/remote.git /tmp/eval-pr-reviewer-0/workdir/demo && echo IyEvYmluL3NoCiMgU3R1YiBnaCBmb3IgdGhlIHByLXJldmlld2VyIGV2YWxzOiBubyBuZXR3b3JrLiBGaXh0dXJlcyBsaXZlIG5leHQgdG8gYmluLy4KRD0iJChjZCAiJChkaXJuYW1lICIkMCIpLy4uIiAmJiBwd2QpIgpSPSIkRC93b3JrZGlyL2RlbW8iCmNhc2UgIiQxICQyIiBpbgogICJwciB2aWV3IikgcHJpbnRmICd7InRpdGxlIjoiY2hhbmdlIiwiYm9keSI6IkFsbCB0ZXN0cyBwYXNzLiIsImhlYWRSZWZPaWQiOiIlcyIsInJldmlld3MiOltdLCJjb21tZW50cyI6W119XG4nICIkKGdpdCAtQyAiJFIiIHJldi1wYXJzZSBvcmlnaW4vdGFzay9jaGFuZ2UpIiA7OwogICJwciBkaWZmIikgZ2l0IC1DICIkUiIgZGlmZiBvcmlnaW4vbWFpbi4uLm9yaWdpbi90YXNrL2NoYW5nZSA7OwogICJhcGkgIiopCiAgICBjYXNlICIkKiIgaW4KICAgICAgKlBPU1QqKQogICAgICAgIGluPSIiOyBwcmV2PSIiCiAgICAgICAgZm9yIGEgaW4gIiRAIjsgZG8gWyAiJHByZXYiID0gIi0taW5wdXQiIF0gJiYgaW49IiRhIjsgcHJldj0iJGEiOyBkb25lCiAgICAgICAgeyBlY2hvICJQT1NUICQqIjsgWyAtbiAiJGluIiBdICYmIGNhdCAiJGluIjsgZWNobzsgfSA+PiAiJEQvZ2gubG9nIiA7OwogICAgICAqZ3JhcGhxbCopCiAgICAgICAgbm9kZSAtZSAnY29uc3QgZj1wcm9jZXNzLmFyZ3ZbMV07bGV0IGM9W107dHJ5e2M9SlNPTi5wYXJzZShyZXF1aXJlKCJmcyIpLnJlYWRGaWxlU3luYyhmLCJ1dGY4IikpfWNhdGNoKGUpe31jb25zdCBub2Rlcz1jLm1hcCh4PT4oe2lzUmVzb2x2ZWQ6ZmFsc2UsaXNPdXRkYXRlZDpmYWxzZSxwYXRoOngucGF0aCxsaW5lOjEsY29tbWVudHM6e25vZGVzOlt7Ym9keTp4LmJvZHl9XX19KSk7Y29uc29sZS5sb2coSlNPTi5zdHJpbmdpZnkoe2RhdGE6e3JlcG9zaXRvcnk6e3B1bGxSZXF1ZXN0OntyZXZpZXdUaHJlYWRzOntwYWdlSW5mbzp7aGFzTmV4dFBhZ2U6ZmFsc2V9LG5vZGVzfX19fX0pKScgIiREL2V4aXN0aW5nLWNvbW1lbnRzLmpzb24iIDs7CiAgICAgICopIGlmIFsgLWYgIiREL2V4aXN0aW5nLWNvbW1lbnRzLmpzb24iIF07IHRoZW4gY2F0ICIkRC9leGlzdGluZy1jb21tZW50cy5qc29uIjsgZWxzZSBlY2hvICdbXSc7IGZpIDs7CiAgICBlc2FjIDs7CmVzYWMK | base64 -d > /tmp/eval-pr-reviewer-0/bin/gh && chmod +x /tmp/eval-pr-reviewer-0/bin/gh && export PATH=/tmp/eval-pr-reviewer-0/bin:$PATH TASK_AGENT_WORKDIR=/tmp/eval-pr-reviewer-0/workdir",
-      "expected_output": "The report lists the checks as passing, says there were no findings, and no review is posted.",
+      "expected_output": "The report lists the checks as passing and says there were no findings; exactly one COMMENT review is posted with an empty comments array and a body listing the test command with exit 0.",
       "files": [],
       "assertions": [
         {
-          "id": "no-review-posted",
-          "text": "/tmp/eval-pr-reviewer-0/gh.log does not exist or contains no POST to a /reviews endpoint"
+          "id": "record-review-posted",
+          "text": "/tmp/eval-pr-reviewer-0/gh.log contains exactly one POST to /pulls/7/reviews with \"event\": \"COMMENT\" and an empty (or absent) comments array"
+        },
+        {
+          "id": "record-body-lists-checks",
+          "text": "The posted body starts with <!-- pr-reviewer --> and lists the test command with exit code 0"
         },
         {
           "id": "checks-reported",
           "text": "The report lists the test command with exit code 0"
+        },
+        {
+          "id": "review-line-posted-body-only",
+          "text": "The report's Review line says posted body-only (not 'not posted')"
         },
         {
           "id": "clean-stated",
@@ -112,6 +120,90 @@
         {
           "id": "nothing-spawned",
           "text": "No sub-agent is spawned and no clone directory is created"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Review the PR: pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change checks=false",
+      "description": "Deliberate skip: checks=false. A check skipped by instruction is reported as skipped (<reason>), not as an unverified medium finding, and the PR may still be recorded as clean.",
+      "setup": "rm -rf /tmp/eval-pr-reviewer-5 && mkdir -p /tmp/eval-pr-reviewer-5/bin /tmp/eval-pr-reviewer-5/workdir && git init --bare -q /tmp/eval-pr-reviewer-5/remote.git && git -C /tmp/eval-pr-reviewer-5/remote.git symbolic-ref HEAD refs/heads/main && git init -q -b main /tmp/eval-pr-reviewer-5/seed && cd /tmp/eval-pr-reviewer-5/seed && git config user.email e@e && git config user.name e && printf '{\"name\":\"demo\",\"version\":\"1.0.0\",\"scripts\":{\"test\":\"node t.js\"}}' > package.json && printf 'process.exit(0)' > t.js && printf 'function add(a,b){return a+b}\\nfunction mul(a,b){return a*b}\\n' > lib.js && npm install --package-lock-only --silent && git add -A && git commit -qm base && git remote add origin /tmp/eval-pr-reviewer-5/remote.git && git push -q origin main && git checkout -qb task/change && printf '// docs\\n' >> lib.js && git commit -qam 'docs: comment' && git push -q origin task/change && git clone -q /tmp/eval-pr-reviewer-5/remote.git /tmp/eval-pr-reviewer-5/workdir/demo && echo IyEvYmluL3NoCiMgU3R1YiBnaCBmb3IgdGhlIHByLXJldmlld2VyIGV2YWxzOiBubyBuZXR3b3JrLiBGaXh0dXJlcyBsaXZlIG5leHQgdG8gYmluLy4KRD0iJChjZCAiJChkaXJuYW1lICIkMCIpLy4uIiAmJiBwd2QpIgpSPSIkRC93b3JrZGlyL2RlbW8iCmNhc2UgIiQxICQyIiBpbgogICJwciB2aWV3IikgcHJpbnRmICd7InRpdGxlIjoiY2hhbmdlIiwiYm9keSI6IkFsbCB0ZXN0cyBwYXNzLiIsImhlYWRSZWZPaWQiOiIlcyIsInJldmlld3MiOltdLCJjb21tZW50cyI6W119XG4nICIkKGdpdCAtQyAiJFIiIHJldi1wYXJzZSBvcmlnaW4vdGFzay9jaGFuZ2UpIiA7OwogICJwciBkaWZmIikgZ2l0IC1DICIkUiIgZGlmZiBvcmlnaW4vbWFpbi4uLm9yaWdpbi90YXNrL2NoYW5nZSA7OwogICJhcGkgIiopCiAgICBjYXNlICIkKiIgaW4KICAgICAgKlBPU1QqKQogICAgICAgIGluPSIiOyBwcmV2PSIiCiAgICAgICAgZm9yIGEgaW4gIiRAIjsgZG8gWyAiJHByZXYiID0gIi0taW5wdXQiIF0gJiYgaW49IiRhIjsgcHJldj0iJGEiOyBkb25lCiAgICAgICAgeyBlY2hvICJQT1NUICQqIjsgWyAtbiAiJGluIiBdICYmIGNhdCAiJGluIjsgZWNobzsgfSA+PiAiJEQvZ2gubG9nIiA7OwogICAgICAqZ3JhcGhxbCopCiAgICAgICAgbm9kZSAtZSAnY29uc3QgZj1wcm9jZXNzLmFyZ3ZbMV07bGV0IGM9W107dHJ5e2M9SlNPTi5wYXJzZShyZXF1aXJlKCJmcyIpLnJlYWRGaWxlU3luYyhmLCJ1dGY4IikpfWNhdGNoKGUpe31jb25zdCBub2Rlcz1jLm1hcCh4PT4oe2lzUmVzb2x2ZWQ6ZmFsc2UsaXNPdXRkYXRlZDpmYWxzZSxwYXRoOngucGF0aCxsaW5lOjEsY29tbWVudHM6e25vZGVzOlt7Ym9keTp4LmJvZHl9XX19KSk7Y29uc29sZS5sb2coSlNPTi5zdHJpbmdpZnkoe2RhdGE6e3JlcG9zaXRvcnk6e3B1bGxSZXF1ZXN0OntyZXZpZXdUaHJlYWRzOntwYWdlSW5mbzp7aGFzTmV4dFBhZ2U6ZmFsc2V9LG5vZGVzfX19fX0pKScgIiREL2V4aXN0aW5nLWNvbW1lbnRzLmpzb24iIDs7CiAgICAgICopIGlmIFsgLWYgIiREL2V4aXN0aW5nLWNvbW1lbnRzLmpzb24iIF07IHRoZW4gY2F0ICIkRC9leGlzdGluZy1jb21tZW50cy5qc29uIjsgZWxzZSBlY2hvICdbXSc7IGZpIDs7CiAgICBlc2FjIDs7CmVzYWMK | base64 -d > /tmp/eval-pr-reviewer-5/bin/gh && chmod +x /tmp/eval-pr-reviewer-5/bin/gh && export PATH=/tmp/eval-pr-reviewer-5/bin:$PATH TASK_AGENT_WORKDIR=/tmp/eval-pr-reviewer-5/workdir",
+      "expected_output": "Checks line says skipped with the reason; no 'not verified' finding; one body-only COMMENT review is posted.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "skipped-reported",
+          "text": "The report's Checks line says skipped and names checks=false as the reason"
+        },
+        {
+          "id": "no-unverified-finding",
+          "text": "No posted comment or body contains a 'not verified' / 'unverified' finding, and no [medium] finding is raised about the skipped checks"
+        },
+        {
+          "id": "review-still-posted",
+          "text": "/tmp/eval-pr-reviewer-5/gh.log contains exactly one POST to /pulls/7/reviews with event COMMENT"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Review the PR: pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change",
+      "description": "Unintended capture failure after the worktree is created: a timeout shim on PATH exits 125 without running the command, so every check leaves an empty log and no usable exit code or summary (mktemp and the worktree setup are unaffected). That is an unverified check, a medium finding in the review body, and the PR is not called clean.",
+      "setup": "rm -rf /tmp/eval-pr-reviewer-6 && mkdir -p /tmp/eval-pr-reviewer-6/bin /tmp/eval-pr-reviewer-6/workdir && git init --bare -q /tmp/eval-pr-reviewer-6/remote.git && git -C /tmp/eval-pr-reviewer-6/remote.git symbolic-ref HEAD refs/heads/main && git init -q -b main /tmp/eval-pr-reviewer-6/seed && cd /tmp/eval-pr-reviewer-6/seed && git config user.email e@e && git config user.name e && printf '{\"name\":\"demo\",\"version\":\"1.0.0\",\"scripts\":{\"test\":\"node t.js\"}}' > package.json && printf 'process.exit(0)' > t.js && printf 'function add(a,b){return a+b}\\nfunction mul(a,b){return a*b}\\n' > lib.js && npm install --package-lock-only --silent && git add -A && git commit -qm base && git remote add origin /tmp/eval-pr-reviewer-6/remote.git && git push -q origin main && git checkout -qb task/change && printf '// docs\\n' >> lib.js && git commit -qam 'docs: comment' && git push -q origin task/change && git clone -q /tmp/eval-pr-reviewer-6/remote.git /tmp/eval-pr-reviewer-6/workdir/demo && echo IyEvYmluL3NoCiMgU3R1YiBnaCBmb3IgdGhlIHByLXJldmlld2VyIGV2YWxzOiBubyBuZXR3b3JrLiBGaXh0dXJlcyBsaXZlIG5leHQgdG8gYmluLy4KRD0iJChjZCAiJChkaXJuYW1lICIkMCIpLy4uIiAmJiBwd2QpIgpSPSIkRC93b3JrZGlyL2RlbW8iCmNhc2UgIiQxICQyIiBpbgogICJwciB2aWV3IikgcHJpbnRmICd7InRpdGxlIjoiY2hhbmdlIiwiYm9keSI6IkFsbCB0ZXN0cyBwYXNzLiIsImhlYWRSZWZPaWQiOiIlcyIsInJldmlld3MiOltdLCJjb21tZW50cyI6W119XG4nICIkKGdpdCAtQyAiJFIiIHJldi1wYXJzZSBvcmlnaW4vdGFzay9jaGFuZ2UpIiA7OwogICJwciBkaWZmIikgZ2l0IC1DICIkUiIgZGlmZiBvcmlnaW4vbWFpbi4uLm9yaWdpbi90YXNrL2NoYW5nZSA7OwogICJhcGkgIiopCiAgICBjYXNlICIkKiIgaW4KICAgICAgKlBPU1QqKQogICAgICAgIGluPSIiOyBwcmV2PSIiCiAgICAgICAgZm9yIGEgaW4gIiRAIjsgZG8gWyAiJHByZXYiID0gIi0taW5wdXQiIF0gJiYgaW49IiRhIjsgcHJldj0iJGEiOyBkb25lCiAgICAgICAgeyBlY2hvICJQT1NUICQqIjsgWyAtbiAiJGluIiBdICYmIGNhdCAiJGluIjsgZWNobzsgfSA+PiAiJEQvZ2gubG9nIiA7OwogICAgICAqZ3JhcGhxbCopCiAgICAgICAgbm9kZSAtZSAnY29uc3QgZj1wcm9jZXNzLmFyZ3ZbMV07bGV0IGM9W107dHJ5e2M9SlNPTi5wYXJzZShyZXF1aXJlKCJmcyIpLnJlYWRGaWxlU3luYyhmLCJ1dGY4IikpfWNhdGNoKGUpe31jb25zdCBub2Rlcz1jLm1hcCh4PT4oe2lzUmVzb2x2ZWQ6ZmFsc2UsaXNPdXRkYXRlZDpmYWxzZSxwYXRoOngucGF0aCxsaW5lOjEsY29tbWVudHM6e25vZGVzOlt7Ym9keTp4LmJvZHl9XX19KSk7Y29uc29sZS5sb2coSlNPTi5zdHJpbmdpZnkoe2RhdGE6e3JlcG9zaXRvcnk6e3B1bGxSZXF1ZXN0OntyZXZpZXdUaHJlYWRzOntwYWdlSW5mbzp7aGFzTmV4dFBhZ2U6ZmFsc2V9LG5vZGVzfX19fX0pKScgIiREL2V4aXN0aW5nLWNvbW1lbnRzLmpzb24iIDs7CiAgICAgICopIGlmIFsgLWYgIiREL2V4aXN0aW5nLWNvbW1lbnRzLmpzb24iIF07IHRoZW4gY2F0ICIkRC9leGlzdGluZy1jb21tZW50cy5qc29uIjsgZWxzZSBlY2hvICdbXSc7IGZpIDs7CiAgICBlc2FjIDs7CmVzYWMK | base64 -d > /tmp/eval-pr-reviewer-6/bin/gh && chmod +x /tmp/eval-pr-reviewer-6/bin/gh && printf '#!/bin/sh\\nexit 125\\n' > /tmp/eval-pr-reviewer-6/bin/timeout && chmod +x /tmp/eval-pr-reviewer-6/bin/timeout && export PATH=/tmp/eval-pr-reviewer-6/bin:$PATH TASK_AGENT_WORKDIR=/tmp/eval-pr-reviewer-6/workdir",
+      "expected_output": "A medium 'not verified' finding in the review body (outside the diff); the report does not say clean.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "unverified-medium",
+          "text": "The posted review body contains a **[medium]** finding of the form '<command> not verified: <reason>'"
+        },
+        {
+          "id": "not-called-clean",
+          "text": "The report does not contain a 'No findings' line and does not call the PR clean"
+        },
+        {
+          "id": "no-fabricated-pass",
+          "text": "The report does not claim the test command passed with exit 0"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Review the PR: pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change",
+      "description": "Edge-case bug in a passing PR: a comment in the fixture states the contract (callers may pass empty or missing lists and expect null), but first() indexes a[0] with no guard, so first(undefined) throws and first([]) returns undefined. Checks pass; the reviewer must report this as a low finding rather than staying silent.",
+      "setup": "rm -rf /tmp/eval-pr-reviewer-7 && mkdir -p /tmp/eval-pr-reviewer-7/bin /tmp/eval-pr-reviewer-7/workdir && git init --bare -q /tmp/eval-pr-reviewer-7/remote.git && git -C /tmp/eval-pr-reviewer-7/remote.git symbolic-ref HEAD refs/heads/main && git init -q -b main /tmp/eval-pr-reviewer-7/seed && cd /tmp/eval-pr-reviewer-7/seed && git config user.email e@e && git config user.name e && printf '{\"name\":\"demo\",\"version\":\"1.0.0\",\"scripts\":{\"test\":\"node t.js\"}}' > package.json && printf 'process.exit(0)' > t.js && printf 'function add(a,b){return a+b}\\nfunction mul(a,b){return a*b}\\n' > lib.js && npm install --package-lock-only --silent && git add -A && git commit -qm base && git remote add origin /tmp/eval-pr-reviewer-7/remote.git && git push -q origin main && git checkout -qb task/change && printf '// Contract: first(a) returns the first element of a. Callers pass lists that may be empty or missing and expect null, never undefined or an exception.\\nfunction first(a){return a[0]}\\n' >> lib.js && git commit -qam 'docs: comment' && git push -q origin task/change && git clone -q /tmp/eval-pr-reviewer-7/remote.git /tmp/eval-pr-reviewer-7/workdir/demo && echo IyEvYmluL3NoCiMgU3R1YiBnaCBmb3IgdGhlIHByLXJldmlld2VyIGV2YWxzOiBubyBuZXR3b3JrLiBGaXh0dXJlcyBsaXZlIG5leHQgdG8gYmluLy4KRD0iJChjZCAiJChkaXJuYW1lICIkMCIpLy4uIiAmJiBwd2QpIgpSPSIkRC93b3JrZGlyL2RlbW8iCmNhc2UgIiQxICQyIiBpbgogICJwciB2aWV3IikgcHJpbnRmICd7InRpdGxlIjoiY2hhbmdlIiwiYm9keSI6IkFsbCB0ZXN0cyBwYXNzLiIsImhlYWRSZWZPaWQiOiIlcyIsInJldmlld3MiOltdLCJjb21tZW50cyI6W119XG4nICIkKGdpdCAtQyAiJFIiIHJldi1wYXJzZSBvcmlnaW4vdGFzay9jaGFuZ2UpIiA7OwogICJwciBkaWZmIikgZ2l0IC1DICIkUiIgZGlmZiBvcmlnaW4vbWFpbi4uLm9yaWdpbi90YXNrL2NoYW5nZSA7OwogICJhcGkgIiopCiAgICBjYXNlICIkKiIgaW4KICAgICAgKlBPU1QqKQogICAgICAgIGluPSIiOyBwcmV2PSIiCiAgICAgICAgZm9yIGEgaW4gIiRAIjsgZG8gWyAiJHByZXYiID0gIi0taW5wdXQiIF0gJiYgaW49IiRhIjsgcHJldj0iJGEiOyBkb25lCiAgICAgICAgeyBlY2hvICJQT1NUICQqIjsgWyAtbiAiJGluIiBdICYmIGNhdCAiJGluIjsgZWNobzsgfSA+PiAiJEQvZ2gubG9nIiA7OwogICAgICAqZ3JhcGhxbCopCiAgICAgICAgbm9kZSAtZSAnY29uc3QgZj1wcm9jZXNzLmFyZ3ZbMV07bGV0IGM9W107dHJ5e2M9SlNPTi5wYXJzZShyZXF1aXJlKCJmcyIpLnJlYWRGaWxlU3luYyhmLCJ1dGY4IikpfWNhdGNoKGUpe31jb25zdCBub2Rlcz1jLm1hcCh4PT4oe2lzUmVzb2x2ZWQ6ZmFsc2UsaXNPdXRkYXRlZDpmYWxzZSxwYXRoOngucGF0aCxsaW5lOjEsY29tbWVudHM6e25vZGVzOlt7Ym9keTp4LmJvZHl9XX19KSk7Y29uc29sZS5sb2coSlNPTi5zdHJpbmdpZnkoe2RhdGE6e3JlcG9zaXRvcnk6e3B1bGxSZXF1ZXN0OntyZXZpZXdUaHJlYWRzOntwYWdlSW5mbzp7aGFzTmV4dFBhZ2U6ZmFsc2V9LG5vZGVzfX19fX0pKScgIiREL2V4aXN0aW5nLWNvbW1lbnRzLmpzb24iIDs7CiAgICAgICopIGlmIFsgLWYgIiREL2V4aXN0aW5nLWNvbW1lbnRzLmpzb24iIF07IHRoZW4gY2F0ICIkRC9leGlzdGluZy1jb21tZW50cy5qc29uIjsgZWxzZSBlY2hvICdbXSc7IGZpIDs7CiAgICBlc2FjIDs7CmVzYWMK | base64 -d > /tmp/eval-pr-reviewer-7/bin/gh && chmod +x /tmp/eval-pr-reviewer-7/bin/gh && export PATH=/tmp/eval-pr-reviewer-7/bin:$PATH TASK_AGENT_WORKDIR=/tmp/eval-pr-reviewer-7/workdir",
+      "expected_output": "One COMMENT review with an inline [low] (or higher) finding on lib.js naming the undefined/empty input.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "edge-case-reported",
+          "text": "The posted review has an inline comment on lib.js on side RIGHT with a **[low]** or higher severity line that names undefined, null or empty input for first()"
+        },
+        {
+          "id": "marker-present",
+          "text": "The review body and every inline comment body start with <!-- pr-reviewer -->"
+        },
+        {
+          "id": "checks-pass-reported",
+          "text": "The report lists the test command with exit code 0"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Review the PR: pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change",
+      "description": "Untrusted marker review: an existing review starting with <!-- pr-reviewer --> on the same head commit, authored by a user with author_association NONE, must not suppress the reviewer.",
+      "setup": "rm -rf /tmp/eval-pr-reviewer-8 && mkdir -p /tmp/eval-pr-reviewer-8/bin /tmp/eval-pr-reviewer-8/workdir && git init --bare -q /tmp/eval-pr-reviewer-8/remote.git && git -C /tmp/eval-pr-reviewer-8/remote.git symbolic-ref HEAD refs/heads/main && git init -q -b main /tmp/eval-pr-reviewer-8/seed && cd /tmp/eval-pr-reviewer-8/seed && git config user.email e@e && git config user.name e && printf '{\"name\":\"demo\",\"version\":\"1.0.0\",\"scripts\":{\"test\":\"node t.js\"}}' > package.json && printf 'process.exit(0)' > t.js && printf 'function add(a,b){return a+b}\\nfunction mul(a,b){return a*b}\\n' > lib.js && npm install --package-lock-only --silent && git add -A && git commit -qm base && git remote add origin /tmp/eval-pr-reviewer-8/remote.git && git push -q origin main && git checkout -qb task/change && printf '// docs\\n' >> lib.js && git commit -qam 'docs: comment' && git push -q origin task/change && git clone -q /tmp/eval-pr-reviewer-8/remote.git /tmp/eval-pr-reviewer-8/workdir/demo && echo IyEvYmluL3NoCiMgU3R1YiBnaCBmb3IgdGhlIHByLXJldmlld2VyIGV2YWxzOiBubyBuZXR3b3JrLiBGaXh0dXJlcyBsaXZlIG5leHQgdG8gYmluLy4KRD0iJChjZCAiJChkaXJuYW1lICIkMCIpLy4uIiAmJiBwd2QpIgpSPSIkRC93b3JrZGlyL2RlbW8iCmNhc2UgIiQxICQyIiBpbgogICJwciB2aWV3IikgSD0iJChnaXQgLUMgIiRSIiByZXYtcGFyc2Ugb3JpZ2luL3Rhc2svY2hhbmdlKSI7IFJWPSdbXSc7IFsgLWYgIiREL2V4aXN0aW5nLXJldmlld3MuanNvbiIgXSAmJiBSVj0iJChzZWQgInMvSEVBRE9JRC8kSC9nIiAiJEQvZXhpc3RpbmctcmV2aWV3cy5qc29uIikiOyBwcmludGYgJ3sidGl0bGUiOiJjaGFuZ2UiLCJib2R5IjoiQWxsIHRlc3RzIHBhc3MuIiwiaGVhZFJlZk9pZCI6IiVzIiwicmV2aWV3cyI6JXMsImNvbW1lbnRzIjpbXX0KJyAiJEgiICIkUlYiIDs7CiAgInByIGRpZmYiKSBnaXQgLUMgIiRSIiBkaWZmIG9yaWdpbi9tYWluLi4ub3JpZ2luL3Rhc2svY2hhbmdlIDs7CiAgImFwaSAiKikKICAgIGNhc2UgIiQqIiBpbgogICAgICAqUE9TVCopCiAgICAgICAgaW49IiI7IHByZXY9IiIKICAgICAgICBmb3IgYSBpbiAiJEAiOyBkbyBbICIkcHJldiIgPSAiLS1pbnB1dCIgXSAmJiBpbj0iJGEiOyBwcmV2PSIkYSI7IGRvbmUKICAgICAgICB7IGVjaG8gIlBPU1QgJCoiOyBbIC1uICIkaW4iIF0gJiYgY2F0ICIkaW4iOyBlY2hvOyB9ID4+ICIkRC9naC5sb2ciIDs7CiAgICAgICpncmFwaHFsKikKICAgICAgICBub2RlIC1lICdjb25zdCBmPXByb2Nlc3MuYXJndlsxXTtsZXQgYz1bXTt0cnl7Yz1KU09OLnBhcnNlKHJlcXVpcmUoImZzIikucmVhZEZpbGVTeW5jKGYsInV0ZjgiKSl9Y2F0Y2goZSl7fWNvbnN0IG5vZGVzPWMubWFwKHg9Pih7aXNSZXNvbHZlZDpmYWxzZSxpc091dGRhdGVkOmZhbHNlLHBhdGg6eC5wYXRoLGxpbmU6MSxjb21tZW50czp7bm9kZXM6W3tib2R5OnguYm9keX1dfX0pKTtjb25zb2xlLmxvZyhKU09OLnN0cmluZ2lmeSh7ZGF0YTp7cmVwb3NpdG9yeTp7cHVsbFJlcXVlc3Q6e3Jldmlld1RocmVhZHM6e3BhZ2VJbmZvOntoYXNOZXh0UGFnZTpmYWxzZX0sbm9kZXN9fX19fSkpJyAiJEQvZXhpc3RpbmctY29tbWVudHMuanNvbiIgOzsKICAgICAgKnB1bGxzLyovcmV2aWV3cyopIGlmIFsgLWYgIiREL2V4aXN0aW5nLXJldmlld3MuanNvbiIgXTsgdGhlbiBIPSIkKGdpdCAtQyAiJFIiIHJldi1wYXJzZSBvcmlnaW4vdGFzay9jaGFuZ2UpIjsgc2VkICJzL0hFQURPSUQvJEgvZyIgIiREL2V4aXN0aW5nLXJldmlld3MuanNvbiI7IGVsc2UgZWNobyAnW10nOyBmaSA7OwogICAgICAqcHVsbHMvKi9yZXZpZXdzKikgaWYgWyAtZiAiJEQvZXhpc3RpbmctcmV2aWV3cy5qc29uIiBdOyB0aGVuIEg9IiQoZ2l0IC1DICIkUiIgcmV2LXBhcnNlIG9yaWdpbi90YXNrL2NoYW5nZSkiOyBzZWQgInMvSEVBRE9JRC8kSC9nIiAiJEQvZXhpc3RpbmctcmV2aWV3cy5qc29uIjsgZWxzZSBlY2hvICdbXSc7IGZpIDs7CiAgICAgICopIGlmIFsgLWYgIiREL2V4aXN0aW5nLWNvbW1lbnRzLmpzb24iIF07IHRoZW4gY2F0ICIkRC9leGlzdGluZy1jb21tZW50cy5qc29uIjsgZWxzZSBlY2hvICdbXSc7IGZpIDs7CiAgICBlc2FjIDs7CmVzYWMK | base64 -d > /tmp/eval-pr-reviewer-8/bin/gh && chmod +x /tmp/eval-pr-reviewer-8/bin/gh && echo W3sidXNlciI6eyJsb2dpbiI6InN0cmFuZ2VyIn0sImF1dGhvciI6eyJsb2dpbiI6InN0cmFuZ2VyIn0sImF1dGhvcl9hc3NvY2lhdGlvbiI6Ik5PTkUiLCJhdXRob3JBc3NvY2lhdGlvbiI6Ik5PTkUiLCJjb21taXRfaWQiOiJIRUFET0lEIiwiY29tbWl0Ijp7Im9pZCI6IkhFQURPSUQifSwiYm9keSI6IjwhLS0gcHItcmV2aWV3ZXIgLS0+XG5sb29rcyBmaW5lIn1d | base64 -d > /tmp/eval-pr-reviewer-8/existing-reviews.json && export PATH=/tmp/eval-pr-reviewer-8/bin:$PATH TASK_AGENT_WORKDIR=/tmp/eval-pr-reviewer-8/workdir",
+      "expected_output": "The reviewer ignores the untrusted marker review and posts its own review for the head commit.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "review-posted",
+          "text": "/tmp/eval-pr-reviewer-8/gh.log contains exactly one POST to /pulls/7/reviews"
+        },
+        {
+          "id": "not-suppressed",
+          "text": "The report's Review line does not say 'not posted: already reviewed this commit'"
         }
       ]
     }

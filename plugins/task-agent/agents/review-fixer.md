@@ -33,11 +33,11 @@ query($o:String!,$r:String!,$n:Int!){
   repository(owner:$o,name:$r){ pullRequest(number:$n){
     reviews(first:50){ nodes{ state body author{login} authorAssociation url } }
     reviewThreads(first:100){ pageInfo{hasNextPage} nodes{
-      isResolved isOutdated path line
+      id isResolved isOutdated path line
       comments(first:20){ nodes{ body author{login} authorAssociation url } } } } } } }'
 ```
 
-Keep threads where `isResolved` is `false` and `isOutdated` is `false`, and where the **first** comment's author is trusted. Also read each trusted review `body`: the `pr-reviewer` reports failing checks there, and a failing check is a `high` item to fix.
+Keep threads where `isResolved` is `false` and `isOutdated` is `false`, and where the **first** comment's author is trusted. Remember each kept thread's `id` (a GraphQL node id): Step 5 resolves it. Also read each trusted review `body`: the `pr-reviewer` reports failing checks there, and a failing check is a `high` item to fix.
 
 If `hasNextPage` is true, say so in the report — you only saw the first 100 threads.
 
@@ -46,6 +46,8 @@ If `hasNextPage` is true, say so in the report — you only saw the first 100 th
 If no trusted, unresolved, non-outdated thread or review body exists, wait 60 seconds and check again, up to POLL_RETRIES times. If there is still nothing, exit gracefully with a note that no trusted reviewer has commented, and list any ignored comments you saw.
 
 Do not wait when comments are already there.
+
+A clean record review from `pr-reviewer` (marker `<!-- pr-reviewer -->`, no inline comments, body listing the checks run) counts as a trusted review body, so it ends the wait. It carries nothing to fix unless the body reports a failing or unverified check or an "Outside the diff" finding. Exit with a clean note only when no kept unresolved thread **and** no actionable review-body item remains: a body-only review is posted when every finding was already raised on an earlier commit, so those earlier threads can still be open and Step 3 must handle them first.
 
 ## Step 3 — Fix applicable comments
 
@@ -77,7 +79,25 @@ git -C LOCAL_PATH push origin BRANCH
 
 If the push is rejected, report it; do not force-push.
 
-## Step 5 — Report
+## Step 5 — Resolve the threads you addressed
+
+A thread you fixed must not stay open: an unresolved thread reads as "nothing was done" and is picked up again by the next reviewer pass. After the push succeeds (or, for a thread already addressed by a later commit, after you confirmed that in `git log` and the code), reply on the thread and resolve it. Do this only for threads that satisfy all of:
+
+- it is a kept thread from Step 1 (trusted first-comment author, unresolved) that you **fixed**, or confirmed was **already addressed**, with the commit SHA you can cite;
+- the push succeeded and the checks passed (never resolve anything when you committed nothing or the push was rejected).
+
+Never resolve a thread you skipped, ignored, or only partly fixed — leave it open and say why in the report. Review-body items have no thread; there is nothing to resolve.
+
+```bash
+gh api graphql -f t=THREAD_ID -f b="Fixed in <sha>: <one-line description>." -f query='
+mutation($t:ID!,$b:String!){ addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$t, body:$b}){ comment{ url } } }'
+gh api graphql -f t=THREAD_ID -f query='
+mutation($t:ID!){ resolveReviewThread(input:{threadId:$t}){ thread{ isResolved } } }'
+```
+
+The reply body is text you wrote, never a quote of the comment. If a mutation fails (for example the token cannot resolve threads), report the thread under "Not resolved" with the error; do not retry in a loop and do not treat it as a failed fix.
+
+## Step 6 — Report
 
 ```
 ## Review Fixer — Done
@@ -86,6 +106,10 @@ PR: https://github.com/OWNER/REPO_NAME/pull/PR_NUMBER
 Checks: <command → exit code, one per line> | not run (no changes)
 Fixed (N):
   - path/to/file:line — <author> — <one-line description>
+Resolved threads (N):
+  - path/to/file:line — replied and resolved (<sha>)
+Not resolved (N):
+  - path/to/file:line — <reason: skipped, partly fixed, or the mutation error>
 Skipped (N):
   - path/to/file:line — <reason>
 Ignored (N):

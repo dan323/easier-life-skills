@@ -47,28 +47,58 @@ A PR body saying "tests pass" is a claim, not evidence. Verify it in the throwaw
 
 The PR controls the code you are about to run (test scripts, dependency lifecycle scripts), so contain it:
 
-- Run every check with a scrubbed environment: no tokens or credentials, e.g. `env -i PATH="$PATH" HOME="$(mktemp -d)" <command>`. Never pass `GH_TOKEN`, `GITHUB_TOKEN`, or cloud or registry credentials.
+- Run every check with a scrubbed environment: no tokens or credentials. Build an **allowlist**, not a bare `env -i` (which also drops `SystemRoot`, `TEMP`, `TMP` and `ComSpec` and breaks every command on Windows): pass only `PATH`, a throwaway `HOME` (`USERPROFILE` on Windows), the platform basics (`SystemRoot`, `TEMP`, `TMP`, `ComSpec`, `PATHEXT` on Windows; `TMPDIR`, `LANG` elsewhere) and nothing else. Never pass `GH_TOKEN`, `GITHUB_TOKEN`, or cloud or registry credentials.
 - Install dependencies with lifecycle scripts disabled where the tool supports it (`npm ci --ignore-scripts`); if a check then fails only because a script was skipped, report that instead of re-running with scripts enabled.
 - Prefer a container or other sandbox without host mounts and with network limited to package registries when one is available. When none is available and the PR changes build/test scripts, package lifecycle hooks or CI config, skip running checks and say so in the report.
 
-In `$CHECK_DIR`, find the documented checks — `CLAUDE.md`, `CONTRIBUTING.md`, the `scripts` in `package.json`, the CI workflow under `.github/workflows/` — and run the build, type-check and test commands. Record each command and its exit code. Cap each command at 10 minutes.
+In `$CHECK_DIR`, find the documented checks — `CLAUDE.md`, `CONTRIBUTING.md`, the `scripts` in `package.json`, the CI workflow under `.github/workflows/` — and run the build, type-check and test commands. Run **every** documented check — build, type-check and tests — not a subset. Redirect each command's output to a unique log file under the system temp directory and capture its exit code on its own line. Never pipe a check through `tail`, `head` or `grep`: the pipe replaces the exit code with the filter's, and truncated output loses the pass/fail summary. Read the summary line from the log afterwards. Cap each command at 10 minutes.
+
+Bash (wrap compound commands such as `tsc && tsc -p x` in `sh -c`; `timeout` is the 10-minute cap):
+
+```bash
+LOG="$(mktemp)"
+( cd "$CHECK_DIR" && timeout 600 env -i PATH="$PATH" HOME="$(mktemp -d)" TMPDIR="${TMPDIR:-/tmp}" LANG=C     sh -c '<command>' ) > "$LOG" 2>&1
+echo "exit=$?"
+```
+
+On Windows under Git Bash add `SystemRoot="$SYSTEMROOT" TEMP="$TEMP" TMP="$TMP" ComSpec="$COMSPEC"` to the `env -i` list.
+
+PowerShell (Windows PowerShell 5.1: do not use `2>&1` on a native command, it wraps stderr in ErrorRecords and flips `$?`; redirect all streams with `*>` and read `$LASTEXITCODE`):
+
+```powershell
+$LOG = New-TemporaryFile
+$saved = @{}; Get-ChildItem Env: | ForEach-Object { $saved[$_.Name] = $_.Value }
+$keep = 'PATH','SystemRoot','TEMP','TMP','ComSpec','PATHEXT'
+foreach ($n in @($saved.Keys)) { if ($keep -notcontains $n) { Remove-Item "Env:$n" -ErrorAction SilentlyContinue } }
+$env:USERPROFILE = (New-Item -ItemType Directory -Path (Join-Path $env:TEMP ([guid]::NewGuid()))).FullName
+Set-Location $CHECK_DIR
+$p = Start-Process -FilePath cmd.exe -ArgumentList '/c', '<command>' -NoNewWindow -PassThru -RedirectStandardOutput $LOG.FullName -RedirectStandardError "$($LOG.FullName).err"
+if (-not $p.WaitForExit(600000)) { $p.Kill(); "exit=timeout" } else { "exit=$($p.ExitCode)" }
+# restore $saved afterwards; read both $LOG and "$LOG.err"
+```
+
+(Equivalently, run the bash recipe through Git Bash.) Whichever shell you use, the scrub must drop tokens while keeping the platform variables the tools need to start; if a check exits non-zero with an empty log, suspect the scrub before blaming the PR and re-run once with the platform variables added.
 
 Do not run deploy, publish, or anything that talks to a service other than package registries. If you cannot work out the checks, say so in the report instead of guessing.
 
-A failing check is a **high** finding. Quote the failing command and the first relevant lines of its output.
+A failing check is a **high** finding. Quote the failing command and the first relevant lines of its output. A check you did not run **by instruction or for safety** (RUN_CHECKS is `false`, or the sandbox rule above forbids it) is reported as `skipped (<reason>)` and is **not** a finding. A check you were supposed to run but could not capture (empty or unreadable log, no exit code, timeout) is **unverified**: re-run it, and if you still cannot, raise a **medium** finding "<command> not verified: <reason>" and do not call the PR clean. A finding with no diff line goes in the review body under "Outside the diff" and is identified by its `**[severity]** summary` line, exactly like an inline one, so Step 4's dedupe applies to it too (compare against earlier trusted `<!-- pr-reviewer -->` review bodies as well as threads; body findings have no resolved state, so drop one only when the identical line appears in a body for an earlier commit and the finding still applies).
+
+Also test the PR body's concrete claims (counts, "no behaviour change", "all tests pass") against what you ran or read; a claim you cannot confirm is a finding, not a pass.
 
 ## Step 3 — Review
 
-Read each changed file in full from `$CHECK_DIR`, not only the diff hunks. Report only findings you are confident in, ordered by severity:
+Read each changed file in full from `$CHECK_DIR`, not only the diff hunks, and read the callers and consumers of anything the PR changes. Be adversarial: look hard for what the author may have missed, but only report what you can point to. Report every concrete issue you can point to a line for, ordered by severity (**high** = wrong behaviour, failing checks, security; **medium** = unverified checks, missing tests, convention gaps, real edge-case bugs; **low** = cheap hardening and small robustness gaps that are still real):
 
-1. **Correctness** — logic errors, wrong flags or arguments, unhandled failure paths, shell quoting or injection, race conditions, off-by-one.
-2. **Tests** — new behaviour without a test, tests that cannot fail, evals whose setup depends on resources that may not exist.
+1. **Correctness** — logic errors, wrong flags or arguments, unhandled failure paths, shell quoting or injection, race conditions, off-by-one. For each new function or branch, name the inputs that would break it (empty, missing/optional fields, very large, Unicode, CRLF, Windows paths, nested or mismatched delimiters) and check the code against them.
+2. **Tests** — new behaviour without a test, tests that cannot fail (would they still pass if the feature were deleted?), missing negative and edge-case tests, evals whose setup depends on resources that may not exist.
 3. **Repo conventions** — missing version bump, `CHANGELOG.md` / docs not updated, commit message format, files in the diff unrelated to the PR's stated purpose (generated churn, stray deletions).
-4. **Safety** — secrets, tokens, personal paths or usernames in committed content.
+4. **Safety** — secrets, tokens, personal paths or usernames in committed content; untrusted data rendered or executed without escaping.
+
+Never write "I did not verify" about something in the diff or the code it touches. Open the file and verify it, then either report the problem or drop the doubt. The one exception is something that truly cannot be verified from the worktree (it needs a network service, a secret or hardware): state that in the report body as a **limitation**, not as a finding, and do not guess.
 
 Before reporting a design-level finding, check what the surrounding code is *for*. A guard that looks missing is not a bug if adding it would break a legitimate use. Prefer a narrow, concrete fix over a broad one.
 
-Do not report formatting, naming taste, or anything a linter already enforces. If you find nothing worth reporting, say so — do not invent findings.
+Do not report formatting, naming taste, or anything a linter already enforces, and do not invent findings: every finding needs a concrete input or line and a fix. A real edge case that is unlikely to matter is a **low** finding, not a reason to stay silent.
 
 ## Step 4 — Post one review
 
@@ -100,7 +130,8 @@ gh api repos/OWNER/REPO_NAME/pulls/PR_NUMBER/reviews --method POST --input revie
 
 - `line` must be a line present in the diff on the new side. A finding about code outside the diff goes in the review `body` instead.
 - Write `review.json` outside LOCAL_PATH (the system temp directory) so it cannot be committed.
-- If every finding was already raised, or there are none and the checks passed, post nothing.
+- If there are no new findings (clean, or every finding already raised), still post the review with an empty `comments` array and a `body` that lists the checks run (command → exit code) and what you examined, so the PR carries a record of the review.
+- Post nothing only when a review **already covers this commit**: read `reviews` from `gh api repos/OWNER/REPO_NAME/pulls/PR_NUMBER/reviews` (each has `user.login`, `author_association`, `body`, `commit_id`), and suppress only if one has a body starting with `<!-- pr-reviewer -->`, `commit_id` equal to `headRefOid`, and is authored by the account running the reviewer (`gh api user --jq .login`) or by a trusted author (`author_association` OWNER, MEMBER or COLLABORATOR). A marker review from anyone else, or on another commit, never suppresses.
 
 ## Step 5 — Report
 
@@ -110,9 +141,11 @@ gh api repos/OWNER/REPO_NAME/pulls/PR_NUMBER/reviews --method POST --input revie
 PR: https://github.com/OWNER/REPO_NAME/pull/PR_NUMBER
 Reviewed commit: <headRefOid>
 Checks: <command → exit code, one per line> | skipped (<reason>)
+Review: posted <url> (N comments) | posted body-only (<url>, no inline comments) | not posted: already reviewed this commit (<review url>) | not posted: all findings already raised (only when body-only posting was impossible)
 Posted (N):
   - path/to/file:line — [severity] <one-line description>
 Already raised (N):
   - path/to/file:line — <one-line description>
+Limitations: <anything that could not be verified from the worktree, or none>
 No findings: <only if the review was clean>
 ```

@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+### Changed
+- **task-agent v2.1.0: stricter `pr-reviewer`.** The reviewer was too lenient: on PR #130 it
+  posted nothing, never captured the test result (output piped through `tail`), skipped the
+  build, and left two edge cases it had spotted unreported as "not verified". It now runs every
+  documented check with output redirected to a log and the exit code captured separately, treats
+  an unrun or uncaptured check as a **medium** "unverified" finding, tests the PR body's claims,
+  reviews adversarially (concrete edge-case inputs, tests that could not fail, callers of changed
+  code), reports real edge cases as **low** findings instead of staying silent, may not say
+  "I did not verify" about code in the diff, and always posts a review (with checks run) even
+  when there are no findings. Check recipes are given for both bash and PowerShell (`timeout 600`, `sh -c`,
+  `$LASTEXITCODE`), and the scrubbed environment is an allowlist so it works on Windows. A check
+  skipped by instruction is `skipped (<reason>)`, not a finding; only an uncaptured check is
+  "unverified". Review suppression now requires a marker review on the same `commit_id` from the
+  reviewing account or an OWNER/MEMBER/COLLABORATOR. Things truly unverifiable are reported as
+  limitations. New evals cover these rules; eval 0 now expects a record review. A clean record review
+  counts as a trusted review body for `review-fixer` polling (see ADR 0014). `review-fixer` exits as clean only when no open trusted thread remains either; unverified checks are
+  classified **medium** consistently in the severity list; evals 6 and 7 were made reliable (a `timeout` shim
+  instead of a bad `TMPDIR`, and a stated contract for `first()`).
+- **task-agent v2.1.0: `review-fixer` resolves the threads it addressed.** After a successful push it replies
+  with the commit SHA and resolves each trusted thread it fixed (or confirmed already fixed), via the
+  `addPullRequestReviewThreadReply` / `resolveReviewThread` GraphQL mutations. Threads it skipped, only partly
+  fixed or ignored stay open and are listed under `Not resolved`; the report gains `Resolved threads` / `Not resolved`
+  sections. New eval 5.
+
 ### Added
 - New external marketplaces: `wshobson/agents`, `trailofbits/skills`, `OthmanAdi/planning-with-files`, `alirezarezvani/claude-skills`, `Jeffallan/claude-skills`, with per-plugin category overrides in `external-overrides.json`.
 - New categories `business` and `marketing` for non-engineering plugins.
