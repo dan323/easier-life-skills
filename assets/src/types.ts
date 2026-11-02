@@ -74,6 +74,8 @@ export interface Skill {
   scanResult?:    ScanResult;
   /** Opening part of SKILL.md (raw markdown). Untrusted — render as plain text only. */
   excerpt?:       string;
+  /** True when `excerpt` is only the beginning of the file. */
+  excerptTruncated?: boolean;
   _repo?:         string;
 }
 
@@ -90,6 +92,9 @@ export interface Agent {
   bundles?:       string[];
   rating?:        Rating;
   scanResult?:    ScanResult;
+  /** Opening part of the agent .md body. Untrusted — render as plain text only. */
+  excerpt?:       string;
+  excerptTruncated?: boolean;
   _repo?:         string;
 }
 
@@ -117,6 +122,9 @@ export interface Command {
   source:         Source;
   bundles?:       string[];
   rating?:        Rating;
+  /** Opening part of the command .md body. Untrusted — render as plain text only. */
+  excerpt?:       string;
+  excerptTruncated?: boolean;
   _repo?:         string;
 }
 
