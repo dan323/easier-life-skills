@@ -72,7 +72,7 @@ easier-life-skills/
 │   │       ├── Grid.tsx         Per-view grid (plugins / skills / agents / mcp / commands / hooks / bundles)
 │   │       ├── PluginPanel.tsx  Plugin detail slide-in (right side); related skills/agents/MCP/commands/hooks, bundles, install rows
 │   │       ├── EntityPanel.tsx  Skill/agent/MCP/command/hook detail slide-in (left side); file preview (skills, agents, commands), tools, events, keywords, command, bundles
-│   │       ├── SkillPreview.tsx Truncated file excerpt (with Partial/Full badge) rendered as plain text in a <pre> (never as HTML — the text is untrusted)
+│   │       ├── SkillPreview.tsx Truncated file excerpt (with Partial/Full body badge) rendered as plain text in a <pre> (never as HTML — the text is untrusted)
 │   │       ├── CopyButton.tsx   Reusable copy-to-clipboard button with "Copied!" feedback
 │   │       ├── Expandable.tsx   Reusable "+N more / Show less" wrapper
 │   │       └── cards/           PluginCard, SkillCard, AgentCard, McpCard, CommandCard, HookCard, BundleCard

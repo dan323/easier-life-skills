@@ -37,11 +37,11 @@ describe('SKILL.md preview — entity panel', () => {
     expect(document.getElementById('entity-panel-preview-link')!.textContent).toContain('View full SKILL.md');
   });
 
-  it('labels a complete excerpt as the full file, without a truncation note', async () => {
+  it('labels a complete excerpt as the full body, without a truncation note', async () => {
     await bootApp();
     click('#view-skills');
     click(cardByName('skills-grid', 'document-project'));
-    expect(document.getElementById('entity-panel-preview-badge')!.textContent).toBe('Full file');
+    expect(document.getElementById('entity-panel-preview-badge')!.textContent).toBe('Full body');
     expect(document.getElementById('entity-panel-preview')!.classList.contains('truncated')).toBe(false);
     expect(document.getElementById('entity-panel-preview-note')).toBeNull();
   });
@@ -66,7 +66,7 @@ describe('file preview — agents and commands', () => {
     expect(pre.textContent).toBe('Post $ARGUMENTS to Slack. <b>not bold</b>');
     expect(pre.querySelector('b')).toBeNull();
     expect(document.querySelector('#entity-panel-preview-section h3')!.textContent).toContain('command file');
-    expect(document.getElementById('entity-panel-preview-badge')!.textContent).toBe('Full file');
+    expect(document.getElementById('entity-panel-preview-badge')!.textContent).toBe('Full body');
   });
 
   it('shows no preview for MCP servers (no Markdown file)', async () => {

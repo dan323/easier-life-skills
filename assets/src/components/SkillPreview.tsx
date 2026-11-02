@@ -5,7 +5,7 @@ interface Props {
   excerpt:   string | undefined;
   /** What the file is called in the UI: `SKILL.md`, `agent file`, `command file`. */
   fileLabel: string;
-  /** True when the excerpt is only the beginning of the file. */
+  /** True when the excerpt is only the beginning of the file body. */
   truncated?: boolean;
   /** Link to the full file. */
   href?:     string | null;
@@ -16,7 +16,7 @@ interface Props {
  * is passed to Preact as a text child (escaped) inside a <pre>, never through
  * dangerouslySetInnerHTML or a markdown renderer.
  *
- * When the excerpt is not the whole file the section says so explicitly (a
+ * When the excerpt is not the whole file body the section says so explicitly (a
  * "Partial" badge above, a note and the full-file link below) so it cannot be
  * mistaken for the complete content.
  */
@@ -27,7 +27,7 @@ export function SkillPreview({ idPrefix, excerpt, fileLabel, truncated, href }: 
       <h3 class="panel-section-title">
         Preview of {fileLabel}
         <span id={`${idPrefix}-preview-badge`} class={`panel-preview-badge${truncated ? ' partial' : ''}`}>
-          {truncated ? 'Partial' : 'Full file'}
+          {truncated ? 'Partial' : 'Full body'}
         </span>
       </h3>
       <pre id={`${idPrefix}-preview`} class={`panel-preview${truncated ? ' truncated' : ''}`}>{excerpt}</pre>

@@ -4,7 +4,7 @@
 
 ### Added
 - Web UI: agents and commands now get the same plain-text file preview as skills (first ~1000 characters of the `.md` body, withheld if the injection scan flags it). The index gains `excerpt` / `excerptTruncated` on agents and commands, and `excerptTruncated` on skills. Hooks and MCP servers have no Markdown file, so they have no preview.
-- Web UI: previews are now clearly labelled — "Preview of SKILL.md / agent file / command file" with a **Partial** or **Full file** badge. A partial preview gets a dashed bottom edge, a note saying only the beginning is shown, and a "View full … →" link.
+- Web UI: previews are now clearly labelled — "Preview of SKILL.md / agent file / command file" with a **Partial** or **Full body** badge. A partial preview gets a dashed bottom edge, a note saying only the beginning is shown, and a "View full … →" link.
 
 ### Fixed
 - Web UI: skills whose SKILL.md opens directly with a `Phase`/`Step` heading (e.g. `alirezarezvani/claude-skills` `interview`) had an empty SKILL.md preview; the excerpt now falls back to the opening of the body.
