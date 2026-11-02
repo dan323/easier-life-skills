@@ -27,6 +27,13 @@ const KIND_META: Record<EntityKind, { label: string; badgeCls: string }> = {
   hook:      { label: 'Hook',       badgeCls: 'badge-automation' },
 };
 
+/** Kinds backed by a Markdown file, and how the preview names that file. */
+const PREVIEW_LABEL: Partial<Record<EntityKind, string>> = {
+  skill:   'SKILL.md',
+  agent:   'agent file',
+  command: 'command file',
+};
+
 function hrefFor(kind: EntityKind, e: Skill | Agent | McpServer | Command | Hook): string | null {
   switch (kind) {
     case 'skill':     return (e as Skill).rawSkillUrl;
@@ -174,8 +181,14 @@ function EntityPanelBody({
         </div>
       )}
 
-      {kind === 'skill' && (
-        <SkillPreview idPrefix="entity-panel" excerpt={(entity as Skill).excerpt} href={href} />
+      {PREVIEW_LABEL[kind] && (
+        <SkillPreview
+          idPrefix="entity-panel"
+          excerpt={(entity as Skill | Agent | Command).excerpt}
+          truncated={(entity as Skill | Agent | Command).excerptTruncated}
+          fileLabel={PREVIEW_LABEL[kind]!}
+          href={href}
+        />
       )}
 
       <ChipSection

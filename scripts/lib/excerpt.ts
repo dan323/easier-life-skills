@@ -1,4 +1,4 @@
-/* lib/excerpt.ts — builds the short SKILL.md preview shown in the web UI detail panels */
+/* lib/excerpt.ts — builds the short SKILL.md / agent / command preview shown in the web UI detail panels */
 
 /** Maximum excerpt length in characters, inclusive of the trailing ellipsis. */
 export const EXCERPT_LIMIT = 1000;
@@ -11,18 +11,54 @@ const PHASE_HEADING = /^ {0,3}#{1,6}\s+(phase|step)\b/i;
 
 /**
  * Return the opening part of a SKILL.md body (frontmatter stripped): everything
- * up to the first "Phase"/"Step" heading, capped at `limit` characters. When the
- * cap cuts the text, it backs off to the last line or word boundary and appends
- * an ellipsis. Headings inside fenced code blocks are ignored. Returns '' when
+ * up to the first "Phase"/"Step" heading (or, if the body starts with one, the
+ * opening of the body), capped at `limit` characters. When the cap cuts the
+ * text, it backs off to the last line or word boundary and appends an
+ * ellipsis. Headings inside fenced code blocks are ignored. Returns '' when
  * nothing is left.
  *
  * The result is raw markdown from a possibly untrusted repo. Consumers must
  * treat it as an opaque string and render it as plain text, never as HTML.
  */
 export function extractExcerpt(content: string, limit: number = EXCERPT_LIMIT): string {
+  return buildPreview(content, limit).excerpt;
+}
+
+/**
+ * Like `extractExcerpt`, but also reports whether the excerpt is only part of
+ * the file body (cut at a Phase/Step heading or at the length cap). The UI uses
+ * `truncated` to label the preview as partial.
+ */
+export function buildPreview(
+  content: string,
+  limit: number = EXCERPT_LIMIT,
+): { excerpt: string; truncated: boolean } {
   const normalized = content.replace(/\r\n?/g, '\n').replace(HIDDEN_CHARS, '');
   const body = normalized.replace(/^---\n(?:[\s\S]*?\n)?---[ \t]*(\n|$)/, '');
+  const whole = body.replace(/\n{3,}/g, '\n\n').trim();
+  const excerpt = clip(body, limit);
+  return { excerpt, truncated: excerpt !== whole };
+}
 
+function clip(body: string, limit: number): string {
+  let text = collect(body, true);
+  // The file opens straight into its first Phase/Step heading, so there is no
+  // intro to show: preview the opening of the body instead of nothing.
+  if (!text) text = collect(body, false);
+  if (text.length <= limit) return text;
+
+  let hard = text.slice(0, limit - 1);
+  // Don't leave half of a surrogate pair at the cut.
+  if (/[\uD800-\uDBFF]$/.test(hard)) hard = hard.slice(0, -1);
+  const minCut = Math.floor(limit / 2);
+  const nl = hard.lastIndexOf('\n');
+  const sp = hard.lastIndexOf(' ');
+  const cut = nl >= minCut ? nl : sp >= minCut ? sp : hard.length;
+  return hard.slice(0, cut).trimEnd() + '…';
+}
+
+/** Collect body lines, optionally stopping at the first Phase/Step heading outside a code fence. */
+function collect(body: string, stopAtPhase: boolean): string {
   const kept: string[] = [];
   // CommonMark: a fence closes only on the same character, at least as long as
   // the opener, with nothing but whitespace after it.
@@ -37,22 +73,12 @@ export function extractExcerpt(content: string, limit: number = EXCERPT_LIMIT): 
       const run = open?.[1] ?? '';
       if (run && !(run.startsWith('`') && (open?.[2] ?? '').includes('`'))) {
         fence = { ch: run.charAt(0), len: run.length };
-      } else if (PHASE_HEADING.test(line)) {
+      } else if (stopAtPhase && PHASE_HEADING.test(line)) {
         break;
       }
     }
     kept.push(line);
   }
 
-  const text = kept.join('\n').replace(/\n{3,}/g, '\n\n').trim();
-  if (text.length <= limit) return text;
-
-  let hard = text.slice(0, limit - 1);
-  // Don't leave half of a surrogate pair at the cut.
-  if (/[\uD800-\uDBFF]$/.test(hard)) hard = hard.slice(0, -1);
-  const minCut = Math.floor(limit / 2);
-  const nl = hard.lastIndexOf('\n');
-  const sp = hard.lastIndexOf(' ');
-  const cut = nl >= minCut ? nl : sp >= minCut ? sp : hard.length;
-  return hard.slice(0, cut).trimEnd() + '…';
+  return kept.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }

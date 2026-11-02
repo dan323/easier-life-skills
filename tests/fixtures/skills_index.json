@@ -82,6 +82,7 @@
       "source": { "owner": "dan323", "repo": "easier-life-skills", "repoUrl": "https://github.com/dan323/easier-life-skills" },
       "scanResult": { "passed": true, "flags": [], "scannedVersion": "1.2" },
       "excerpt": "# Changelog\n\nGenerate release notes. <script>window.__xss = 1</script> <b>not bold</b>",
+      "excerptTruncated": true,
       "rating": {
         "avg": 4.5,
         "count": 2,
@@ -129,7 +130,9 @@
       "rawAgentUrl": "https://raw.githubusercontent.com/external/hooks-pack/master/agents/copilot-fixer.md",
       "installCommand": "/plugin install hooks-pack@hooks-pack",
       "source": { "owner": "external", "repo": "hooks-pack", "repoUrl": "https://github.com/external/hooks-pack" },
-      "scanResult": { "passed": true, "flags": [], "scannedVersion": "1.0" }
+      "scanResult": { "passed": true, "flags": [], "scannedVersion": "1.0" },
+      "excerpt": "You fix Copilot review comments.\n\nBe careful…",
+      "excerptTruncated": true
     }
   ],
   "mcpServers": [
@@ -152,7 +155,8 @@
       "commandPath": "commands/post-slack.md",
       "rawCommandUrl": "https://raw.githubusercontent.com/external/slack-tools/master/commands/post-slack.md",
       "installCommand": "/plugin install slack-tools@slack-tools",
-      "source": { "owner": "external", "repo": "slack-tools", "repoUrl": "https://github.com/external/slack-tools" }
+      "source": { "owner": "external", "repo": "slack-tools", "repoUrl": "https://github.com/external/slack-tools" },
+      "excerpt": "Post $ARGUMENTS to Slack. <b>not bold</b>"
     }
   ],
   "hooks": [
