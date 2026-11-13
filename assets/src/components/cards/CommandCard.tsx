@@ -28,6 +28,7 @@ export function CommandCard({ command: cmd, showSource, showInstall, onOpen, bun
           <span class="card-name-chevron" aria-hidden="true">›</span>
         </button>
         <div class="card-badges">
+          {cmd.readOnly && <span class="badge badge-readonly">read-only</span>}
           <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>
           {showSource && <span class="badge badge-source">{cmd._repo}</span>}
         </div>

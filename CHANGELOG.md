@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **`readOnly` on agents and commands.** Agents and commands are now tagged read-only from their
+  `tools` / `allowed-tools` (shown as a badge on their cards). Plugins (collections), hooks and MCP
+  servers (not reliably decidable) are not tagged.
+- **`readOnly` override.** `external-overrides.json` skill, agent and command entries accept `"readOnly": true|false` to
+  correct the computed tag. It is deliberately not readable from `SKILL.md` frontmatter, so skill
+  authors cannot badge their own skills (ADR 0015).
+  First overrides mark `auto-board-task` and the `pr-reviewer` agent as not read-only: their
+  tool lists look read-only, but they write remotely (PRs, board cards, GitHub reviews).
 - Web UI: agents and commands now get the same plain-text file preview as skills (first ~1000 characters of the `.md` body, withheld if the injection scan flags it). The index gains `excerpt` / `excerptTruncated` on agents and commands, and `excerptTruncated` on skills. Hooks and MCP servers have no Markdown file, so they have no preview.
 - Web UI: previews are now clearly labelled — "Preview of SKILL.md / agent file / command file" with a **Partial** or **Full body** badge. A partial preview gets a dashed bottom edge, a note saying only the beginning is shown, and a "View full … →" link.
 
@@ -12,6 +20,14 @@
 
 ### Changed
 - Web UI: the SKILL.md preview no longer appears in the plugin panel (it only ever showed one of a bundle's skills); it is shown in the individual skill, agent and command panels only.
+- **Read-only tagging now means "no local or remote writes".** `isWriteTool` also treats `Agent`,
+  `Task`, `Skill`, `SkillInvoke`, scoped `PowerShell(...)` (unless read-only) and mutating `mcp__*`
+  tools (`create_`, `update_`, `push_`, `send_`, …) as writers, so skills such as `review-fixer` and
+  `auto-board-task` are no longer mislabelled `read-only`. Console output is not a write.
+  The `task-agent:pr-reviewer` skill description (task-agent v2.1.1) no longer calls its GitHub review "read-only"
+  (it posts remotely and may create or fetch a local clone, but never edits the PR branch or the clone's working files).
+  Scoped `Bash`/`PowerShell` entries that redirect output to a file and server-wide MCP wildcards
+  (`mcp__srv__*`) are now writers; docs state the tag is a heuristic.
 - **task-agent v2.1.0: stricter `pr-reviewer`.** The reviewer was too lenient: on PR #130 it
   posted nothing, never captured the test result (output piped through `tail`), skipped the
   build, and left two edge cases it had spotted unreported as "not verified". It now runs every

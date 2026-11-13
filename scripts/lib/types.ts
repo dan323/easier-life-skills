@@ -86,6 +86,8 @@ export interface Agent {
   description: string;
   category: string | null;
   tools: string[];
+  /** No tool can write or edit files, locally or remotely. Computed from `tools`; overridable only via external-overrides.json. */
+  readOnly: boolean;
   background: boolean;
   agentPath: string;
   rawAgentUrl: string;
@@ -121,6 +123,8 @@ export interface Command {
   pluginName: string;
   description: string;
   category: string | null;
+  /** Computed from `allowed-tools`; overridable only via external-overrides.json. */
+  readOnly: boolean;
   commandPath: string;
   rawCommandUrl: string;
   installCommand: string;

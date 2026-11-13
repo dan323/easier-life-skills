@@ -67,12 +67,15 @@ const BUNDLES: Bundle[] = existsSync(bundlesPath)
 
 const overridesPath = join(ROOT, '.claude-plugin', 'external-overrides.json');
 type OverrideMap = Record<string, { category?: string }>;
+// Skills, agents and commands may also override the computed `readOnly` tag. This lives ONLY here (maintainer-controlled),
+// never in SKILL.md frontmatter, so a skill's author cannot self-declare itself read-only.
+type ReadOnlyOverrideMap = Record<string, { category?: string; readOnly?: boolean }>;
 const OVERRIDES: Record<string, {
   plugins?:    OverrideMap;
-  skills?:     OverrideMap;
-  agents?:     OverrideMap;
+  skills?:     ReadOnlyOverrideMap;
+  agents?:     ReadOnlyOverrideMap;
   hooks?:      OverrideMap;
-  commands?:   OverrideMap;
+  commands?:   ReadOnlyOverrideMap;
   mcpServers?: OverrideMap;
 }> =
   existsSync(overridesPath)
@@ -108,13 +111,15 @@ for (const plugin of allPlugins) {
 }
 for (const skill of allSkills) {
   const repoKey = `${skill.source.owner}/${skill.source.repo}`;
-  const cat = OVERRIDES[repoKey]?.skills?.[skill.name]?.category;
-  if (cat) skill.category = cat;
+  const override = OVERRIDES[repoKey]?.skills?.[skill.name];
+  if (override?.category) skill.category = override.category;
+  if (typeof override?.readOnly === 'boolean') skill.readOnly = override.readOnly;
 }
 for (const agent of allAgents) {
   const repoKey = `${agent.source.owner}/${agent.source.repo}`;
-  const cat = OVERRIDES[repoKey]?.agents?.[agent.name]?.category;
-  if (cat) agent.category = cat;
+  const override = OVERRIDES[repoKey]?.agents?.[agent.name];
+  if (override?.category) agent.category = override.category;
+  if (typeof override?.readOnly === 'boolean') agent.readOnly = override.readOnly;
 }
 for (const hook of allHooks) {
   const repoKey = `${hook.source.owner}/${hook.source.repo}`;
@@ -123,8 +128,9 @@ for (const hook of allHooks) {
 }
 for (const command of allCommands) {
   const repoKey = `${command.source.owner}/${command.source.repo}`;
-  const cat = OVERRIDES[repoKey]?.commands?.[command.name]?.category;
-  if (cat) command.category = cat;
+  const override = OVERRIDES[repoKey]?.commands?.[command.name];
+  if (override?.category) command.category = override.category;
+  if (typeof override?.readOnly === 'boolean') command.readOnly = override.readOnly;
 }
 for (const mcp of allMcpServers) {
   const repoKey = `${mcp.source.owner}/${mcp.source.repo}`;

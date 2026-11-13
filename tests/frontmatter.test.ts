@@ -72,4 +72,36 @@ describe('isWriteTool', () => {
     expect(isWriteTool('Bash(git log:*)')).toBe(false);
     expect(isWriteTool('Bash')).toBe(false);
   });
+
+  it('treats scoped PowerShell as writable unless read-only', () => {
+    expect(isWriteTool('PowerShell(Remove-Item:*)')).toBe(true);
+    expect(isWriteTool('PowerShell(Get-ChildItem:*)')).toBe(false);
+    expect(isWriteTool('PowerShell')).toBe(false);
+    expect(isWriteTool('PowerShell(Write-Output hello > output.txt)')).toBe(true);
+    expect(isWriteTool('PowerShell(Get-ChildItem:* >> list.txt)')).toBe(true);
+    expect(isWriteTool('PowerShell(Get-ChildItem 2>&1)')).toBe(false);
+    expect(isWriteTool('PowerShell(Get-ChildItem > $null)')).toBe(false);
+    expect(isWriteTool('Bash(cat a.txt > b.txt)')).toBe(true);
+  });
+
+  it('treats delegation tools as writable', () => {
+    for (const t of ['Agent', 'Task', 'Skill', 'SkillInvoke(document-skills:pdf)']) {
+      expect(isWriteTool(t)).toBe(true);
+    }
+  });
+
+  it('judges MCP tools by their verb', () => {
+    expect(isWriteTool('mcp__github__create_pull_request')).toBe(true);
+    expect(isWriteTool('mcp__github__search_repositories')).toBe(false);
+    expect(isWriteTool('mcp__github__*')).toBe(true);
+    expect(isWriteTool('mcp__github')).toBe(true);
+    expect(isWriteTool('mcp__claude_ai_Gmail__send_message')).toBe(true);
+    expect(isWriteTool('mcp__claude_ai_Gmail__get_thread')).toBe(false);
+  });
+
+  it('does not treat console output tools as writes', () => {
+    for (const t of ['WebFetch', 'WebSearch', 'AskUserQuestion', 'TaskCreate', 'Grep']) {
+      expect(isWriteTool(t)).toBe(false);
+    }
+  });
 });

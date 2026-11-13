@@ -1,4 +1,16 @@
 {
+  "dan323/easier-life-skills": {
+    "skills": {
+      "auto-board-task": {
+        "readOnly": false
+      }
+    },
+    "agents": {
+      "pr-reviewer": {
+        "readOnly": false
+      }
+    }
+  },
   "anthropics/skills": {
     "plugins": {
       "document-skills": {

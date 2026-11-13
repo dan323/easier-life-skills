@@ -357,6 +357,10 @@ async function parseAgent(
     console.warn(`  [security] ${owner}/${repo} agent "${agentName}": ${scanResult.flags.map(f => `[${f.field}] ${f.detail}`).join('; ')}`);
   }
 
+  // parseFrontmatter normalises `tools` / `allowed-tools` into a string[]; an agent with
+  // no tool list inherits every tool, so it is never read-only.
+  const agentTools = Array.isArray(frontmatter.tools) ? frontmatter.tools as string[] : [];
+
   // Withheld for flagged agents, like skills.
   const preview = scanResult.passed ? buildPreview(content) : null;
 
@@ -365,7 +369,8 @@ async function parseAgent(
     pluginName:     pluginEntry.name,
     description,
     category:       (frontmatter.category as string | undefined) ?? pluginEntry.category ?? null,
-    tools:          frontmatter.tools ? String(frontmatter.tools).split(',').map(t => t.trim()) : [],
+    tools:          agentTools,
+    readOnly:       agentTools.length > 0 && !agentTools.some(isWriteTool),
     background:     frontmatter.background === true || frontmatter.background === 'true',
     agentPath:      fullAgentPath,
     rawAgentUrl:    `${remoteBase}/${fullAgentPath}`,
@@ -520,6 +525,7 @@ async function parseCommand(
   if (!content) return null;
 
   const frontmatter = parseFrontmatter(content);
+  const cmdTools    = Array.isArray(frontmatter.tools) ? frontmatter.tools as string[] : [];
 
   // Commands carry no scanResult of their own, but their body is still untrusted
   // text republished in the index: withhold the preview if the scan flags it.
@@ -532,6 +538,7 @@ async function parseCommand(
     pluginName:     pluginEntry.name,
     description,
     category:       (frontmatter.category as string | undefined) ?? pluginEntry.category ?? null,
+    readOnly:       cmdTools.length > 0 && !cmdTools.some(isWriteTool),
     commandPath:    fullCmdPath,
     rawCommandUrl:  `${remoteBase}/${fullCmdPath}`,
     installCommand: `/plugin install ${pluginEntry.name}@${repo}`,
