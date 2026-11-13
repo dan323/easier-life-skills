@@ -7,6 +7,7 @@
 - Web UI: previews are now clearly labelled — "Preview of SKILL.md / agent file / command file" with a **Partial** or **Full body** badge. A partial preview gets a dashed bottom edge, a note saying only the beginning is shown, and a "View full … →" link.
 
 ### Fixed
+- README: the DeepWiki badge showed as a broken image on GitHub (deepwiki.com answers GitHub's image proxy with a bot challenge); it now uses a static shields.io badge that still links to the DeepWiki page.
 - Web UI: skills whose SKILL.md opens directly with a `Phase`/`Step` heading (e.g. `alirezarezvani/claude-skills` `interview`) had an empty SKILL.md preview; the excerpt now falls back to the opening of the body.
 
 ### Changed
