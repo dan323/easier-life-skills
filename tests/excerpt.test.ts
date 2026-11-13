@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractExcerpt, EXCERPT_LIMIT } from '../scripts/lib/excerpt.js';
+import { extractExcerpt, buildPreview, EXCERPT_LIMIT } from '../scripts/lib/excerpt.js';
 
 describe('extractExcerpt', () => {
   it('strips frontmatter and stops at the first phase heading', () => {
@@ -50,9 +50,21 @@ describe('extractExcerpt', () => {
     expect(extractExcerpt('# A​b‮﻿c')).toBe('# Abc');
   });
 
-  it('returns an empty string when the body is empty or starts with a phase', () => {
+  it('buildPreview reports whether the excerpt is only part of the body', () => {
+    expect(buildPreview('---\nname: x\n---\n# X\n\nShort.')).toEqual({ excerpt: '# X\n\nShort.', truncated: false });
+    expect(buildPreview('# X\n\nIntro.\n\n## Phase 1\nmore').truncated).toBe(true);
+    expect(buildPreview('x '.repeat(800)).truncated).toBe(true);
+    expect(buildPreview('').truncated).toBe(false);
+  });
+
+  it('returns an empty string when the body is empty', () => {
     expect(extractExcerpt('---\nname: x\n---\n')).toBe('');
-    expect(extractExcerpt('## Phase 1\nbody')).toBe('');
+  });
+
+  it('falls back to the opening of the body when it starts with a phase heading', () => {
+    expect(extractExcerpt('---\nname: x\n---\n# Phase 1 — Interview\n\nOpen warmly.\n\n## Phase 2\nmore'))
+      .toBe('# Phase 1 — Interview\n\nOpen warmly.\n\n## Phase 2\nmore');
+    expect(extractExcerpt('## Phase 1\n' + 'x '.repeat(800)).length).toBeLessThanOrEqual(1000);
   });
 
   it('keeps a ~~~ block with a sample phase heading inside a ``` block', () => {

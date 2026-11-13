@@ -11,8 +11,14 @@
   authors cannot badge their own skills (ADR 0015).
   First overrides mark `auto-board-task` and the `pr-reviewer` agent as not read-only: their
   tool lists look read-only, but they write remotely (PRs, board cards, GitHub reviews).
+- Web UI: agents and commands now get the same plain-text file preview as skills (first ~1000 characters of the `.md` body, withheld if the injection scan flags it). The index gains `excerpt` / `excerptTruncated` on agents and commands, and `excerptTruncated` on skills. Hooks and MCP servers have no Markdown file, so they have no preview.
+- Web UI: previews are now clearly labelled — "Preview of SKILL.md / agent file / command file" with a **Partial** or **Full body** badge. A partial preview gets a dashed bottom edge, a note saying only the beginning is shown, and a "View full … →" link.
+
+### Fixed
+- Web UI: skills whose SKILL.md opens directly with a `Phase`/`Step` heading (e.g. `alirezarezvani/claude-skills` `interview`) had an empty SKILL.md preview; the excerpt now falls back to the opening of the body.
 
 ### Changed
+- Web UI: the SKILL.md preview no longer appears in the plugin panel (it only ever showed one of a bundle's skills); it is shown in the individual skill, agent and command panels only.
 - **Read-only tagging now means "no local or remote writes".** `isWriteTool` also treats `Agent`,
   `Task`, `Skill`, `SkillInvoke`, scoped `PowerShell(...)` (unless read-only) and mutating `mcp__*`
   tools (`create_`, `update_`, `push_`, `send_`, …) as writers, so skills such as `review-fixer` and

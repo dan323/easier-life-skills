@@ -5,7 +5,7 @@ import { join, dirname, basename }                                          from
 import { fileURLToPath }                                                    from 'url';
 import { parseFrontmatter, isWriteTool }                                                 from './frontmatter.js';
 import { scanBody, mergeMetadataScan, truncate, FIELD_LIMITS }               from './injection-scan.js';
-import { extractExcerpt }                                                   from './excerpt.js';
+import { buildPreview }                                                  from './excerpt.js';
 import type { Skill, Agent, McpServer, Command, Plugin, Bundle, MarketplaceResult, Hook } from './types.js';
 
 const __dirname  = dirname(fileURLToPath(import.meta.url));
@@ -297,7 +297,7 @@ async function parseSkill(
 
   // Preview text for the web UI. Withheld for flagged skills so the index never
   // republishes body text the scanner considers suspicious.
-  const excerpt = scanResult.passed ? extractExcerpt(content) : '';
+  const preview = scanResult.passed ? buildPreview(content) : null;
 
   return {
     name:           skillName,
@@ -313,8 +313,15 @@ async function parseSkill(
     installCommand: `/plugin install ${pluginEntry.name}@${repo}`,
     source:         { owner, repo, repoUrl: `https://github.com/${owner}/${repo}` },
     scanResult,
-    ...(excerpt ? { excerpt } : {}),
+    ...previewFields(preview),
   };
+}
+
+/** Index fields for a preview; empty when there is nothing (or nothing safe) to show. */
+function previewFields(p: { excerpt: string; truncated: boolean } | null):
+  { excerpt?: string; excerptTruncated?: true } {
+  if (!p?.excerpt) return {};
+  return p.truncated ? { excerpt: p.excerpt, excerptTruncated: true } : { excerpt: p.excerpt };
 }
 
 async function parseAgent(
@@ -354,6 +361,9 @@ async function parseAgent(
   // no tool list inherits every tool, so it is never read-only.
   const agentTools = Array.isArray(frontmatter.tools) ? frontmatter.tools as string[] : [];
 
+  // Withheld for flagged agents, like skills.
+  const preview = scanResult.passed ? buildPreview(content) : null;
+
   return {
     name:           (frontmatter.name as string | undefined) ?? agentName,
     pluginName:     pluginEntry.name,
@@ -367,6 +377,7 @@ async function parseAgent(
     installCommand: `/plugin install ${pluginEntry.name}@${repo}`,
     source:         { owner, repo, repoUrl: `https://github.com/${owner}/${repo}` },
     scanResult,
+    ...previewFields(preview),
   };
 }
 
@@ -516,16 +527,23 @@ async function parseCommand(
   const frontmatter = parseFrontmatter(content);
   const cmdTools    = Array.isArray(frontmatter.tools) ? frontmatter.tools as string[] : [];
 
+  // Commands carry no scanResult of their own, but their body is still untrusted
+  // text republished in the index: withhold the preview if the scan flags it.
+  const description = (frontmatter.description as string | undefined) ?? '';
+  const scan        = mergeMetadataScan(scanBody(content, '1.0'), description, []);
+  const preview     = scan.passed ? buildPreview(content) : null;
+
   return {
     name:           cmdName,
     pluginName:     pluginEntry.name,
-    description:    (frontmatter.description as string | undefined) ?? '',
+    description,
     category:       (frontmatter.category as string | undefined) ?? pluginEntry.category ?? null,
     readOnly:       cmdTools.length > 0 && !cmdTools.some(isWriteTool),
     commandPath:    fullCmdPath,
     rawCommandUrl:  `${remoteBase}/${fullCmdPath}`,
     installCommand: `/plugin install ${pluginEntry.name}@${repo}`,
     source:         { owner, repo, repoUrl: `https://github.com/${owner}/${repo}` },
+    ...previewFields(preview),
   };
 }
 

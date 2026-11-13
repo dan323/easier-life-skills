@@ -75,6 +75,8 @@ export interface Skill {
    * for external repos; omitted when empty or when the injection scan failed.
    */
   excerpt?: string;
+  /** True when `excerpt` is only part of the file body (cut at a Phase/Step heading or the length cap). */
+  excerptTruncated?: boolean;
   _repo?: string;
 }
 
@@ -95,6 +97,9 @@ export interface Agent {
   rating?: Rating;
   /** Injection scan result for this agent's .md content. */
   scanResult?: ScanResult;
+  /** Opening part of the agent .md body. Untrusted text; omitted when empty or flagged. */
+  excerpt?: string;
+  excerptTruncated?: boolean;
   _repo?: string;
 }
 
@@ -126,6 +131,9 @@ export interface Command {
   source: PluginSource;
   bundles?: string[];
   rating?: Rating;
+  /** Opening part of the command .md body. Untrusted text; omitted when empty or flagged. */
+  excerpt?: string;
+  excerptTruncated?: boolean;
   _repo?: string;
 }
 

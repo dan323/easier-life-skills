@@ -1311,6 +1311,32 @@ body.catalog-page footer {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+/* Partial preview: dashed bottom edge reads as "the file continues". */
+.panel-preview.truncated {
+  border-bottom: 2px dashed var(--accent);
+  margin-bottom: 4px;
+}
+.panel-preview-badge {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.panel-preview-badge.partial {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.panel-preview-note {
+  margin: 0 0 8px;
+  font-size: 0.76rem;
+  font-style: italic;
+  color: var(--text-muted);
+}
 
 .panel-source-link {
   font-size: 0.83rem;
