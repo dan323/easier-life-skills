@@ -118,18 +118,37 @@ const READONLY_POWERSHELL = /^(git\s+(log|diff|status|show|blame|branch|rev-pars
 // MCP tools that change remote state, matched on the verb segment of `mcp__<server>__<tool>`.
 const MCP_WRITE_VERB = /(^|_)(create|update|delete|remove|add|push|merge|send|post|write|edit|upload|set|trash|share|copy|label|reply|forward|comment|close|apply|publish|archive|move|rename|assign|submit|fork)(_|$)/i;
 
+// Output redirection to a file (`> out.txt`, `>> log`) writes even when the command is read-only.
+// Redirects that discard output or merge streams (`2>&1`, `>$null`, `> /dev/null`) are harmless.
+function redirectsToFile(scope: string): boolean {
+  const cleaned = scope
+    .replace(/\d*>&\d+/g, '')
+    .replace(/\d*>>?\s*(\$null|\/dev\/null)(?![\w/.-])/gi, '');
+  return cleaned.includes('>');
+}
+
 /**
  * True if a tool entry can write or edit files, locally or remotely. Printing to the console
  * does not count. Scoped `Bash(...)`/`PowerShell(...)` count as writable unless the scope is a
- * known read-only command; MCP tools are judged by their verb (`create_pull_request` writes).
+ * known read-only command with no file redirection; MCP tools are judged by their verb
+ * (`create_pull_request` writes), and a server-wide wildcard (`mcp__srv__*`, `mcp__srv`) is a
+ * writer because it can grant tools the verb check never sees.
+ *
+ * This is a heuristic, not a guarantee: an unscoped `Bash` or `PowerShell` entry is not
+ * classified as a writer even though it can write files.
  */
 export function isWriteTool(entry: string): boolean {
   const m = entry.trim().match(/^([^(]*)\((.*)\)$/s);
   const name = (m ? m[1]! : entry).trim();
   if (WRITE_TOOLS.has(name)) return true;
-  if (name === 'Bash' && m) return !READONLY_BASH.test(m[2]!.trim());
-  if (name === 'PowerShell' && m) return !READONLY_POWERSHELL.test(m[2]!.trim());
-  if (name.startsWith('mcp__')) return MCP_WRITE_VERB.test(name.split('__').pop()!);
+  if (name === 'Bash' && m) return redirectsToFile(m[2]!) || !READONLY_BASH.test(m[2]!.trim());
+  if (name === 'PowerShell' && m) return redirectsToFile(m[2]!) || !READONLY_POWERSHELL.test(m[2]!.trim());
+  if (name.startsWith('mcp__')) {
+    const parts = name.split('__');
+    const tool  = parts[2];
+    if (parts.length < 3 || !tool || tool.includes('*')) return true;
+    return MCP_WRITE_VERB.test(tool);
+  }
   return false;
 }
 

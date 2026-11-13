@@ -77,6 +77,11 @@ describe('isWriteTool', () => {
     expect(isWriteTool('PowerShell(Remove-Item:*)')).toBe(true);
     expect(isWriteTool('PowerShell(Get-ChildItem:*)')).toBe(false);
     expect(isWriteTool('PowerShell')).toBe(false);
+    expect(isWriteTool('PowerShell(Write-Output hello > output.txt)')).toBe(true);
+    expect(isWriteTool('PowerShell(Get-ChildItem:* >> list.txt)')).toBe(true);
+    expect(isWriteTool('PowerShell(Get-ChildItem 2>&1)')).toBe(false);
+    expect(isWriteTool('PowerShell(Get-ChildItem > $null)')).toBe(false);
+    expect(isWriteTool('Bash(cat a.txt > b.txt)')).toBe(true);
   });
 
   it('treats delegation tools as writable', () => {
@@ -88,6 +93,8 @@ describe('isWriteTool', () => {
   it('judges MCP tools by their verb', () => {
     expect(isWriteTool('mcp__github__create_pull_request')).toBe(true);
     expect(isWriteTool('mcp__github__search_repositories')).toBe(false);
+    expect(isWriteTool('mcp__github__*')).toBe(true);
+    expect(isWriteTool('mcp__github')).toBe(true);
     expect(isWriteTool('mcp__claude_ai_Gmail__send_message')).toBe(true);
     expect(isWriteTool('mcp__claude_ai_Gmail__get_thread')).toBe(false);
   });

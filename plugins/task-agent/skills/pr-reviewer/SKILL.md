@@ -1,6 +1,6 @@
 ---
 name: pr-reviewer
-description: Reviews a pull request (correctness, tests, repo conventions, safety), verifies the repo's own checks in a throwaway worktree, and posts one GitHub review with inline comments (a remote effect only — it never edits local files or the PR branch). Thin skill wrapper around the `pr-reviewer` sub-agent — callable as a workflow step, and the stand-in for Copilot review.
+description: Reviews a pull request (correctness, tests, repo conventions, safety), verifies the repo's own checks in a throwaway worktree, and posts one GitHub review with inline comments (it may create or fetch a local clone and a temporary worktree, but never edits the PR branch or the clone's working files). Thin skill wrapper around the `pr-reviewer` sub-agent — callable as a workflow step, and the stand-in for Copilot review.
 tools: Bash, PowerShell, Read, Glob, Grep, Agent
 ---
 

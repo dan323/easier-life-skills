@@ -24,7 +24,9 @@
   tools (`create_`, `update_`, `push_`, `send_`, …) as writers, so skills such as `review-fixer` and
   `auto-board-task` are no longer mislabelled `read-only`. Console output is not a write.
   The `task-agent:pr-reviewer` skill description (task-agent v2.1.1) no longer calls its GitHub review "read-only"
-  (it posts remotely; it never edits local files or the PR branch).
+  (it posts remotely and may create or fetch a local clone, but never edits the PR branch or the clone's working files).
+  Scoped `Bash`/`PowerShell` entries that redirect output to a file and server-wide MCP wildcards
+  (`mcp__srv__*`) are now writers; docs state the tag is a heuristic.
 - **task-agent v2.1.0: stricter `pr-reviewer`.** The reviewer was too lenient: on PR #130 it
   posted nothing, never captured the test result (output piped through `tail`), skipped the
   build, and left two edge cases it had spotted unreported as "not verified". It now runs every
