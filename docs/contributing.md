@@ -130,7 +130,7 @@ The vocabulary currently in use is `productivity`, `documentation`, `code-qualit
 
 The plugin's category also propagates to its agents, hooks, commands, and MCP servers — they appear in the same filter group in the web UI. To override a specific sub-entity, add a `category:` field to that agent/hook/command's YAML frontmatter, or list it under the matching entity type in `.claude-plugin/external-overrides.json` (for external repos).
 
-If your skill only reads files (no `Write`, `Edit`, or `NotebookEdit` in its `tools` list), it will automatically be tagged as read-only in the index — no extra marker needed.
+If your skill, agent or command never writes or edits files, locally or remotely, it is automatically tagged as read-only in the index — no extra marker needed. Printing to the console is fine. These `tools` entries count as writes and drop the tag: `Write`, `Edit`, `NotebookEdit`, `Agent`, `Task`, `Skill`, `SkillInvoke`, scoped `Bash(...)`/`PowerShell(...)` that isn't a known read-only command, and `mcp__*` tools with a mutating verb (e.g. `create_pull_request`). The tag cannot be set from `SKILL.md` frontmatter — authors must not badge their own skills. If the computed value is wrong, a maintainer sets `"readOnly": true|false` on the entity's entry under `skills`, `agents` or `commands` in `.claude-plugin/external-overrides.json` (see [ADR 0015](../adr/0015-read-only-override-lives-in-external-overrides.md)).
 
 Submit a pull request:
 - One skill per PR

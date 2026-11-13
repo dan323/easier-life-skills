@@ -28,6 +28,7 @@ export function AgentCard({ agent, showSource, showInstall, onOpen, bundled, onT
           <span class="card-name-chevron" aria-hidden="true">›</span>
         </button>
         <div class="card-badges">
+          {agent.readOnly && <span class="badge badge-readonly">read-only</span>}
           {agent.background && <span class="badge badge-readonly">background</span>}
           {agent.scanResult && (
             agent.scanResult.passed

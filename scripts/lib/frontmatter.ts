@@ -111,15 +111,25 @@ function stripComment(s: string): string {
   return s;
 }
 
-const WRITE_TOOLS = new Set(['Write', 'Edit', 'NotebookEdit']);
+// Tools that edit files directly, or delegate to something that can (sub-agents, other skills).
+const WRITE_TOOLS = new Set(['Write', 'Edit', 'NotebookEdit', 'Agent', 'Task', 'Skill', 'SkillInvoke']);
 const READONLY_BASH = /^(git\s+(log|diff|status|show|blame|branch|rev-parse|ls-files|describe)|ls|cat|head|tail|wc|grep|rg|pwd)(\s|:|$)/;
+const READONLY_POWERSHELL = /^(git\s+(log|diff|status|show|blame|branch|rev-parse|ls-files|describe)|Get-\w+|Select-String|Test-Path|Measure-Object|Write-Output|Write-Host)(\s|:|$)/i;
+// MCP tools that change remote state, matched on the verb segment of `mcp__<server>__<tool>`.
+const MCP_WRITE_VERB = /(^|_)(create|update|delete|remove|add|push|merge|send|post|write|edit|upload|set|trash|share|copy|label|reply|forward|comment|close|apply|publish|archive|move|rename|assign|submit|fork)(_|$)/i;
 
-/** True if a tool entry can modify files. Scoped `Bash(...)` counts as writable unless its scope is a known read-only command. */
+/**
+ * True if a tool entry can write or edit files, locally or remotely. Printing to the console
+ * does not count. Scoped `Bash(...)`/`PowerShell(...)` count as writable unless the scope is a
+ * known read-only command; MCP tools are judged by their verb (`create_pull_request` writes).
+ */
 export function isWriteTool(entry: string): boolean {
   const m = entry.trim().match(/^([^(]*)\((.*)\)$/s);
   const name = (m ? m[1]! : entry).trim();
   if (WRITE_TOOLS.has(name)) return true;
   if (name === 'Bash' && m) return !READONLY_BASH.test(m[2]!.trim());
+  if (name === 'PowerShell' && m) return !READONLY_POWERSHELL.test(m[2]!.trim());
+  if (name.startsWith('mcp__')) return MCP_WRITE_VERB.test(name.split('__').pop()!);
   return false;
 }
 

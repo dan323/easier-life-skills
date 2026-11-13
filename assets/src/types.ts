@@ -83,6 +83,7 @@ export interface Agent {
   description:    string;
   category:       string | null;
   tools:          string[];
+  readOnly?:      boolean;
   background:     boolean;
   rawAgentUrl:    string;
   installCommand: string;
@@ -111,6 +112,7 @@ export interface Command {
   pluginName:     string;
   description:    string;
   category:       string | null;
+  readOnly?:      boolean;
   commandPath:    string;
   rawCommandUrl:  string;
   installCommand: string;
