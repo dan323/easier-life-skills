@@ -69,6 +69,13 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/new-issue"
     },
     {
+      "name": "release",
+      "source": "./plugins/release",
+      "description": "Cut a release end-to-end: semver bump from conventional commits, version files, changelog, git tag and GitHub release, with confirmation before anything outward-facing",
+      "category": "devops",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/release"
+    },
+    {
       "name": "scaffold",
       "source": "./plugins/scaffold",
       "description": "Generate a new plugin skeleton (plugin.json, SKILL.md, evals.json, optional agents/references) from a single prompt",

@@ -1,0 +1,56 @@
+{
+  "skill_name": "release",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Cut a release for this repo",
+      "description": "Happy path: a feat and a fix since the last tag produce a minor bump, then the full chain after confirmation",
+      "setup": "mkdir -p /tmp/eval-release-0 && cd /tmp/eval-release-0 && git init -q && echo '{\"name\":\"x\",\"version\":\"1.2.3\"}' > package.json && printf '# Changelog\\n\\n## [Unreleased]\\n' > CHANGELOG.md && git add . && git commit -qm 'chore: init' && git tag v1.2.3 && echo a > a.txt && git add . && git commit -qm 'feat: add a' && echo b > b.txt && git add . && git commit -qm 'fix: repair b' && git init -q --bare /tmp/eval-release-0-remote.git && git remote add origin /tmp/eval-release-0-remote.git",
+      "expected_output": "Proposes minor bump 1.3.0 and asks for confirmation; after yes updates package.json and CHANGELOG.md, commits, tags v1.3.0 and creates the release (or prints manual instructions if gh is missing)",
+      "files": [],
+      "assertions": [
+        { "id": "minor-bump", "text": "The proposed bump is minor (1.2.3 -> 1.3.0) because of the feat commit" },
+        { "id": "confirm-before-bump", "text": "The skill asks the user to confirm the bump before editing any file" },
+        { "id": "confirm-before-push", "text": "The skill asks for explicit confirmation before pushing the tag or creating the GitHub release" },
+        { "id": "tag-created", "text": "Tag v1.3.0 exists after confirmation and package.json says 1.3.0" }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Release a new version",
+      "description": "Re-run: a commit exists after v1.0.1 and the tag for the computed version (v1.0.2) already exists on a commit not reachable from HEAD; the skill must stop at the tag-exists check without changes",
+      "setup": "mkdir -p /tmp/eval-release-1 && cd /tmp/eval-release-1 && git init -q && echo '{\"name\":\"x\",\"version\":\"1.0.1\"}' > package.json && git add . && git commit -qm 'chore: init' && git tag v1.0.0 && echo a > a.txt && git add . && git commit -qm 'fix: a' && git tag v1.0.1 && git tag v1.0.2 $(git commit-tree HEAD^{tree} -p HEAD -m 'unreachable release') && echo b > b.txt && git add . && git commit -qm 'fix: b'",
+      "expected_output": "Reports that there is nothing to release / the tag already exists and changes nothing",
+      "files": [],
+      "assertions": [
+        { "id": "stops", "text": "The skill stops and reports the existing tag or no new commits" },
+        { "id": "no-changes", "text": "No files, commits or tags are created or modified" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Cut a release",
+      "description": "Degenerate: no commits since the last tag",
+      "setup": "mkdir -p /tmp/eval-release-2 && cd /tmp/eval-release-2 && git init -q && echo '{\"name\":\"x\",\"version\":\"2.0.0\"}' > package.json && git add . && git commit -qm 'feat: init' && git tag v2.0.0",
+      "expected_output": "Says there is nothing to release and makes no changes",
+      "files": [],
+      "assertions": [
+        { "id": "nothing-to-release", "text": "The skill reports that there are no commits since v2.0.0" },
+        { "id": "no-edits", "text": "No version file or CHANGELOG is modified and no tag is created" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Release the next version and publish it on GitHub (the gh CLI is not installed in this environment)",
+      "description": "Breaking change with the gh CLI unavailable: major bump and graceful degradation",
+      "setup": "mkdir -p /tmp/eval-release-3 && cd /tmp/eval-release-3 && git init -q && echo '{\"name\":\"x\",\"version\":\"1.4.0\"}' > package.json && git add . && git commit -qm 'chore: init' && git tag v1.4.0 && echo a > a.txt && git add . && git commit -qm 'feat!: drop old API' && git init -q --bare /tmp/eval-release-3-remote.git && git remote add origin /tmp/eval-release-3-remote.git && echo 'Note: gh is not on PATH for this eval (run with PATH excluding gh)'",
+      "expected_output": "Proposes major bump 2.0.0; without gh, tags and pushes after confirmation but prints release notes and a manual release URL",
+      "files": [],
+      "assertions": [
+        { "id": "major-bump", "text": "The proposed bump is major (1.4.0 -> 2.0.0) due to the ! breaking marker" },
+        { "id": "gh-fallback", "text": "When gh is unavailable the skill prints release notes and a manual releases/new URL instead of failing" },
+        { "id": "user-override", "text": "The user is offered the chance to override the bump" }
+      ]
+    }
+  ]
+}
