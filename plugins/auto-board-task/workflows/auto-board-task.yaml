@@ -39,8 +39,8 @@
 # with "max_iterations reached" but `continue_on_error` lets the run end
 # `partial` instead of `failed`: the PR exists and needs a human.
 #
-# Needs workflow >= 1.3.0 (loop blocks) and task-agent >= 2.2.0 (`pr-reviewer`
-# writes `findings`).
+# Needs workflow >= 1.3.0 (loop blocks) and task-agent >= 3.0.0 (the `*-workflow`
+# adapter skills; `pr-reviewer-workflow` writes `findings`).
 #
 # Steps 2, 4, 5a and 5b set `inline: true`: each spawns its own sub-agent, and a
 # workflow step that runs as a subagent cannot spawn further agents.
@@ -88,7 +88,7 @@ steps:
       claim: "true"
 
   - id: run-task
-    skill: task-agent
+    skill: task-agent-workflow
     description: Implement the claimed task (first pending entry in tasks.yml) and open a PR.
     inline: true   # task-agent spawns the implementer; subagents cannot spawn agents
     args:
@@ -111,7 +111,7 @@ steps:
     continue_on_error: true   # still not clean after 3 passes -> the run ends `partial`, the PR waits for a human
     steps:
       - id: review
-        skill: pr-reviewer
+        skill: pr-reviewer-workflow
         description: Review the PR, run its checks in a throwaway worktree, and post the findings as one review.
         inline: true   # spawns the pr-reviewer agent
         args:
@@ -120,7 +120,7 @@ steps:
           branch: ${{ steps.run-task.output.branch }}
 
       - id: review-fix
-        skill: review-fixer
+        skill: review-fixer-workflow
         description: Apply fixes for the actionable review comments from trusted reviewers, run the repo's checks, and push. Skipped when the review is clean.
         inline: true   # spawns the review-fixer agent
         # `!= 0`, not `> 0`: a reviewer that did not report `findings` (null) still gets its fixer run.

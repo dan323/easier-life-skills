@@ -243,7 +243,7 @@ until the review is clean*:
   mirrored to `<s>/`, and `<s>/outputs.json` is written when the block
   ends.
 
-For `pr-reviewer` to drive the loop it must report a count: it writes
+For `pr-reviewer-workflow` to drive the loop it reports a count: it writes
 `{"findings": N, …}` to `$WORKFLOW_OUTPUT` (open findings: newly posted
 plus still-unresolved earlier ones), so `findings == 0` means clean. Any
 skill that writes a comparable field can drive a loop the same way.
@@ -286,9 +286,9 @@ fi
 
 ```yaml
 - id: run-task
-  skill: task-agent                      # writes {"pr_url": …, "branch": …}
+  skill: task-agent-workflow             # writes {"pr_url": …, "branch": …}
 - id: review
-  skill: pr-reviewer
+  skill: pr-reviewer-workflow
   args:
     pr_url: ${{ steps.run-task.output.pr_url }}      # steps.<step-id>.output.<output-key>
     branch: ${{ steps.run-task.output.branch }}
@@ -297,9 +297,12 @@ fi
 The keys are a contract between the skill that writes them and the
 steps that read them: the runner does **not** infer them, and
 expressions are evaluated by code against the file exactly as written.
-Document a skill's output keys in its `SKILL.md` (`task-agent`:
-`pr_url`, `repo`, `branch`; `pr-reviewer`: `findings`, `posted`,
-`already_raised`, `review_url`, `commit`). A key the skill did not write,
+Document a skill's output keys in its `SKILL.md` (`task-agent-workflow`:
+`status`, `pr_url`, `repo`, `branch`; `pr-reviewer-workflow`: `findings`,
+`posted`, `already_raised`, `review_url`, `commit`; `review-fixer-workflow`:
+`fixed`, `resolved`, `skipped`, `ignored`, `pushed`, `commit`). Generic skills
+such as `pr-reviewer` do not write `$WORKFLOW_OUTPUT` themselves: a thin
+`<skill>-workflow` adapter maps their `result` block (ADR 0016). A key the skill did not write,
 or a misspelt one, is `null` — silently falsy in an `if` or `until` — so
 use the exact names. Nested objects and arrays work too
 (`steps.<id>.output.items.0.name`). Keep the JSON small: counts, ids,

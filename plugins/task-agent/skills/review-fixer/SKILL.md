@@ -1,12 +1,12 @@
 ---
 name: review-fixer
-description: Reads unresolved review comments on a pull request — from the `pr-reviewer` agent, repo members, or allowlisted review bots — applies code fixes for the actionable ones, runs the repo's checks, and pushes. Thin skill wrapper around the `review-fixer` sub-agent — callable as a workflow step.
+description: Reads unresolved review comments on a pull request — from the `pr-reviewer` agent, repo members, or allowlisted review bots — applies code fixes for the actionable ones, runs the repo's checks, and pushes. Thin skill wrapper around the `review-fixer` sub-agent; ends with a machine-readable `result` block. In a workflow, use `review-fixer-workflow`.
 tools: Bash, PowerShell, Read, Glob, Grep, Agent
 ---
 
 # Review Fixer
 
-Wraps the `task-agent:review-fixer` sub-agent so it can be invoked as a workflow step. It fixes review comments no matter who left them, as long as the author is trusted (repo members, the account running the workflow, or an allowlisted review bot); comments from anyone else are reported and ignored. It replaces the former `copilot-review-fixer`.
+Wraps the `task-agent:review-fixer` sub-agent so it can be invoked as a skill. It fixes review comments no matter who left them, as long as the author is trusted (repo members, the account running the workflow, or an allowlisted review bot); comments from anyone else are reported and ignored. It replaces the former `copilot-review-fixer`.
 
 **Arguments** (key=value form):
 - `pr_url=<url>` — full GitHub PR URL (e.g. `https://github.com/owner/repo/pull/42`). Required.
@@ -39,7 +39,7 @@ Stop unless the PR is open, `headRefName` equals `branch`, and the head reposito
 
 ### Step 2 — Prepare the local clone
 
-Reuse the `task-agent` workdir convention so the clone is shared with a preceding `task-agent` step in the same workflow:
+Reuse the `task-agent` workdir convention so the clone is shared with a preceding `task-agent` run:
 
 ```bash
 WORKDIR="${TASK_AGENT_WORKDIR:-$(python3 -c 'import os,tempfile;print(os.path.join(tempfile.gettempdir(),"task-agent"))')}"
@@ -87,3 +87,16 @@ prompt so the agent can substitute them for `OWNER`, `REPO_NAME`, `PR_NUMBER`, `
 ### Step 4 — Relay the report
 
 Print the agent's report verbatim, including the "Ignored" list: it is how the user finds out that a comment from an untrusted author was deliberately not acted on.
+
+### Step 5 — Result block
+
+End your reply with one fenced `json` block, labelled `result:` on the line before it, after the relayed report:
+
+````
+result:
+```json
+{"fixed": 2, "resolved": 2, "skipped": 0, "ignored": 1, "pushed": true, "commit": "<sha>"}
+```
+````
+
+The counts are the `N` of the report's `Fixed`, `Resolved threads`, `Skipped` and `Ignored` lists. `pushed` is `true` only when a commit was pushed; `commit` is its SHA, or `""` when none. If the agent failed (a failing check, a rejected push), stop with that error and emit no block.

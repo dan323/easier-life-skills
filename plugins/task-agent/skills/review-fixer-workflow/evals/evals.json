@@ -1,0 +1,81 @@
+{
+  "skill_name": "review-fixer-workflow",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Run review-fixer-workflow pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change poll=0",
+      "description": "Happy path: the generic skill succeeds and the adapter maps its result block.",
+      "setup": "rm -rf /tmp/eval-review-fixer-workflow-0 && mkdir -p /tmp/eval-review-fixer-workflow-0 && export WORKFLOW_OUTPUT=/tmp/eval-review-fixer-workflow-0/output.json",
+      "expected_output": "$WORKFLOW_OUTPUT contains one JSON object with the keys fixed, resolved, skipped, ignored, pushed, commit, equal to the generic skill's result block.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "invokes-generic",
+          "text": "The `review-fixer` skill was invoked via the Skill tool, not a spawned agent"
+        },
+        {
+          "id": "output-keys",
+          "text": "$WORKFLOW_OUTPUT is valid JSON containing fixed, resolved, skipped, ignored, pushed, commit"
+        },
+        {
+          "id": "values-copied",
+          "text": "Values equal the generic skill's result block, not re-derived from the prose"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Run review-fixer-workflow pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change poll=0",
+      "description": "Standalone: $WORKFLOW_OUTPUT is unset; the adapter must just relay the report.",
+      "setup": "rm -rf /tmp/eval-review-fixer-workflow-1 && mkdir -p /tmp/eval-review-fixer-workflow-1 && export WORKFLOW_OUTPUT=/tmp/eval-review-fixer-workflow-1/output.json",
+      "expected_output": "The report is printed and no file is written.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-file",
+          "text": "No output file is created"
+        },
+        {
+          "id": "report-relayed",
+          "text": "The generic skill's report is printed"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run review-fixer-workflow pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change poll=0",
+      "description": "Degenerate: the generic skill fails, or its report has no valid result block.",
+      "setup": "rm -rf /tmp/eval-review-fixer-workflow-2 && mkdir -p /tmp/eval-review-fixer-workflow-2 && export WORKFLOW_OUTPUT=/tmp/eval-review-fixer-workflow-2/output.json",
+      "expected_output": "The adapter stops with the error and leaves $WORKFLOW_OUTPUT unwritten, so the step fails.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "stops",
+          "text": "The adapter reports the failure or the missing result block"
+        },
+        {
+          "id": "no-output",
+          "text": "$WORKFLOW_OUTPUT is absent or empty"
+        },
+        {
+          "id": "no-guess",
+          "text": "No values are guessed from the prose"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run review-fixer-workflow pr_url=https://github.com/example/demo/pull/7 repo=example/demo branch=task/change poll=0",
+      "description": "Idempotent re-run: running the adapter twice overwrites $WORKFLOW_OUTPUT rather than appending.",
+      "setup": "rm -rf /tmp/eval-review-fixer-workflow-3 && mkdir -p /tmp/eval-review-fixer-workflow-3 && export WORKFLOW_OUTPUT=/tmp/eval-review-fixer-workflow-3/output.json",
+      "expected_output": "The file holds a single valid JSON object after the second run.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "single-object",
+          "text": "$WORKFLOW_OUTPUT parses as a single JSON object after two runs"
+        }
+      ]
+    }
+  ]
+}

@@ -37,13 +37,13 @@ inputs:
 
 steps:
   - id: run-task
-    skill: task-agent
+    skill: task-agent-workflow
     description: Pick up the next pending task and open a PR. Not retried — see the header.
     args:
       tasks: ${{ inputs.tasks }}
 
   - id: review
-    skill: pr-reviewer
+    skill: pr-reviewer-workflow
     description: Review the PR — skipped when no PR was opened. Idempotent, so safe to retry.
     if: ${{ steps.run-task.output.pr_url }}
     retry: 1
@@ -53,7 +53,7 @@ steps:
       branch: ${{ steps.run-task.output.branch }}
 
   - id: review-fix
-    skill: review-fixer
+    skill: review-fixer-workflow
     description: Apply fixes for actionable review comments; a failure here does not fail the run.
     if: ${{ steps.run-task.output.pr_url }}
     continue_on_error: true
