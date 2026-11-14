@@ -1,23 +1,13 @@
 ---
 name: auto-board-task
 description: >
-  Process the top Todo card on a GitHub Project (v2) board end-to-end:
-  pull the board into a task-agent `tasks.yml`, claim the top Todo card
-  (moved to In Progress), run `task-agent` to open a PR for exactly that
-  task, sync the PR back to the card,
-  then review the PR with the `pr-reviewer` agent and apply fixes for
-  actionable comments. Use when the user says "work on the next
-  task", "do the next board task", "pick up the next GitHub project
-  item", "process the next card", "work on the next item in github
-  project", "run the next board task", "drain the top todo", "process
-  the top board todo", "auto-process the next card", or any phrasing
-  that means "take the next pending item from a GitHub Project board
-  and implement it". Composes `gh-project-sync` → `gh-project-sync` (claim) →
-  `task-agent` → `gh-project-sync` → `pr-reviewer` → `review-fixer` (skill
-  wrappers shipped by `task-agent`) via the `workflow` skill against the fixed YAML at
-  `${CLAUDE_PLUGIN_ROOT}/workflows/auto-board-task.yaml`. All
-  arguments are forwarded verbatim to the workflow runner;
-  validation happens there and inside the composed sub-skills.
+  Take the top Todo card on a GitHub Project (v2) board and carry it
+  through: claim it, implement it with `task-agent` (opens a PR), move the
+  card to In Review, then review and fix the PR until the review is clean.
+  Use for "work on the next task", "do the next board task", "process the
+  next card", "drain the top todo", or any request to take the next pending
+  item from a GitHub Project board and implement it. Runs the bundled
+  workflow via the `workflow` skill; arguments are forwarded to it.
 tools: Bash
 ---
 

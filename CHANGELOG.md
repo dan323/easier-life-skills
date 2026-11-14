@@ -39,6 +39,14 @@
 - Web UI: skills whose SKILL.md opens directly with a `Phase`/`Step` heading (e.g. `alirezarezvani/claude-skills` `interview`) had an empty SKILL.md preview; the excerpt now falls back to the opening of the body.
 
 ### Changed
+- **auto-board-task v1.5.0: the review loops until it is clean.** `review` (`pr-reviewer`) and `review-fix`
+  (`review-fixer`) are now a `review-loop` block that repeats them together until the review reports
+  `findings == 0`, at most 3 passes. `review-fix` is skipped on a clean pass and runs whenever `findings != 0`
+  (so a reviewer that does not report `findings` still gets its fixer). If the review is still not clean after
+  the last pass the run ends `partial`, not `failed`: the PR exists and needs a human. Needs `workflow` >= 1.3.0
+  (loop blocks) and `task-agent` >= 2.2.0 (`pr-reviewer` writes `findings`); these are now declared as
+  version-constrained `dependencies` in `plugin.json` (`{ "name": "task-agent", "version": ">=2.2.0" }`), so Claude Code
+  keeps the plugin disabled against an older install instead of letting the loop silently misbehave.
 - **workflow runner evaluates expressions in `scripts/wf_eval.py`.** Validation, conditions, loop lists and
   argument rendering share one deterministic, unit-tested helper (`scripts/test_wf_eval.py`) instead of the
   runner pre-resolving `${{ … }}` into placeholder markers; arguments are now rendered at run time from the
