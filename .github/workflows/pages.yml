@@ -2,8 +2,8 @@ name: CI / Deploy GitHub Pages
 
 on:
   push:
-    branches: ['**']
-  pull_request:
+    branches: [master]    # build + deploy; other branches are covered by the pull_request run
+  pull_request:           # tests the merge result; a branch push would run the identical job a second time
   workflow_dispatch:
   schedule:
     - cron: '0 3 * * *'   # daily at 03:00 UTC — keeps ratings fresh without code pushes
