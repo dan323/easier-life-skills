@@ -19,6 +19,7 @@
 - Web UI: skills whose SKILL.md opens directly with a `Phase`/`Step` heading (e.g. `alirezarezvani/claude-skills` `interview`) had an empty SKILL.md preview; the excerpt now falls back to the opening of the body.
 
 ### Changed
+- **CI runs once per PR.** `pages.yml` ran the identical build-and-test job for both the branch `push` and the `pull_request` event. It now triggers on `push` to `master` only (build + deploy), plus `pull_request`, `workflow_dispatch` and the daily schedule, so a PR gets a single run, on the merge result. Branches without a PR are no longer built.
 - Web UI: the SKILL.md preview no longer appears in the plugin panel (it only ever showed one of a bundle's skills); it is shown in the individual skill, agent and command panels only.
 - **Read-only tagging now means "no local or remote writes".** `isWriteTool` also treats `Agent`,
   `Task`, `Skill`, `SkillInvoke`, scoped `PowerShell(...)` (unless read-only) and mutating `mcp__*`
