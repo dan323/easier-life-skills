@@ -176,6 +176,44 @@ Each step needs an `id` (kebab-case, unique) and a `skill` (the name of an
 installed skill — it does not have to come from the same plugin).
 Interpolation reads from `inputs.<name>` and `steps.<id>.output`.
 
+Steps can also branch, repeat and tolerate failure:
+
+```yaml
+  - id: fix
+    skill: review-fixer
+    if: ${{ steps.pr.output.pr_url }}          # skipped (not failed) when empty
+    retry: 2                                   # re-run a failed attempt up to twice — only for steps that are safe to repeat
+    continue_on_error: true                    # a failure ends the run `partial`, not `failed`
+
+  - id: each
+    skill: task-agent
+    for_each: ${{ inputs.task_files }}         # a list, or a JSON array in a string
+    max_iterations: 10
+    args:
+      tasks: ${{ item }}                       # `index` is the 0-based position
+```
+
+To repeat **several steps together** — e.g. review, then fix, until the
+review is clean — put them in a *loop block*; each inner step keeps its own
+`agent:` / `inline:`:
+
+```yaml
+  - id: review-loop
+    until: ${{ steps.review.output.findings == 0 }}
+    max_iterations: 5
+    steps:
+      - id: review
+        skill: pr-reviewer
+      - id: fix
+        skill: review-fixer
+        if: ${{ steps.review.output.findings > 0 }}
+```
+
+`until: <condition>` repeats a step (or block) until the condition is true and
+**requires** `max_iterations` — unbounded loops are rejected. Conditions use
+a small expression language (`==`, `!=`, `<`, `>`, `!`, `&&`, `||`, no
+code execution); see the *Conditions* and *Loops* sections of the schema.
+
 The full schema lives in
 [`plugins/workflow/references/format.md`](../plugins/workflow/references/format.md);
 the canonical example is
@@ -187,6 +225,40 @@ invokes the same skill twice under different step `id`s, and threads
 `${{ inputs.* }}` interpolation through every step without relying on
 any step's output. Use it as a template when writing workflows that
 compose independent skills.
+[`conditional-review.yaml`](../plugins/workflow/examples/conditional-review.yaml)
+and [`drain-and-fix.yaml`](../plugins/workflow/examples/drain-and-fix.yaml)
+demonstrate `if` / `retry` / `continue_on_error` and `for_each` / `until`;
+[`review-until-clean.yaml`](../plugins/workflow/examples/review-until-clean.yaml)
+shows a loop block.
+
+### Passing data between steps
+
+A skill that is meant to be used as a workflow step should **give
+structured output**: when `$WORKFLOW_OUTPUT` is set, it writes a JSON
+object to that path at the end of its run. Every key is then available to
+later steps as `steps.<step-id>.output.<output-key>`:
+
+```bash
+if [ -n "$WORKFLOW_OUTPUT" ]; then
+  printf '{"pr_url":"%s","repo":"%s"}' "$PR_URL" "$REPO" > "$WORKFLOW_OUTPUT"
+fi
+```
+
+```yaml
+  - id: review
+    skill: pr-reviewer
+    args:
+      pr_url: ${{ steps.run-task.output.pr_url }}      # step id `run-task`, output key `pr_url`
+```
+
+The keys are not inferred: a step can only read keys the skill actually
+wrote, and a missing or misspelt key is `null` (silently falsy in `if` /
+`until`). So list the output keys in the skill's `SKILL.md` — see the
+"Emit workflow output" steps of `task-agent` (`pr_url`, `repo`, `branch`) and
+`pr-reviewer` (`findings`, `posted`, `already_raised`, `review_url`,
+`commit`). A skill that writes nothing still composes (its stdout becomes
+the string `steps.<id>.output`), but that is only useful for passing text
+on, not for branching or looping.
 
 ### Run it
 
@@ -196,7 +268,12 @@ workflow path/to/<name>.yaml feature_count=5
 
 The runner writes step outputs and a `workflow-output.json` summary to
 `.workflow-runs/<name>-<timestamp>/`. The workflow YAML itself is never
-modified.
+modified. The overall status is `success`, `partial` (a step failed but had
+`continue_on_error`) or `failed` (the run halted).
+
+If you change the expression language, run its tests:
+`python3 -m unittest plugins/workflow/scripts/test_wf_eval.py` (not part of
+the vitest CI suite).
 
 ## Adding Hooks to a Plugin
 

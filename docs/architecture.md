@@ -427,8 +427,25 @@ The runner parses the YAML, validates inputs and step ids, resolves
 `Agent` tool. Each step's output is captured either from `$WORKFLOW_OUTPUT`
 (a per-step JSON file) or from stdout as a fallback, so older skills that
 don't write structured output still compose. Execution is **strictly
-sequential**; if a step exits non-zero the runner halts immediately and
-writes a summary marking subsequent steps as `skipped`.
+sequential**; if a step fails (and does not set `continue_on_error`) the
+runner halts immediately and writes a summary marking subsequent steps as
+`skipped`.
+
+A step can also be **skipped** (`if:`), **repeated** (`for_each:`, or
+`until:` with a mandatory `max_iterations:`), **retried** (`retry: N`, max
+5) or **allowed to fail** (`continue_on_error: true`, which ends the run
+`partial`). A **loop block** (a step with its own `steps:` list) repeats a
+group of steps together — *review, fix, repeat until the review is clean* —
+with a separate `agent:` / `inline:` per inner step; blocks do not nest. The
+conditions use a minimal expression language (references, literals, `==`,
+`!=`, `<`, `<=`, `>`, `>=`, `!`, `&&`, `||`) that is tokenised and parsed by
+`plugins/workflow/scripts/wf_eval.py` — never `eval()`. The runner does not
+evaluate expressions itself: validation, conditions, loop lists and
+argument rendering all go through that script, so the result is
+deterministic. Each step leaves a `status.json` next to its `output.json`
+(and loops a `<k>/` directory per iteration plus an `outputs.json`), and
+`workflow-output.json` is built from them. The rationale is recorded in
+[`adr/0001-minimal-expression-language.md`](../plugins/workflow/skills/workflow/adr/0001-minimal-expression-language.md).
 
 The authoritative schema lives in
 [`plugins/workflow/references/format.md`](../plugins/workflow/references/format.md);
@@ -440,14 +457,20 @@ covers the rest of the surface in one file — defaulted, required, and
 optional `inputs:`, the same skill invoked under two different step
 `id`s, and `${{ inputs.* }}` interpolation threaded through every
 step without any output-to-input passing.
+[`conditional-review.yaml`](../plugins/workflow/examples/conditional-review.yaml)
+shows `if:`, `retry` and `continue_on_error`, and
+[`drain-and-fix.yaml`](../plugins/workflow/examples/drain-and-fix.yaml) shows
+`for_each` and `until` / `max_iterations`, and
+[`review-until-clean.yaml`](../plugins/workflow/examples/review-until-clean.yaml)
+shows a loop block (review and fix as different agents, repeated until clean).
 
-### Future work (deferred from v1)
+### Future work
 
 | Feature                 | Why deferred                                                                                              |
 |-------------------------|-----------------------------------------------------------------------------------------------------------|
-| Conditional steps (`if:`) | Adds an expression evaluator surface — defer until linear execution proves useful.                        |
 | Parallel fan-out          | Requires resolving cross-branch dependencies; sequential covers the high-value cases first.               |
-| Retries / backoff         | Encourages hiding flaky skills instead of fixing them.                                                    |
+| Nested loop blocks / `else` | A block repeats flat inner steps; nesting (and `else`, today a negated `if`) would complicate the file layout and the summary. |
+| Retry backoff             | Retries are immediate and capped at 5; add delays only if a real flaky-service case needs them.           |
 | Secrets injection         | Needs a secrets-store contract; for v1, secrets are passed as inputs by the caller.                       |
 | Top-level `outputs:`      | A curated subset of step outputs is a v2 refinement once nested compositions exist.                       |
 | Marketplace entity        | Workflows are currently plugin-internal config. Promote to a first-class entity only when multiple external marketplaces start authoring them. |

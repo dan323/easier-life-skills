@@ -128,6 +128,242 @@
           "text": "No Skill or Agent call is made for step `both`, and no `output.json` exists under `.workflow-runs/conflict-*`."
         }
       ]
+    },
+    {
+      "id": 6,
+      "prompt": "workflow /tmp/eval-workflow-6/skip.yaml",
+      "description": "Conditional — `if` evaluates false, so the step is recorded as `skipped` (not failed) and later steps still run. A later step reads `steps.publish.status`.",
+      "setup": "mkdir -p /tmp/eval-workflow-6 && cat > /tmp/eval-workflow-6/skip.yaml << 'EOF'\nname: skip-step\ndescription: A step skipped by a false condition.\ninputs:\n  - name: dry_run\n    default: true\nsteps:\n  - id: pick\n    skill: stub-pick\n  - id: publish\n    skill: stub-render\n    if: ${{ !inputs.dry_run }}\n  - id: after\n    skill: stub-pick\n    args:\n      published: ${{ steps.publish.status }}\nEOF",
+      "expected_output": "`publish` is skipped with reason `condition false` and no Skill/Agent call is made for it. `after` runs and receives `published: skipped`. The workflow status is `success`.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "workflow-success",
+          "text": "workflow-output.json has top-level `status: success` — a skipped step does not fail the run."
+        },
+        {
+          "id": "publish-skipped",
+          "text": "The `publish` entry has `status: skipped`, `reason: condition false` and no `output_path`; no Skill or Agent call was made for it."
+        },
+        {
+          "id": "after-ran",
+          "text": "The `after` step ran and its resolved `published` argument is the string `skipped`."
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "workflow /tmp/eval-workflow-7/for-each.yaml",
+      "description": "Loop — `for_each` over a JSON-array input. Each run sees `item` and `index`; later steps read the per-iteration `outputs` array.",
+      "setup": "mkdir -p /tmp/eval-workflow-7 && cat > /tmp/eval-workflow-7/for-each.yaml << 'EOF'\nname: for-each\ndescription: Run a step once per element.\ninputs:\n  - name: names\n    default: '[\"alpha\",\"beta\",\"gamma\"]'\nsteps:\n  - id: greet\n    skill: stub-render\n    for_each: ${{ inputs.names }}\n    args:\n      name: ${{ item }}\n      position: ${{ index }}\n  - id: collect\n    skill: stub-render\n    args:\n      all: ${{ steps.greet.outputs }}\nEOF",
+      "expected_output": "`greet` runs three times in order, receiving (alpha, 0), (beta, 1), (gamma, 2). `greet/0` … `greet/2` hold each iteration's files; `greet/outputs.json` has three entries and `greet/output.json` is the last one. `collect` receives the three-element array.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "three-runs-in-order",
+          "text": "`greet` is run exactly three times, in order, with `name`/`position` equal to alpha/0, beta/1, gamma/2."
+        },
+        {
+          "id": "iteration-layout",
+          "text": "`greet/0/output.json`, `greet/1/output.json`, `greet/2/output.json` and `greet/outputs.json` (three entries) exist."
+        },
+        {
+          "id": "summary-iterations",
+          "text": "The `greet` entry in workflow-output.json has `iterations: 3` and an `outputs_path`."
+        },
+        {
+          "id": "array-forwarded",
+          "text": "`collect` receives a three-element array as `all`."
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "workflow /tmp/eval-workflow-8/retry.yaml",
+      "description": "Failure handling — `retry: 1` on a step whose first attempt fails (`stub-flaky` fails on its first call, succeeds on the second). The step must succeed and record `attempts: 2`.",
+      "setup": "mkdir -p /tmp/eval-workflow-8 && cat > /tmp/eval-workflow-8/retry.yaml << 'EOF'\nname: retry-success\ndescription: A flaky step recovered by retry.\nsteps:\n  - id: flaky\n    skill: stub-flaky\n    retry: 1\n  - id: next\n    skill: stub-pick\nEOF",
+      "expected_output": "`flaky` fails once, is re-run, and succeeds. The summary shows `attempts: 2` and the workflow continues to `next`; overall status is `success`.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "flaky-succeeds",
+          "text": "The `flaky` entry has `status: success` and `attempts: 2`."
+        },
+        {
+          "id": "next-ran",
+          "text": "The `next` step ran after `flaky`."
+        },
+        {
+          "id": "workflow-success",
+          "text": "workflow-output.json has top-level `status: success`."
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "workflow /tmp/eval-workflow-9/max-iterations.yaml",
+      "description": "Loop cap — an `until` condition that never becomes true must stop at `max_iterations` and fail the step with `reason: max_iterations reached`; the run halts and later steps are skipped.",
+      "setup": "mkdir -p /tmp/eval-workflow-9 && cat > /tmp/eval-workflow-9/max-iterations.yaml << 'EOF'\nname: max-iterations\ndescription: until never satisfied.\nsteps:\n  - id: spin\n    skill: stub-pick\n    until: ${{ steps.spin.output.done }}\n    max_iterations: 2\n  - id: never\n    skill: stub-pick\nEOF",
+      "expected_output": "`spin` runs exactly twice, then fails with `max_iterations reached`. The workflow status is `failed` and `never` is `skipped` (`earlier step failed`).",
+      "files": [],
+      "assertions": [
+        {
+          "id": "exactly-two-runs",
+          "text": "`stub-pick` is run exactly twice for `spin` (`spin/0` and `spin/1` exist, `spin/2` does not)."
+        },
+        {
+          "id": "spin-failed",
+          "text": "The `spin` entry has `status: failed`, `iterations: 2` and `reason: max_iterations reached`."
+        },
+        {
+          "id": "halted",
+          "text": "workflow-output.json has `status: failed` and `never` is `skipped` with no output_path."
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "workflow /tmp/eval-workflow-10/unbounded.yaml",
+      "description": "Validation — an `until` loop without `max_iterations` is unbounded and must be rejected before any step runs.",
+      "setup": "mkdir -p /tmp/eval-workflow-10 && cat > /tmp/eval-workflow-10/unbounded.yaml << 'EOF'\nname: unbounded\ndescription: Invalid unbounded loop.\nsteps:\n  - id: spin\n    skill: stub-pick\n    until: ${{ steps.spin.output.done }}\nEOF",
+      "expected_output": "The runner reports ``Step 'spin': `until` requires `max_iterations` (unbounded loops are rejected).`` and runs nothing.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "error-unbounded",
+          "text": "The output contains `requires `max_iterations``."
+        },
+        {
+          "id": "no-steps-run",
+          "text": "No Skill or Agent call is made for step `spin`, and no `output.json` exists under `.workflow-runs/unbounded-*`."
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "workflow /tmp/eval-workflow-11/continue.yaml",
+      "description": "Failure handling — `continue_on_error: true` lets the run carry on after a failed step; the workflow ends `partial`, not `failed`.",
+      "setup": "mkdir -p /tmp/eval-workflow-11 && cat > /tmp/eval-workflow-11/continue.yaml << 'EOF'\nname: continue-on-error\ndescription: A tolerated failure.\nsteps:\n  - id: boom\n    skill: stub-fail\n    continue_on_error: true\n  - id: after\n    skill: stub-pick\n    if: ${{ steps.boom.status == \"failed\" }}\nEOF",
+      "expected_output": "`boom` is `failed` with its stderr recorded, but the run continues: `after` runs (its condition reads `steps.boom.status`). Top-level status is `partial`.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "partial-status",
+          "text": "workflow-output.json has top-level `status: partial`."
+        },
+        {
+          "id": "boom-failed",
+          "text": "The `boom` entry has `status: failed` and a `stderr` field."
+        },
+        {
+          "id": "after-ran",
+          "text": "`after` ran (its entry has `status: success`) because `steps.boom.status` was `failed`."
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "workflow /tmp/eval-workflow-12/legacy.yaml",
+      "description": "Backwards compatibility — a workflow written before `if`/loops/retry existed must behave exactly as it did: one run per step, strictly in order, a plain `steps/<id>/output.json` layout, and no per-iteration directories.",
+      "setup": "mkdir -p /tmp/eval-workflow-12 && cat > /tmp/eval-workflow-12/legacy.yaml << 'EOF'\nname: legacy\ndescription: A pre-control-flow workflow.\ninputs:\n  - name: feature_count\n    default: 2\nsteps:\n  - id: pick\n    skill: stub-pick\n    args:\n      n: ${{ inputs.feature_count }}\n  - id: render\n    skill: stub-render\n    inputs:\n      picked: ${{ steps.pick.output }}\nEOF",
+      "expected_output": "Two steps run once each, in order. Files live directly at `pick/output.json` and `render/output.json` (no numbered sub-directories, no `outputs.json`). Status is `success`; entries carry no `reason`.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "single-runs",
+          "text": "Each step is run exactly once; there are no numbered iteration directories and no `outputs.json` under `.workflow-runs/legacy-*`."
+        },
+        {
+          "id": "plain-layout",
+          "text": "`pick/output.json` and `render/output.json` exist directly under the run directory."
+        },
+        {
+          "id": "workflow-success",
+          "text": "workflow-output.json has `status: success` and no entry has a `reason` field."
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "workflow /tmp/eval-workflow-13/review-until-clean.yaml",
+      "description": "Loop block — review, then fix, repeated until the review reports no findings. `stub-review` reports findings 2, 1, 0 on successive calls; `stub-fix` succeeds. The reviewer and the fixer run as different agents, and `fix` is skipped on the clean pass without exposing the previous pass's output.",
+      "setup": "mkdir -p /tmp/eval-workflow-13 && cat > /tmp/eval-workflow-13/review-until-clean.yaml << 'EOF'\nname: review-until-clean\ndescription: Review and fix until clean.\nsteps:\n  - id: loop\n    until: ${{ steps.review.output.findings == 0 }}\n    max_iterations: 5\n    steps:\n      - id: review\n        skill: stub-review\n        agent: general-purpose\n      - id: fix\n        skill: stub-fix\n        inline: true\n        if: ${{ steps.review.output.findings > 0 }}\nEOF",
+      "expected_output": "Calls happen in the order review, fix, review, fix, review (three passes). The block ends `success` with `iterations: 3`. `review/outputs.json` is `[{findings: 2}, {findings: 1}, {findings: 0}]`, `fix/outputs.json` ends with `null`, and there is no `fix/output.json` after the run (skipped on the last pass).",
+      "files": [],
+      "assertions": [
+        {
+          "id": "pass-order",
+          "text": "`stub-review` and `stub-fix` run in the order review, fix, review, fix, review — `stub-fix` does not run on the third pass."
+        },
+        {
+          "id": "block-succeeds",
+          "text": "The `loop` entry has `status: success` and `iterations: 3`; its inner `review` and `fix` entries are nested under `steps`, and workflow-output.json has `status: success`."
+        },
+        {
+          "id": "per-pass-layout",
+          "text": "`loop/0/review/output.json`, `loop/1/review/output.json` and `loop/2/review/output.json` exist, and `review/outputs.json` has three entries."
+        },
+        {
+          "id": "no-stale-fix-output",
+          "text": "After the run `fix/output.json` does not exist, `fix/outputs.json` ends with `null`, and the `fix` entry has `status: skipped`."
+        },
+        {
+          "id": "different-agents",
+          "text": "The review step is run by a `general-purpose` agent and the fix step runs inline in the runner — each inner step uses its own placement."
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "workflow /tmp/eval-workflow-14/loop-cap.yaml",
+      "description": "Loop block cap — the review never gets clean (`stub-review` always reports 1 finding). The block must stop after `max_iterations` passes and fail with `reason: max_iterations reached`; the block's `continue_on_error: true` makes the run `partial` and lets a later step run.",
+      "setup": "mkdir -p /tmp/eval-workflow-14 && cat > /tmp/eval-workflow-14/loop-cap.yaml << 'EOF'\nname: loop-cap\ndescription: A loop block that never converges.\nsteps:\n  - id: loop\n    until: ${{ steps.review.output.findings == 0 }}\n    max_iterations: 2\n    continue_on_error: true\n    steps:\n      - id: review\n        skill: stub-review\n      - id: fix\n        skill: stub-fix\n  - id: after\n    skill: stub-pick\nEOF",
+      "expected_output": "Exactly two passes run (review, fix, review, fix). The `loop` entry is `failed` with `iterations: 2` and `reason: max_iterations reached`. `after` still runs. Overall status is `partial`.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "two-passes",
+          "text": "`stub-review` and `stub-fix` are each run exactly twice; `loop/2` does not exist."
+        },
+        {
+          "id": "block-failed",
+          "text": "The `loop` entry has `status: failed`, `iterations: 2` and `reason: max_iterations reached`."
+        },
+        {
+          "id": "after-ran",
+          "text": "The `after` step ran and has `status: success`."
+        },
+        {
+          "id": "partial-status",
+          "text": "workflow-output.json has top-level `status: partial`."
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "workflow /tmp/eval-workflow-15/bad-block.yaml",
+      "description": "Validation — a loop block with no loop condition, a nested loop on an inner step, and an inner id that duplicates a top-level id must all be rejected before any step runs.",
+      "setup": "mkdir -p /tmp/eval-workflow-15 && cat > /tmp/eval-workflow-15/bad-block.yaml << 'EOF'\nname: bad-block\ndescription: Invalid loop blocks.\nsteps:\n  - id: review\n    skill: stub-pick\n  - id: no-loop\n    steps:\n      - id: one\n        skill: stub-pick\n  - id: nested\n    until: ${{ steps.two.status == \"success\" }}\n    max_iterations: 2\n    steps:\n      - id: two\n        skill: stub-pick\n        for_each: ${{ inputs.xs }}\n      - id: review\n        skill: stub-pick\nEOF",
+      "expected_output": "The runner reports all three problems — a loop block needs `for_each` or `until`; `for_each` is not allowed inside a loop block (no nested loops); duplicate step id 'review' — and runs nothing.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "error-needs-loop",
+          "text": "The output contains ``a loop block needs `for_each` or `until` ``for step `no-loop`."
+        },
+        {
+          "id": "error-nested",
+          "text": "The output contains `no nested loops` for step `two`."
+        },
+        {
+          "id": "error-duplicate-id",
+          "text": "The output contains `duplicate step id 'review'`."
+        },
+        {
+          "id": "no-steps-run",
+          "text": "No Skill or Agent call is made, and no `output.json` exists under `.workflow-runs/bad-block-*`."
+        }
+      ]
     }
   ]
 }

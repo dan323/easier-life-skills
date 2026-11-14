@@ -8,8 +8,11 @@ description: >
   workflow definition. Arguments follow a `key=value` grammar: the
   first positional value is the workflow file path, remaining
   `key=value` pairs are workflow inputs. The runner executes steps
-  strictly in order, halts on the first non-zero exit, and writes a
-  summary JSON to the workflow directory.
+  in order, supports `if` conditions, `for_each` / `until` loops
+  (including loop blocks that repeat several steps together, e.g. review
+  then fix until the review is clean), `retry` and `continue_on_error`,
+  halts on the first unhandled failure, and writes a summary JSON to
+  the workflow directory.
 tools: Bash, PowerShell, Read, Write, Glob, Grep, Agent, TaskCreate, TaskUpdate
 ---
 
@@ -19,7 +22,10 @@ Execute a workflow YAML file step-by-step. Each step runs one skill,
 by default in a fresh subagent (`claude` type, or the step's `agent:`),
 or in this conversation when the step sets `inline: true`. The runner
 captures each step's output and threads it forward
-through `${{ steps.<id>.output }}` interpolation. The full format is
+through `${{ steps.<id>.output }}` interpolation. A step can be
+skipped (`if`), repeated (`for_each`, `until`), retried (`retry`) or
+allowed to fail (`continue_on_error`); a **loop block** (a step with its
+own `steps:`) repeats a group of steps together. The full format is
 specified in [`references/format.md`](../../references/format.md) —
 read that file first if the user's workflow uses features that aren't
 in the example below.
@@ -40,7 +46,7 @@ Before doing any work, call `TaskCreate` for each phase below. Call
 - Parse arguments
 - Load and validate workflow YAML
 - Resolve inputs and step plan
-- Execute steps sequentially
+- Execute steps in order (conditions, loops, retries)
 - Write summary and report
 
 ---
@@ -246,7 +252,7 @@ else:
                 errors.append(f"Duplicate step id '{sid}'.")
             else:
                 seen_ids.add(sid)
-            if not step.get("skill"):
+            if not step.get("skill") and "steps" not in step:   # a loop block groups inner steps instead
                 errors.append(f"Step '{sid or idx}' missing `skill`.")
             if "agent" in step and (not isinstance(step["agent"], str) or not step["agent"].strip()):
                 errors.append(f"Step '{sid or idx}': `agent` must be a non-empty agent type name.")
@@ -281,105 +287,65 @@ if errors:
 EOF
 ```
 
+Then validate the step fields and every expression (`if`, `for_each`,
+`until`, `max_iterations`, `retry`, `continue_on_error`, and each
+`${{ … }}` in `args`), loop blocks and their inner steps. The helper uses
+a small hand-written parser — it never runs workflow text as code.
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/wf_eval.py" validate /tmp/workflow-parsed.json
+```
+
 If validation fails, surface every error to the user and stop. Do not
-attempt to execute a half-valid workflow.
+attempt to execute a half-valid workflow. Unbounded loops (`until`
+without `max_iterations`), forward references and expression syntax
+errors are all caught here, before any step runs.
 
 ---
 
-## Phase 3: Resolve the step plan
+## Phase 3: Build the step plan
 
-For each step, build the concrete arguments object by substituting
-every `${{ … }}` placeholder. Steps may only reference earlier steps;
-forward references are a validation error.
+Copy each step into a plan, keeping every `${{ … }}` **unresolved**.
+Expressions are evaluated at run time (Phase 4), because `if`,
+`for_each`, `until` and later steps' `args` depend on what earlier
+steps actually produced.
 
 ```bash
 python3 - <<'EOF'
-import json, re, sys
+import json
 
 data = json.load(open("/tmp/workflow-parsed.json"))
-wf, inputs = data["workflow"], data["inputs"]
-steps = wf["steps"]
-
-EXPR = re.compile(r"\$\{\{\s*(.+?)\s*\}\}")
-
-resolved_steps = []
-output_store = {}  # step_id -> (placeholder — actual output filled later)
-
-errors = []
-
-def resolve_value(value, step_idx):
-    if isinstance(value, dict):
-        return {k: resolve_value(v, step_idx) for k, v in value.items()}
-    if isinstance(value, list):
-        return [resolve_value(v, step_idx) for v in value]
-    if not isinstance(value, str):
-        return value
-    matches = list(EXPR.finditer(value))
-    if not matches:
-        return value
-    # Whole-string substitution preserves type when value is exactly one expression.
-    if len(matches) == 1 and matches[0].group(0) == value.strip():
-        return resolve_expr(matches[0].group(1), step_idx, raw=True)
-    # Embedded — stringify.
-    out = []
-    last = 0
-    for m in matches:
-        out.append(value[last:m.start()])
-        out.append(str(resolve_expr(m.group(1), step_idx, raw=False)))
-        last = m.end()
-    out.append(value[last:])
-    return "".join(out)
-
-def resolve_expr(expr, step_idx, raw):
-    parts = expr.split(".")
-    head = parts[0]
-    if head == "inputs":
-        if len(parts) != 2:
-            errors.append(f"Step {step_idx}: invalid inputs expression `{expr}`.")
-            return ""
-        return inputs.get(parts[1], "")
-    if head == "steps":
-        if len(parts) < 3 or parts[2] != "output":
-            errors.append(f"Step {step_idx}: invalid steps expression `{expr}`.")
-            return ""
-        ref_id = parts[1]
-        seen_before = any(s["id"] == ref_id for s in steps[:step_idx])
-        if not seen_before:
-            errors.append(f"Step {step_idx}: `${{{{ steps.{ref_id}.output }}}}` references step that has not run yet.")
-            return ""
-        # Marker — the executor replaces this at runtime with the captured output.
-        if len(parts) == 3:
-            return f"<<OUTPUT:{ref_id}>>"
-        return f"<<OUTPUT:{ref_id}:{'.'.join(parts[3:])}>>"
-    errors.append(f"Step {step_idx}: unknown expression head `{head}`.")
-    return ""
-
-for idx, step in enumerate(steps):
-    args = step.get("args") or step.get("inputs") or {}
-    resolved = resolve_value(args, idx)
-    resolved_steps.append({
+def build(step):
+    entry = {
         "id": step["id"],
-        "skill": step["skill"],
+        "skill": step.get("skill"),          # None for a loop block
         "description": step.get("description", ""),
         "agent": step.get("agent") or "claude",
         "inline": step.get("inline") is True,
-        "args": resolved,
-    })
+        "args": step.get("args") or step.get("inputs") or {},
+        "if": step.get("if"),
+        "for_each": step.get("for_each"),
+        "until": step.get("until"),
+        "max_iterations": step.get("max_iterations"),
+        "retry": step.get("retry") or 0,
+        "continue_on_error": step.get("continue_on_error") is True,
+    }
+    if "steps" in step:                      # loop block: its inner steps are leaf steps
+        entry["steps"] = [build(child) for child in step["steps"]]
+    return entry
+
+
+plan = [build(step) for step in data["workflow"]["steps"]]
 
 with open("/tmp/workflow-plan.json", "w") as f:
-    json.dump({"plan": resolved_steps, "errors": errors}, f, indent=2)
-
-print(json.dumps({"plan": resolved_steps, "errors": errors}, indent=2))
-if errors:
-    sys.exit(1)
+    json.dump({"plan": plan}, f, indent=2)
+print(json.dumps({"plan": plan}, indent=2))
 EOF
 ```
 
-If any errors come back, halt and report.
-
 ---
 
-## Phase 4: Execute steps sequentially
+## Phase 4: Execute steps
 
 Create the workflow directory once, then loop through the plan.
 
@@ -392,20 +358,160 @@ echo "$WORKFLOW_DIR" > /tmp/workflow-dir
 echo "Workflow output directory: $WORKFLOW_DIR"
 ```
 
-For each step in the plan, in order:
+Work through the plan in order. For each step, follow the
+**lifecycle** below; "Running one attempt" (further down) describes the
+mechanics of a single run of the skill.
 
-1. Read the resolved `args` from `/tmp/workflow-plan.json`. Replace
-   every `<<OUTPUT:<id>[.<key>]>>` marker by reading
-   `$WORKFLOW_DIR/<id>/output.json` (parse as JSON if possible,
-   otherwise treat as raw text):
+All expression handling goes through one helper, so you never evaluate
+`${{ … }}` or a condition yourself:
+
+```bash
+EVAL="${CLAUDE_PLUGIN_ROOT}/scripts/wf_eval.py"
+# --what if | until -> prints true/false; for_each -> JSON list; args -> JSON object
+python3 "$EVAL" step /tmp/workflow-parsed.json "$WORKFLOW_DIR" \
+  --plan /tmp/workflow-plan.json --id "<step-id>" --what <if|until|for_each|args> \
+  [--item @<path-to-item.json>] [--index <k>]
+```
+
+Exit code `2` means the expression could not be evaluated (the error is
+on stderr): treat it as a failed step with that message as its stderr.
+
+Shell state does not persist between tool calls, so begin every command
+that uses the helper with
+`WORKFLOW_DIR=$(cat /tmp/workflow-dir); EVAL="${CLAUDE_PLUGIN_ROOT}/scripts/wf_eval.py"; …`.
+
+**Lifecycle of a step**
+
+1. **Condition.** If the step has `if`, run the helper with
+   `--what if`. `false` → write
+   `{"status":"skipped","reason":"condition false"}` to
+   `$WORKFLOW_DIR/<id>/status.json` and move to the next step. A
+   skipped step has no output (`steps.<id>.output` is empty/falsy) and
+   counts as neither success nor failure.
+2. **Plan the runs.**
+   - *Plain step* (no `for_each` / `until`): one run.
+   - `for_each`: run the helper with `--what for_each` to get the JSON
+     list. Run once per element, in order, `index` = 0, 1, … Write each
+     element to `$WORKFLOW_DIR/<id>/<index>/item.json` and pass
+     `--item @…/item.json --index <index>` when rendering `args`. An
+     empty list runs nothing and the step is `success` with `outputs: []`.
+   - `until`: run at least once, then after every run evaluate
+     `--what until --index <index>`; stop when it prints `true`. The
+     step never runs more than `max_iterations` times.
+3. **Each run** (an iteration; the only run of a plain step) is
+   *Running one attempt*, retried up to `retry` extra times if it
+   fails. For looped steps the files of iteration `<index>` live in
+   `$WORKFLOW_DIR/<id>/<index>/`; plain steps use `$WORKFLOW_DIR/<id>/`
+   as before. After the run, **mirror** the iteration's `output.json`
+   and `stderr.log` to `$WORKFLOW_DIR/<id>/` (so `steps.<id>.output`
+   is always the latest iteration) and write
+   `$WORKFLOW_DIR/<id>/status.json`:
+
+   ```json
+   {"status": "success", "attempts": 1, "iterations": 1}
+   ```
+
+   `status` is that run's outcome (`success` or `failed`), `attempts`
+   the number of tries it took, `iterations` how many runs the step has
+   made so far. Writing it after every run is what lets an `until`
+   condition read `steps.<id>.status` of the latest iteration.
+4. **A run failed** (after its retries) →
+   - without `continue_on_error`: **halt** the whole workflow now —
+     run nothing else; record the failure for Phase 5.
+   - with `continue_on_error: true`: keep going — the next iteration
+     (loops) or the next step (plain). The step's final status is
+     `failed` and the workflow status will be `partial`.
+5. **Loop end conditions.** `until` true → stop, step `success`. The
+   `max_iterations`-th run finished with `until` still false → the
+   step **fails** with `"reason": "max_iterations reached"` (handled
+   like step 4). `for_each` finishes when the list is exhausted; the
+   step is `failed` if any iteration failed (only possible with
+   `continue_on_error`).
+6. **Finish the step.** For a looped step, collect the per-iteration
+   outputs into `$WORKFLOW_DIR/<id>/outputs.json`, then write the final
+   `status.json` (`status`, `attempts` of the last run, `iterations`,
+   and `reason` if any):
+
+   ```bash
+   python3 "$EVAL" collect "$WORKFLOW_DIR" --id "<id>"
+   ```
+
+**Loop blocks.** A plan entry with `steps` is a *loop block*: it repeats
+its inner steps together. It has no skill or args of its own, so only
+the lifecycle steps 1, 2, 5 and 6 apply to the block itself (its `if`,
+its `for_each` list or `until` condition, its `max_iterations`); the
+inner steps are run like this:
+
+- **A pass** (iteration `<k>`) runs every inner step, in order, through
+  lifecycle steps 1, 3 and 4 — its own `if` (evaluated on every pass,
+  with `--index <k>` and, in a `for_each` block, `--item`), its own
+  `retry`, `continue_on_error`, `agent` / `inline`. Inner steps never
+  loop themselves.
+- **Files.** Inner step `<inner>` on pass `<k>` works in
+  `$WORKFLOW_DIR/<block>/<k>/<inner>/` (in a `for_each` block write the
+  element to `$WORKFLOW_DIR/<block>/<k>/item.json`). After each inner
+  run, **mirror** its `output.json` and `stderr.log` to
+  `$WORKFLOW_DIR/<inner>/` and write `$WORKFLOW_DIR/<inner>/status.json`
+  — so `steps.<inner>.*` always reads the latest pass. An inner step
+  that was **skipped** on this pass gets
+  `{"status":"skipped","reason":"condition false"}` and its mirrored
+  `output.json` and `stderr.log` are **deleted**, so it never exposes a
+  previous pass's output.
+- **After each pass** write `$WORKFLOW_DIR/<block>/status.json`
+  (`{"status":"success","iterations":<k+1>}`), then check the stop
+  condition: `until` → `--what until --index <k>`; `for_each` → no more
+  elements. Cap reached with `until` still false → the block fails with
+  `"reason": "max_iterations reached"`; the **block's**
+  `continue_on_error` decides whether that halts the run.
+- **An inner step fails** (after its retries): without its own
+  `continue_on_error` the whole run halts — write the block's
+  `status.json` as `failed` first, and record the failure.
+- **Finish.** For each inner step run
+  `python3 "$EVAL" collect "$WORKFLOW_DIR" --id "<inner>" --block "<block>"`
+  (its per-pass outputs, `null` for passes where it was skipped), then
+  write the block's final `status.json`.
+
+Example — review, then fix, until the review is clean (each inner step
+may run as a different agent):
+
+```yaml
+- id: review-loop
+  until: ${{ steps.review.output.findings == 0 }}
+  max_iterations: 5
+  steps:
+    - id: review
+      skill: pr-reviewer
+      agent: general-purpose
+    - id: fix
+      skill: review-fixer
+      agent: claude
+      if: ${{ steps.review.output.findings }}
+```
+
+A workflow with none of the new fields takes exactly one run per step,
+with no condition and no retry — identical to the original behaviour,
+plus a `status.json` per step.
+
+### Running one attempt
+
+1. Render the arguments and set up the paths. `${{ … }}` is resolved
+   now, against the outputs already on disk:
 
    ```bash
    STEP_ID="<step-id-from-plan>"
-   mkdir -p "$WORKFLOW_DIR/$STEP_ID"
-   STEP_OUTPUT="$WORKFLOW_DIR/$STEP_ID/output.json"
-   STEP_STDOUT="$WORKFLOW_DIR/$STEP_ID/stdout.log"
-   STEP_STDERR="$WORKFLOW_DIR/$STEP_ID/stderr.log"
+   RUN_DIR="$WORKFLOW_DIR/$STEP_ID"          # looped step: "$WORKFLOW_DIR/$STEP_ID/<index>"
+   mkdir -p "$RUN_DIR"
+   python3 "$EVAL" step /tmp/workflow-parsed.json "$WORKFLOW_DIR" \
+     --plan /tmp/workflow-plan.json --id "$STEP_ID" --what args \
+     > "$RUN_DIR/args.json"                  # looped: add --item @"$RUN_DIR/item.json" --index <k>
+   STEP_OUTPUT="$RUN_DIR/output.json"
+   STEP_STDOUT="$RUN_DIR/stdout.log"
+   STEP_STDERR="$RUN_DIR/stderr.log"
    ```
+
+   Use `$RUN_DIR/args.json` as the step's resolved `args`. On a retry,
+   delete the previous `output.json`, `stdout.log` and `stderr.log`
+   first and render the arguments again.
 
 2. Run the step. How depends on the plan entry's `inline` and `agent`:
 
@@ -419,7 +525,8 @@ For each step in the plan, in order:
    to invoke the skill. Pass the resolved arguments in the prompt so
    the matching skill picks them up via the `Skill` tool. The agent
    gets `$WORKFLOW_OUTPUT=$STEP_OUTPUT` and `$WORKFLOW_DIR=$WORKFLOW_DIR`
-   exported via the prompt context.
+   exported via the prompt context (for a looped step `$WORKFLOW_OUTPUT` is the
+   iteration's own `$STEP_OUTPUT`).
 
    The prompt template looks like:
 
@@ -481,12 +588,14 @@ For each step in the plan, in order:
    fi
    ```
 
-4. If the step failed (agent exited non-zero, or the inline skill failed), stop the loop immediately. Record
-   the failure for the summary in Phase 5.
+4. If the attempt failed (agent exited non-zero, or the inline skill
+   failed), go back to the lifecycle: retry if attempts remain,
+   otherwise apply step 4 of the lifecycle (halt, or carry on with
+   `continue_on_error`).
 
-Steps must run **strictly sequentially** — do not request parallel
-execution. v1 of the format reserves parallelism for a future
-revision.
+Steps and iterations must run **strictly sequentially** — do not
+request parallel execution. The format reserves parallelism for a
+future revision.
 
 ---
 
@@ -497,34 +606,57 @@ markdown summary.
 
 ```bash
 python3 - <<'EOF'
-import json, datetime, pathlib, os, sys
+import json, datetime, pathlib
 
 wf = json.load(open("/tmp/workflow-parsed.json"))["workflow"]
 plan = json.load(open("/tmp/workflow-plan.json"))["plan"]
 inputs = json.load(open("/tmp/workflow-parsed.json"))["inputs"]
-workflow_dir = open("/tmp/workflow-dir").read().strip()
+workflow_dir = pathlib.Path(open("/tmp/workflow-dir").read().strip())
 
-steps_summary = []
-status = "success"
-for step in plan:
-    out = pathlib.Path(workflow_dir) / step["id"] / "output.json"
-    err = pathlib.Path(workflow_dir) / step["id"] / "stderr.log"
-    if not out.exists():
-        status = "failed"
-        steps_summary.append({
-            "id": step["id"], "skill": step["skill"], "status": "skipped"
-        })
-        continue
-    summary = {
-        "id": step["id"], "skill": step["skill"],
-        "status": "success", "output_path": f"{step['id']}/output.json",
-    }
-    if err.exists() and err.stat().st_size > 0:
-        summary["status"] = "failed"
-        summary["stderr"] = err.read_text()[:2048]
-        status = "failed"
-    steps_summary.append(summary)
+state = {"halted": False, "failed": False}
 
+
+def summarize(step, skipped_reason=None):
+    """One summary entry for a plan step; a loop block carries its inner entries under `steps`."""
+    base = workflow_dir / step["id"]
+    sf = base / "status.json"
+    entry = {"id": step["id"], "skill": step["skill"]}
+    if step.get("steps"):
+        entry["skill"] = None
+    if not sf.exists():
+        # Never reached: an earlier step halted the run (or the block around it was skipped).
+        entry.update(status="skipped", reason=skipped_reason or "earlier step failed")
+        if step.get("steps"):
+            entry["steps"] = [summarize(c, entry["reason"]) for c in step["steps"]]
+        return entry
+    st = json.loads(sf.read_text())
+    entry["status"] = st.get("status", "failed")
+    for k in ("attempts", "iterations", "reason"):
+        if k in st:
+            entry[k] = st[k]
+    if (base / "output.json").exists():
+        entry["output_path"] = f"{step['id']}/output.json"
+    if (base / "outputs.json").exists():
+        entry["outputs_path"] = f"{step['id']}/outputs.json"
+    if entry["status"] == "failed":
+        state["failed"] = True
+        err = base / "stderr.log"
+        if err.exists():
+            entry["stderr"] = err.read_text()[:2048]
+        # A block fails either because an inner step halted the run (that step is flagged itself)
+        # or because it hit max_iterations; only the latter is governed by the block's own flag.
+        if not step.get("continue_on_error") and (not step.get("steps") or st.get("reason") == "max_iterations reached"):
+            state["halted"] = True
+    if step.get("steps"):
+        reason = st.get("reason") if entry["status"] == "skipped" else None
+        entry["steps"] = [summarize(c, reason) for c in step["steps"]]
+    return entry
+
+
+steps_summary = [summarize(step) for step in plan]
+halted, any_failed = state["halted"], state["failed"]
+
+status = "failed" if halted else ("partial" if any_failed else "success")
 report = {
     "workflow": wf.get("name"),
     "status": status,
@@ -533,24 +665,33 @@ report = {
     "inputs": inputs,
     "steps": steps_summary,
 }
-pathlib.Path(workflow_dir, "workflow-output.json").write_text(json.dumps(report, indent=2))
+(workflow_dir / "workflow-output.json").write_text(json.dumps(report, indent=2))
 print(json.dumps(report, indent=2))
 EOF
 ```
+
+`status` is `success` (nothing failed), `partial` (a step failed but
+had `continue_on_error`, so the run continued) or `failed` (the run
+halted). Skipped steps — by `if`, or because the run halted — never
+make a workflow fail.
 
 ### Report format (printed back to the user)
 
 ```
 ## Workflow — <name>
 
-Status: <success | failed>
+Status: <success | partial | failed>
 Run directory: <WORKFLOW_DIR>
 Inputs:
   - <name>: <value>
 
 Steps:
   ✓ <id>  (<skill>) — output at <id>/output.json
-  ✗ <id>  (<skill>) — failed, see <id>/stderr.log
+  ✓ <id>  (<skill>) — 3 iterations, outputs at <id>/outputs.json
+  ✓ <block>  (loop) — 3 passes
+      ✓ <inner>  (<skill>) …           (inner steps indented under their block)
+  ✗ <id>  (<skill>) — failed (2 attempts), see <id>/stderr.log
+  - <id>  (<skill>) — skipped (condition false)
   - <id>  (<skill>) — skipped (earlier step failed)
 ```
 
@@ -560,5 +701,8 @@ Steps:
   workflow file is the user's contract; the runner only executes.
 - Modify the workflow YAML itself. Even if it has cosmetic issues,
   surface them as warnings; the user fixes them in their own PR.
-- Run subsequent steps after a failure. Halt immediately so the user
+- Run subsequent steps after a failure the workflow did not opt into
+  tolerating (`continue_on_error: true`). Halt immediately so the user
   sees the failure before any compensating work has run.
+- Evaluate a condition, loop list or `${{ … }}` yourself. Always use
+  `wf_eval.py`, so the result is deterministic and matches validation.
