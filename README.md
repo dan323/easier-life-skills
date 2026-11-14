@@ -52,6 +52,7 @@ Or copy the right command directly from the [marketplace browser](#marketplace-b
 | Command                                                 | Plugin      | What it does                                                                                                                                                    |
 |---------------------------------------------------------|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`/new-issue`](plugins/new-issue/commands/new-issue.md) | `new-issue` | Create a GitHub issue from the current conversation — title, body and labels (from the repo's existing set) inferred from what was discussed; wraps `gh issue create` |
+| [`/commit-message`](plugins/commit-message/commands/commit-message.md) | `commit-message` | Generate a conventional commit message (feat/fix/chore…) from the staged diff; prints it or copies it to the clipboard with `--copy`; never commits |
 
 ## Marketplace Browser
 

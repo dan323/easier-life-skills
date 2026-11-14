@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- **`commit-message` plugin v1.0.0 with a `/commit-message` slash command** ([#141](https://github.com/dan323/easier-life-skills/issues/141)).
+  Reads the staged diff (`git diff --cached`) and recent commit subjects, picks one Conventional
+  Commits type, infers a scope, and prints a ≤72-char imperative subject with an optional body and
+  `BREAKING CHANGE` footer. `--copy` copies it to the clipboard, `--scope` forces the scope, `--issue <n>`
+  adds `Fixes #<n>`. Read-only: it never stages or commits, and warns instead of quoting secrets.
+  Evals in `plugins/commit-message/evals/evals.json`.
 - **workflow v1.3.0: conditionals, loops and failure handling** ([#129](https://github.com/dan323/easier-life-skills/issues/129)).
   A step can now carry `if:` (skip it — recorded as `skipped`, not failed), `for_each:` (run once per
   list element, exposing `${{ item }}` / `${{ index }}`), `until:` + `max_iterations:` (repeat until a

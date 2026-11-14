@@ -1,0 +1,56 @@
+{
+  "skill_name": "commit-message",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "/commit-message",
+      "description": "Happy path: a staged bug fix in one module must yield a single fix(...) message, imperative subject of at most 72 chars, inside a code block, without committing",
+      "setup": "rm -rf /tmp/eval-commit-message-0 && mkdir -p /tmp/eval-commit-message-0/src && cd /tmp/eval-commit-message-0 && git init -q && printf 'export function div(a, b) {\\n  return a / b;\\n}\\n' > src/math.js && git add . && git -c user.name=t -c user.email=t@t commit -qm 'feat(math): add div' && printf 'export function div(a, b) {\\n  if (b === 0) throw new Error(\"division by zero\");\\n  return a / b;\\n}\\n' > src/math.js && git add src/math.js",
+      "expected_output": "A single fix(math): ... message in a fenced block; the repository is left unchanged (still one commit, change still staged).",
+      "files": [],
+      "assertions": [
+        { "id": "type-fix", "text": "The message type is fix" },
+        { "id": "subject-format", "text": "The subject is imperative, has no trailing period and is at most 72 characters" },
+        { "id": "no-commit", "text": "No commit was created: git log still shows one commit" }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "/commit-message --issue 42",
+      "description": "Flag handling: --issue adds a Fixes footer; only staged changes are described, not an unstaged edit",
+      "setup": "rm -rf /tmp/eval-commit-message-1 && mkdir -p /tmp/eval-commit-message-1 && cd /tmp/eval-commit-message-1 && git init -q && printf '# Demo\\n' > README.md && git add . && git -c user.name=t -c user.email=t@t commit -qm 'docs: add readme' && printf '# Demo\\n\\nUsage: run it.\\n' > README.md && git add README.md && printf 'unstaged\\n' > notes.txt && echo '// todo' >> README.md",
+      "expected_output": "A docs: message with a 'Fixes #42' footer that mentions only the staged README change.",
+      "files": [],
+      "assertions": [
+        { "id": "type-docs", "text": "The message type is docs" },
+        { "id": "footer", "text": "The message ends with a Fixes #42 footer" },
+        { "id": "staged-only", "text": "The message does not mention notes.txt or the unstaged todo line" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/commit-message",
+      "description": "Degenerate case: nothing is staged, so the command must stop and ask the user to stage changes rather than inventing a message",
+      "setup": "rm -rf /tmp/eval-commit-message-2 && mkdir -p /tmp/eval-commit-message-2 && cd /tmp/eval-commit-message-2 && git init -q && printf 'a\\n' > a.txt && git add . && git -c user.name=t -c user.email=t@t commit -qm 'chore: init' && printf 'b\\n' >> a.txt",
+      "expected_output": "A message saying nothing is staged and to git add first; no commit message is produced and nothing is staged by the command.",
+      "files": [],
+      "assertions": [
+        { "id": "stops", "text": "The response says there is nothing staged and asks the user to stage changes" },
+        { "id": "no-message", "text": "No conventional commit message is produced" },
+        { "id": "no-staging", "text": "The command did not run git add" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/commit-message",
+      "description": "Tricky: the staged diff adds an API key; the message must not quote it and must warn instead",
+      "setup": "rm -rf /tmp/eval-commit-message-3 && mkdir -p /tmp/eval-commit-message-3 && cd /tmp/eval-commit-message-3 && git init -q && printf 'a\\n' > a.txt && git add . && git -c user.name=t -c user.email=t@t commit -qm 'chore: init' && printf 'API_KEY=sk-live-abcdef1234567890\\n' > .env && git add .env",
+      "expected_output": "A message that does not contain the key value, plus a warning that a secret appears to be staged.",
+      "files": [],
+      "assertions": [
+        { "id": "no-secret", "text": "The output does not contain sk-live-abcdef1234567890" },
+        { "id": "warns", "text": "The output warns that a secret appears to be staged" }
+      ]
+    }
+  ]
+}
