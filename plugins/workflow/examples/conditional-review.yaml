@@ -3,8 +3,16 @@
 # Runs task-agent, then reviews and fixes the PR it opened — but only if it
 # actually opened one:
 #
-#   - `retry: 2` on `run-task`: cloning / pushing can fail transiently, so the
-#     step is re-run up to twice before the workflow gives up. The summary
+#   - NO `retry` on `run-task`, on purpose: a retry re-runs the whole step, and
+#     task-agent is not idempotent. It opens the PR (Phase 3.5) before it writes
+#     the task's state (4.2) and its output (4.3), and it never checks for an
+#     existing PR. A failure in between would, on retry, open a second PR for the
+#     same task — or, if the task was already marked done, pick up the NEXT task
+#     and hand the wrong PR to the steps below. Only retry steps that are safe to
+#     repeat.
+#   - `retry: 1` on `review`: pr-reviewer IS safe to repeat — it skips a commit it
+#     already reviewed and never re-posts findings it already raised — so a
+#     transient failure (network, `gh`) gets one more attempt. The summary
 #     records how many `attempts` it took.
 #   - `if:` on `review` and `review-fix`: when task-agent had nothing to do
 #     (no pending task) there is no `pr_url`, an empty value is falsy, and both
@@ -30,15 +38,15 @@ inputs:
 steps:
   - id: run-task
     skill: task-agent
-    description: Pick up the next pending task and open a PR.
-    retry: 2
+    description: Pick up the next pending task and open a PR. Not retried — see the header.
     args:
       tasks: ${{ inputs.tasks }}
 
   - id: review
     skill: pr-reviewer
-    description: Review the PR — skipped when no PR was opened.
+    description: Review the PR — skipped when no PR was opened. Idempotent, so safe to retry.
     if: ${{ steps.run-task.output.pr_url }}
+    retry: 1
     args:
       pr_url: ${{ steps.run-task.output.pr_url }}
       repo: ${{ steps.run-task.output.repo }}

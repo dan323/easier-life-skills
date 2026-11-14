@@ -111,6 +111,10 @@ Two things shape the choice:
 - A loop over a group depends on skills reporting something to test. `pr-reviewer`
   now writes `{"findings": N, …}` to `$WORKFLOW_OUTPUT` (task-agent 2.2.0);
   a skill that writes nothing can only be bounded by `max_iterations`.
+- `retry` re-runs the whole step, so it is only safe on idempotent steps. The
+  runner cannot tell: that is the workflow author's call, documented in
+  `format.md`. `task-agent` is the counter-example (it opens a PR before it
+  records state and output), which is why the shipped examples do not retry it.
 - An `until` iteration that fails is not retried by the loop itself: use
   `retry` for "the same run again" and `until` + `continue_on_error` for "run
   until a condition holds".

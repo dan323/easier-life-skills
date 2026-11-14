@@ -253,7 +253,14 @@ skill that writes a comparable field can drive a loop the same way.
 - **`retry: N`** re-runs a failed run up to N more times (max 5), with
   freshly rendered arguments, before treating it as failed. Retries are
   explicit and capped so a flaky step is visible in the summary
-  (`attempts`) rather than hidden.
+  (`attempts`) rather than hidden. **A retry re-runs the whole step, so
+  only retry steps that are safe to repeat** (reads, reviews that dedupe
+  against earlier ones, idempotent syncs). Do not retry a step that
+  consumes or creates something before it reports — `task-agent` opens a
+  PR and marks the task done/failed before it writes its output, so a retry
+  can open a duplicate PR or move on to the *next* task. For such steps use
+  `continue_on_error` and handle the failure, or fix the skill to be
+  re-runnable.
 - **`continue_on_error: true`** records the failure and carries on
   instead of halting: in a loop, with the next iteration; otherwise
   with the next step. The step's status is `failed`, and the workflow's

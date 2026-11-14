@@ -182,7 +182,7 @@ Steps can also branch, repeat and tolerate failure:
   - id: fix
     skill: review-fixer
     if: ${{ steps.pr.output.pr_url }}          # skipped (not failed) when empty
-    retry: 2                                   # re-run a failed attempt up to twice
+    retry: 2                                   # re-run a failed attempt up to twice — only for steps that are safe to repeat
     continue_on_error: true                    # a failure ends the run `partial`, not `failed`
 
   - id: each
