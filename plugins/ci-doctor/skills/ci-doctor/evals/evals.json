@@ -83,7 +83,7 @@
       "id": 3,
       "prompt": "Debug my CI",
       "description": "No gh available: graceful fallback to pasted logs.",
-      "setup": "mkdir -p /tmp/eval-ci-doctor-3 && cd /tmp/eval-ci-doctor-3 && git init && export PATH=$(printf %s \"$PATH\" | tr ':' '\n' | while read d; do [ -x \"$d/gh\" ] || printf '%s:' \"$d\"; done)  # removes every PATH dir containing gh",
+      "setup": "mkdir -p /tmp/eval-ci-doctor-3 && cd /tmp/eval-ci-doctor-3 && git init && export PATH=$(printf %s \"$PATH\" | tr ':' '\\n' | while read d; do [ -x \"$d/gh\" ] || printf '%s:' \"$d\"; done)  # removes every PATH dir containing gh",
       "expected_output": "Notes gh is unavailable and asks the user to paste the failing log instead of guessing.",
       "files": [],
       "assertions": [
