@@ -39,6 +39,7 @@ Or copy the right command directly from the [marketplace browser](#marketplace-b
 | [`workflow`](plugins/workflow/skills/workflow/SKILL.md)                                           | Run multi-step skill workflows declared in workflow YAML — `${{ … }}` interpolation, `if` conditions, `for_each` / `until` loops (also over groups of steps, e.g. review→fix until clean), `retry`          |
 | [`auto-board-task`](plugins/auto-board-task/skills/auto-board-task/SKILL.md)                      | Process the top Todo card on a GitHub Project end-to-end â€” bundles the `gh-project-sync` board â‡„ `tasks.yml` reconciler and chains it with `task-agent` via the `workflow` skill so one invocation pulls the board into `tasks.yml`, claims the top Todo card (**In Progress**), opens a PR for exactly that task, and syncs the card to **In Review** with the PR link |
 | [`security-review`](plugins/security-review/skills/security-review/SKILL.md)                     | Scan a codebase for OWASP Top-10 vulnerabilities, hardcoded secrets, insecure dependencies, and unsafe patterns. Read-only report ranked by severity (Critical / High / Medium / Low) |
+| [`ci-doctor`](plugins/ci-doctor/skills/ci-doctor/SKILL.md) | Diagnose failing GitHub Actions runs: fetches failed-step logs (`gh run view --log-failed`), classifies each failure (test, lint/type, dependency, flaky/timeout, config/secrets) and proposes a fix. Read-only; falls back to pasted logs without `gh` |
 
 ### Agents
 
