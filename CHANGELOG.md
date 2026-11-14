@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Changed
+- **task-agent v3.0.0: generic skills plus thin `<skill>-workflow` adapters** ([#139](https://github.com/dan323/easier-life-skills/issues/139)).
+  `task-agent`, `pr-reviewer` and `review-fixer` no longer mention `$WORKFLOW_OUTPUT`; each ends its report
+  with a documented `result:` fenced `json` block instead. New adapter skills `task-agent-workflow`,
+  `pr-reviewer-workflow` and `review-fixer-workflow` call the generic skill and map that block to
+  `$WORKFLOW_OUTPUT` (keys documented on each adapter, with evals). **Breaking:** workflows must now
+  reference the adapters to get step output keys. `auto-board-task` v1.6.0 (needs `task-agent` >= 3.0.0)
+  and every `workflow` example were migrated; `workflow` v1.3.1 docs updated. Rationale in ADR 0016;
+  `docs/contributing.md` tells skill authors which layer to write.
+  `pr-reviewer`'s result block never reports `findings: 0` when the report has no counts (for example
+  "already reviewed this commit"): it derives the count from open findings or omits `findings`.
+
 ### Added
 - **workflow v1.3.0: conditionals, loops and failure handling** ([#129](https://github.com/dan323/easier-life-skills/issues/129)).
   A step can now carry `if:` (skip it — recorded as `skipped`, not failed), `for_each:` (run once per

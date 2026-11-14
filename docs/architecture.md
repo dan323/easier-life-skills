@@ -425,7 +425,7 @@ flowchart LR
 The runner parses the YAML, validates inputs and step ids, resolves
 `${{ … }}` interpolation, then spawns one subagent per step using the
 `Agent` tool. Each step's output is captured either from `$WORKFLOW_OUTPUT`
-(a per-step JSON file) or from stdout as a fallback, so older skills that
+(a per-step JSON file, written by a thin `<skill>-workflow` adapter that maps the generic skill's `result` block — ADR 0016) or from stdout as a fallback, so older skills that
 don't write structured output still compose. Execution is **strictly
 sequential**; if a step fails (and does not set `continue_on_error`) the
 runner halts immediately and writes a summary marking subsequent steps as

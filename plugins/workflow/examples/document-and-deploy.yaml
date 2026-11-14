@@ -30,7 +30,7 @@ steps:
       ideas: ${{ steps.ideas.output }}
 
   - id: pr
-    skill: task-agent
+    skill: task-agent-workflow
     description: Open a PR adding the new docs.
     inputs:
       tasks: "Open a PR adding the docs produced in step `docs`."

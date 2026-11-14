@@ -78,7 +78,7 @@ Walk the normalized list in order and pick the first task whose `status == 'pend
 Tasks with `status` of `done`, `failed`, or `skipped` are passed over silently (failures
 and skips were intentional outcomes of earlier runs).
 
-If nothing is pending, tell the user — all done, nothing left to do.
+If nothing is pending, tell the user — all done, nothing left to do — and end with the result block `{"status": "none"}` (Phase 4.4).
 
 Print the chosen task clearly before proceeding:
 ```
@@ -274,22 +274,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/tasks_io.py" record "$TASKS_PATH" \
 `{"branch": "...", "pr_url": "...", "date": "YYYY-MM-DD"}`; for `failed` use
 `{"error": "<short reason>"}`; for `skipped` use `{"reason": "<why>"}`.
 
-### 4.3 Emit workflow output
-
-If the `$WORKFLOW_OUTPUT` environment variable is set (i.e. this skill is running as a
-workflow step), write a JSON object so the next step can interpolate `pr_url`, `repo`,
-and `branch`:
-
-```bash
-if [ -n "$WORKFLOW_OUTPUT" ]; then
-  printf '{"pr_url":"%s","repo":"%s/%s","branch":"%s"}' \
-    "$PR_URL" "$OWNER" "$REPO_NAME" "$BRANCH" > "$WORKFLOW_OUTPUT"
-fi
-```
-
-Skip this step when `$WORKFLOW_OUTPUT` is unset (standalone invocation).
-
-### 4.4 Print the summary
+### 4.3 Print the summary
 
 ```
 ## Task — Done
@@ -306,6 +291,23 @@ Next up:  "Fix the typo in README.md" (owner/repo-name)
 - Show **progress** as completed/total across all projects.
 - Show **next up** so the user knows what the next run will do.
 - If this was the last task, congratulate the user — all done.
+
+### 4.4 Result block
+
+End the report with one fenced `json` block labelled `result` on its own line before it, so
+callers (a human, another skill) can read the outcome without parsing prose. It is the last
+thing in the report:
+
+````
+result:
+```json
+{"status": "done", "pr_url": "https://github.com/owner/repo-name/pull/42", "repo": "owner/repo-name", "branch": "task/add-unit-tests-abc123"}
+```
+````
+
+`status` is `done`, `failed` or `skipped` (as recorded in Phase 4.2), or `none` when Phase 1.3
+found no pending task (nothing was selected or recorded; the block is just `{"status": "none"}`). `pr_url`, `repo` and
+`branch` are present only for `done`; `failed` adds `error`, `skipped` adds `reason`.
 
 
 ---

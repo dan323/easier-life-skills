@@ -1,12 +1,12 @@
 ---
 name: pr-reviewer
-description: Reviews a pull request (correctness, tests, repo conventions, safety), verifies the repo's own checks in a throwaway worktree, and posts one GitHub review with inline comments (it may create or fetch a local clone and a temporary worktree, but never edits the PR branch or the clone's working files). Thin skill wrapper around the `pr-reviewer` sub-agent — callable as a workflow step, and the stand-in for Copilot review.
+description: Reviews a pull request (correctness, tests, repo conventions, safety), verifies the repo's own checks in a throwaway worktree, and posts one GitHub review with inline comments (it may create or fetch a local clone and a temporary worktree, but never edits the PR branch or the clone's working files). Thin skill wrapper around the `pr-reviewer` sub-agent and the stand-in for Copilot review; ends with a machine-readable `result` block. In a workflow, use `pr-reviewer-workflow`.
 tools: Bash, PowerShell, Read, Glob, Grep, Agent
 ---
 
 # PR Reviewer
 
-Wraps the `task-agent:pr-reviewer` sub-agent so it can be invoked as a workflow step. The agent only ever posts a `COMMENT` review — it never approves, requests changes, pushes or merges.
+Wraps the `task-agent:pr-reviewer` sub-agent so it can be invoked as a skill. The agent only ever posts a `COMMENT` review — it never approves, requests changes, pushes or merges.
 
 **Arguments** (key=value form):
 - `pr_url=<url>` — full GitHub PR URL (e.g. `https://github.com/owner/repo/pull/42`). Required.
@@ -36,7 +36,7 @@ gh pr view "$PR_NUMBER" --repo "$repo" --json headRefName,headRepositoryOwner,he
 
 ### Step 2 — Prepare the local clone
 
-Reuse the `task-agent` workdir convention so the clone is shared with a preceding `task-agent` step in the same workflow:
+Reuse the `task-agent` workdir convention so the clone is shared with a preceding `task-agent` run:
 
 ```bash
 WORKDIR="${TASK_AGENT_WORKDIR:-$(python3 -c 'import os,tempfile;print(os.path.join(tempfile.gettempdir(),"task-agent"))')}"
@@ -74,23 +74,25 @@ Spawn the `pr-reviewer` sub-agent via the `Agent` tool
 
 ### Step 4 — Relay the report
 
-Print the agent's report verbatim. The review comments it posts are marked `<!-- pr-reviewer -->`, which is how `review-fixer` finds them in the next workflow step.
+Print the agent's report verbatim. The review comments it posts are marked `<!-- pr-reviewer -->`, which is how `review-fixer` finds them later.
 
 If the agent could not post (for example `gh` is not authenticated), surface that error and stop — do not retry with a different mechanism.
 
-### Step 5 — Emit workflow output
+### Step 5 — Result block
 
-If the `$WORKFLOW_OUTPUT` environment variable is set (this skill is running as a workflow step), write a JSON object so a later step, or a loop's `until:`, can act on the result — for example "review, fix, repeat until `steps.review.output.findings == 0`":
+End your reply with one fenced `json` block, labelled `result:` on the line before it, after the relayed report. It is the stable, machine-readable outcome, so callers do not have to parse the prose:
 
-```bash
-if [ -n "$WORKFLOW_OUTPUT" ]; then
-  printf '{"findings":%s,"posted":%s,"already_raised":%s,"review_url":"%s","commit":"%s"}' \
-    "$FINDINGS" "$POSTED" "$ALREADY_RAISED" "$REVIEW_URL" "$HEAD_OID" > "$WORKFLOW_OUTPUT"
-fi
+````
+result:
+```json
+{"findings": 2, "posted": 2, "already_raised": 0, "review_url": "https://github.com/owner/repo/pull/42#pullrequestreview-1", "commit": "<headRefOid>"}
 ```
+````
 
 - `posted` is `N` from the report's `Posted (N)`; `already_raised` is `N` from `Already raised (N)`.
 - `findings` is `posted + already_raised`: findings the reviewer still considers open on this commit, whether it just posted them or they were raised earlier and not yet resolved. `0` means the review was clean.
-- `review_url` is the posted review's URL, or empty when no review was posted; `commit` is the reviewed `headRefOid`.
+- `review_url` is the posted review's URL, or `""` when no review was posted; `commit` is the reviewed `headRefOid`.
 
-Skip this step when `$WORKFLOW_OUTPUT` is unset (standalone invocation). Take the counts from the agent's report relayed in Step 4. If the review could not be posted because of an error, stop as in Step 4 and write nothing, so the step fails instead of looking clean.
+When the report carries no `Posted (N)` / `Already raised (N)` counts (for example `not posted: already reviewed this commit`), do **not** report `findings: 0`: that would read as a clean review. Derive `findings` from the open findings the report lists or, when it lists none, from the unresolved `<!-- pr-reviewer -->` threads on the PR; if the count still cannot be determined, omit `findings` (and `posted` / `already_raised`) from the block so a caller's `findings != 0` guard still runs the fixer.
+
+Take the counts from the agent's report relayed in Step 4. If the review could not be posted because of an error, stop as in Step 4 and emit no block, so a caller sees a failure instead of a clean review.
