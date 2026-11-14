@@ -8,7 +8,7 @@
     {
       "name": "auto-board-task",
       "source": "./plugins/auto-board-task",
-      "description": "Process the top Todo card on a GitHub Project (v2) board end-to-end: pull the board into a task-agent tasks.yml, claim the top Todo card (moved to In Progress), run task-agent against that task to open a PR, sync the PR back so the card moves to In Review, then review the PR with the `pr-reviewer` agent and apply fixes for actionable review comments. Bundles the `gh-project-sync` reconciler skill (used twice in the chain) and composes it with `task-agent` and the `pr-reviewer` and `review-fixer` skill wrappers (shipped by `task-agent`) via the `workflow` skill — `task-agent` and `workflow` must also be installed.",
+      "description": "Process the top Todo card on a GitHub Project (v2) board end-to-end: pull the board into a task-agent tasks.yml, claim the top Todo card (moved to In Progress), run task-agent against that task to open a PR, sync the PR back so the card moves to In Review, then review the PR with the `pr-reviewer` agent and apply fixes for actionable review comments, repeating review and fix until the review finds nothing (at most 3 passes). Needs `workflow` >= 1.3.0 and `task-agent` >= 2.2.0. Bundles the `gh-project-sync` reconciler skill (used twice in the chain) and composes it with `task-agent` and the `pr-reviewer` and `review-fixer` skill wrappers (shipped by `task-agent`) via the `workflow` skill — `task-agent` and `workflow` must also be installed.",
       "category": "automation",
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/auto-board-task"
     },
@@ -88,6 +88,13 @@
       "description": "Audit a website for UX issues, bugs, accessibility problems, and unexpected behavior. site-mapper crawls once via Playwright MCP to produce sitemap.json; ux-analyst, accessibility-auditor, performance-auditor, and bug-script-runner then run in parallel against the shared artifact. bug-script-runner generates a Playwright spec on the fly using real selectors and executes it via npx playwright test.",
       "category": "code-quality",
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/site-audit"
+    },
+    {
+      "name": "standup",
+      "source": "./plugins/standup",
+      "description": "Slash command that summarises today's git commits and open PRs into a standup-ready paragraph — wraps git log --since=midnight and gh pr list",
+      "category": "productivity",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/standup"
     },
     {
       "name": "task-agent",

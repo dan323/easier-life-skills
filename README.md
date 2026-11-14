@@ -52,6 +52,7 @@ Or copy the right command directly from the [marketplace browser](#marketplace-b
 | Command                                                 | Plugin      | What it does                                                                                                                                                    |
 |---------------------------------------------------------|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`/new-issue`](plugins/new-issue/commands/new-issue.md) | `new-issue` | Create a GitHub issue from the current conversation — title, body and labels (from the repo's existing set) inferred from what was discussed; wraps `gh issue create` |
+| [`/standup`](plugins/standup/commands/standup.md) | `standup` | Summarise today's git commits and open PRs into a standup-ready paragraph; wraps `git log --since=midnight` and `gh pr list` |
 
 ## Marketplace Browser
 

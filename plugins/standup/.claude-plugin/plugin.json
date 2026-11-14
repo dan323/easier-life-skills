@@ -1,0 +1,8 @@
+{
+  "name": "standup",
+  "version": "1.0.0",
+  "description": "Slash command that summarises today's git commits and open PRs into a standup-ready paragraph — wraps git log --since=midnight and gh pr list",
+  "author": { "name": "dan323" },
+  "category": "productivity",
+  "commands": ["./commands/standup.md"]
+}

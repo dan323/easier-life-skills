@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- **standup v1.0.0: `/standup` command** ([#142](https://github.com/dan323/easier-life-skills/issues/142)). Summarises today's git commits and open/merged PRs into a standup-ready paragraph (`--since`, `--all-authors`, `--repo`). Read-only; wraps `git log` and `gh pr list`.
 - **workflow v1.3.0: conditionals, loops and failure handling** ([#129](https://github.com/dan323/easier-life-skills/issues/129)).
   A step can now carry `if:` (skip it — recorded as `skipped`, not failed), `for_each:` (run once per
   list element, exposing `${{ item }}` / `${{ index }}`), `until:` + `max_iterations:` (repeat until a
