@@ -67,7 +67,7 @@ steps:
       default_repo: ${{ inputs.default_repo }}
 
   - id: run-task
-    skill: task-agent
+    skill: task-agent-workflow
     description: Pick up the next pending task and open a PR.
     args:
       tasks: ${{ inputs.tasks }}

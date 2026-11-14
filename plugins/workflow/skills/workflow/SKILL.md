@@ -480,10 +480,10 @@ may run as a different agent):
   max_iterations: 5
   steps:
     - id: review
-      skill: pr-reviewer
+      skill: pr-reviewer-workflow
       agent: general-purpose
     - id: fix
-      skill: review-fixer
+      skill: review-fixer-workflow
       agent: claude
       if: ${{ steps.review.output.findings }}
 ```

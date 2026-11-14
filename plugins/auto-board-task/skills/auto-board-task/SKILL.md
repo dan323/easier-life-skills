@@ -73,7 +73,7 @@ Relay the workflow runner's per-step status block as-is once the
   runner expects `key=value` pairs; natural language produces a
   validation error. Always resolve to explicit key=value before
   calling the workflow skill.
-- Call `gh-project-sync` or `task-agent` directly. The composition
+- Call `gh-project-sync` or `task-agent-workflow` directly. The composition
   is the point — bypass defeats it.
 - Modify the workflow YAML at runtime. Users who want a different
   pipeline should write their own YAML and invoke `workflow` directly.

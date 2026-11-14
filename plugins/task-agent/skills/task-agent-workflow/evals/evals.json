@@ -1,0 +1,81 @@
+{
+  "skill_name": "task-agent-workflow",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Run task-agent-workflow tasks=tasks.yml",
+      "description": "Happy path: the generic skill succeeds and the adapter maps its result block.",
+      "setup": "rm -rf /tmp/eval-task-agent-workflow-0 && mkdir -p /tmp/eval-task-agent-workflow-0 && export WORKFLOW_OUTPUT=/tmp/eval-task-agent-workflow-0/output.json",
+      "expected_output": "$WORKFLOW_OUTPUT contains one JSON object with the keys status, pr_url, repo, branch, equal to the generic skill's result block.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "invokes-generic",
+          "text": "The `task-agent` skill was invoked via the Skill tool, not a spawned agent"
+        },
+        {
+          "id": "output-keys",
+          "text": "$WORKFLOW_OUTPUT is valid JSON containing status, pr_url, repo, branch"
+        },
+        {
+          "id": "values-copied",
+          "text": "Values equal the generic skill's result block, not re-derived from the prose"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Run task-agent-workflow tasks=tasks.yml",
+      "description": "Standalone: $WORKFLOW_OUTPUT is unset; the adapter must just relay the report.",
+      "setup": "rm -rf /tmp/eval-task-agent-workflow-1 && mkdir -p /tmp/eval-task-agent-workflow-1 && export WORKFLOW_OUTPUT=/tmp/eval-task-agent-workflow-1/output.json",
+      "expected_output": "The report is printed and no file is written.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-file",
+          "text": "No output file is created"
+        },
+        {
+          "id": "report-relayed",
+          "text": "The generic skill's report is printed"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run task-agent-workflow tasks=tasks.yml",
+      "description": "Degenerate: the generic skill fails, or its report has no valid result block.",
+      "setup": "rm -rf /tmp/eval-task-agent-workflow-2 && mkdir -p /tmp/eval-task-agent-workflow-2 && export WORKFLOW_OUTPUT=/tmp/eval-task-agent-workflow-2/output.json",
+      "expected_output": "The adapter stops with the error and leaves $WORKFLOW_OUTPUT unwritten, so the step fails.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "stops",
+          "text": "The adapter reports the failure or the missing result block"
+        },
+        {
+          "id": "no-output",
+          "text": "$WORKFLOW_OUTPUT is absent or empty"
+        },
+        {
+          "id": "no-guess",
+          "text": "No values are guessed from the prose"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run task-agent-workflow tasks=tasks.yml",
+      "description": "Idempotent re-run: running the adapter twice overwrites $WORKFLOW_OUTPUT rather than appending.",
+      "setup": "rm -rf /tmp/eval-task-agent-workflow-3 && mkdir -p /tmp/eval-task-agent-workflow-3 && export WORKFLOW_OUTPUT=/tmp/eval-task-agent-workflow-3/output.json",
+      "expected_output": "The file holds a single valid JSON object after the second run.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "single-object",
+          "text": "$WORKFLOW_OUTPUT parses as a single JSON object after two runs"
+        }
+      ]
+    }
+  ]
+}
