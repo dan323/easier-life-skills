@@ -1,0 +1,8 @@
+{
+  "name": "release",
+  "version": "1.0.0",
+  "description": "Cut a release end-to-end: semver bump from conventional commits, version files, changelog, git tag and GitHub release, with confirmation before anything outward-facing",
+  "author": { "name": "dan323" },
+  "category": "devops",
+  "skills": ["./skills/release"]
+}
