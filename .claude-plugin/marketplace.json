@@ -20,6 +20,13 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/brainstorm"
     },
     {
+      "name": "ci-doctor",
+      "source": "./plugins/ci-doctor",
+      "description": "Diagnose failing GitHub Actions runs from their failed-step logs and map each failure to a likely fix. Read-only report; falls back to pasted logs when gh is unavailable.",
+      "category": "devops",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/ci-doctor"
+    },
+    {
       "name": "code-audit",
       "source": "./plugins/code-audit",
       "description": "Code-quality audit bundle — find unused code, find breaking REST API changes, and audit logging quality. All three skills are read-only and produce prioritised reports.",
