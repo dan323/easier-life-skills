@@ -47,6 +47,7 @@
   each key is readable as `steps.<step-id>.output.<output-key>` (keys are a contract, never inferred; a missing key is
   `null`). Documented in `plugins/workflow/references/format.md` and `docs/contributing.md`.
 - Docs: `.claude/CLAUDE.md` no longer carries the "Roadmap & Issue Tracking" section.
+- **CI runs once per PR.** `pages.yml` ran the identical build-and-test job for both the branch `push` and the `pull_request` event. It now triggers on `push` to `master` only (build + deploy), plus `pull_request`, `workflow_dispatch` and the daily schedule, so a PR gets a single run, on the merge result. Branches without a PR are no longer built.
 - Web UI: the SKILL.md preview no longer appears in the plugin panel (it only ever showed one of a bundle's skills); it is shown in the individual skill, agent and command panels only.
 - **Read-only tagging now means "no local or remote writes".** `isWriteTool` also treats `Agent`,
   `Task`, `Skill`, `SkillInvoke`, scoped `PowerShell(...)` (unless read-only) and mutating `mcp__*`
