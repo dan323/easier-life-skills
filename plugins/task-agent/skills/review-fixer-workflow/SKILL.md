@@ -1,6 +1,6 @@
 ---
 name: review-fixer-workflow
-description: Workflow adapter for `review-fixer`: runs it with the step args and writes `fixed`, `resolved`, `skipped`, `ignored`, `pushed` and `commit` to `$WORKFLOW_OUTPUT`. Use `review-fixer` directly outside workflows.
+description: "Workflow adapter for `review-fixer`: runs it with the step args and writes `fixed`, `resolved`, `skipped`, `ignored`, `pushed` and `commit` to `$WORKFLOW_OUTPUT`. Use `review-fixer` directly outside workflows."
 tools: Skill, Bash, Read
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: task-agent-workflow
-description: Workflow adapter for `task-agent`: runs it with the step args and writes `pr_url`, `repo` and `branch` (plus `status`) to `$WORKFLOW_OUTPUT` so later steps can review or sync the PR. Use `task-agent` directly outside workflows.
+description: "Workflow adapter for `task-agent`: runs it with the step args and writes `pr_url`, `repo` and `branch` (plus `status`) to `$WORKFLOW_OUTPUT` so later steps can review or sync the PR. Use `task-agent` directly outside workflows."
 tools: Skill, Bash, Read
 ---
 
@@ -11,7 +11,7 @@ Workflow adapter for the `task-agent` skill. It holds no logic of its own: it pa
 **Arguments**: the same `key=value` arguments as `task-agent` (`tasks`, `run`, and any others `task-agent` accepts); pass them through unchanged.
 
 **Output keys** (`steps.<id>.output.<key>`):
-- `status` (string) — `done` or `skipped`
+- `status` (string) — `done`, `skipped` or `none` (task list exhausted)
 - `pr_url`, `repo` (`owner/repo`), `branch` — only when `status` is `done`, so `if: ${{ steps.<id>.output.pr_url }}` skips downstream steps when no PR was opened
 
 ## What to do
@@ -26,7 +26,7 @@ Take the last fenced `json` block that follows the `result:` label in the skill'
 
 ### Step 3 — Write `$WORKFLOW_OUTPUT`
 
-Write `status` and, when `status` is `done`, `pr_url`, `repo` and `branch` from the result block as one JSON object. For `skipped` write `status` and `reason`. For `failed`, stop with the block's `error` and write nothing.
+Write `status` and, when `status` is `done`, `pr_url`, `repo` and `branch` from the result block as one JSON object. For `skipped` write `status` and `reason`; for `none` write just `status`. For `failed`, stop with the block's `error` and write nothing.
 
 ```bash
 printf '%s' "$RESULT_JSON" > "$WORKFLOW_OUTPUT"

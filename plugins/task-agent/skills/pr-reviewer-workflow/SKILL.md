@@ -1,6 +1,6 @@
 ---
 name: pr-reviewer-workflow
-description: Workflow adapter for `pr-reviewer`: runs it with the step args and writes `findings`, `posted`, `already_raised`, `review_url` and `commit` to `$WORKFLOW_OUTPUT`, so a workflow can loop `until: ${{ steps.review.output.findings == 0 }}`. Use `pr-reviewer` directly outside workflows.
+description: "Workflow adapter for `pr-reviewer`: runs it with the step args and writes `findings`, `posted`, `already_raised`, `review_url` and `commit` to `$WORKFLOW_OUTPUT`, so a workflow can loop `until: ${{ steps.review.output.findings == 0 }}`. Use `pr-reviewer` directly outside workflows."
 tools: Skill, Bash, Read
 ---
 

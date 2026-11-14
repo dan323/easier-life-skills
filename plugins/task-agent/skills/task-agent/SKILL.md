@@ -78,7 +78,7 @@ Walk the normalized list in order and pick the first task whose `status == 'pend
 Tasks with `status` of `done`, `failed`, or `skipped` are passed over silently (failures
 and skips were intentional outcomes of earlier runs).
 
-If nothing is pending, tell the user — all done, nothing left to do.
+If nothing is pending, tell the user — all done, nothing left to do — and end with the result block `{"status": "none"}` (Phase 4.4).
 
 Print the chosen task clearly before proceeding:
 ```
@@ -305,7 +305,8 @@ result:
 ```
 ````
 
-`status` is `done`, `failed` or `skipped` (as recorded in Phase 4.2). `pr_url`, `repo` and
+`status` is `done`, `failed` or `skipped` (as recorded in Phase 4.2), or `none` when Phase 1.3
+found no pending task (nothing was selected or recorded; the block is just `{"status": "none"}`). `pr_url`, `repo` and
 `branch` are present only for `done`; `failed` adds `error`, `skipped` adds `reason`.
 
 
