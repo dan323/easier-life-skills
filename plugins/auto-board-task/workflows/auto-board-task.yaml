@@ -106,6 +106,7 @@ steps:
 
   - id: review-loop
     description: Review the PR and fix the comments, repeating until the review reports no findings (at most 3 passes).
+    if: ${{ steps.run-task.output.pr_url }}
     until: ${{ steps.review.output.findings == 0 }}
     max_iterations: 3
     continue_on_error: true   # still not clean after 3 passes -> the run ends `partial`, the PR waits for a human
