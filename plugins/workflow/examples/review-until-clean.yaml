@@ -1,0 +1,68 @@
+# Example workflow — a loop block: review, fix, repeat until the review is clean.
+#
+# `review-loop` is a *loop block*: a step with its own `steps:` list and an
+# `until:` condition. Every pass runs `review`, then `fix`; after each pass the
+# runner evaluates `until` and stops as soon as it is true.
+#
+#   - Each inner step has its own `agent:` (or `inline: true`), so the reviewer
+#     and the fixer can be different agents. Both agent types must have the
+#     `Skill` tool, because the runner tells the agent to invoke the skill.
+#     `pr-reviewer` and `review-fixer` are wrappers that spawn their own
+#     dedicated sub-agents, so a plain `inline: true` also works (that is what
+#     auto-board-task does) — pick whichever fits.
+#   - `fix` has an `if:`: when `review` found nothing there is nothing to fix,
+#     so it is skipped and `until` ends the loop on that same pass.
+#   - `steps.review.output.findings` is the number of findings the reviewer
+#     reports in `$WORKFLOW_OUTPUT` (new ones plus ones still open). It always
+#     reads the LATEST pass; `steps.review.outputs` is the array of all of them.
+#   - `max_iterations` is mandatory: five passes at most. If the review is still
+#     not clean after the fifth, the block fails with "max_iterations reached"
+#     (set `continue_on_error: true` on the block to end `partial` instead).
+#   - `retry: 1` on `review`: a reviewer that crashed (not one that found
+#     issues) gets one more try before the run halts.
+#
+# Run it with, e.g.:
+#
+#   workflow plugins/workflow/examples/review-until-clean.yaml \
+#     pr_url=https://github.com/owner/repo/pull/42 repo=owner/repo branch=feature/x
+#
+# See ../references/format.md for the full schema.
+
+name: review-until-clean
+description: Review a PR and apply the fixes, repeating until the review reports no findings.
+category: automation
+
+inputs:
+  - name: pr_url
+    description: Full URL of the pull request.
+  - name: repo
+    description: owner/repo of the pull request.
+  - name: branch
+    description: Branch the pull request is on.
+
+steps:
+  - id: review-loop
+    description: Review, fix, and repeat until the review is clean.
+    until: ${{ steps.review.output.findings == 0 }}
+    max_iterations: 5
+    steps:
+      - id: review
+        skill: pr-reviewer
+        description: Review the PR and post the findings.
+        agent: general-purpose
+        retry: 1
+        args:
+          pr_url: ${{ inputs.pr_url }}
+          repo: ${{ inputs.repo }}
+          branch: ${{ inputs.branch }}
+
+      - id: fix
+        skill: review-fixer
+        description: Apply fixes for the actionable review comments, run the checks and push.
+        agent: claude
+        if: ${{ steps.review.output.findings > 0 }}
+        args:
+          pr_url: ${{ inputs.pr_url }}
+          repo: ${{ inputs.repo }}
+          branch: ${{ inputs.branch }}
+          poll: 0

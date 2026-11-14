@@ -1,0 +1,53 @@
+# Example workflow — loops: `for_each` and `until` / `max_iterations`.
+#
+#   1. drain   — `for_each` over a list of task files: one task-agent run per
+#                file, with `${{ item }}` and `${{ index }}` available in the
+#                args. `continue_on_error` keeps going if one file fails, so a
+#                bad task file does not block the rest. The loop is capped by
+#                `max_iterations`; a longer list is an error, never truncated.
+#   2. fix     — `until` repeats review-fixer until it succeeds, at most 3
+#                times. It may read its own latest run through
+#                `steps.fix.status`. If the 3rd run still has not succeeded the
+#                step fails with "max_iterations reached" (here tolerated by
+#                `continue_on_error`, so the run ends `partial`).
+#
+# `${{ steps.drain.output }}` is the LAST iteration's output;
+# `${{ steps.drain.outputs }}` is the array of every iteration's output.
+#
+# `task_files` is a JSON array in a string (inputs arrive as strings). Run it with:
+#
+#   workflow plugins/workflow/examples/drain-and-fix.yaml 'task_files=["a.yml","b.yml"]'
+#
+# See ../references/format.md for the full schema.
+
+name: drain-and-fix
+description: Run task-agent once per task file, then retry review-fixer on the last PR until it succeeds.
+category: automation
+
+inputs:
+  - name: task_files
+    default: '["tasks.yml"]'
+    description: JSON array of task-agent tasks.yml paths to process, in order.
+
+steps:
+  - id: drain
+    skill: task-agent
+    description: One task-agent run per task file.
+    for_each: ${{ inputs.task_files }}
+    max_iterations: 10
+    continue_on_error: true
+    args:
+      tasks: ${{ item }}
+      run: ${{ index }}
+
+  - id: fix
+    skill: review-fixer
+    description: Retry the fixer on the last PR until it succeeds (at most 3 runs).
+    if: ${{ steps.drain.output.pr_url }}
+    until: ${{ steps.fix.status == "success" }}
+    max_iterations: 3
+    continue_on_error: true
+    args:
+      pr_url: ${{ steps.drain.output.pr_url }}
+      repo: ${{ steps.drain.output.repo }}
+      branch: ${{ steps.drain.output.branch }}

@@ -99,7 +99,7 @@
     {
       "name": "workflow",
       "source": "./plugins/workflow",
-      "description": "Run multi-step skill workflows declared in workflow.yaml — sequential execution, ${{ … }} interpolation between steps, JSON-or-stdout output capture.",
+      "description": "Run multi-step skill workflows declared in workflow.yaml — sequential execution, ${{ … }} interpolation between steps, JSON-or-stdout output capture, plus `if` conditions, `for_each` / `until` loops, `retry` and `continue_on_error`.",
       "category": "automation",
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/workflow"
     }

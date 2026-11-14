@@ -77,3 +77,20 @@ Spawn the `pr-reviewer` sub-agent via the `Agent` tool
 Print the agent's report verbatim. The review comments it posts are marked `<!-- pr-reviewer -->`, which is how `review-fixer` finds them in the next workflow step.
 
 If the agent could not post (for example `gh` is not authenticated), surface that error and stop — do not retry with a different mechanism.
+
+### Step 5 — Emit workflow output
+
+If the `$WORKFLOW_OUTPUT` environment variable is set (this skill is running as a workflow step), write a JSON object so a later step, or a loop's `until:`, can act on the result — for example "review, fix, repeat until `steps.review.output.findings == 0`":
+
+```bash
+if [ -n "$WORKFLOW_OUTPUT" ]; then
+  printf '{"findings":%s,"posted":%s,"already_raised":%s,"review_url":"%s","commit":"%s"}' \
+    "$FINDINGS" "$POSTED" "$ALREADY_RAISED" "$REVIEW_URL" "$HEAD_OID" > "$WORKFLOW_OUTPUT"
+fi
+```
+
+- `posted` is `N` from the report's `Posted (N)`; `already_raised` is `N` from `Already raised (N)`.
+- `findings` is `posted + already_raised`: findings the reviewer still considers open on this commit, whether it just posted them or they were raised earlier and not yet resolved. `0` means the review was clean.
+- `review_url` is the posted review's URL, or empty when no review was posted; `commit` is the reviewed `headRefOid`.
+
+Skip this step when `$WORKFLOW_OUTPUT` is unset (standalone invocation). Take the counts from the agent's report relayed in Step 4. If the review could not be posted because of an error, stop as in Step 4 and write nothing, so the step fails instead of looking clean.

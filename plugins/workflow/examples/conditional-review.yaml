@@ -1,0 +1,55 @@
+# Example workflow — conditions, retry and continue_on_error.
+#
+# Runs task-agent, then reviews and fixes the PR it opened — but only if it
+# actually opened one:
+#
+#   - `retry: 2` on `run-task`: cloning / pushing can fail transiently, so the
+#     step is re-run up to twice before the workflow gives up. The summary
+#     records how many `attempts` it took.
+#   - `if:` on `review` and `review-fix`: when task-agent had nothing to do
+#     (no pending task) there is no `pr_url`, an empty value is falsy, and both
+#     steps are recorded as `skipped` — not failed.
+#   - `continue_on_error: true` on `review-fix`: a failing fixer must not hide
+#     the fact that the PR exists. The run ends `partial` instead of `failed`.
+#
+# Run it with, e.g.:
+#
+#   workflow plugins/workflow/examples/conditional-review.yaml tasks=tasks.yml
+#
+# See ../references/format.md for the full schema.
+
+name: conditional-review
+description: Run task-agent, then review and fix the resulting PR only if one was opened.
+category: automation
+
+inputs:
+  - name: tasks
+    default: "tasks.yml"
+    description: Path to the unified task-agent tasks.yml file.
+
+steps:
+  - id: run-task
+    skill: task-agent
+    description: Pick up the next pending task and open a PR.
+    retry: 2
+    args:
+      tasks: ${{ inputs.tasks }}
+
+  - id: review
+    skill: pr-reviewer
+    description: Review the PR — skipped when no PR was opened.
+    if: ${{ steps.run-task.output.pr_url }}
+    args:
+      pr_url: ${{ steps.run-task.output.pr_url }}
+      repo: ${{ steps.run-task.output.repo }}
+      branch: ${{ steps.run-task.output.branch }}
+
+  - id: review-fix
+    skill: review-fixer
+    description: Apply fixes for actionable review comments; a failure here does not fail the run.
+    if: ${{ steps.run-task.output.pr_url }}
+    continue_on_error: true
+    args:
+      pr_url: ${{ steps.run-task.output.pr_url }}
+      repo: ${{ steps.run-task.output.repo }}
+      branch: ${{ steps.run-task.output.branch }}

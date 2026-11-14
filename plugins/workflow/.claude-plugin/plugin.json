@@ -1,7 +1,7 @@
 {
   "name": "workflow",
-  "version": "1.2.0",
-  "description": "Run multi-step skill workflows declared in workflow.yaml — sequential execution, ${{ … }} interpolation between steps, JSON-or-stdout output capture.",
+  "version": "1.3.0",
+  "description": "Run multi-step skill workflows declared in workflow.yaml — sequential execution, ${{ … }} interpolation between steps, JSON-or-stdout output capture, plus `if` conditions, `for_each` / `until` loops, `retry` and `continue_on_error`.",
   "author": { "name": "dan323" },
   "category": "automation",
   "skills": ["./skills/workflow"]

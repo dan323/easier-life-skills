@@ -3,6 +3,26 @@
 ## [Unreleased]
 
 ### Added
+- **workflow v1.3.0: conditionals, loops and failure handling** ([#129](https://github.com/dan323/easier-life-skills/issues/129)).
+  A step can now carry `if:` (skip it — recorded as `skipped`, not failed), `for_each:` (run once per
+  list element, exposing `${{ item }}` / `${{ index }}`), `until:` + `max_iterations:` (repeat until a
+  condition holds, hard-capped), `retry: N` (0–5) and `continue_on_error: true` (the run ends `partial`
+  instead of halting). A **loop block** — a step with its own `steps:` list plus `for_each` / `until` —
+  repeats several steps together, e.g. *review, then fix, until the review is clean*, with a different
+  `agent:` / `inline:` per inner step; `steps.<inner>.*` always reads the latest pass and `steps.<inner>.outputs`
+  keeps every pass. Conditions use a minimal expression language — references, literals, `==`, `!=`,
+  `<`, `<=`, `>`, `>=`, `!`, `&&`, `||` — parsed by a hand-written parser, never `eval()` (ADR 0001 in
+  `plugins/workflow/skills/workflow/adr/`). Unbounded loops are rejected at validation. Looped steps
+  expose `steps.<id>.outputs` (per-iteration array); `steps.<id>.status` / `.attempts` / `.iterations` are
+  readable too. `workflow-output.json` gains `partial`, per-step `attempts`, `iterations`, `reason` and
+  `outputs_path`, and a loop block's inner steps nest under its entry. Existing workflows run unchanged.
+  New examples `conditional-review.yaml`, `drain-and-fix.yaml` and `review-until-clean.yaml`, and ten new
+  evals (skipped step, loop, retry, max-iterations, unbounded loop rejected, `continue_on_error`, legacy
+  workflow, review-until-clean block, block cap, invalid blocks).
+- **task-agent v2.2.0: `pr-reviewer` reports a findings count.** When run as a workflow step it writes
+  `{"findings": N, "posted": …, "already_raised": …, "review_url": …, "commit": …}` to `$WORKFLOW_OUTPUT`
+  (`findings` = open findings on the reviewed commit; `0` = clean), so a workflow can loop
+  `until: ${{ steps.review.output.findings == 0 }}`.
 - **`readOnly` on agents and commands.** Agents and commands are now tagged read-only from their
   `tools` / `allowed-tools` (shown as a badge on their cards). Plugins (collections), hooks and MCP
   servers (not reliably decidable) are not tagged.
@@ -19,6 +39,14 @@
 - Web UI: skills whose SKILL.md opens directly with a `Phase`/`Step` heading (e.g. `alirezarezvani/claude-skills` `interview`) had an empty SKILL.md preview; the excerpt now falls back to the opening of the body.
 
 ### Changed
+- **workflow runner evaluates expressions in `scripts/wf_eval.py`.** Validation, conditions, loop lists and
+  argument rendering share one deterministic, unit-tested helper (`scripts/test_wf_eval.py`) instead of the
+  runner pre-resolving `${{ … }}` into placeholder markers; arguments are now rendered at run time from the
+  files earlier steps wrote. Each step writes a `status.json`, which the summary reads.
+- Docs: skills used as workflow steps should give structured output — write a JSON object to `$WORKFLOW_OUTPUT`, and
+  each key is readable as `steps.<step-id>.output.<output-key>` (keys are a contract, never inferred; a missing key is
+  `null`). Documented in `plugins/workflow/references/format.md` and `docs/contributing.md`.
+- Docs: `.claude/CLAUDE.md` no longer carries the "Roadmap & Issue Tracking" section.
 - Web UI: the SKILL.md preview no longer appears in the plugin panel (it only ever showed one of a bundle's skills); it is shown in the individual skill, agent and command panels only.
 - **Read-only tagging now means "no local or remote writes".** `isWriteTool` also treats `Agent`,
   `Task`, `Skill`, `SkillInvoke`, scoped `PowerShell(...)` (unless read-only) and mutating `mcp__*`
