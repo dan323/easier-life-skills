@@ -93,4 +93,6 @@ result:
 - `findings` is `posted + already_raised`: findings the reviewer still considers open on this commit, whether it just posted them or they were raised earlier and not yet resolved. `0` means the review was clean.
 - `review_url` is the posted review's URL, or `""` when no review was posted; `commit` is the reviewed `headRefOid`.
 
+When the report carries no `Posted (N)` / `Already raised (N)` counts (for example `not posted: already reviewed this commit`), do **not** report `findings: 0`: that would read as a clean review. Derive `findings` from the open findings the report lists or, when it lists none, from the unresolved `<!-- pr-reviewer -->` threads on the PR; if the count still cannot be determined, omit `findings` (and `posted` / `already_raised`) from the block so a caller's `findings != 0` guard still runs the fixer.
+
 Take the counts from the agent's report relayed in Step 4. If the review could not be posted because of an error, stop as in Step 4 and emit no block, so a caller sees a failure instead of a clean review.

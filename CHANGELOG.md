@@ -11,6 +11,8 @@
   reference the adapters to get step output keys. `auto-board-task` v1.6.0 (needs `task-agent` >= 3.0.0)
   and every `workflow` example were migrated; `workflow` v1.3.1 docs updated. Rationale in ADR 0016;
   `docs/contributing.md` tells skill authors which layer to write.
+  `pr-reviewer`'s result block never reports `findings: 0` when the report has no counts (for example
+  "already reviewed this commit"): it derives the count from open findings or omits `findings`.
 
 ### Added
 - **workflow v1.3.0: conditionals, loops and failure handling** ([#129](https://github.com/dan323/easier-life-skills/issues/129)).
