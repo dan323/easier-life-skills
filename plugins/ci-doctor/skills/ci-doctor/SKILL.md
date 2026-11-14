@@ -40,8 +40,8 @@ Before doing any work, call `TaskCreate` for each phase below. Call `TaskUpdate`
    - A run URL or ID given by the user.
    - The PR for the current branch: `gh pr checks` / `gh pr view --json number,headRefName`.
    - The current branch: `git rev-parse --abbrev-ref HEAD`.
-3. List recent runs: `gh run list --branch <branch> --limit 10 --json databaseId,workflowName,conclusion,headSha,event,createdAt`.
-4. Pick the most recent run with conclusion `failure` (or `timed_out`). If several workflows failed on the same commit, diagnose each one. If none failed, report "no failing runs" and stop. If the latest run is still in progress, say so and diagnose the latest completed failure only if its `headSha` matches HEAD.
+3. List recent runs: `gh run list --branch <branch> --limit 10 --json databaseId,workflowName,status,conclusion,headSha,event,createdAt,url`.
+4. Pick the most recent run with conclusion `failure` (or `timed_out`). If several workflows failed on the same commit, diagnose each one. If none failed, report "no failing runs" and stop. If the latest run is still in progress (`status` is not `completed`; `conclusion` is empty), say so and diagnose the latest completed failure only if its `headSha` matches HEAD.
 
 ### Fallback — no `gh`
 
