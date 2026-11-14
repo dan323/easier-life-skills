@@ -137,6 +137,19 @@ Submit a pull request:
 - Include at least 3 evals
 - Update `CHANGELOG.md` under `## [Unreleased] > ### Added`
 
+### Depending on other plugins
+
+A plugin that needs another plugin lists it under `dependencies` in `plugin.json`. Use a bare name when any version will do, or an object with a semver range when it needs a minimum version (a workflow that relies on a feature added in a later release, a skill that reads another skill's output keys):
+
+```json
+"dependencies": [
+  "workflow",
+  { "name": "task-agent", "version": ">=2.2.0" }
+]
+```
+
+Claude Code installs the dependencies with the plugin and, if the installed version is outside the range, keeps the plugin disabled and reports `Requires "task-agent" >=2.2.0, installed 2.1.0`. Ranges follow [npm semver](https://github.com/npm/node-semver#ranges) (`^2.0`, `~2.1.0`, `>=1.4`, `=2.1.0`). Plugins here are referenced by relative path, so the constraint is checked against the marketplace's current copy; tag releases with `claude plugin tag --push` (`<plugin>--v<version>`) only if a dependent needs to pin to an older release. Bump the dependency's `version` in `plugin.json` whenever you add something a dependent relies on. See [Plugin dependencies](https://code.claude.com/docs/en/plugin-dependencies).
+
 ## Authoring a Workflow
 
 A workflow chains multiple skills into a multi-step pipeline. Workflows are
