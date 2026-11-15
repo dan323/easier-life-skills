@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- **ci-doctor v1.0.0** ([#128](https://github.com/dan323/easier-life-skills/issues/128)). New read-only `devops` skill that finds the latest failed GitHub Actions run for the branch/PR, reads the failed-step logs, classifies each failure (test, lint/type, dependency, flaky/timeout, config/permissions/secrets) and proposes a fix. Falls back to pasted logs without `gh`. Six evals including flaky-test and missing-secret cases.
 - **workflow v1.3.0: conditionals, loops and failure handling** ([#129](https://github.com/dan323/easier-life-skills/issues/129)).
   A step can now carry `if:` (skip it — recorded as `skipped`, not failed), `for_each:` (run once per
   list element, exposing `${{ item }}` / `${{ index }}`), `until:` + `max_iterations:` (repeat until a

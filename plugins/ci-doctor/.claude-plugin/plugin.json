@@ -1,0 +1,8 @@
+{
+  "name": "ci-doctor",
+  "version": "1.0.0",
+  "description": "Diagnose failing GitHub Actions runs from their failed-step logs and map each failure to a likely fix. Read-only report; falls back to pasted logs when gh is unavailable.",
+  "author": { "name": "dan323" },
+  "category": "devops",
+  "skills": ["./skills/ci-doctor"]
+}
