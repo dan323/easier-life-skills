@@ -4,6 +4,10 @@
 
 ### Added
 - **ci-doctor v1.0.0** ([#128](https://github.com/dan323/easier-life-skills/issues/128)). New read-only `devops` skill that finds the latest failed GitHub Actions run for the branch/PR, reads the failed-step logs, classifies each failure (test, lint/type, dependency, flaky/timeout, config/permissions/secrets) and proposes a fix. Falls back to pasted logs without `gh`. Six evals including flaky-test and missing-secret cases.
+- **release v1.0.0: new `release` skill** ([#127](https://github.com/dan323/easier-life-skills/issues/127)).
+  Derives the semver bump from conventional commits since the last tag, bumps version files, runs
+  `changelog`, then commits, tags and creates the GitHub release only after explicit confirmation. Stops
+  if the tag/release exists or there are no new commits; degrades without `gh`. Category `devops`, 4 evals.
 - **workflow v1.3.0: conditionals, loops and failure handling** ([#129](https://github.com/dan323/easier-life-skills/issues/129)).
   A step can now carry `if:` (skip it — recorded as `skipped`, not failed), `for_each:` (run once per
   list element, exposing `${{ item }}` / `${{ index }}`), `until:` + `max_iterations:` (repeat until a
