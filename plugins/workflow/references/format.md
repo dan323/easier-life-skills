@@ -201,11 +201,11 @@ until the review is clean*:
   max_iterations: 5
   steps:
     - id: review
-      skill: pr-reviewer
+      skill: pr-reviewer-workflow
       agent: general-purpose           # each inner step has its own agent / inline
       retry: 1
     - id: fix
-      skill: review-fixer
+      skill: review-fixer-workflow
       agent: claude
       if: ${{ steps.review.output.findings > 0 }}
 ```
