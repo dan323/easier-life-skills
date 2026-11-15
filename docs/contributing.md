@@ -179,7 +179,7 @@ steps:
       ideas: ${{ steps.ideas.output }}
 
   - id: pr
-    skill: task-agent
+    skill: task-agent-workflow
     inputs:
       tasks: "Open a PR adding the docs produced in step `docs`."
 ```
@@ -193,13 +193,13 @@ Steps can also branch, repeat and tolerate failure:
 
 ```yaml
   - id: fix
-    skill: review-fixer
+    skill: review-fixer-workflow
     if: ${{ steps.pr.output.pr_url }}          # skipped (not failed) when empty
     retry: 2                                   # re-run a failed attempt up to twice — only for steps that are safe to repeat
     continue_on_error: true                    # a failure ends the run `partial`, not `failed`
 
   - id: each
-    skill: task-agent
+    skill: task-agent-workflow
     for_each: ${{ inputs.task_files }}         # a list, or a JSON array in a string
     max_iterations: 10
     args:
@@ -216,9 +216,9 @@ review is clean — put them in a *loop block*; each inner step keeps its own
     max_iterations: 5
     steps:
       - id: review
-        skill: pr-reviewer
+        skill: pr-reviewer-workflow
       - id: fix
-        skill: review-fixer
+        skill: review-fixer-workflow
         if: ${{ steps.review.output.findings > 0 }}
 ```
 
@@ -246,29 +246,35 @@ shows a loop block.
 
 ### Passing data between steps
 
-A skill that is meant to be used as a workflow step should **give
-structured output**: when `$WORKFLOW_OUTPUT` is set, it writes a JSON
-object to that path at the end of its run. Every key is then available to
-later steps as `steps.<step-id>.output.<output-key>`:
+A step's `$WORKFLOW_OUTPUT` JSON file is what later steps read, as
+`steps.<step-id>.output.<output-key>`. Write skills in **two layers**
+([ADR 0016](../adr/0016-generic-skill-plus-workflow-adapter.md)):
+
+1. **The generic skill** (`pr-reviewer`) is standalone and never mentions
+   `$WORKFLOW_OUTPUT`. If other skills may want its outcome, end its report with
+   a `result:` label and a fenced `json` block holding the stable,
+   machine-readable result.
+2. **A thin adapter** (`pr-reviewer-workflow`, in the same plugin) calls the
+   generic skill through `Skill` (run it `inline: true` in the workflow), reads
+   the last `result` block and, when `$WORKFLOW_OUTPUT` is set, writes it there.
+   It documents the output keys and holds no other logic.
 
 ```bash
-if [ -n "$WORKFLOW_OUTPUT" ]; then
-  printf '{"pr_url":"%s","repo":"%s"}' "$PR_URL" "$REPO" > "$WORKFLOW_OUTPUT"
-fi
+printf '%s' "$RESULT_JSON" > "$WORKFLOW_OUTPUT"   # in the adapter only
 ```
 
 ```yaml
   - id: review
-    skill: pr-reviewer
+    skill: pr-reviewer-workflow
     args:
       pr_url: ${{ steps.run-task.output.pr_url }}      # step id `run-task`, output key `pr_url`
 ```
 
 The keys are not inferred: a step can only read keys the skill actually
 wrote, and a missing or misspelt key is `null` (silently falsy in `if` /
-`until`). So list the output keys in the skill's `SKILL.md` — see the
-"Emit workflow output" steps of `task-agent` (`pr_url`, `repo`, `branch`) and
-`pr-reviewer` (`findings`, `posted`, `already_raised`, `review_url`,
+`until`). So list the output keys in the adapter's `SKILL.md` — see
+`task-agent-workflow` (`status`, `pr_url`, `repo`, `branch`) and
+`pr-reviewer-workflow` (`findings`, `posted`, `already_raised`, `review_url`,
 `commit`). A skill that writes nothing still composes (its stdout becomes
 the string `steps.<id>.output`), but that is only useful for passing text
 on, not for branching or looping.

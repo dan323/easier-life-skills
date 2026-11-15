@@ -31,7 +31,7 @@ inputs:
 
 steps:
   - id: drain
-    skill: task-agent
+    skill: task-agent-workflow
     description: One task-agent run per task file.
     for_each: ${{ inputs.task_files }}
     max_iterations: 10
@@ -41,7 +41,7 @@ steps:
       run: ${{ index }}
 
   - id: fix
-    skill: review-fixer
+    skill: review-fixer-workflow
     description: Retry the fixer on the last PR until it succeeds (at most 3 runs).
     if: ${{ steps.drain.output.pr_url }}
     until: ${{ steps.fix.status == "success" }}

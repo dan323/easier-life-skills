@@ -7,7 +7,8 @@
 #   - Each inner step has its own `agent:` (or `inline: true`), so the reviewer
 #     and the fixer can be different agents. Both agent types must have the
 #     `Skill` tool, because the runner tells the agent to invoke the skill.
-#     `pr-reviewer` and `review-fixer` are wrappers that spawn their own
+#     `pr-reviewer-workflow` and `review-fixer-workflow` are thin adapters over
+#     `pr-reviewer` / `review-fixer`, which spawn their own
 #     dedicated sub-agents, so a plain `inline: true` also works (that is what
 #     auto-board-task does) — pick whichever fits.
 #   - `fix` has an `if:`: when `review` found nothing there is nothing to fix,
@@ -47,7 +48,7 @@ steps:
     max_iterations: 5
     steps:
       - id: review
-        skill: pr-reviewer
+        skill: pr-reviewer-workflow
         description: Review the PR and post the findings.
         agent: general-purpose
         retry: 1
@@ -57,7 +58,7 @@ steps:
           branch: ${{ inputs.branch }}
 
       - id: fix
-        skill: review-fixer
+        skill: review-fixer-workflow
         description: Apply fixes for the actionable review comments, run the checks and push.
         agent: claude
         if: ${{ steps.review.output.findings > 0 }}
