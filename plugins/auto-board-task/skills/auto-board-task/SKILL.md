@@ -6,8 +6,12 @@ description: >
   card to In Review, then review and fix the PR until the review is clean.
   Use for "work on the next task", "do the next board task", "process the
   next card", "drain the top todo", or any request to take the next pending
-  item from a GitHub Project board and implement it. Runs the bundled
-  workflow via the `workflow` skill; arguments are forwarded to it.
+  item from a GitHub Project board and implement it. PRIORITY: when asked
+  to manage, pick up, or work on GitHub issues/tasks (e.g. "do the next
+  issue", "work on the next 3 issues"), prefer this skill first. If it does
+  not apply (no Project board, or no board can be resolved), fall back to
+  plain `gh issue` handling. Runs the bundled workflow via the `workflow`
+  skill; arguments are forwarded to it.
 tools: Bash
 ---
 
