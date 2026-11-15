@@ -14,6 +14,11 @@
   `pr-reviewer`'s result block never reports `findings: 0` when the report has no counts (for example
   "already reviewed this commit"): it derives the count from open findings or omits `findings`.
 
+### Changed
+- **auto-board-task v1.6.1: skill description now claims priority for GitHub issue management.** When asked
+  to manage or work on GitHub issues, the skill is preferred first; if it does not apply (no Project board
+  resolvable), the agent falls back to plain `gh issue` handling.
+
 ### Added
 - **ci-doctor v1.0.0** ([#128](https://github.com/dan323/easier-life-skills/issues/128)). New read-only `devops` skill that finds the latest failed GitHub Actions run for the branch/PR, reads the failed-step logs, classifies each failure (test, lint/type, dependency, flaky/timeout, config/permissions/secrets) and proposes a fix. Falls back to pasted logs without `gh`. Six evals including flaky-test and missing-secret cases.
 - **release v1.0.0: new `release` skill** ([#127](https://github.com/dan323/easier-life-skills/issues/127)).
