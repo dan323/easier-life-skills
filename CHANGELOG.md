@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+- **`commit-message` plugin v1.0.0 with a `/commit-message` slash command** ([#141](https://github.com/dan323/easier-life-skills/issues/141)).
+  Reads the staged diff (`git diff --cached`) and recent commit subjects, picks one Conventional
+  Commits type, infers a scope, and prints a ≤72-char imperative subject with an optional body and
+  `BREAKING CHANGE` footer. `--copy` copies it to the clipboard (`clip` / `pbcopy` / `wl-copy` / `xclip`),
+  `--scope` forces the scope, `--issue <n>` adds `Fixes #<n>`. Read-only: it never stages or commits,
+  and warns instead of quoting secrets. Evals in `plugins/commit-message/evals/evals.json`.
+
 ### Fixed
 - **Pages deploy intermittently failed with `Found 0 artifact(s)`.** `actions/deploy-pages` looked the artifact up
   about 0.3s after `upload-pages-artifact` finalized it and could miss it. The deploy job now polls the run's

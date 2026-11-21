@@ -34,6 +34,13 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/code-audit"
     },
     {
+      "name": "commit-message",
+      "source": "./plugins/commit-message",
+      "description": "Slash command that generates a conventional commit message (feat/fix/chore…) from the staged git diff and prints it or copies it to the clipboard",
+      "category": "productivity",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/commit-message"
+    },
+    {
       "name": "cost-tracker",
       "source": "./plugins/cost-tracker",
       "description": "Append token usage and estimated cost to ~/.claude/cost-log.jsonl on Stop and SubagentStop events",
