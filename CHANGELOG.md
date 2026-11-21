@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Removed
+- **`DustyWalker/claude-code-marketplace` and `marcusabu/claude-code-docs-plugin` dropped from `marketplaces.json`**,
+  together with their entries in `.claude-plugin/external-overrides.json`. Both repositories no longer exist on
+  GitHub (404), so every build logged `Could not fetch marketplace.json or plugin.json` and the sources contributed
+  nothing. Historical ADRs that mention them are left unchanged.
+
 ### Fixed
 - **The index build crashed on plugins that declare `commands` as an object map** (e.g. `Jeffallan/claude-skills`:
   `{ "name": { "source": "./commands/x.md" } }`), which turned CI and the Pages deploy red. `discoverCommands`
