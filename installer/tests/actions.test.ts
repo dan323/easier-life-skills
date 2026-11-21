@@ -133,3 +133,16 @@ describe('installItemsRespectingSource — plugin input', () => {
     expect(claude.installPlugin).toHaveBeenCalledWith('cost-tracker', 'easier-life-skills', true);
   });
 });
+
+// ── unsafe identifiers ────────────────────────────────────────────────────────
+
+describe('installItemsRespectingSource — unsafe identifiers', () => {
+  it('aborts before registering or installing anything when any entry is unsafe', async () => {
+    const good = { pluginName: 'good', source: { owner: 'o', repo: 'r', repoUrl: 'https://github.com/o/r' } };
+    const bad  = { pluginName: '../../evil', source: { owner: 'o', repo: 'r', repoUrl: 'https://github.com/o/r' } };
+    await expect(installItemsRespectingSource([good, bad], {})).rejects.toThrow(/unsafe plugin name/);
+    expect(claude.addMarketplace).not.toHaveBeenCalled();
+    expect(claude.installPlugin).not.toHaveBeenCalled();
+    expect(shim.writeShim).not.toHaveBeenCalled();
+  });
+});

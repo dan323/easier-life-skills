@@ -1,6 +1,6 @@
 import * as claude from './claude.js';
 import { writeShim } from './shim.js';
-import { isMarketplaceSource, toInstallable } from './logic.js';
+import { assertSafeInstallable, isMarketplaceSource, toInstallable } from './logic.js';
 import type { Agent, Command, Hook, Installable, McpServer, Plugin, Skill, Sources } from './types.js';
 
 interface InstallOptions {
@@ -17,6 +17,12 @@ export async function installItemsRespectingSource(
   sources: Sources,
   { dryRun = false }: InstallOptions = {},
 ): Promise<void> {
+  const installables: Installable[] = items.map((raw) => 'pluginName' in raw
+    ? { pluginName: raw.pluginName, source: raw.source }
+    : toInstallable(raw));
+  // Validate everything up front so nothing is registered or written when any entry is unsafe.
+  installables.forEach(assertSafeInstallable);
+
   if (!(await claude.claudeAvailable())) {
     throw new Error('`claude` is not on $PATH. Install Claude Code from https://claude.ai/code, then re-run.');
   }
@@ -25,10 +31,7 @@ export async function installItemsRespectingSource(
   const installedThisRun = new Set<string>();
   const shimsWritten = new Set<string>();
 
-  for (const raw of items) {
-    const inst: Installable = 'pluginName' in raw
-      ? { pluginName: raw.pluginName, source: raw.source }
-      : toInstallable(raw);
+  for (const inst of installables) {
 
     if (isMarketplaceSource(inst, sources)) {
       const repoSlug = `${inst.source.owner}/${inst.source.repo}`;

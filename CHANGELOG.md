@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Fixed
+- **Installer: a plugin name like `../../x` in a remote index could write a shim outside the shims directory.**
+  `shimDirFor` joined the untrusted plugin name into `~/.config/easier-life-skills/shims/`. Plugin names, repo
+  owners and repo names are now validated as plain identifiers (no separators, `..` or leading `-`) before any
+  marketplace is registered or file written; an unsafe entry aborts the whole install.
 - **Plugin `homepage` from third-party marketplaces was rendered as an `href` without a scheme check**, so a
   `javascript:` / `data:` value would run on click. Homepages are now restricted to http(s) URLs both when the
   index is built and when the plugin panel renders (new `shared/safe-url.ts`).

@@ -17,6 +17,23 @@ import type {
   Sources,
 } from './types.js';
 
+// ── Identifier safety ─────────────────────────────────────────────────────────
+
+// Plugin and repo names come from a remotely fetched index (untrusted for external sources).
+// They become directory names (shims), marketplace names and CLI arguments, so accept only
+// plain identifiers: no path separators, no `..`, no leading `-`.
+const SAFE_IDENTIFIER = /^[A-Za-z0-9_][\w.-]*$/;
+
+export function isSafeIdentifier(value: string): boolean {
+  return SAFE_IDENTIFIER.test(value) && !value.includes('..');
+}
+
+export function assertSafeInstallable(inst: Installable): void {
+  for (const [label, v] of [['plugin name', inst.pluginName], ['repo owner', inst.source.owner], ['repo name', inst.source.repo]] as const) {
+    if (!isSafeIdentifier(v)) throw new Error(`Refusing to install: unsafe ${label} ${JSON.stringify(v)} in the index.`);
+  }
+}
+
 // ── Source routing ────────────────────────────────────────────────────────────
 
 // Accepts anything that carries a source.owner/source.repo pair (Skill, Plugin,
