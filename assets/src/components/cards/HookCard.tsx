@@ -1,4 +1,5 @@
 import { titleCase } from '../../utils.ts';
+import { CompatBadges } from '../CompatBadges.tsx';
 import { CopyButton } from '../CopyButton.tsx';
 import type { Hook } from '../../types.ts';
 
@@ -29,6 +30,7 @@ export function HookCard({ hook, showSource, showInstall, onOpen, bundled, onTog
           <span class="card-name-chevron" aria-hidden="true">›</span>
         </button>
         <div class="card-badges">
+          <CompatBadges tools={hook.compatibility} />
           <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>
           {showSource && <span class="badge badge-source">{hook._repo}</span>}
         </div>

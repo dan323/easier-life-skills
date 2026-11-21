@@ -1588,3 +1588,7 @@ body.catalog-page footer {
     width: calc(100vw - 16px);
   }
 }
+
+.badge-compat { background: #21262d; color: var(--text-muted); border: 1px solid var(--border); }
+.badge-compat-claude  { color: #d97757; border-color: #d97757; }
+.badge-compat-copilot { color: #58a6ff; border-color: #58a6ff; }

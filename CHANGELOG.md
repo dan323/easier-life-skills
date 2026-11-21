@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- **AI-compatibility badges (Claude, Copilot, Others) on skill, agent, command, hook and MCP cards.** The build tags each entity with a `compatibility` list in `skills_index.json` (`scripts/lib/compatibility.ts`): skills and MCP servers are tagged Claude + Copilot + Others (open SKILL.md / MCP formats); agents, commands and hooks are Claude only.
 - **`commit-message` plugin v1.0.0 with a `/commit-message` slash command** ([#141](https://github.com/dan323/easier-life-skills/issues/141)).
   Reads the staged diff (`git diff --cached`) and recent commit subjects, picks one Conventional
   Commits type, infers a scope, and prints a ≤72-char imperative subject with an optional body and

@@ -1,3 +1,6 @@
+/** AI tools an entity works with. */
+export type AiTool = 'claude' | 'copilot' | 'other';
+
 export interface Source {
   owner: string;
   repo:  string;
@@ -70,6 +73,7 @@ export interface Skill {
   installCommand: string;
   source:         Source;
   bundles?:       string[];
+  compatibility?: AiTool[];
   rating?:        Rating;
   scanResult?:    ScanResult;
   /** Opening part of SKILL.md (raw markdown). Untrusted — render as plain text only. */
@@ -91,6 +95,7 @@ export interface Agent {
   installCommand: string;
   source:         Source;
   bundles?:       string[];
+  compatibility?: AiTool[];
   rating?:        Rating;
   scanResult?:    ScanResult;
   /** Opening part of the agent .md body. Untrusted — render as plain text only. */
@@ -108,6 +113,7 @@ export interface McpServer {
   installCommand: string;
   source:         Source;
   bundles?:       string[];
+  compatibility?: AiTool[];
   rating?:        Rating;
   _repo?:         string;
 }
@@ -123,6 +129,7 @@ export interface Command {
   installCommand: string;
   source:         Source;
   bundles?:       string[];
+  compatibility?: AiTool[];
   rating?:        Rating;
   /** Opening part of the command .md body. Untrusted — render as plain text only. */
   excerpt?:       string;
@@ -140,6 +147,7 @@ export interface Hook {
   installCommand: string;
   source:         Source;
   bundles?:       string[];
+  compatibility?: AiTool[];
   rating?:        Rating;
   _repo?:         string;
 }

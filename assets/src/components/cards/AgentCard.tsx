@@ -1,4 +1,5 @@
 import { titleCase } from '../../utils.ts';
+import { CompatBadges } from '../CompatBadges.tsx';
 import { CopyButton } from '../CopyButton.tsx';
 import type { Agent } from '../../types.ts';
 
@@ -35,6 +36,7 @@ export function AgentCard({ agent, showSource, showInstall, onOpen, bundled, onT
               ? <span class="badge badge-scan-ok" title={`Content scanned at v${agent.scanResult.scannedVersion} — no injection patterns detected`}>✓ scanned</span>
               : <span class="badge badge-scan-warn" title={`Flagged at v${agent.scanResult.scannedVersion}: ${agent.scanResult.flags.map(f => f.detail).join('; ')}`}>⚠ flagged</span>
           )}
+          <CompatBadges tools={agent.compatibility} />
           <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>
           {showSource && <span class="badge badge-source">{agent._repo}</span>}
         </div>

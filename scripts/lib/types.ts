@@ -1,3 +1,4 @@
+import type { AiTool } from './compatibility.js';
 /* lib/types.ts — shared domain types */
 
 export interface ScanFlag {
@@ -62,6 +63,8 @@ export interface Skill {
   installCommand: string;
   source: PluginSource;
   bundles?: string[];
+  /** AI tools this entity works with (set at build time). */
+  compatibility?: AiTool[];
   /**
    * Optional aggregate rating. Present only for local-marketplace skills
    * that have at least one review in `ratings.json`. External-marketplace
@@ -94,6 +97,8 @@ export interface Agent {
   installCommand: string;
   source: PluginSource;
   bundles?: string[];
+  /** AI tools this entity works with (set at build time). */
+  compatibility?: AiTool[];
   rating?: Rating;
   /** Injection scan result for this agent's .md content. */
   scanResult?: ScanResult;
@@ -114,6 +119,8 @@ export interface McpServer {
   installCommand: string;
   source: PluginSource;
   bundles?: string[];
+  /** AI tools this entity works with (set at build time). */
+  compatibility?: AiTool[];
   rating?: Rating;
   _repo?: string;
 }
@@ -130,6 +137,8 @@ export interface Command {
   installCommand: string;
   source: PluginSource;
   bundles?: string[];
+  /** AI tools this entity works with (set at build time). */
+  compatibility?: AiTool[];
   rating?: Rating;
   /** Opening part of the command .md body. Untrusted text; omitted when empty or flagged. */
   excerpt?: string;
@@ -148,6 +157,8 @@ export interface Hook {
   installCommand: string;
   source: PluginSource;
   bundles?: string[];
+  /** AI tools this entity works with (set at build time). */
+  compatibility?: AiTool[];
   rating?: Rating;
   _repo?: string;
 }

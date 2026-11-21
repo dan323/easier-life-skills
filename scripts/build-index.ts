@@ -13,6 +13,7 @@ import { refMatchesEntity }                        from './lib/bundle-resolve.js
 import { mergeRatings, type RatingsFile, type RatableEntity, type RatableKind } from './lib/merge-ratings.js';
 import type { Agent, Command, MarketplaceEntry, McpServer, Plugin, Skill, Bundle, Hook } from './lib/types.js';
 import { tokenize as searchTokenize } from '../shared/search-tokenize.js';
+import { COMPATIBILITY } from './lib/compatibility.js';
 
 const ROOT         = join(dirname(fileURLToPath(import.meta.url)), '..');
 const marketplaces = JSON.parse(readFileSync(join(ROOT, 'marketplaces.json'), 'utf8')) as MarketplaceEntry[];
@@ -102,6 +103,13 @@ for (const { owner, repo, branch } of marketplaces) {
   allHooks.push(...hooks);
   sourceInfo[`${owner}/${repo}`] = { isMarketplace };
 }
+
+// Tag each entity with the AI tools it works with
+for (const e of allSkills)     e.compatibility = [...COMPATIBILITY.skill];
+for (const e of allAgents)     e.compatibility = [...COMPATIBILITY.agent];
+for (const e of allCommands)   e.compatibility = [...COMPATIBILITY.command];
+for (const e of allHooks)      e.compatibility = [...COMPATIBILITY.hook];
+for (const e of allMcpServers) e.compatibility = [...COMPATIBILITY.mcpServer];
 
 // Apply external overrides for categories
 for (const plugin of allPlugins) {

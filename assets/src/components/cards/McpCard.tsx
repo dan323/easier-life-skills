@@ -1,4 +1,5 @@
 import { titleCase } from '../../utils.ts';
+import { CompatBadges } from '../CompatBadges.tsx';
 import { CopyButton } from '../CopyButton.tsx';
 import type { McpServer } from '../../types.ts';
 
@@ -28,6 +29,7 @@ export function McpCard({ mcp, showSource, showInstall, onOpen, bundled, onToggl
           <span class="card-name-chevron" aria-hidden="true">›</span>
         </button>
         <div class="card-badges">
+          <CompatBadges tools={mcp.compatibility} />
           <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>
           {showSource && <span class="badge badge-source">{mcp._repo}</span>}
         </div>

@@ -1,4 +1,5 @@
 import { titleCase } from '../../utils.ts';
+import { CompatBadges } from '../CompatBadges.tsx';
 import { CopyButton } from '../CopyButton.tsx';
 import type { Command } from '../../types.ts';
 
@@ -29,6 +30,7 @@ export function CommandCard({ command: cmd, showSource, showInstall, onOpen, bun
         </button>
         <div class="card-badges">
           {cmd.readOnly && <span class="badge badge-readonly">read-only</span>}
+          <CompatBadges tools={cmd.compatibility} />
           <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>
           {showSource && <span class="badge badge-source">{cmd._repo}</span>}
         </div>

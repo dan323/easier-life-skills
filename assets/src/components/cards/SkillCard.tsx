@@ -1,4 +1,5 @@
 import { titleCase } from '../../utils.ts';
+import { CompatBadges } from '../CompatBadges.tsx';
 import { CopyButton } from '../CopyButton.tsx';
 import type { Skill } from '../../types.ts';
 
@@ -40,6 +41,7 @@ export function SkillCard({ skill, showSource, showInstall, onOpen, bundled, onT
               ? <span class="badge badge-scan-ok" title={`Content scanned at v${skill.scanResult.scannedVersion} — no injection patterns detected`}>✓ scanned</span>
               : <span class="badge badge-scan-warn" title={`Flagged at v${skill.scanResult.scannedVersion}: ${skill.scanResult.flags.map(f => f.detail).join('; ')}`}>⚠ flagged</span>
           )}
+          <CompatBadges tools={skill.compatibility} />
           <span class={`badge badge-cat ${catClass}`}>{catLabel}</span>
           {showSource && <span class="badge badge-source">{skill._repo}</span>}
         </div>
