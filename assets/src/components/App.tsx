@@ -203,13 +203,17 @@ export function App() {
     };
     const src = srcByView[view] ?? [];
     const visible = activeRepos.size ? src.filter(s => activeRepos.has(s._repo ?? '')) : src;
-    const cats = [...new Set(visible.map(s => s.category).filter((c): c is string => c !== null && c !== undefined))].sort();
-    let updated = false;
-    const next = new Set(activeCategories);
-    for (const c of next) if (!cats.includes(c)) { next.delete(c); updated = true; }
-    if (updated) setActiveCategories(next);
-    return cats;
-  }, [plugins, skills, agents, mcpServers, commands, hooks, view, activeRepos, activeCategories]);
+    return [...new Set(visible.map(s => s.category).filter((c): c is string => c !== null && c !== undefined))].sort();
+  }, [plugins, skills, agents, mcpServers, commands, hooks, view, activeRepos]);
+
+  // Drop active categories that no longer exist in the current view. Only once the index has
+  // loaded: before that every list is empty, which would wipe categories restored from the URL.
+  useEffect(() => {
+    if (!loaded) return;
+    const stale = [...activeCategories].filter(c => !categories.includes(c));
+    if (stale.length === 0) return;
+    setActiveCategories(prev => new Set([...prev].filter(c => categories.includes(c))));
+  }, [loaded, categories, activeCategories]);
 
   const toggleCategory = (cat: string) => {
     setActiveCategories(prev => {

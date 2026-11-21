@@ -46,3 +46,16 @@ describe('URL state', () => {
     expect(document.querySelector('#sort-btn .sort-label')!.textContent).toBe('Sort: Z→A');
   });
 });
+
+describe('URL state — category deep links', () => {
+  it('restore: keeps a category from the hash after the index loads', async () => {
+    await bootApp({ hash: '#view=skills&cat=documentation' });
+    expect(location.hash).toContain('cat=documentation');
+    expect(cardNames('skills-grid').sort()).toEqual(['changelog', 'document-project']);
+  });
+
+  it('prunes a restored category that does not exist in the loaded data', async () => {
+    await bootApp({ hash: '#view=skills&cat=no-such-category' });
+    expect(location.hash).not.toContain('no-such-category');
+  });
+});

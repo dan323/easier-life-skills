@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Fixed
+- **Shared links lost their `#cat=` filters on load.** `App` pruned unknown categories inside a `useMemo`
+  (calling `setState` during render) while every list was still empty, so URL-restored categories were
+  discarded before the index arrived. Category computation is now pure and pruning runs in an effect that
+  waits for the index to load.
 - **Installer `--bundle` installed only the first match of a bare-name ref.** `resolveRefs` in
   `installer/src/lib/logic.ts` used `find`, contradicting the documented (and web UI) behaviour that a bare
   string matches every same-named entity across marketplaces. It now resolves all matches, still deduped.
