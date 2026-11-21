@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Fixed
+- **"Part of bundles" in the skill detail panel was always empty for object bundle refs.** `EntityPanel`
+  matched `bundle.skills` with `includes(entity.name)`, which never matches the `{ name, source, pluginName }`
+  refs used by `.claude-plugin/bundles.json`. It now uses the shared `refMatchesEntity`.
 - **Raw URLs for local plugins pointed at the non-existent `main` branch.** `fetchMarketplaceSkills` hard-coded
   `main` whenever a local root was used, so every `rawSkillUrl` / `rawAgentUrl` / `rawCommandUrl` / `rawHookUrl`
   for this repo 404ed. `marketplaces.json` entries now accept an optional `branch`, and without one the branch
