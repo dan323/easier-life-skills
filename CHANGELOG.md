@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+- **Pages deploy intermittently failed with `Found 0 artifact(s)`.** `actions/deploy-pages` looked the artifact up
+  about 0.3s after `upload-pages-artifact` finalized it and could miss it. The deploy job now polls the run's
+  artifact list (up to 60s, needs `actions: read`) and only then calls `deploy-pages`.
+
 ### Removed
 - **`DustyWalker/claude-code-marketplace` and `marcusabu/claude-code-docs-plugin` dropped from `marketplaces.json`**,
   together with their entries in `.claude-plugin/external-overrides.json`. Both repositories no longer exist on
