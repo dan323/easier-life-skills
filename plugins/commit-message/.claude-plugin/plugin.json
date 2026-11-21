@@ -1,0 +1,8 @@
+{
+  "name": "commit-message",
+  "version": "1.0.0",
+  "description": "Slash command that generates a conventional commit message (feat/fix/chore…) from the staged git diff and prints it or copies it to the clipboard",
+  "author": { "name": "dan323" },
+  "category": "productivity",
+  "commands": ["./commands/commit-message.md"]
+}
