@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Fixed
+- **Hook names kept a stray quote when the hook command was quoted** (e.g. `setup-shims.sh"`), so such hooks
+  were dropped when restored from a bundle link. `extractCommandName` now strips surrounding quotes via the
+  exported `hookNameFromCommand` helper.
 - **A crafted `#b=...` link could inject arbitrary lines into the bundle builder's copy-paste install script.**
   `decodeItem` accepted any `name` / `installCommand` / `repo` from the URL hash and `buildInstallScript` emitted
   them verbatim (including into `npx ... --plugin <name>`). Tokens are now validated against the exact shapes

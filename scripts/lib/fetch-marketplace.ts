@@ -688,11 +688,7 @@ async function discoverHooks(
           if (!h || typeof h !== 'object') continue;
           const cmd = (h as Record<string, unknown>)['command'];
           if (typeof cmd !== 'string' || cmd.trim().length === 0) continue;
-          const noVars = cmd.replace(/\$\{[^}]+\}/g, '');
-          const tokens = noVars.trim().split(/\s+/);
-          const candidate = tokens[tokens.length - 1] ?? '';
-          const file = candidate.split('/').pop() ?? '';
-          const name = file.replace(/\.(py|sh|js|ts|mjs|cjs)$/i, '').replace(/_/g, '-').trim();
+          const name = hookNameFromCommand(cmd);
           if (name.length > 0) names.add(name);
         }
       }
@@ -801,6 +797,15 @@ async function discoverHooks(
 interface MarketplaceJson {
   plugins?: PluginEntry[];
   bundles?: Bundle[];
+}
+
+/** Derive a hook name from its shell command: last token's file name, minus quotes, extension and underscores. */
+export function hookNameFromCommand(cmd: string): string {
+  const noVars = cmd.replace(/\$\{[^}]+\}/g, '');
+  const tokens = noVars.trim().split(/\s+/);
+  const candidate = (tokens[tokens.length - 1] ?? '').replace(/^["']+|["']+$/g, '');
+  const file = candidate.split('/').pop() ?? '';
+  return file.replace(/\.(py|sh|js|ts|mjs|cjs)$/i, '').replace(/_/g, '-').trim();
 }
 
 export async function fetchMarketplaceSkills(
