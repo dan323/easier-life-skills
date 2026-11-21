@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Added
+- **`explain-codebase` plugin v1.0.0** - read-only skill that produces an onboarding guide for an unfamiliar
+  repository: purpose, tech stack, entry points, repository map, traced key flows (`file:line`), build/run/test
+  commands, conventions and where to start. Accepts an optional path or topic to focus on; monorepo-aware.
+  Evals in `plugins/explain-codebase/skills/explain-codebase/evals/evals.json`.
 - **`commit-message` plugin v1.0.0 with a `/commit-message` slash command** ([#141](https://github.com/dan323/easier-life-skills/issues/141)).
   Reads the staged diff (`git diff --cached`) and recent commit subjects, picks one Conventional
   Commits type, infers a scope, and prints a ≤72-char imperative subject with an optional body and
