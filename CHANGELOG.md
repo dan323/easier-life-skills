@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Fixed
+- **Installer `--bundle` installed only the first match of a bare-name ref.** `resolveRefs` in
+  `installer/src/lib/logic.ts` used `find`, contradicting the documented (and web UI) behaviour that a bare
+  string matches every same-named entity across marketplaces. It now resolves all matches, still deduped.
 - **"Part of bundles" in the skill detail panel was always empty for object bundle refs.** `EntityPanel`
   matched `bundle.skills` with `includes(entity.name)`, which never matches the `{ name, source, pluginName }`
   refs used by `.claude-plugin/bundles.json`. It now uses the shared `refMatchesEntity`.
