@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+- **The index build crashed on plugins that declare `commands` as an object map** (e.g. `Jeffallan/claude-skills`:
+  `{ "name": { "source": "./commands/x.md" } }`), which turned CI and the Pages deploy red. `discoverCommands`
+  now reads that form (keeping the declared command names), skips malformed array entries, and warns about, rather
+  than crashes on, any other unsupported declaration.
+
 ### Changed
 - **task-agent v3.0.0: generic skills plus thin `<skill>-workflow` adapters** ([#139](https://github.com/dan323/easier-life-skills/issues/139)).
   `task-agent`, `pr-reviewer` and `review-fixer` no longer mention `$WORKFLOW_OUTPUT`; each ends its report

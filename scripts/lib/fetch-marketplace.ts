@@ -175,6 +175,9 @@ type PluginSourceDecl =
   | null
   | undefined;
 
+/** `commands` may be a directory, a list of files, or a `{ name: { source } }` map. */
+type CommandsDecl = string[] | string | Record<string, { source?: string } | string> | null | undefined;
+
 interface PluginEntry {
   name: string;
   description?: string;
@@ -184,7 +187,7 @@ interface PluginEntry {
   skills?: string[] | string | null;
   agents?: string[] | string | null;
   mcpServers?: Record<string, McpConfig> | McpConfig[] | string | null;
-  commands?: string[] | string | null;
+  commands?: CommandsDecl;
   hooks?: string[] | string | Record<string, unknown> | null;
   homepage?: string | null;
 }
@@ -205,7 +208,7 @@ interface PluginJson {
   skills?: string[] | string | null;
   agents?: string[] | string | null;
   mcpServers?: Record<string, McpConfig> | McpConfig[] | string | null;
-  commands?: string[] | string | null;
+  commands?: CommandsDecl;
   hooks?: string[] | string | Record<string, unknown> | null;
 }
 
@@ -515,9 +518,10 @@ async function parseCommand(
   pluginEntry: PluginEntry,
   owner: string,
   repo: string,
+  nameOverride?: string,
 ): Promise<Command | null> {
   const cmdRel      = normalisePath(commandRelPath);
-  const cmdName     = cmdRel.split('/').pop()!.replace(/\.md$/i, '');
+  const cmdName     = nameOverride ?? cmdRel.split('/').pop()!.replace(/\.md$/i, '');
   const cmdPathBase = pluginRoot ? `${pluginRoot}/${cmdRel}` : cmdRel;
   const fullCmdPath = cmdPathBase.endsWith('.md') ? cmdPathBase : `${cmdPathBase}.md`;
 
@@ -548,7 +552,7 @@ async function parseCommand(
 }
 
 async function discoverCommands(
-  decl: string[] | string | null | undefined,
+  decl: CommandsDecl,
   pluginRoot: string,
   remoteBase: string,
   root: string | null,
@@ -560,9 +564,26 @@ async function discoverCommands(
 
   if (Array.isArray(decl)) {
     for (const cp of decl) {
+      if (typeof cp !== 'string') continue;
       const cmd = await parseCommand(cp, pluginRoot, remoteBase, root, pluginEntry, owner, repo);
       if (cmd) results.push(cmd);
     }
+    return results;
+  }
+
+  // Object form: { "<command name>": { "source": "./commands/x.md" } } (also accepts a bare path string).
+  if (decl !== null && typeof decl === 'object') {
+    for (const [name, spec] of Object.entries(decl)) {
+      const source = typeof spec === 'string' ? spec : spec?.source;
+      if (typeof source !== 'string' || !source) continue;
+      const cmd = await parseCommand(source, pluginRoot, remoteBase, root, pluginEntry, owner, repo, name);
+      if (cmd) results.push(cmd);
+    }
+    return results;
+  }
+
+  if (decl != null && typeof decl !== 'string') {
+    console.warn(`  [warn] ${owner}/${repo} plugin "${pluginEntry.name}": unsupported commands declaration (${typeof decl}) ignored`);
     return results;
   }
 
