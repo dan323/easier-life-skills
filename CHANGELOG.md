@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Removed
+- **`DustyWalker/claude-code-marketplace` and `marcusabu/claude-code-docs-plugin` dropped from `marketplaces.json`**,
+  together with their entries in `.claude-plugin/external-overrides.json`. Both repositories no longer exist on
+  GitHub (404), so every build logged `Could not fetch marketplace.json or plugin.json` and the sources contributed
+  nothing. Historical ADRs that mention them are left unchanged.
+
 ### Fixed
 - **Installer: a plugin name like `../../x` in a remote index could write a shim outside the shims directory.**
   `shimDirFor` joined the untrusted plugin name into `~/.config/easier-life-skills/shims/`. Plugin names, repo
