@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Fixed
+- **A crafted `#b=...` link could inject arbitrary lines into the bundle builder's copy-paste install script.**
+  `decodeItem` accepted any `name` / `installCommand` / `repo` from the URL hash and `buildInstallScript` emitted
+  them verbatim (including into `npx ... --plugin <name>`). Tokens are now validated against the exact shapes
+  the app produces (`/plugin install <plugin>@<repo>`, `owner/repo`, `[\w.-]` names); anything else is dropped.
 - **Shared links lost their `#cat=` filters on load.** `App` pruned unknown categories inside a `useMemo`
   (calling `setState` during render) while every list was still empty, so URL-restored categories were
   discarded before the index arrived. Category computation is now pure and pruning runs in an effect that
