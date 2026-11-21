@@ -69,6 +69,13 @@
       "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/docs"
     },
     {
+      "name": "explain-codebase",
+      "source": "./plugins/explain-codebase",
+      "description": "Onboarding guide for an unfamiliar codebase: purpose, tech stack, entry points, architecture map, key flows, and how to build and test it",
+      "category": "documentation",
+      "homepage": "https://github.com/dan323/easier-life-skills/tree/master/plugins/explain-codebase"
+    },
+    {
       "name": "find-skills",
       "source": "./plugins/find-skills",
       "description": "Analyze the active repository and recommend relevant Claude Code skills from known marketplaces",

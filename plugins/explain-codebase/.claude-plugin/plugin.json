@@ -1,0 +1,8 @@
+{
+  "name": "explain-codebase",
+  "version": "1.0.0",
+  "description": "Onboarding guide for an unfamiliar codebase: purpose, tech stack, entry points, architecture map, key flows, and how to build and test it",
+  "author": { "name": "dan323" },
+  "category": "documentation",
+  "skills": ["./skills/explain-codebase"]
+}
