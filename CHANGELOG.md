@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Fixed
+- **Plugin `homepage` from third-party marketplaces was rendered as an `href` without a scheme check**, so a
+  `javascript:` / `data:` value would run on click. Homepages are now restricted to http(s) URLs both when the
+  index is built and when the plugin panel renders (new `shared/safe-url.ts`).
 - **Hook names kept a stray quote when the hook command was quoted** (e.g. `setup-shims.sh"`), so such hooks
   were dropped when restored from a bundle link. `extractCommandName` now strips surrounding quotes via the
   exported `hookNameFromCommand` helper.

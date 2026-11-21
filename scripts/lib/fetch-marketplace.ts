@@ -5,6 +5,7 @@ import { join, dirname, basename }                                          from
 import { fileURLToPath }                                                    from 'url';
 import { parseFrontmatter, isWriteTool }                                                 from './frontmatter.js';
 import { scanBody, mergeMetadataScan, truncate, FIELD_LIMITS }               from './injection-scan.js';
+import { safeHttpUrl }                                                   from '../../shared/safe-url.js';
 import { buildPreview }                                                  from './excerpt.js';
 import type { Skill, Agent, McpServer, Command, Plugin, Bundle, MarketplaceResult, Hook } from './types.js';
 
@@ -908,7 +909,7 @@ export async function fetchMarketplaceSkills(
       name:           pluginEntry.name,
       description:    pluginEntry.description ?? '',
       category:       pluginEntry.category ?? null,
-      homepage:       pluginEntry.homepage ?? null,
+      homepage:       safeHttpUrl(pluginEntry.homepage),
       skills:         foundSkills.map(s => s.name),
       agents:         foundAgents.map(a => a.name),
       mcpServers:     foundMcpServers.map(m => m.name),
