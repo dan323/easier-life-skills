@@ -9,6 +9,7 @@ on:
     - cron: '0 3 * * *'   # daily at 03:00 UTC — keeps ratings fresh without code pushes
 
 permissions:
+  actions: read          # list this run's artifacts while waiting for the Pages artifact
   contents: write
   pages: write
   id-token: write
@@ -110,6 +111,24 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
+
+      # deploy-pages looks the artifact up through the same API right after it is finalized and can
+      # race it ("Found 0 artifact(s)"). Wait until the artifact is listed so the deploy is deterministic.
+      - name: Wait for the Pages artifact to be listed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in $(seq 1 30); do
+            n=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts"                   --jq '[.artifacts[] | select(.name == "github-pages" and (.expired | not))] | length')
+            if [ "${n:-0}" -ge 1 ]; then
+              echo "github-pages artifact is listed (attempt $i)"
+              exit 0
+            fi
+            echo "github-pages artifact not listed yet (attempt $i/30)"
+            sleep 2
+          done
+          echo "::error::github-pages artifact was not listed within 60s"
+          exit 1
 
       - name: Deploy to GitHub Pages
         id: deployment
