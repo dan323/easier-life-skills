@@ -4,6 +4,7 @@ import { BUILTIN_REPO } from '../constants.ts';
 import { CopyButton } from './CopyButton.tsx';
 import { ReviewsBlock, rateUrl } from './ReviewsBlock.tsx';
 import { SkillPreview } from './SkillPreview.tsx';
+import { refMatchesEntity } from '../bundle-resolve.ts';
 import type { Skill, Agent, McpServer, Command, Hook, Bundle } from '../types.ts';
 
 export type EntityKind = 'skill' | 'agent' | 'mcpServer' | 'command' | 'hook';
@@ -108,7 +109,7 @@ function EntityPanelBody({
   const mcpRuntime = mcpCommand ? mcpRuntimeLabel(mcpCommand) : null;
 
   const skillBundles = kind === 'skill'
-    ? bundles.filter(b => (b.skills ?? []).includes(entity.name))
+    ? bundles.filter(b => (b.skills ?? []).some(ref => refMatchesEntity(ref, entity as Skill)))
     : [];
 
   return (

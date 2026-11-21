@@ -90,7 +90,7 @@ easier-life-skills/
 │                            assets/src/**.tsx finds JSX settings (the non-default tsconfig.web.json name
 │                            is not auto-discovered). Not used by `npm run typecheck`.
 ├── vitest.config.ts         Vitest config — @preact/preset-vite for JSX, happy-dom environment
-├── marketplaces.json        List of { owner, repo, description? } pairs the build script aggregates
+├── marketplaces.json        List of { owner, repo, description?, branch? } pairs the build script aggregates
 ├── index.html               Interactive marketplace website — minimal shell; markup is rendered by Preact at runtime
 ├── catalog.html             Generated standalone Skill Catalog page — gitignored, deployed to GitHub Pages
 ├── docs/
@@ -155,7 +155,7 @@ assets/src/app.tsx     →  esbuild (JSX)   →  assets/bundle.js               
 ```
 
 1. **Scan `plugins/`** — `build-index.ts` reads every `plugins/<name>/.claude-plugin/plugin.json`, derives `name`, `description`, `category`, `source`, and `homepage`, and writes `.claude-plugin/marketplace.json`. This file is committed back to the branch by CI if it changed.
-2. **Aggregate** — `marketplaces.json` lists one or more `{ owner, repo }` pairs. For each, the script fetches (or reads locally) `.claude-plugin/marketplace.json`, then discovers skills, agents, and MCP servers per plugin.
+2. **Aggregate** — `marketplaces.json` lists one or more `{ owner, repo }` pairs, each with an optional `branch` hint for building raw URLs (when omitted, the script probes `main` then `master`). For each, the script fetches (or reads locally) `.claude-plugin/marketplace.json`, then discovers skills, agents, and MCP servers per plugin.
 3. **Discovery** — for each plugin, `fetch-marketplace.ts` resolves skills, agents, and MCP servers:
    - If `skills` / `agents` is a string array in `plugin.json` or the marketplace entry, each element is a specific directory path containing `SKILL.md` / a `.md` agent file.
    - If the field is a string, it is treated as a parent directory to scan (subdirs = skills, `.md` files = agents). Uses the local filesystem or the GitHub Trees API (one recursive fetch per repo) for remote repos.

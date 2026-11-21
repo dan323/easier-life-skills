@@ -45,6 +45,10 @@ export function encodeItem(item: BundleItem): string {
   return [item.name, item.installCommand, item.repo, item.kind, item.pluginName ?? ''].join('|');
 }
 
+const SAFE_NAME            = /^[\w.-]+$/;
+const SAFE_REPO            = /^[\w.-]+\/[\w.-]+$/;
+const SAFE_INSTALL_COMMAND = /^\/plugin install [\w.-]+@[\w.-]+$/;
+
 /**
  * Decode a URL token produced by encodeItem.  Returns null when the token
  * is malformed so old/corrupt URLs don't crash the app.
@@ -56,6 +60,10 @@ export function decodeItem(token: string): BundleItem | null {
   if (!name || !installCommand || !repo || !kind) return null;
   const validKinds: BundleItemKind[] = ['skill', 'agent', 'mcpServer', 'command', 'hook', 'plugin'];
   if (!validKinds.includes(kind as BundleItemKind)) return null;
+  // The URL hash is attacker-controllable and these values end up in a copy-paste install script,
+  // so accept only the exact shapes the app itself produces.
+  if (!SAFE_NAME.test(name) || !SAFE_REPO.test(repo) || (pluginName && !SAFE_NAME.test(pluginName))) return null;
+  if (!SAFE_INSTALL_COMMAND.test(installCommand)) return null;
   return {
     id:             buildBundleItemId(kind as BundleItemKind, name, repo, pluginName),
     name,

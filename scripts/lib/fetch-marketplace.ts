@@ -5,6 +5,7 @@ import { join, dirname, basename }                                          from
 import { fileURLToPath }                                                    from 'url';
 import { parseFrontmatter, isWriteTool }                                                 from './frontmatter.js';
 import { scanBody, mergeMetadataScan, truncate, FIELD_LIMITS }               from './injection-scan.js';
+import { safeHttpUrl }                                                   from '../../shared/safe-url.js';
 import { buildPreview }                                                  from './excerpt.js';
 import type { Skill, Agent, McpServer, Command, Plugin, Bundle, MarketplaceResult, Hook } from './types.js';
 
@@ -688,11 +689,7 @@ async function discoverHooks(
           if (!h || typeof h !== 'object') continue;
           const cmd = (h as Record<string, unknown>)['command'];
           if (typeof cmd !== 'string' || cmd.trim().length === 0) continue;
-          const noVars = cmd.replace(/\$\{[^}]+\}/g, '');
-          const tokens = noVars.trim().split(/\s+/);
-          const candidate = tokens[tokens.length - 1] ?? '';
-          const file = candidate.split('/').pop() ?? '';
-          const name = file.replace(/\.(py|sh|js|ts|mjs|cjs)$/i, '').replace(/_/g, '-').trim();
+          const name = hookNameFromCommand(cmd);
           if (name.length > 0) names.add(name);
         }
       }
@@ -803,12 +800,28 @@ interface MarketplaceJson {
   bundles?: Bundle[];
 }
 
-export async function fetchMarketplaceSkills(owner: string, repo: string, root: string | null): Promise<MarketplaceResult> {
+/** Derive a hook name from its shell command: last token's file name, minus quotes, extension and underscores. */
+export function hookNameFromCommand(cmd: string): string {
+  const noVars = cmd.replace(/\$\{[^}]+\}/g, '');
+  const tokens = noVars.trim().split(/\s+/);
+  const candidate = (tokens[tokens.length - 1] ?? '').replace(/^["']+|["']+$/g, '');
+  const file = candidate.split('/').pop() ?? '';
+  return file.replace(/\.(py|sh|js|ts|mjs|cjs)$/i, '').replace(/_/g, '-').trim();
+}
+
+export async function fetchMarketplaceSkills(
+  owner: string,
+  repo: string,
+  root: string | null,
+  branchHint?: string,
+): Promise<MarketplaceResult> {
   console.log(`  Fetching ${owner}/${repo}…`);
 
-  // Repos may use either default branch name; probe remotely when no local copy exists.
-  let branch = 'main';
-  if (!root) {
+  // Repos may use either default branch name. An explicit `branch` in marketplaces.json wins;
+  // otherwise probe remotely — also for the local repo, whose raw URLs must point at the
+  // branch that actually exists on GitHub (raw.githubusercontent.com does not alias master/main).
+  let branch = branchHint ?? 'main';
+  if (!branchHint) {
     for (const candidate of ['main', 'master']) {
       const base = `${RAW_BASE}/${owner}/${repo}/${candidate}`;
       const found = await readFile('.claude-plugin/marketplace.json', base, null)
@@ -896,7 +909,7 @@ export async function fetchMarketplaceSkills(owner: string, repo: string, root: 
       name:           pluginEntry.name,
       description:    pluginEntry.description ?? '',
       category:       pluginEntry.category ?? null,
-      homepage:       pluginEntry.homepage ?? null,
+      homepage:       safeHttpUrl(pluginEntry.homepage),
       skills:         foundSkills.map(s => s.name),
       agents:         foundAgents.map(a => a.name),
       mcpServers:     foundMcpServers.map(m => m.name),

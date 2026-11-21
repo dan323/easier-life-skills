@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import { titleCase } from '../utils.ts';
 import { BUILTIN_REPO } from '../constants.ts';
+import { safeHttpUrl } from '../../../shared/safe-url.ts';
 import { CopyButton } from './CopyButton.tsx';
 import { SkillCard }   from './cards/SkillCard.tsx';
 import { AgentCard }   from './cards/AgentCard.tsx';
@@ -79,7 +80,8 @@ function PluginPanelBody({
   const catClass = plugin.category ? `badge-${plugin.category}` : 'badge-uncategorized';
   const catLabel = plugin.category ? titleCase(plugin.category) : 'Uncategorized';
   const hasDesc = (plugin.description ?? '').trim().length > 0;
-  const pluginUrl = plugin.homepage ?? `https://github.com/${plugin.source.owner}/${plugin.source.repo}`;
+  const homepage = safeHttpUrl(plugin.homepage);
+  const pluginUrl = homepage ?? `https://github.com/${plugin.source.owner}/${plugin.source.repo}`;
   const promptText = `Explain to me what I would find in plugin ${pluginUrl} and what would it be used for`;
   const shareUrl = `${location.origin}${location.pathname}#view=plugins&q=${encodeURIComponent(plugin.name)}`;
 
@@ -119,8 +121,8 @@ function PluginPanelBody({
           <a
             id="panel-name"
             class="panel-name"
-            href={plugin.homepage ?? '#'}
-            target={plugin.homepage ? '_blank' : undefined}
+            href={homepage ?? '#'}
+            target={homepage ? '_blank' : undefined}
             rel="noopener"
           >{plugin.name}</a>
           <span id="panel-category" class={`badge badge-cat ${catClass}`}>{catLabel}</span>

@@ -3,6 +3,34 @@
 ## [Unreleased]
 
 ### Fixed
+- **Installer: a plugin name like `../../x` in a remote index could write a shim outside the shims directory.**
+  `shimDirFor` joined the untrusted plugin name into `~/.config/easier-life-skills/shims/`. Plugin names, repo
+  owners and repo names are now validated as plain identifiers (no separators, `..` or leading `-`) before any
+  marketplace is registered or file written; an unsafe entry aborts the whole install.
+- **Plugin `homepage` from third-party marketplaces was rendered as an `href` without a scheme check**, so a
+  `javascript:` / `data:` value would run on click. Homepages are now restricted to http(s) URLs both when the
+  index is built and when the plugin panel renders (new `shared/safe-url.ts`).
+- **Hook names kept a stray quote when the hook command was quoted** (e.g. `setup-shims.sh"`), so such hooks
+  were dropped when restored from a bundle link. `extractCommandName` now strips surrounding quotes via the
+  exported `hookNameFromCommand` helper.
+- **A crafted `#b=...` link could inject arbitrary lines into the bundle builder's copy-paste install script.**
+  `decodeItem` accepted any `name` / `installCommand` / `repo` from the URL hash and `buildInstallScript` emitted
+  them verbatim (including into `npx ... --plugin <name>`). Tokens are now validated against the exact shapes
+  the app produces (`/plugin install <plugin>@<repo>`, `owner/repo`, `[\w.-]` names); anything else is dropped.
+- **Shared links lost their `#cat=` filters on load.** `App` pruned unknown categories inside a `useMemo`
+  (calling `setState` during render) while every list was still empty, so URL-restored categories were
+  discarded before the index arrived. Category computation is now pure and pruning runs in an effect that
+  waits for the index to load.
+- **Installer `--bundle` installed only the first match of a bare-name ref.** `resolveRefs` in
+  `installer/src/lib/logic.ts` used `find`, contradicting the documented (and web UI) behaviour that a bare
+  string matches every same-named entity across marketplaces. It now resolves all matches, still deduped.
+- **"Part of bundles" in the skill detail panel was always empty for object bundle refs.** `EntityPanel`
+  matched `bundle.skills` with `includes(entity.name)`, which never matches the `{ name, source, pluginName }`
+  refs used by `.claude-plugin/bundles.json`. It now uses the shared `refMatchesEntity`.
+- **Raw URLs for local plugins pointed at the non-existent `main` branch.** `fetchMarketplaceSkills` hard-coded
+  `main` whenever a local root was used, so every `rawSkillUrl` / `rawAgentUrl` / `rawCommandUrl` / `rawHookUrl`
+  for this repo 404ed. `marketplaces.json` entries now accept an optional `branch`, and without one the branch
+  is probed (`main`, then `master`) for the local repo too.
 - **The index build crashed on plugins that declare `commands` as an object map** (e.g. `Jeffallan/claude-skills`:
   `{ "name": { "source": "./commands/x.md" } }`), which turned CI and the Pages deploy red. `discoverCommands`
   now reads that form (keeping the declared command names), skips malformed array entries, and warns about, rather

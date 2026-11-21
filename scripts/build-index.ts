@@ -90,10 +90,10 @@ const allCommands:   Command[]   = [];
 const allHooks:      Hook[]    = [];
 const sourceInfo:    Record<string, { isMarketplace: boolean }> = {};
 
-for (const { owner, repo } of marketplaces) {
+for (const { owner, repo, branch } of marketplaces) {
   // Pass local root only for the local repo; external marketplaces must not touch local fs
   const localRoot = (owner === LOCAL_OWNER && repo === LOCAL_REPO) ? ROOT : null;
-  const { plugins, skills, agents, mcpServers, commands, hooks, isMarketplace } = await fetchMarketplaceSkills(owner, repo, localRoot);
+  const { plugins, skills, agents, mcpServers, commands, hooks, isMarketplace } = await fetchMarketplaceSkills(owner, repo, localRoot, branch);
   allPlugins.push(...plugins);
   allSkills.push(...skills);
   allAgents.push(...agents);

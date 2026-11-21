@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
+import { assertSafeInstallable } from './logic.js';
 import type { Installable } from './types.js';
 
 const XDG_CONFIG_HOME = process.env.XDG_CONFIG_HOME || join(homedir(), '.config');
@@ -11,6 +12,7 @@ export function shimDirFor(pluginName: string): string {
 }
 
 export function writeShim(item: Installable, written: Set<string>, dryRun: boolean): string {
+  assertSafeInstallable(item);
   const dir = shimDirFor(item.pluginName);
   if (written.has(item.pluginName)) return dir;
   written.add(item.pluginName);

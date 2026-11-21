@@ -59,6 +59,20 @@ describe('resolveBundle', () => {
     expect(resolved.map((s: any) => s.name)).toContain('tdd');
   });
 
+  it('resolves a bare-name ref to every same-named entity across marketplaces', () => {
+    const mk = (owner: string) => ({
+      name: 'dup', pluginName: 'p', description: '',
+      source: { owner, repo: 'r', repoUrl: `https://github.com/${owner}/r` },
+    });
+    const dupSkills: any[] = [mk('a'), mk('b')];
+    expect(resolveBundle({ skills: ['dup'] } as any, dupSkills)).toHaveLength(2);
+    // an object ref still narrows to one
+    expect(resolveBundle({ skills: [{ name: 'dup', source: { owner: 'b', repo: 'r' } }] } as any, dupSkills))
+      .toHaveLength(1);
+    // repeated refs are deduped
+    expect(resolveBundle({ skills: ['dup', 'dup'] } as any, dupSkills)).toHaveLength(2);
+  });
+
   it('ignores refs that do not match any skill', () => {
     const fakeBundle = { skills: [{ name: 'no-such-skill', source: { owner: 'x', repo: 'y' }, pluginName: 'z' }] };
     expect(resolveBundle(fakeBundle, skills)).toHaveLength(0);
