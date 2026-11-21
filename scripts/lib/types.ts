@@ -196,6 +196,8 @@ export interface MarketplaceEntry {
   owner: string;
   repo: string;
   description?: string;
+  /** Default branch used to build raw URLs; probed (main, then master) when omitted. */
+  branch?: string;
 }
 
 export interface MarketplaceResult {

@@ -803,12 +803,19 @@ interface MarketplaceJson {
   bundles?: Bundle[];
 }
 
-export async function fetchMarketplaceSkills(owner: string, repo: string, root: string | null): Promise<MarketplaceResult> {
+export async function fetchMarketplaceSkills(
+  owner: string,
+  repo: string,
+  root: string | null,
+  branchHint?: string,
+): Promise<MarketplaceResult> {
   console.log(`  Fetching ${owner}/${repo}…`);
 
-  // Repos may use either default branch name; probe remotely when no local copy exists.
-  let branch = 'main';
-  if (!root) {
+  // Repos may use either default branch name. An explicit `branch` in marketplaces.json wins;
+  // otherwise probe remotely — also for the local repo, whose raw URLs must point at the
+  // branch that actually exists on GitHub (raw.githubusercontent.com does not alias master/main).
+  let branch = branchHint ?? 'main';
+  if (!branchHint) {
     for (const candidate of ['main', 'master']) {
       const base = `${RAW_BASE}/${owner}/${repo}/${candidate}`;
       const found = await readFile('.claude-plugin/marketplace.json', base, null)

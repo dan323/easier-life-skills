@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Fixed
+- **Raw URLs for local plugins pointed at the non-existent `main` branch.** `fetchMarketplaceSkills` hard-coded
+  `main` whenever a local root was used, so every `rawSkillUrl` / `rawAgentUrl` / `rawCommandUrl` / `rawHookUrl`
+  for this repo 404ed. `marketplaces.json` entries now accept an optional `branch`, and without one the branch
+  is probed (`main`, then `master`) for the local repo too.
 - **The index build crashed on plugins that declare `commands` as an object map** (e.g. `Jeffallan/claude-skills`:
   `{ "name": { "source": "./commands/x.md" } }`), which turned CI and the Pages deploy red. `discoverCommands`
   now reads that form (keeping the declared command names), skips malformed array entries, and warns about, rather
